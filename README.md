@@ -1,2 +1,3 @@
 # scuemata
-A CUE-based framework for portable, evolvable, schema
+
+TODO - actually write this README :)
