@@ -15,12 +15,13 @@ package scuemata
     // A Sequence is an ordered list of schema, with the invariant that
     // successive schemas are backwards compatible with their predecessors.
     #Sequence: [metaSchema, ...metaSchema]
+    // TODO check subsumption (backwards compat) of each schema with its successor
 
     // seqs is the list of sequences of schema that comprise the overall
     // lineage, along with the lenses that allow translation back and forth
     // across sequences.
     seqs: [
-        { 
+        {
             schemas: #Sequence
         },
         ...{
@@ -58,3 +59,16 @@ package scuemata
         }
     }
 }
+
+// SchemaVersion represents the version of a schema within a lineage as a
+// 2-tuple of integers - a coordinate, corresponding to the schema's position
+// within the list of sequences.
+//
+// Unlike most version numbering systems, a schema's version is not an arbitrary
+// number declared by the lineage's author. Rather, version numbers are derived
+// from the position of the schema within the lineage's list of sequences.
+// Sequence position, in turn, is governed by scuemata's constraints on
+// backwards compatibility and lens existence. By tying version numbers to these
+// checkable invariants, scuemata versions gain a precise semantics absent from
+// other systems.
+#SchemaVersion: [int, int]
