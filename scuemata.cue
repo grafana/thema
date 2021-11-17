@@ -1,40 +1,35 @@
 package scuemata
 
+import "list"
+
 // A Lineage is the top-level container in scuemata. It contains the 
-// evolutionary history of a particular object - every schema definition
+// evolutionary history of a particular kind of object - every schema definition that
+// has ever existed for that object, and the lenses that exist to translate between
 #Lineage: {
-    // MetaSchema governs the shape of all schema expressed in a lineage. It is
-    // unconstrained/top in the base case.
+    // JoinSchema governs the shape of schema that may be expressed in a
+    // lineage. It is the least upper bound, or join, of the acceptable schema
+    // value space; the schemas defined in this lineage must be instances of the
+    // JoinSchema.
+    // 
+    // In the base case, the JoinSchema is unconstrained/top - any value may be
+    // used as a schema.
     //
-    // A lineage's MetaSchema may never (backwards incompatibly) change as the
-    // lineage evolves.
+    // A lineage's JoinSchema may never change as the lineage evolves.
     //
+    // TODO should it be an open struct rather than top?
     // TODO can this be a def? should it?
-    metaSchema: _
+    JoinSchema: _
 
     // A Sequence is an ordered list of schema, with the invariant that
     // successive schemas are backwards compatible with their predecessors.
-    #Sequence: [metaSchema, ...metaSchema]
+    #Sequence: [JoinSchema, ...JoinSchema]
     // TODO check subsumption (backwards compat) of each schema with its successor
-
-    // seqs is the list of sequences of schema that comprise the overall
-    // lineage, along with the lenses that allow translation back and forth
-    // across sequences.
-    seqs: [
-        {
-            schemas: #Sequence
-        },
-        ...{
-            lens: #Lens
-            schemas: #Sequence
-        }
-    ]
 
     #Lens: {
         // The last schema in the previous sequence; logical predecessor
-        ancestor: metaSchema
+        ancestor: JoinSchema
         // The first schema in this sequence; logical successor
-        descendant: metaSchema
+        descendant: JoinSchema
         forward: {
             to: descendant
             from: ancestor
@@ -49,8 +44,23 @@ package scuemata
         }
     }
 
-    // TODO may (?) be possible to do this directly on Lens def if CUE adds
-    // relative-list-index keywords
+    // seqs is the list of sequences of schema that comprise the overall
+    // lineage, along with the lenses that allow translation back and forth
+    // across sequences.
+    seqs: [
+        {
+            schemas: #Sequence
+        },
+        ...{
+            lens: #Lens
+            schemas: #Sequence
+        }
+    ]
+
+
+    // Constrain that ancestor and descendant for each defined lens are the
+    // final and initial schemas in the predecessor seq and the seq containing
+    // the lens, respectively.
     for lv, l in seqs {
         if lv < len(seqs)-1 {
             let nextl = seqs[lv+1]
@@ -58,6 +68,45 @@ package scuemata
             nextl.lens.descendant: nextl.schemas[0]
         }
     }
+
+    // Pick a single schema version from the schema. The form of the argument
+    // for picking a version results in a guarantee that 
+    pick: {
+        // The schema version to pick. Either:
+        //
+        //   * An exact #SchemaVersion, e.g. [1, 0]
+        //   * Just the sequence number, list, e.g. [1]
+        //
+        // The latter form will select the latest schema within the given
+        // sequence.
+        v: #SchemaVersion | [int & >= 0]
+        v: [<len(seqs), <len(seqs[v[0]].schemas)] | [<len(seqs)]
+
+        let _v = #SchemaVersion & [
+            v[0],
+            if len(v) == 2 { v[1] },
+            if len(v) == 1 { len(seqs[v[0].schemas]) - 1 },
+        ]
+
+        out: seqs[_v[0]].schemas[_v[1]]
+        // TODO ^ apply object headers, etc.
+    }
+    _latest: #SchemaVersion
+    _latest: [len(seqs)-1, len(seqs[len(seqs)-1].schemas)-1]
+
+    // Helper that flattens all schema into a single list, putting their
+    // SchemaVersion in an adjacent property.
+    _all: list.FlattenN([for seqv, seq in seqs {
+        [for schv, sch in seq.schemas {
+            v: [seqv, schv]
+            sch: sch
+        } & _#vSch]
+    }], 1)
+}
+
+_#vSch: {
+    v: #SchemaVersion
+    sch: _
 }
 
 // SchemaVersion represents the version of a schema within a lineage as a
@@ -71,4 +120,28 @@ package scuemata
 // backwards compatibility and lens existence. By tying version numbers to these
 // checkable invariants, scuemata versions gain a precise semantics absent from
 // other systems.
-#SchemaVersion: [int, int]
+#SchemaVersion: [int & >= 0, int & >= 0]
+
+// TODO functionize
+_cmpSV: {
+    l: #SchemaVersion
+    r: #SchemaVersion
+    out: -1 | 0 | 1
+    out: {
+        if l == r { 0 }
+        if l[0] < r[0] { -1 }
+        if l[1] < r[1] { -1 }
+        if l[0] > r[0] { 1 }
+        if l[1] > r[1] { 1 }
+    }
+}
+
+_flatidx: {
+    lin: #Lineage
+    v: #SchemaVersion
+    fidx: for i, schv in lin._all {
+        if schv.v == v {
+            i
+        }
+    }
+}
