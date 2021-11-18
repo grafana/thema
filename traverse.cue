@@ -4,7 +4,7 @@ package scuemata
 #SearchAndValidate: {
     args: {
         lin: #Lineage
-        r: lin.JoinSchema
+        resource: lin.JoinSchema
     }
     out: #ValidatedResource | *_|_
 
@@ -22,28 +22,26 @@ package scuemata
         for schv, sch in seq.schemas {
             // TODO need (?) proper validation check here, not unification
             // TODO object headers especially important here
-            if ((sch & args.r) | *_|_) != _|_ {
+            if ((sch & args.resource) | *_|_) != _|_ {
                 out: #ValidatedResource & {
                     _v: [seqv, schv]
                     _lin: args.lin
-                    r: r
+                    resource: args.resource
                 }
             }
         }
     }
 }
 
-// A ValidatedResource represents a resource that is valid with respect to at
-// least one schema in a particular lineage.
+// A ValidatedResource represents a resource, and the schema from a particular
+// lineage that it validates against.
 #ValidatedResource: {
     r: _lin.JoinSchema
     _lin: #Lineage
     _v: #SchemaVersion
 
-    out: {
-        r: _lin.JoinSchema
-        lacunae: [...#Lacuna]
-    }
+    // TODO need proper validation check here, not simple unification
+    _valid: r & _lin.seqs[_v[0]].schemas[_v[1]]
 }
 
 #SearchCriteria: {
