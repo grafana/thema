@@ -2,9 +2,10 @@ package scuemata
 
 import "list"
 
-// A Lineage is the top-level container in scuemata. It contains the 
-// evolutionary history of a particular kind of object - every schema definition that
-// has ever existed for that object, and the lenses that exist to translate between
+// A Lineage is the top-level container in scuemata, holding the complete
+// evolutionary history of a particular kind of object: every schema that has
+// ever existed for that object, and the lenses that allow translating between
+// those schema versions.
 #Lineage: {
     // JoinSchema governs the shape of schema that may be expressed in a
     // lineage. It is the least upper bound, or join, of the acceptable schema
@@ -35,12 +36,14 @@ import "list"
             from: ancestor
             rel: descendant
             lacunae: [...#Lacuna]
+            translated: to & rel
         }
         reverse: {
             to: ancestor
             from: descendant
             rel: ancestor
             lacunae: [...#Lacuna]
+            translated: to & rel
         }
     }
 
@@ -57,20 +60,18 @@ import "list"
         }
     ]
 
-
     // Constrain that ancestor and descendant for each defined lens are the
     // final and initial schemas in the predecessor seq and the seq containing
     // the lens, respectively.
     for lv, l in seqs {
         if lv < len(seqs)-1 {
-            let nextl = seqs[lv+1]
-            nextl.lens.ancestor: l.schemas[len(l.schemas)-1]
-            nextl.lens.descendant: nextl.schemas[0]
+            // TODO can we close these? would be great to close these
+            seqs[lv+1] & { lens: ancestor: l.schemas[len(l.schemas)-1] }
+            seqs[lv+1] & { lens: descendant: seqs[lv+1].schemas[0] }
         }
     }
 
-    // Pick a single schema version from the schema. The form of the argument
-    // for picking a version results in a guarantee that 
+    // Pick a single schema version from the schema.
     pick: {
         // The schema version to pick. Either:
         //
@@ -96,11 +97,11 @@ import "list"
 
     // Helper that flattens all schema into a single list, putting their
     // SchemaVersion in an adjacent property.
-    _all: list.FlattenN([for seqv, seq in seqs {
+    _all: [..._#vSch] & list.FlattenN([for seqv, seq in seqs {
         [for schv, sch in seq.schemas {
             v: [seqv, schv]
             sch: sch
-        } & _#vSch]
+        }]
     }], 1)
 }
 
@@ -139,9 +140,5 @@ _cmpSV: {
 _flatidx: {
     lin: #Lineage
     v: #SchemaVersion
-    fidx: for i, schv in lin._all {
-        if schv.v == v {
-            i
-        }
-    }
+    fidx: {for i, sch in lin._all if sch.v == v { i }}
 }
