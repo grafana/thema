@@ -10,13 +10,20 @@ import (
 	cuejson "cuelang.org/go/pkg/encoding/json"
 )
 
+// A Lineage is the top-level container in scuemata, holding the complete
+// evolutionary history of a particular kind of object: every schema that has
+// ever existed for that object, and the lenses that allow translating between
+// those schema versions.
 type Lineage interface {
 	// First returns the first schema in the lineage.
 	//
-	// All valid Lineage implementations are guaranteed to return a non-nil
-	// Schema from this method with a Version() of [0, 0].
+	// All valid Lineage implementations must return a non-nil Schema from this
+	// method with a Version() of [0, 0].
 	First() Schema
 	// Last returns the last schema in the lineage.
+	//
+	// All valid Lineage implementations must return a non-nil Schema from this
+	// method.
 	Last() Schema
 	// CUE returns the cue.Value representing the entire lineage.
 	CUE() cue.Value
