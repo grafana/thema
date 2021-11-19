@@ -2,7 +2,6 @@ package scuemata
 
 import (
     "list"
-    "strings"
 )
 
 // A Lineage is the top-level container in scuemata, holding the complete

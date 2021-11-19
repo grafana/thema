@@ -2,6 +2,7 @@ package crd
 
 import (
     "list"
+    "strings"
     "github.com/grafana/scuemata"
 )
 
@@ -70,11 +71,11 @@ import (
         apiVersion: "apiextensions.k8s.io/v1"
         kind: "CustomResourceDefinition"
         metadata: {
-            name: "\(args.lin.crd.names.plural).\(args.lin.crd.group)"
+            name: "\(spec.names.plural).\(spec.group)"
         }
-        spec: lin.crd
+        spec: spec
         spec: versions: {
-            for seqv, seq in lin.seqs {
+            for seqv, seq in args.lin.seqs {
                 for schv, sch in seq.schemas {
                     served: list.Contains(args.served, [seqv, schv])
                     storage: [seqv, schv] == args.storage
