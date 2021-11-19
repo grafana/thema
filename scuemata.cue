@@ -1,6 +1,9 @@
 package scuemata
 
-import "list"
+import (
+    "list"
+    "strings"
+)
 
 // A Lineage is the top-level container in scuemata, holding the complete
 // evolutionary history of a particular kind of object: every schema that has
@@ -20,6 +23,8 @@ import "list"
     // TODO should it be an open struct rather than top?
     // TODO can this be a def? should it?
     JoinSchema: _
+
+    Name: string
 
     // A Sequence is an ordered list of schema, with the invariant that
     // successive schemas are backwards compatible with their predecessors.
@@ -71,7 +76,7 @@ import "list"
         }
     }
 
-    // Pick a single schema version from the schema.
+    // Pick a single schema version from the lineage.
     pick: {
         // The schema version to pick. Either:
         //
