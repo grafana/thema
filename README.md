@@ -6,7 +6,7 @@ Unlike JSON Schema, OpenAPI, or any other extant schema system, Scuemata's chief
 
 The effect of encapsulating schema definition, evolution, and translation into a single, portable, machine-verifiable logical structure is transformative. Taken together, these pieces allow systems that rely on schemas as the contracts for their communication to decouple and evolve independently - even across breaking changes to those schema.
 
-Learn more in our [docs](TODO)!
+Learn more in our (TODO) [docs](TODO), or in this [overview video](https://www.youtube.com/watch?v=PpoS_ThntEM)!
 
 ## Maturity
 
@@ -15,4 +15,4 @@ Scuemata is in early adolescence: it's mostly formed, but there are still some c
 * [Reverse translation within sequences](TODO)
 * [Object headers](TODO)
 
-Once these changes are finalized, however, we expect to treat the CUE and Go APIs stable, and will scrupulously avoid making breaking changes to them.
+Once these changes are finalized, however, we aim to treat the CUE and Go APIs as stable, scrupulously avoiding any breaking changes.
