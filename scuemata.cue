@@ -23,7 +23,7 @@ import (
     // TODO can this be a def? should it?
     JoinSchema: _
 
-    // The name of the object schematized in this lineage.
+    // The name of the thing being schematized in this lineage.
     Name: string
     // TODO https://github.com/cue-lang/cue/issues/943
     // Name: must(isconcrete(Name), "all lineages must have a name")
