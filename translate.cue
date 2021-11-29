@@ -52,7 +52,7 @@ import "list"
 
                 // Feed the lens "from" input with the resource output of the
                 // last translation (or init)
-                let lens = { from: lastr.resource } & args.lin.seqs[vsch.v[0]].lens.forward
+                let lens = { from: lastr.resource } & args.lin.Seqs[vsch.v[0]].lens.forward
                 resource: lens.translated
                 lacunae: lens.lacunae
             }

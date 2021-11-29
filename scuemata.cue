@@ -23,12 +23,21 @@ import (
     // TODO can this be a def? should it?
     JoinSchema: _
 
+    // The name of the object schematized in this lineage.
     Name: string
+    // TODO https://github.com/cue-lang/cue/issues/943
+    // Name: must(isconcrete(Name), "all lineages must have a name")
 
     // A Sequence is an ordered list of schema, with the invariant that
     // successive schemas are backwards compatible with their predecessors.
-    #Sequence: [JoinSchema, ...JoinSchema]
-    // TODO check subsumption (backwards compat) of each schema with its successor
+    #Sequence: [...JoinSchema] & list.MinItems(1)
+
+    // Uncomment this for certain local dev tasks because constraining with
+    // list.MinItems(1) isn't yet smart enough to tell the typechecker that it
+    // is always safe to reference #Sequence[0]. We DON'T want this committed,
+    // though, because it would allow empty lineage declarations by relying on
+    // the JoinSchema, which we do not want to be valid text for authors to write.
+    // #Sequence: [JoinSchema, ...JoinSchema]
 
     #Lens: {
         // The last schema in the previous sequence; logical predecessor
@@ -51,10 +60,10 @@ import (
         }
     }
 
-    // seqs is the list of sequences of schema that comprise the overall
+    // Seqs is the list of sequences of schema that comprise the overall
     // lineage, along with the lenses that allow translation back and forth
     // across sequences.
-    seqs: [
+    Seqs: [
         {
             schemas: #Sequence
         },
@@ -67,16 +76,20 @@ import (
     // Constrain that ancestor and descendant for each defined lens are the
     // final and initial schemas in the predecessor seq and the seq containing
     // the lens, respectively.
-    for lv, l in seqs {
-        if lv < len(seqs)-1 {
-            // TODO can we close these? would be great to close these
-            seqs[lv+1] & { lens: ancestor: l.schemas[len(l.schemas)-1] }
-            seqs[lv+1] & { lens: descendant: seqs[lv+1].schemas[0] }
+    if len(Seqs) > 1 {
+        for lv, l in Seqs {
+            if lv < len(Seqs)-1 {
+                // TODO can we close these? would be great to close these
+                Seqs[lv+1] & { lens: ancestor: l.schemas[len(l.schemas)-1] }
+                Seqs[lv+1] & { lens: descendant: Seqs[lv+1].schemas[0] }
+            }
         }
     }
 
-    // Pick a single schema version from the lineage.
-    pick: {
+    // TODO check subsumption (backwards compat) of each schema with its successor
+
+    // Select a single schema version from the lineage.
+    Pick: {
         // The schema version to pick. Either:
         //
         //   * An exact #SchemaVersion, e.g. [1, 0]
@@ -85,23 +98,31 @@ import (
         // The latter form will select the latest schema within the given
         // sequence.
         v: #SchemaVersion | [int & >= 0]
-        v: [<len(seqs), <len(seqs[v[0]].schemas)] | [<len(seqs)]
+        v: [<len(Seqs), <len(Seqs[v[0]].schemas)] | [<len(Seqs)]
 
         let _v = #SchemaVersion & [
             v[0],
             if len(v) == 2 { v[1] },
-            if len(v) == 1 { len(seqs[v[0].schemas]) - 1 },
+            if len(v) == 1 { len(Seqs[v[0].schemas]) - 1 },
         ]
 
-        out: seqs[_v[0]].schemas[_v[1]]
+        out: Seqs[_v[0]].schemas[_v[1]]
         // TODO ^ apply object headers, etc.
     }
+
+    // Helper that extracts SchemaVersion of latest schema.
+    //
+    // Internal only, because writing programs that include a textual references
+    // which can float across backwards-incompatible changes (like this one) is
+    // the exact thing scuemata is trying to avoid.
+    //
+    // TODO make into an alias?
     _latest: #SchemaVersion
-    _latest: [len(seqs)-1, len(seqs[len(seqs)-1].schemas)-1]
+    _latest: [len(Seqs)-1, len(Seqs[len(Seqs)-1].schemas)-1]
 
     // Helper that flattens all schema into a single list, putting their
     // SchemaVersion in an adjacent property.
-    _all: [..._#vSch] & list.FlattenN([for seqv, seq in seqs {
+    _all: [..._#vSch] & list.FlattenN([for seqv, seq in Seqs {
         [for schv, sch in seq.schemas {
             v: [seqv, schv]
             sch: sch
@@ -115,8 +136,8 @@ _#vSch: {
 }
 
 // SchemaVersion represents the version of a schema within a lineage as a
-// 2-tuple of integers - a coordinate, corresponding to the schema's position
-// within the list of sequences.
+// 2-tuple of integers: coordinates, corresponding to the schema's index
+// in a sequence, and that sequence's index within the list of sequences.
 //
 // Unlike most version numbering systems, a schema's version is not an arbitrary
 // number declared by the lineage's author. Rather, version numbers are derived

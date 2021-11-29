@@ -7,7 +7,7 @@ import (
 func BuildLineage(raw cue.Value) (Lineage, error) {
 	// TODO verify subsumption by #Lineage; renders many
 	// error checks below unnecessary
-	majiter, err := raw.LookupPath(cue.MakePath(cue.Str("seqs"))).List()
+	majiter, err := raw.LookupPath(cue.MakePath(cue.Str("Seqs"))).List()
 	if err != nil {
 		return nil, err
 	}

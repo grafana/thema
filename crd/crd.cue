@@ -9,7 +9,7 @@ import (
 // CRD transforms a lineage into a Kubernetes custom resource definition, or a series thereof.
 #CRD: {
     args: {
-        _sv: [<len(lin.seqs), <len(lin.seqs[_sv[0]].schemas)]
+        _sv: [<len(lin.Seqs), <len(lin.Seqs[_sv[0]].schemas)]
         served: [..._sv]
         storage: _sv
         lin: scuemata.#Lineage
@@ -75,7 +75,7 @@ import (
         }
         spec: spec
         spec: versions: {
-            for seqv, seq in args.lin.seqs {
+            for seqv, seq in args.lin.Seqs {
                 for schv, sch in seq.schemas {
                     served: list.Contains(args.served, [seqv, schv])
                     storage: [seqv, schv] == args.storage
