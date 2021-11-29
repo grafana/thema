@@ -10,7 +10,7 @@ package scuemata
 
     // Disjunction approach. Probably a bad idea to use at least until
     // disjunction performance is addressed, and maybe just in general.
-    // let allsch = or([for seqv, seq in args.lin.seqs {
+    // let allsch = or([for seqv, seq in args.lin.Seqs {
         // for schv, sch in seq.schemas { 
             // TODO what about non-struct schemas?
             // TODO can we unify a hidden field onto a closed sch? can't imagine so
@@ -18,7 +18,7 @@ package scuemata
         // }
     // ])
 
-    out: [for seqv, seq in args.lin.seqs {
+    out: [for seqv, seq in args.lin.Seqs {
         // TODO need (?) proper validation check here, not unification
         for schv, sch in seq.schemas if ((sch & args.resource) | *_|_) != _|_ {
             // TODO object headers especially important here
@@ -39,13 +39,13 @@ package scuemata
     _v: #SchemaVersion
 
     // TODO need proper validation check here, not simple unification
-    _valid: r & _lin.seqs[_v[0]].schemas[_v[1]]
+    _valid: r & _lin.Seqs[_v[0]].schemas[_v[1]]
 }
 
 #SearchCriteria: {
     lin: #Lineage
     from: #SchemaVersion
-    to: #SchemaVersion & [<=lin._latest[0], <len(lin.seqs[to[0]].schemas)]
+    to: #SchemaVersion & [<=lin._latest[0], <len(lin.Seqs[to[0]].schemas)]
 }
 
 // Latest indicates that traversal should continue until the latest schema in
@@ -65,7 +65,7 @@ package scuemata
     if fromResource != _|_ {
         from: (#SearchAndValidate & { args: { resource: fromResource, lin: lin }}).out._v
     }
-    to: [from[0], len(lin.seqs[from[0]].schemas)]
+    to: [from[0], len(lin.Seqs[from[0]].schemas)]
 }
 
 // Exact indicates traversal should continue until an exact, explicitly
