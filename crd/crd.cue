@@ -8,16 +8,14 @@ import (
 
 // CRD transforms a lineage into a Kubernetes custom resource definition, or a series thereof.
 #CRD: {
-    args: {
-        _sv: [<len(lin.Seqs), <len(lin.Seqs[_sv[0]].schemas)]
-        served: [..._sv]
-        storage: _sv
-        lin: scuemata.#Lineage
-    }
+    _sv: [<len(lin.Seqs), <len(lin.Seqs[_sv[0]].schemas)]
+    served: [..._sv]
+    storage: _sv
+    lin: scuemata.#Lineage
 
     // Additional metadata necessary to convert a scuemata lineage into a
     // Kubernetes Custom Resource Definition (CRD).
-    spec: {
+    crdspec = spec: {
 		// scope indicates whether the defined custom resource is cluster-
 		// or namespace-scoped.
         scope: "Namespaced" | "Cluster"
@@ -38,7 +36,7 @@ import (
             // CamelCase and singular. Custom resource instances will use
             // this value as the `kind` attribute in API calls.
             // TODO default this to scuemata name
-            kind: string
+            kind: string | *lin.Name
 
             // listKind is the serialized kind of the list for this resource.
             listKind: string | *"\(kind)List"
@@ -46,7 +44,7 @@ import (
             // plural is the plural name of the resource to serve. The custom
             // resources are served under
             // `/apis/<group>/<version>/.../<plural>`.
-            plural: string | =~ #"[a-z]"#
+            plural: string | =~ #"[a-z]"# | *"\(lin.Name)s"
 
             // shortNames allow shorter string to match your resource on the CLI
             shortNames?: [...string]
@@ -54,14 +52,17 @@ import (
             // singular is the singular name of the resource. It must be all
             // lowercase.
             singular: string | *strings.ToLower(kind)
+            // TODO https://github.com/cue-lang/cue/issues/943
+            // singular: must(singular == strings.ToLower(singular), "singular form must be all lower case")
         }
         // Deprecated upstream, so omitted
         // preserveUnknownFields: bool | *false
 
 		// conversion defines conversion settings for the CRD.
         conversion?: {
-            // TODO for now, only allow this, because what we really want to do
-            // is swap scuemata translation logic in for Scheme
+            // TODO for now, only allow this and not webhook, because what we
+            // really want to do is swap scuemata translation logic in for
+            // Scheme
             strategy: "None"
         }
     }
@@ -71,14 +72,14 @@ import (
         apiVersion: "apiextensions.k8s.io/v1"
         kind: "CustomResourceDefinition"
         metadata: {
-            name: "\(spec.names.plural).\(spec.group)"
+            name: "\(crdspec.names.plural).\(crdspec.group)"
         }
-        spec: spec
+        spec: crdspec
         spec: versions: {
-            for seqv, seq in args.lin.Seqs {
+            for seqv, seq in lin.Seqs {
                 for schv, sch in seq.schemas {
-                    served: list.Contains(args.served, [seqv, schv])
-                    storage: [seqv, schv] == args.storage
+                    served: list.Contains(served, [seqv, schv])
+                    storage: [seqv, schv] == storage
                     name: "v\(seqv).\(schv)" // Not sure if the dot is allowed
                     schema: {
                         openAPIV3Schema: {...} // This is what needs to be filled in by the encoder

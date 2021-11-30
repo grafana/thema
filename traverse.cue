@@ -2,10 +2,8 @@ package scuemata
 
 // TODO functionize
 #SearchAndValidate: {
-    args: {
-        lin: #Lineage
-        resource: lin.JoinSchema
-    }
+    lin: #Lineage
+    resource: lin.JoinSchema
     out: #ValidatedResource | *_|_
 
     // Disjunction approach. Probably a bad idea to use at least until
@@ -18,14 +16,14 @@ package scuemata
         // }
     // ])
 
-    out: [for seqv, seq in args.lin.Seqs {
+    out: [for seqv, seq in lin.Seqs {
         // TODO need (?) proper validation check here, not unification
-        for schv, sch in seq.schemas if ((sch & args.resource) | *_|_) != _|_ {
+        for schv, sch in seq.schemas if ((sch & resource) | *_|_) != _|_ {
             // TODO object headers especially important here
             #ValidatedResource & {
                 _v: [seqv, schv]
-                _lin: args.lin
-                resource: args.resource
+                _lin: lin
+                resource: resource
             }
         }
     }][0]
@@ -63,7 +61,7 @@ package scuemata
     from: #SchemaVersion
     fromResource?: lin.JoinSchema
     if fromResource != _|_ {
-        from: (#SearchAndValidate & { args: { resource: fromResource, lin: lin }}).out._v
+        from: (#SearchAndValidate & { resource: fromResource, lin: lin }).out._v
     }
     to: [from[0], len(lin.Seqs[from[0]].schemas)]
 }

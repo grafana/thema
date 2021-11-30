@@ -14,18 +14,16 @@ import "list"
 // TODO functionize
 // TODO backwards-translation is not yet supported
 #Translate: {
-    args: {
-        resource: lin.JoinSchema
-        lin: #Lineage
-        to: #SearchCriteria
-    }
+    resource: lin.JoinSchema
+    lin: #Lineage
+    to: #SearchCriteria
 
     _transl: {
         init: #ValidatedResource
         schemarange: [..._#vSch]
 
         _#step: {
-            resource: args.lin.JoinSchema
+            resource: lin.JoinSchema
             v: #SchemaVersion
             lacunae: [...#Lacuna]
         }
@@ -43,7 +41,7 @@ import "list"
                 // the key places where scuemata is maybe-sorta implicitly assuming
                 // its inputs are concrete resources, and won't work quite right
                 // with incomplete CUE structures
-                resource:  lastr.resource.r & (args.lin.pick & { v: vsch }).out
+                resource:  lastr.resource.r & (lin.Pick & { v: vsch }).out
                 lacunae: []
             }
 
@@ -52,7 +50,7 @@ import "list"
 
                 // Feed the lens "from" input with the resource output of the
                 // last translation (or init)
-                let lens = { from: lastr.resource } & args.lin.Seqs[vsch.v[0]].lens.forward
+                let lens = { from: lastr.resource } & lin.Seqs[vsch.v[0]].lens.forward
                 resource: lens.translated
                 lacunae: lens.lacunae
             }
@@ -66,19 +64,19 @@ import "list"
         }
     }
 
-    let rarg = (#SearchAndValidate & { args: { resource: args.resource, lin: args.lin }}).out
+    let rarg = (#SearchAndValidate & { resource: resource, lin: lin }).out
     // FIXME Must necessarily anchor translation at the input resource's schema
     // version. Nevertheless, this has an unfortunate, magical smell.
-    args: to: from: rarg._v
-    let cmp = (_cmpSV & { l: rarg._v, r: args.to.to }).out
+    to: from: rarg._v
+    let cmp = (_cmpSV & { l: rarg._v, r: to.to }).out
     out: {
         if cmp == 0 {
             (_transl & { init: rarg, schemarange: [] }).out
         }
         if cmp == -1 {
-            let lo = (_flatidx & { lin: args.lin, rarg._v}).fidx
-            let hi = (_flatidx & { lin: args.lin, args.to.to[0]}).fidx
-            (_transl & { init: rarg, schemarange: args.lin._all[lo+1:hi]}).out
+            let lo = (_flatidx & { lin: lin, rarg._v}).fidx
+            let hi = (_flatidx & { lin: lin, to.to[0]}).fidx
+            (_transl & { init: rarg, schemarange: lin._all[lo+1:hi]}).out
         }
         if cmp == 1 {
             // FIXME For now, we don't support backwards translation. This must change.
