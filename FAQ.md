@@ -16,13 +16,20 @@ That's true. A breaking change to a contract like a schema is still breaking.
 
 What scuemata does is change the nature of the contract between communicating systems. Instead of agreeing on a single schema, they agree on the whole scuemata lineage as the contract, with all the invariants about translation between schema versions that that entails.
 
-## Is Scuemata as expressive as other schema systems?
+For example, say system `A` accepts messages which is comprised of a single field named `foo`, which has value of type `int64`. System `B` accepts the contract, and starts sending messages to `A` according to this schema. What scuemata changes is not so much the schema in use at any one time, but the contract between `A` and `B`:
+
+* **Traditional Schema:** `A` promises that messages with field `foo` containing an `int64` value will be valid in perpetuity.
+* **Scuemata:** `A` promises that messages with a field `foo` containing an `int64` will either be valid itself, or will be translatable into a valid message, in perpetuity.
+
+Scuemata shifts the contract up a level of abstraction - from rigid adherence to the contents of an individual schema, to the meta-property of relations between schemas.
+
+## Is scuemata as expressive as other schema systems?
 
 Scuemata is just a thin layer of naming patterns and constraints atop of CUE itself, which makes this largely a question about CUE's expressiveness.
 
-For the most part, yes, CUE is comparably expressive to other common schema systems, like JSON Schema and OpenAPI. There are some areas where CUE is less expressive, and some where it's more.
+For the most part, yes, CUE is comparably expressive to other common schema systems, like JSON Schema and OpenAPI. There are some areas where CUE is less expressive, and some where it's more. (TODO - links to more relevant info)
 
-## What definition of "backwards compatibility" does Scuemata use in its checks?
+## What definition of "backwards compatibility" does scuemata use in its checks?
 
 [CUE's definition of subsumption](https://cuelang.org/docs/concepts/logic): does `A` subsume `B`? If so, then `A` is backwards compatible with `B`.
 
@@ -36,11 +43,11 @@ Our foundational belief is that, while breaking changes can cause considerable p
 
 Given this premise, the best course of action is to create patterns that allow breaking changes made by schema authors to be effectively managed by schema consumers. Scuemata is the simplest such pattern we can imagine: it turns "breaking" changes from hard, brittle failures into softer questions of risk management.
 
-## Why did Scuemata make up a new version numbering system instead of just using [semver](https://semver.org)?
+## Why did scuemata make up a new version numbering system instead of just using [semver](https://semver.org)?
 
-In scuemata, unlike most version numbering systems, a schema's version is not an arbitrary number declared by the lineage's author. Rather, version numbers are derived from the position of the schema within the lineage's list of sequences.
+Scuemata schema versions, unlike most version numbering systems, are not an arbitrary declaration by the schema author. Rather, version numbers are derived from the position of the schema within the lineage's list of sequences. Sequence position, in turn, is governed by scuemata's checked invariants on backwards compatibility and lens existence.
 
-Sequence position, in turn, is governed by scuemata's constraints on backwards compatibility and lens existence. By tying version numbers to these checkable invariants, scuemata versions gain a precise semantics absent from systems like semver.
+By associating version numbers with logical properties, scuemata versions gain precise semantics absent from other numbering systems.
 
 ## How do I express prerelease-type concepts: "alpha", "beta", etc.?
 
