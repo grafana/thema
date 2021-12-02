@@ -25,7 +25,7 @@ import (
 
     // The name of the thing being schematized in this lineage.
     Name: string
-    // TODO https://github.com/cue-lang/cue/issues/943
+    // TODO(must) https://github.com/cue-lang/cue/issues/943
     // Name: must(isconcrete(Name), "all lineages must have a name")
 
     // A Sequence is an ordered list of schema, with the invariant that
@@ -33,10 +33,11 @@ import (
     #Sequence: [...JoinSchema] & list.MinItems(1)
 
     // Uncomment this for certain local dev tasks because constraining with
-    // list.MinItems(1) isn't yet smart enough to tell the typechecker that it
-    // is always safe to reference #Sequence[0]. We DON'T want this committed,
-    // though, because it would allow empty lineage declarations by relying on
-    // the JoinSchema, which we do not want to be valid text for authors to write.
+    // list.MinItems(1) isn't able to tell the evaluator that it is always safe
+    // to reference #Sequence[0], resulting in lots of garbage errors. We DON'T
+    // want this committed, though, because it would allow empty lineage
+    // declarations by relying on the JoinSchema, which we do not want to be
+    // valid text for authors to write.
     // #Sequence: [JoinSchema, ...JoinSchema]
 
     #Lens: {
