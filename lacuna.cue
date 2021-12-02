@@ -1,7 +1,5 @@
 package scuemata
 
-import "list"
-
 // A Lacuna represents a gap in a translation: a case in which there exists a
 // flaw in the lens that affected the translation of a particular resource
 // from one schema to another.
@@ -24,11 +22,11 @@ import "list"
 
     // The field path(s) and their value(s) in the pre-translation resource
     // that are relevant to the lacuna.
-    sourceFields: [..._#ref]
+    sourceFields: [...#FieldRef]
 
     // The field path(s) and their value(s) in the post-translation resource
     // that are relevant to the lacuna.
-    targetFields: [..._#ref]
+    targetFields: [...#FieldRef]
 
     // At least one of sourceFields or targetFields must be non-empty.
     // TODO(must) https://github.com/cue-lang/cue/issues/943
@@ -37,7 +35,7 @@ import "list"
     // A human-readable message describing the gap in translation.
     message: string
 
-    type: or(#LacunaTypes)
+    type: or([for t in #LacunaTypes {t}])
 }
 
 #LacunaTypes: [N=string]: #LacunaType & {
