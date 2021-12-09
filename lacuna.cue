@@ -65,6 +65,25 @@ package scuemata
     DroppedField: {
         id: 2
     }
+
+    // LossyFieldMapping lacunae indicate that no clear mapping existed from the
+    // source field value to the intended semantics of any valid target field
+    // value. 
+    // 
+    // Only use this lacuna type when there exists at least one valid source
+    // value with a clear, lossless mapping to the target value.
+    LossyFieldMapping: {
+        id: 3
+    }
+
+    // ChangedDefault lacunae indicate that the source field value was the
+    // schema-specified default, and the default changed in the target field,
+    // and the value in the instance was changed as well.
+    //
+    // NOTE the semantics of field presence/absence in the resource are subtle here, and this may need refinement
+    ChangedDefault: {
+        id: 4
+    }
 }
 
 #LacunaType: {
