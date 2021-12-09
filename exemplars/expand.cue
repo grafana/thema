@@ -1,8 +1,10 @@
 package exemplars
 
+import "github.com/grafana/scuemata"
+
 expand: {
     description: "A few schema in a single sequence, illustrating some simple expansions permitted by backwards compatibility (subsumption) rules."
-    l: {
+    l: scuemata.#Lineage & {
         Seqs: [
             {
                 schemas: [
