@@ -1,8 +1,10 @@
 package exemplars
 
+import "github.com/grafana/scuemata"
+
 narrowing: {
     description: "Lineage that narrows a sloppily-specified boolean/string-ish type to a proper boolean over a single breaking change."
-    l: {
+    l: scuemata.#Lineage & {
         Seqs: [
             {
                 schemas: [
@@ -21,7 +23,7 @@ narrowing: {
                 lens: forward: {
                     to: Seqs[1].schemas[0]
                     from: Seqs[0].schemas[0]
-                    out: to & rel
+                    translated: to & rel
                     rel: {
                         if ((from.boolish & string) != _|_) {
                             properbool: from.boolish == "true"
@@ -51,7 +53,7 @@ narrowing: {
                 lens: reverse: {
                     to: Seqs[0].schemas[0]
                     from: Seqs[1].schemas[0]
-                    out: to & rel
+                    translated: to & rel
                     rel: {
                         // Preserving preicse original form is a non-goal of scuemata in general.
                         boolish: from.properbool
