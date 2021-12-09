@@ -20,10 +20,6 @@ _#Exemplar: {
 
 // Cases to create
 // 
-// 1. Narrowing of sloppy type
-// 2. Simple, single schema case
-// 3. Multiple schema, one sequence, simple field addition but also disjunction expansion
-// 4. Simple rename of fields across seqs
 // 5. Complex combination and remapping of fields across seqs
 // 6. Subtype/constrained JoinSchema
 // 7. Change to defaults across seqs
