@@ -31,6 +31,7 @@ package scuemata
     // At least one of sourceFields or targetFields must be non-empty.
     // TODO(must) https://github.com/cue-lang/cue/issues/943
     // must(len(sourceFields) > 0 || len(targetFields) > 0, "at least one of sourceFields or targetFields must be non-empty")
+    _mustlen: >0 & (len(sourceFields) + len(targetFields))
 
     // A human-readable message describing the gap in translation.
     message: string
@@ -38,7 +39,8 @@ package scuemata
     type: or([for t in #LacunaTypes {t}])
 }
 
-#LacunaTypes: [N=string]: #LacunaType & {
+#LacunaTypes: [N=string]: #LacunaType & { Name: N }
+#LacunaTypes: {
     // Placeholder lacunae indicate that a field in the target resource has
     // been filled with a placeholder value.
     //
