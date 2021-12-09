@@ -19,8 +19,8 @@ narrowing: {
                 ]
 
                 lens: forward: {
-                    to: lineages[1].schemas[0]
-                    from: lineages[0].schemas[0]
+                    to: Seqs[1].schemas[0]
+                    from: Seqs[0].schemas[0]
                     out: to & rel
                     rel: {
                         if ((from.boolish & string) != _|_) {
@@ -49,8 +49,8 @@ narrowing: {
                 }
 
                 lens: reverse: {
-                    to: lineages[0].schemas[0]
-                    from: lineages[1].schemas[0]
+                    to: Seqs[0].schemas[0]
+                    from: Seqs[1].schemas[0]
                     out: to & rel
                     rel: {
                         // Preserving preicse original form is a non-goal of scuemata in general.
