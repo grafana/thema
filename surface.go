@@ -14,40 +14,53 @@ type Lineage interface {
 	// All valid Lineage implementations must return a non-nil Schema from this
 	// method with a Version() of [0, 0].
 	First() Schema
-	// Last returns the last schema in the lineage.
-	//
-	// All valid Lineage implementations must return a non-nil Schema from this
-	// method.
-	Last() Schema
-	// Value returns the cue.Value representing the entire lineage.
-	Value() cue.Value
+
+	// Raw returns the cue.Value of the entire lineage.
+	RawValue() cue.Value
+
+	// Name returns the name of the object schematized in the lineage, as defined
+	// in the lineage's Name field.
+	Name() string
 }
 
-// A Lacuna is a gap in translation.
+// A Lacuna represents a semantic gap in a Lens's mapping between schemas.
 //
-// Each Lacuna instance represents represents a flaw
+// For any given mapping between schema, there may exist some valid values and
+// intended semantics on either side that are impossible to precisely translate.
+// When such gaps occur, and an actual schema instance falls into such a gap,
+// the Lens is expected to emit Lacuna that describe the general nature of the
+// translation gap.
 //
-// Lacuna are NOT intended to represent lossiness in translation.
-type Lacuna interface {
-	SourcePath() string
-	TargetPath() string
-	Type() LacunaType
-	Message() string
+// A lacuna may be unconditional (the gap exists for all possible instances
+// being translated between the schema pair) or conditional (the gap only exists
+// when certain values appear in the instance being translated between schema).
+// However, the conditionality of lacunae is expected to be expressed at the
+// level of the lens, and determines whether a particular lacuna object is
+// created; the production of a lacuna object as the output of a specific
+// translation indicates the lacuna applies to that specific translation.
+type Lacuna struct {
+	// The field path(s) and their value(s) in the pre-translation resource
+	// that are relevant to the lacuna.
+	SourceFields []FieldRef
+
+	// The field path(s) and their value(s) in the post-translation resource
+	// that are relevant to the lacuna.
+	TargetFields []FieldRef
+	Type         LacunaType
+
+	// A human-readable message describing the gap in translation.
+	Message string
 }
 
 type LacunaType uint16
 
-// Schema represents a single, complete CUE-based schema from a scuemata lineage
-// that can perform operations on Resources.
-//
-// All Schema MUST EITHER:
-//  - Be a Schema, and be the latest version in the latest sequence in a lineage
-//  - Return non-nil from Successor(), and a procedure to Translate() a Resource to that successor schema
-//
-// By definition, Schema are within a sequence. As long as sequence
-// backwards compatibility invariants hold, translation to a Schema to
-// a successor schema in their sequence is trivial: simply unify the Resource
-// with the successor schema.
+type FieldRef struct {
+	Path  string
+	Value interface{}
+}
+
+// Schema represents a single, complete schema from a scuemata lineage. A Schema can
+// perform operations on resources.
 type Schema interface {
 	// Validate checks that the resource is correct with respect to the schema.
 	Validate(Resource) error
@@ -68,12 +81,11 @@ type Schema interface {
 	// somewhere on a lineage's sequence of schemas.
 	Translate(Resource) (Resource, Schema, error)
 
-	// Successor returns the Schema to which this Schema can migrate a
-	// Resource.
+	// Successor returns the next schema in the lineage.
 	Successor() Schema
 
-	// CUE returns the cue.Value representing the actual schema.
-	CUE() cue.Value
+	// Raw returns the cue.Value containing the actual underlying CUE schema.
+	RawValue() cue.Value
 
 	// Version reports the major and minor versions of the schema.
 	Version() (major, minor int)
