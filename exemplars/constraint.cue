@@ -3,26 +3,25 @@ package exemplars
 import "github.com/grafana/scuemata"
 
 _#Exemplar: {
-    lin: scuemata.#Lineage
+    l: scuemata.#Lineage
     description: string
-    tt: [string]: {
-        r: lin.JoinSchema
-        to: scuemata.#SearchCriteria
-        expect: {
-            to: lin.JoinSchema
-        }
-    }
+    // tt: [string]: {
+    //     r: l.JoinSchema
+    //     to: scuemata.#SearchCriteria
+    //     expect: {
+    //         to: l.JoinSchema
+    //     }
+    // }
 }
 
 [N=string]: _#Exemplar & {
-    lin: Name: N
+    l: Name: N
 }
 
 // Cases to create
 // 
 // 5. Complex combination and remapping of fields across seqs
 // 6. Subtype/constrained JoinSchema
-// 7. Change to defaults across seqs
 
 // Composed cases
 //
