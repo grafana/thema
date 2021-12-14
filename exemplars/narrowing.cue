@@ -17,6 +17,7 @@ narrowing: {
                 schemas: [
                     {
                         properbool: bool
+                        boolish: bool
                     }
                 ]
 
