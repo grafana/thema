@@ -41,7 +41,7 @@ import "list"
                 // the key places where scuemata is maybe-sorta implicitly assuming
                 // its inputs are concrete resources, and won't work quite right
                 // with incomplete CUE structures
-                resource:  lastr.resource.r & (lin.Pick & { v: vsch }).out
+                resource:  lastr.resource.r & (#Pick & { lin: lin, v: vsch }).out
                 lacunae: []
             }
 
@@ -76,7 +76,7 @@ import "list"
         if cmp == -1 {
             let lo = (_flatidx & { lin: lin, rarg._v}).fidx
             let hi = (_flatidx & { lin: lin, to.to[0]}).fidx
-            (_transl & { init: rarg, schemarange: lin._all[lo+1:hi]}).out
+            (_transl & { init: rarg, schemarange: (_all & { lin: lin }).out[lo+1:hi]}).out
         }
         if cmp == 1 {
             // FIXME For now, we don't support backwards translation. This must change.

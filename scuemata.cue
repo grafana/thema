@@ -32,13 +32,16 @@ import (
     // successive schemas are backwards compatible with their predecessors.
     #Sequence: [...JoinSchema] & list.MinItems(1)
 
-    // Uncomment this for certain local dev tasks because constraining with
-    // list.MinItems(1) isn't able to tell the evaluator that it is always safe
-    // to reference #Sequence[0], resulting in lots of garbage errors. We DON'T
-    // want this committed, though, because it would allow empty lineage
-    // declarations by relying on the JoinSchema, which we do not want to be
-    // valid text for authors to write.
-    // #Sequence: [JoinSchema, ...JoinSchema]
+    // This exists because constraining with list.MinItems(1) isn't able to
+    // tell the evaluator that it is always safe to reference #Sequence[0],
+    // resulting in lots of garbage errors.
+    //
+    // Unfortunately, this allows empty lineage declarations by making the first
+    // schema an actual JoinSchema, which we do not want to be valid text for
+    // authors to write.
+    //
+    // TODO figure out how to express the constraint without blowing up our Go logic
+    #Sequence: [JoinSchema, ...JoinSchema]
 
     #Lens: {
         // The last schema in the previous sequence; logical predecessor
@@ -69,8 +72,8 @@ import (
             schemas: #Sequence
         },
         ...{
-            lens: #Lens
             schemas: #Sequence
+            lens: #Lens
         }
     ]
 
@@ -87,43 +90,33 @@ import (
         }
     }
 
-    // TODO check subsumption (backwards compat) of each schema with its successor
+    // TODO check subsumption (backwards compat) of each schema with its successor natively in CUE
+}
 
-    // Select a single schema version from the lineage.
-    Pick: {
-        // The schema version to pick. Either:
-        //
-        //   * An exact #SchemaVersion, e.g. [1, 0]
-        //   * Just the sequence number, list, e.g. [1]
-        //
-        // The latter form will select the latest schema within the given
-        // sequence.
-        v: #SchemaVersion | [int & >= 0]
-        v: [<len(Seqs), <len(Seqs[v[0]].schemas)] | [<len(Seqs)]
+_#vSch: {
+    v: #SchemaVersion
+    sch: _
+}
 
-        let _v = #SchemaVersion & [
-            v[0],
-            if len(v) == 2 { v[1] },
-            if len(v) == 1 { len(Seqs[v[0].schemas]) - 1 },
-        ]
+// Helper that extracts SchemaVersion of latest schema.
+//
+// Internal only, because writing programs that include a textual references
+// which can float across backwards-incompatible changes (like this one) is
+// the exact thing scuemata is trying to avoid.
+//
+// TODO functionize
+_latest: {
+    lin: #Lineage
+    out: #SchemaVersion & [len(lin.Seqs)-1, len(lin.Seqs[len(lin.Seqs)-1].schemas)-1]
+}
 
-        out: Seqs[_v[0]].schemas[_v[1]]
-        // TODO ^ apply object headers, etc.
-    }
-
-    // Helper that extracts SchemaVersion of latest schema.
-    //
-    // Internal only, because writing programs that include a textual references
-    // which can float across backwards-incompatible changes (like this one) is
-    // the exact thing scuemata is trying to avoid.
-    //
-    // TODO make into an alias?
-    _latest: #SchemaVersion
-    _latest: [len(Seqs)-1, len(Seqs[len(Seqs)-1].schemas)-1]
-
-    // Helper that flattens all schema into a single list, putting their
-    // SchemaVersion in an adjacent property.
-    _all: [..._#vSch] & list.FlattenN([for seqv, seq in Seqs {
+// Helper that flattens all schema into a single list, putting their
+// SchemaVersion in an adjacent property.
+//
+// TODO functionize
+_all: {
+    lin: #Lineage
+    out: [..._#vSch] & list.FlattenN([for seqv, seq in lin.Seqs {
         [for schv, sch in seq.schemas {
             v: [seqv, schv]
             sch: sch
@@ -131,10 +124,29 @@ import (
     }], 1)
 }
 
-_#vSch: {
-    v: #SchemaVersion
-    sch: _
+// Select a single schema version from the lineage.
+#Pick: {
+    lin: #Lineage
+    // The schema version to pick. Either:
+    //
+    //   * An exact #SchemaVersion, e.g. [1, 0]
+    //   * Just the sequence number, list, e.g. [1]
+    //
+    // The latter form will select the latest schema within the given
+    // sequence.
+    v: #SchemaVersion | [int & >= 0]
+    v: [<len(lin.Seqs), <len(lin.Seqs[v[0]].schemas)] | [<len(lin.Seqs)]
+
+    let _v = #SchemaVersion & [
+        v[0],
+        if len(v) == 2 { v[1] },
+        if len(v) == 1 { len(lin.Seqs[v[0].schemas]) - 1 },
+    ]
+
+    out: lin.Seqs[_v[0]].schemas[_v[1]]
+    // TODO ^ apply object headers, etc.
 }
+
 
 // SchemaVersion represents the version of a schema within a lineage as a
 // 2-tuple of integers: coordinates, corresponding to the schema's index
@@ -163,8 +175,9 @@ _cmpSV: {
     }
 }
 
+// TODO functionize
 _flatidx: {
     lin: #Lineage
     v: #SchemaVersion
-    fidx: {for i, sch in lin._all if sch.v == v { i }}
+    fidx: {for i, sch in (_all & { lin: lin }).out if sch.v == v { i }}
 }

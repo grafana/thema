@@ -1,8 +1,12 @@
 package scuemata
 
-// A Lacuna represents a gap in a translation: a case in which there exists a
-// flaw in the lens that affected the translation of a particular resource
-// from one schema to another.
+// A Lacuna represents a semantic gap in a Lens's mapping between schemas.
+//
+// For any given mapping between schema, there may exist some valid values and
+// intended semantics on either side that are impossible to precisely translate.
+// When such gaps occur, and an actual schema instance falls into such a gap,
+// the Lens is expected to emit Lacuna that describe the general nature of the
+// translation gap.
 //
 // A lacuna may be unconditional (the gap exists for all possible instances
 // being translated between the schema pair) or conditional (the gap only exists
@@ -31,7 +35,7 @@ package scuemata
     // At least one of sourceFields or targetFields must be non-empty.
     // TODO(must) https://github.com/cue-lang/cue/issues/943
     // must(len(sourceFields) > 0 || len(targetFields) > 0, "at least one of sourceFields or targetFields must be non-empty")
-    _mustlen: >0 & (len(sourceFields) + len(targetFields))
+    // _mustlen: >0 & (len(sourceFields) + len(targetFields))
 
     // A human-readable message describing the gap in translation.
     message: string
