@@ -31,7 +31,7 @@ lin: Seqs: [
 
 To be a valid lineage, there must be at least one sequence in `Seqs`, which in turn must contain at least one schema in its `schemas` list. That means this isn't actually a valid lineage. Rather, this is just the minimum necessary structure to begin defining a lineage. (Note that the outermost `lin` can be omitted, in which case the entire file is the lineage.)
 
-It's essential to the reliability of scuemata that supporting tooling refuses to work with invalid lineages, similar to a failed type check. Consequently, attempting to `cue eval` or [build the lineage in Go](https://pkg.go.dev/github.com/grafana/scuemata#BuildLineage), or any program built atop similar functionality, will ([should](TODO)) fail with a complaint about the length of `schemas` being less than 1.
+It's essential to the reliability of scuemata that supporting tooling refuses to work with invalid lineages, similar to a failed type check. Consequently, attempting to `cue eval`, [load the lineage for use in Go](https://pkg.go.dev/github.com/grafana/scuemata#BuildLineage), or otherwise do anything with the lineage, will ([should](TODOlinktoissue)) fail with a complaint about the length of `schemas` being less than 1.
 
 ## Defining a Schema
 
@@ -65,7 +65,7 @@ And that's it - we now have a valid scuemata lineage, containing a single schema
 
 The schema we wrote isn't terribly exciting. We'd like to add to it.
 
-When writing real scuemata, the question of whether to define a new schema or make additions directly to the existing one should be wholly determined by whether the latest existing schema has been published, as published schema must be immutable. That makes the definition of "published" quite important.
+When writing real scuemata, the question of whether to define a new schema or make additions directly to the existing one is wholly determined by whether the latest existing schema has been published, as published schema must be immutable. That makes the definition of "published" quite important.
 
 For this tutorial, we'll sidestep the issue by assuming that publication has happened. Therefore, making changes entails creating a new schema. Let's add one more field, `secondfield`, which must be an `int`.
 
@@ -159,7 +159,9 @@ Other considerations to be aware of:
 
 ## Safe Breaking Changes
 
-The third option for making our lineage valid is to rely on scuemata's foundational feature: making breaking changes safely. In this approach, rather than adding `secondfield` to a schema the same sequence, we place our schema in a new sequence, thereby granting it the version number `1.0`.
+The third option for making our lineage valid is to rely on scuemata's foundational feature: making breaking changes safely. We choose this path over the others for some reason that's important to the semantics of a newer version of our program - the field is indeed required for all future correct behavior, and relies on information - say, some user input - that simply wasn't a part of the initial schema. Requirements evolve, and programs with them. It's nobody's fault.
+
+In this approach, rather than adding `secondfield` to a schema in the same sequence, we place our schema in a new sequence, thereby granting the new schema the version number `1.0`.
 
 ```cue
 import "github.com/grafana/scuemata"
@@ -185,15 +187,89 @@ lin: Seqs: [
 ]
 ```
 
-Whereas successive schema in the same sequence must be backwards compatible, a successor schema in a _different_ sequence must be backwards **_in_**compatible. (The logical inverse holds.) Therefore, making `secondfield` here either optional or giving it a default will make this lineage invalid.
+Whereas successive schema in the same sequence must be backwards compatible, a successor schema in a _different_ sequence must be backwards _in_compatible. (The logical inverse holds.) Therefore, making `secondfield` here either optional or giving it a default will make this lineage invalid.
 
 But this lineage is already invalid, because all sequences after the first requires the author to _also_ define a Lens.
 
 ## Defining a Lens
 
-Lenses define a bidirectional mapping back and forth between sequences, logically connecting the final schema in one sequence to the first schema in its successor. They're the magical pixie dust that provide scuemata's foundational guarantee - translatability of instance
+Lenses define a bidirectional mapping back and forth between sequences, logically connecting the final schema in one sequence to the first schema in its successor. They're the magical pixie dust that provide scuemata's foundational guarantee - translatability of a valid instance of a schema to other versions of that schema.
 
-But - as in all software - where there be magic, [there be dragons](https://en.wikipedia.org/wiki/Here_be_dragons). Checking syntactic, type-level backwards compatibility is trivial thanks to CUE, but _semantics_, or behavior of the programs consuming these schema, are the only reasonable motivation for making a breaking change. Because [no general algorithm can exist for specifying semantic correctness](https://en.wikipedia.org/wiki/Rice%27s_theorem), it's the responsibility of lineage authors to ensure that their lenses capture semantics correctly. The only help scuemata, or any generic system, can provide is linting, e.g. "field `x` isn't mapped to the new sequence - did you mean to do that?"
+But - as in all software - where there be magic, [there be dragons](https://en.wikipedia.org/wiki/Here_be_dragons). Checking syntactic, type-level backwards compatibility is trivial thanks to CUE, but _semantics_, best thought of as the intended behavior of the programs consuming schema instances, are the only reasonable motivation for making a breaking change. Because [no general algorithm can exist for specifying semantic correctness](https://en.wikipedia.org/wiki/Rice%27s_theorem), it's the responsibility of lineage authors to ensure that their lenses capture semantics correctly.
 
+The only help scuemata, or any generic system, can provide is linting, e.g. "field `x` isn't mapped to the new sequence - did you mean to do that?"
+
+TODO move ^ to concepts/termdef section on lenses
+
+Lenses map to the new sequence (`forward`) and back (`reverse`). In both directions, there's a schema being mapped `from` and `to`, and the actual mapping is encapsulated within the `rel` field.
+
+The change to the `OurObject` schema is trivial, but presents an interesting challenge - because we specifically don't want to make `secondfield` optional or give it a default value, how can we define a `rel` that will still give us a valid, concrete object instance on the other side of the `forward` mapping? (Guaranteed valid concrete lens output [is a property we hope to generically enforce, but don't yet](TODOlinktoissue).)
+
+The only real answer is to add a placeholder value - here, `-1`.
+
+```cue
+import "github.com/grafana/scuemata"
+
+lin: scuemata.#Lineage
+lin: Name: "OurObj"
+lin: Seqs: [
+    {
+        schemas: [
+            { // 0.0
+                firstfield: string
+            },
+        ]
+    },
+    {
+        schemas: [
+            { // 1.0
+                firstfield: string
+                secondfield: int
+            }
+        ]
+
+        lens: forward: {
+            from: Seqs[0].schemas[0]
+            to: Seqs[1].schemas[0]
+            rel: {
+                // Direct mapping of the first field
+                firstfield: from.firstfield
+                // Just some placeholder int, so we have a valid instance of schema 1.0
+                secondfield: -1
+            }
+            translated: to & rel
+        }
+        lens: reverse: {
+            from: Seqs[1].schemas[0]
+            to: Seqs[0].schemas[0]
+            rel: {
+                // Map the first field back
+                firstfield: from.firstfield
+            }
+            translated: to & rel
+        }
+    }
+]
+```
+
+Applied to some concrete JSON (with a `version` field implicitly added to the schema), this lens would produce the following:
+
+```json
+{
+    "input": {
+        "version": [0, 0],
+        "firstfield": "foobar",
+    },
+    "output": {
+        "version": [1, 0],
+        "firstfield": "foobar",
+        "secondfield": -1
+    }
+}
+```
+
+The output is valid, but less than ideal - are we just going to have `-1` values littered all over our instances of `secondfield`? When do those get cleaned up? That brings us to the last part of lineages: Lacuna.
 
 ## Emitting a Lacuna
+
+On its own, the guarantee scuemata provides - all prior valid instances of schema will be translatable to all future valid instances of schema - is a pressure vessel, waiting to burst when requirements evolve in just _slightly_ the wrong way. This is the same basic problem as what we have with breaking changes today, even if it's pushed a bit further out.
