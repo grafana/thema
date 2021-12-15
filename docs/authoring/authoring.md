@@ -83,7 +83,8 @@ lin: Seqs: [
                 firstfield: string
             },
             { // 0.1
-                firstfield: string
+                firstfield: string // You can manually recreate the prior schema...
+                schemas[0] // ...or just embed a reference to it.
                 secondfield: int
             }
         ]
@@ -203,7 +204,7 @@ TODO move ^ to concepts/termdef section on lenses
 
 Lenses map to the new sequence (`forward`) and back (`reverse`). In both directions, there's a schema being mapped `from` and `to`, and the actual mapping is encapsulated within the `rel` field.
 
-The change to the `OurObject` schema is trivial, but presents an interesting challenge - because we specifically don't want to make `secondfield` optional or give it a default value, how can we define a `rel` that will still give us a valid, concrete object instance on the other side of the `forward` mapping? (Guaranteed valid concrete lens output [is a property we hope to generically enforce, but don't yet](TODOlinktoissue).)
+The change to the `OurObject` schema is trivial, but presents an interesting challenge - because we specifically don't want to make `secondfield` optional or give it a default value, how can we define a `rel` that still produces a valid instance of `OurObj@1.0` on the other side of the `forward` mapping? (Guaranteed valid concrete lens output [is a property we hope to generically enforce, but don't yet](TODOlinktoissue).)
 
 The only real answer is to add a placeholder value - here, `-1`.
 
@@ -268,8 +269,77 @@ Applied to some concrete JSON (with a `version` field implicitly added to the sc
 }
 ```
 
-The output is valid, but less than ideal - are we just going to have `-1` values littered all over our instances of `secondfield`? When do those get cleaned up? That brings us to the last part of lineages: Lacuna.
+The output is valid, but less than ideal. Are we just going to have `-1` values littered all over our instances of `OurObj.secondfield`? When would those get cleaned up? Does choosing `-1` as a placeholder grant special semantics to that particular value in perpetuity?
+
+These questions bring us to the last part of scuemata: Lacunae.
 
 ## Emitting a Lacuna
 
-On its own, the guarantee scuemata provides - all prior valid instances of schema will be translatable to all future valid instances of schema - is a pressure vessel, waiting to burst when requirements evolve in just _slightly_ the wrong way. This is the same basic problem as what we have with breaking changes today, even if it's pushed a bit further out.
+Scuemata's professed guarantee - all prior valid instances of schema will be translatable to all future valid instances of schema - sounds lovely. But the `secondfield` case shows how it's a pressure vessel, set to burst when requirements evolve in just _slightly_ the wrong way. The ability to encode translations in lenses means that scuemata will be able to withstand more pressure than other schema systems. And that's nice! But eventually, it'll still break, and people will pick their desired semantics over scuemata's rules.
+
+What we really need is a pressure release valve. Which is where lacunae come in!
+
+Lacunae are a gap or flaw in translation. As a lineage author, you add a lacuna to your lens when the translation results in a message that is syntactically valid (it conforms to schema), but has problematic semantics. Lacunae are accumulated during translation, and returned alongside the translated instance itself.
+
+Scuemata defines a limited set of lacuna types that correspond to different types of flaws. (This area is under active development.) For our case, we should emit a `Placeholder` lacuna.
+
+```cue
+import "github.com/grafana/scuemata"
+
+lin: scuemata.#Lineage
+lin: Name: "OurObj"
+lin: Seqs: [
+    {
+        schemas: [
+            { // 0.0
+                firstfield: string
+            },
+        ]
+    },
+    {
+        schemas: [
+            { // 1.0
+                firstfield: string
+                secondfield: int
+            }
+        ]
+
+        lens: forward: {
+            from: Seqs[0].schemas[0]
+            to: Seqs[1].schemas[0]
+            rel: {
+                firstfield: from.firstfield
+                secondfield: -1
+            }
+            lacunae: [
+                scuemata.#Lacuna & {
+                    targetFields: [{
+                        path: "secondfield"
+                        value: to.secondfield
+                    }]
+                }
+                message: "-1 used as a placeholder value - replace with a real value before persisting!"
+                type: scuemata.#LacunaTypes.Placeholder
+            ]
+            translated: to & rel
+        }
+        lens: reverse: {
+            from: Seqs[1].schemas[0]
+            to: Seqs[0].schemas[0]
+            rel: {
+                // Map the first field back
+                firstfield: from.firstfield
+            }
+            translated: to & rel
+        }
+    }
+]
+```
+
+Encapsulating translation flaws in this way relieves pressure on the schemas and translation. Schemas need not carry extra fields to reflect translation flaws, and lenses can disambiguate for the calling program between translations with flaws, and those without. In this case, we might imagine `secondfield` is actually some serial identifier/foreign key, and the calling program can be constructed to look for a `Placholder` lacuna on `secondfield`, and replace that `-1` with a correct value derived from somewhere else, after scuemata has done its part.
+
+Knowing when to emit a lacuna, and which type to emit, is nontrivial. The set of lacuna types and precise rules for when and how to use them appropriately are under active development. We hope to eventually have documentation specific to each lacuna type. In the meantime, the [exemplars directory](https://github.com/grafana/scuemata/tree/main/exemplars) contains a number of examples of lacuna use.
+
+## Wrap-up
+
+You've now seen all the component parts of scuemata in action, and hopefully have a fair idea of what it takes to actually write a lineage! Next, we'll start looking at what consuming a schema looks like.
