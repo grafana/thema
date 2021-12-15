@@ -336,6 +336,37 @@ lin: Seqs: [
 ]
 ```
 
+Basic inputs and outputs:
+
+```json
+{
+    "input": {
+        "version": [0, 0],
+        "firstfield": "foobar",
+    },
+    "output": {
+        "instance": {
+            "version": [1, 0],
+            "firstfield": "foobar",
+            "secondfield": -1
+        },
+        "lacunae": [
+            {
+                "sourceFields": [],
+                "targetFields": [
+                    {
+                        "path": "secondfield",
+                        "value": -1
+                    }
+                ],
+                "message": "-1 used as a placeholder value - replace with a real value before persisting!",
+                "type": "Placeholder"
+            }
+        ]
+    }
+}
+```
+
 Encapsulating translation flaws in this way relieves pressure on the schemas and translation. Schemas need not carry extra fields to reflect translation flaws, and lenses can disambiguate for the calling program between translations with flaws, and those without. In this case, we might imagine `secondfield` is actually some serial identifier/foreign key, and the calling program can be constructed to look for a `Placholder` lacuna on `secondfield`, and replace that `-1` with a correct value derived from somewhere else, after scuemata has done its part.
 
 Knowing when to emit a lacuna, and which type to emit, is nontrivial. The set of lacuna types and precise rules for when and how to use them appropriately are under active development. We hope to eventually have documentation specific to each lacuna type. In the meantime, the [exemplars directory](https://github.com/grafana/scuemata/tree/main/exemplars) contains a number of examples of lacuna use.
