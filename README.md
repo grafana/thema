@@ -8,4 +8,4 @@ Unlike JSON Schema, OpenAPI, or any other extant schema system, Thema's chief fo
 
 The effect of encapsulating schema definition, evolution, and translation into a single, portable, machine-verifiable logical structure is transformative. Taken together, these pieces allow systems that rely on schemas as the contracts for their communication to decouple and evolve independently - even across breaking changes to those schema.
 
-Learn more in our (TODO) [docs](TODO), or in this [overview video](https://www.youtube.com/watch?v=PpoS_ThntEM)! (Some things have been renamed since that video, but the logic is unchanged.)
+Learn more in our (WIP) [docs](https://github.com/grafana/thema/tree/main/docs), or in this [overview video](https://www.youtube.com/watch?v=PpoS_ThntEM)! (Some things have been renamed since that video, but the logic is unchanged.)
