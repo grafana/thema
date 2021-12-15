@@ -1,13 +1,13 @@
 package exemplars
 
-import "github.com/grafana/scuemata"
+import "github.com/grafana/thema"
 
 _#Exemplar: {
-    l: scuemata.#Lineage
+    l: thema.#Lineage
     description: string
     // tt: [string]: {
     //     r: l.JoinSchema
-    //     to: scuemata.#SearchCriteria
+    //     to: thema.#SearchCriteria
     //     expect: {
     //         to: l.JoinSchema
     //     }

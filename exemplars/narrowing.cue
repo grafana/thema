@@ -1,10 +1,10 @@
 package exemplars
 
-import "github.com/grafana/scuemata"
+import "github.com/grafana/thema"
 
 narrowing: {
     description: "Lineage that narrows a sloppily-specified boolean/string-ish type to a proper boolean over a single breaking change."
-    l: scuemata.#Lineage & {
+    l: thema.#Lineage & {
         Seqs: [
             {
                 schemas: [
@@ -35,7 +35,7 @@ narrowing: {
                     }
                     lacunae: [
                         if ((from.boolish & string) != _|_) && ((from.boolish & ("true" | "false")) == _|_) {
-                            scuemata.#Lacuna & {
+                            thema.#Lacuna & {
                                 sourceFields: [{
                                     path: "boolish"
                                     value: from.boolish
@@ -45,7 +45,7 @@ narrowing: {
                                     value: to.properbool
                                 }]
                                 message: "boolish was a string but neither \"true\" nor \"false\"; fallback to treating as false"
-                                type: scuemata.#LacunaTypes.LossyFieldMapping
+                                type: thema.#LacunaTypes.LossyFieldMapping
                             }
                         }
                     ]
@@ -56,7 +56,7 @@ narrowing: {
                     from: Seqs[1].schemas[0]
                     translated: to & rel
                     rel: {
-                        // Preserving preicse original form is a non-goal of scuemata in general.
+                        // Preserving preicse original form is a non-goal of thema in general.
                         boolish: from.properbool
                     }
                     lacunae: []

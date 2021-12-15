@@ -1,4 +1,4 @@
-package scuemata
+package thema
 
 import "list"
 
@@ -38,7 +38,7 @@ import "list"
                 // Same sequence. Translation is through implicit lens; simple unification.
 
                 // NOTE this unification drags along defaults; it's one of
-                // the key places where scuemata is maybe-sorta implicitly assuming
+                // the key places where thema is maybe-sorta implicitly assuming
                 // its inputs are concrete resources, and won't work quite right
                 // with incomplete CUE structures
                 resource:  lastr.resource.r & (#Pick & { lin: lin, v: vsch }).out

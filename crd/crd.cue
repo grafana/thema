@@ -3,7 +3,7 @@ package crd
 import (
     "list"
     "strings"
-    "github.com/grafana/scuemata"
+    "github.com/grafana/thema"
 )
 
 // CRD transforms a lineage into a Kubernetes custom resource definition, or a series thereof.
@@ -11,9 +11,9 @@ import (
     _sv: [<len(lin.Seqs), <len(lin.Seqs[_sv[0]].schemas)]
     served: [..._sv]
     storage: _sv
-    lin: scuemata.#Lineage
+    lin: thema.#Lineage
 
-    // Additional metadata necessary to convert a scuemata lineage into a
+    // Additional metadata necessary to convert a thema lineage into a
     // Kubernetes Custom Resource Definition (CRD).
     crdspec = spec: {
 		// scope indicates whether the defined custom resource is cluster-
@@ -35,7 +35,7 @@ import (
             // kind is the serialized kind of the resource. It is normally
             // CamelCase and singular. Custom resource instances will use
             // this value as the `kind` attribute in API calls.
-            // TODO default this to scuemata name
+            // TODO default this to thema name
             kind: string | *lin.Name
 
             // listKind is the serialized kind of the list for this resource.
@@ -52,7 +52,7 @@ import (
             // singular is the singular name of the resource. It must be all
             // lowercase.
             singular: string | *strings.ToLower(kind)
-            // TODO https://github.com/cue-lang/cue/issues/943
+            // TODO(must) https://github.com/cue-lang/cue/issues/943
             // singular: must(singular == strings.ToLower(singular), "singular form must be all lower case")
         }
         // Deprecated upstream, so omitted
@@ -61,7 +61,7 @@ import (
 		// conversion defines conversion settings for the CRD.
         conversion?: {
             // TODO for now, only allow this and not webhook, because what we
-            // really want to do is swap scuemata translation logic in for
+            // really want to do is swap thema translation logic in for
             // Scheme
             strategy: "None"
         }

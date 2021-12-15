@@ -1,4 +1,4 @@
-package scuemata
+package thema
 
 import (
 	"errors"

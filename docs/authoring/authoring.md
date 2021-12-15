@@ -1,8 +1,8 @@
-# Basic Scuemata Writing
+# Basic Thema Writing
 
-The first, most basic task to be done with scuemata is to write a lineage.
+The first, most basic task to be done with thema is to write a lineage.
 
-Writing lineages is fundamentally similar to any other schema-writing system: you're defining a specification for what data is supposed to look like. Two things are different with scuemata:
+Writing lineages is fundamentally similar to any other schema-writing system: you're defining a specification for what data is supposed to look like. Two things are different with thema:
 
 1. You're writing schemas in CUE, rather than whatever other language you may be accustomed to
 2. You're defining those schema _within_ a larger, well-defined structure - the lineage - which groups those schema together and enforces certain requirements.
@@ -11,17 +11,17 @@ A primer on writing CUE is out of scope; for that, the [official CUE tutorials](
 
 ## Scaffolding
 
-Scuemata lineages require only two fields to be explicitly defined: `Name`, and `Seqs`. 
+Thema lineages require only two fields to be explicitly defined: `Name`, and `Seqs`. 
 
-`Name` is the identifier for the thing schematized by the lineage. This should be a simple name, not a fully-qualified one - that's for later. We'll call our thing `"OurObj"`.
+`Name` is the identifier for the thing schematized by the lineage. This should be a simple name, not a fully-qualified one - that's for later. We'll call our thing `"Ship"`.
 
 `Seqs` contains the list of all sequences of all schemas within the lineage, and the lenses that map between them. It's basically a two-dimensional array.
 
 ```cue
-import "github.com/grafana/scuemata"
+import "github.com/grafana/thema"
 
-lin: scuemata.#Lineage 
-lin: Name: "OurObj"
+lin: thema.#Lineage 
+lin: Name: "Ship"
 lin: Seqs: [
     {
         schemas: []
@@ -31,21 +31,21 @@ lin: Seqs: [
 
 To be a valid lineage, there must be at least one sequence in `Seqs`, which in turn must contain at least one schema in its `schemas` list. That means this isn't actually a valid lineage. Rather, this is just the minimum necessary structure to begin defining a lineage. (Note that the outermost `lin` can be omitted, in which case the entire file is the lineage.)
 
-It's essential to the reliability of scuemata that supporting tooling refuses to work with invalid lineages, similar to a failed type check. Consequently, attempting to `cue eval`, [load the lineage for use in Go](https://pkg.go.dev/github.com/grafana/scuemata#BuildLineage), or otherwise do anything with the lineage, will ([should](TODOlinktoissue)) fail with a complaint about the length of `schemas` being less than 1.
+It's essential to the reliability of thema that supporting tooling refuses to work with invalid lineages, similar to how code won't compile when type checking fails. Consequently, attempting to `cue eval`, [load the lineage for use in Go](https://pkg.go.dev/github.com/grafana/thema#BuildLineage), or otherwise do anything with the lineage, will ([should](TODOlinktoissue)) fail with a complaint about the length of `schemas` being less than 1.
 
 ## Defining a Schema
 
 Each element in the `schemas` list is treated as a single schema. By default, these schema definitions can be any CUE value, from a simple primitive `bool` to a highly complex, deeply nested object. Complex CUE constraints may also be used, though [keep in mind this may limit translatability](TODO).
 
-Lineages should be sealed structures, as scuemata invariants only hold in the context of immutable schema declarations. Referencing CUE values from externally imported CUE modules within scuemata schema can undermine this, as those values may change when the version of the imported module is changed.
+Lineages should be sealed structures, as thema invariants only hold in the context of immutable schema declarations. Referencing CUE values from externally imported CUE modules within thema schema can undermine this, as those values may change when the version of the imported module is changed.
 
 Let's define our first schema as an object containing a single field named `firstfield`, which must be of type `string`.
 
 ```cue
-import "github.com/grafana/scuemata"
+import "github.com/grafana/thema"
 
-lin: scuemata.#Lineage 
-lin: Name: "OurObj"
+lin: thema.#Lineage 
+lin: Name: "Ship"
 lin: Seqs: [
     {
         schemas: [
@@ -59,23 +59,23 @@ lin: Seqs: [
 ]
 ```
 
-And that's it - we now have a valid scuemata lineage, containing a single schema.
+And that's it - we now have a valid thema lineage, containing a single schema.
 
 ## Adding More Schemas
 
 The schema we wrote isn't terribly exciting. We'd like to add to it.
 
-When writing real scuemata, the question of whether to define a new schema or make additions directly to the existing one is wholly determined by whether the latest existing schema has been published, as published schema must be immutable. That makes the definition of "published" quite important.
+When writing real thema, the question of whether to define a new schema or make additions directly to the existing one is wholly determined by whether the latest existing schema has been published, as published schema must be immutable. That makes the definition of "published" quite important.
 
 For this tutorial, we'll sidestep the issue by assuming that publication has happened. Therefore, making changes entails creating a new schema. Let's add one more field, `secondfield`, which must be an `int`.
 
-_Note: in scuemata, schema version is determined by its position within the two-dimensional array structure of `Seqs`, rather than through arbitrary choice by the author. These structurally-determined version numbers are indicated as comments._
+_Note: in thema, schema version is determined by its position within the two-dimensional array structure of `Seqs`, rather than through arbitrary choice by the author. These structurally-determined version numbers are indicated as comments._
 
 ```cue
-import "github.com/grafana/scuemata"
+import "github.com/grafana/thema"
 
-lin: scuemata.#Lineage 
-lin: Name: "OurObj"
+lin: thema.#Lineage 
+lin: Name: "Ship"
 lin: Seqs: [
     {
         schemas: [
@@ -92,7 +92,7 @@ lin: Seqs: [
 ]
 ```
 
-This isn't a valid lineage, though. `secondfield` is required and lacks a default, which means that valid instances of `0.0` will be invalid with respect to `0.1`. Our change is backwards incompatible, which breaks the rules of scuemata.
+This isn't a valid lineage, though. `secondfield` is required and lacks a default, which means that valid instances of `0.0` will be invalid with respect to `0.1`. Our change is backwards incompatible, which breaks the rules of thema.
 
 There are three possible ways to fix this: make `secondfield` optional, give it a default, or start a new sequence.
 
@@ -101,10 +101,10 @@ There are three possible ways to fix this: make `secondfield` optional, give it 
 The simplest fix involves just one character: `?`. This indicates that `secondfield` is optional.
 
 ```cue
-import "github.com/grafana/scuemata"
+import "github.com/grafana/thema"
 
-lin: scuemata.#Lineage 
-lin: Name: "OurObj"
+lin: thema.#Lineage 
+lin: Name: "Ship"
 lin: Seqs: [
     {
         schemas: [
@@ -120,19 +120,19 @@ lin: Seqs: [
 ]
 ```
 
-Marking added fields as optional is often a good option. But it's not without implications: by making `secondfield` optional, we have nontrivially expanded the set of valid values to which consumers of an `OurObj` must assign semantics/program behavior. Before, it was "all valid values of `int`". Now, it's that, plus "an absence of a value."
+Marking added fields as optional is often a good option. But it's not without implications: by making `secondfield` optional, we have nontrivially expanded the set of valid values to which consumers of an `Ship` must assign semantics/program behavior. Before, it was "all valid values of `int`". Now, it's that, plus "an absence of a value."
 
-If the behavior of a program accepting `OurObj` would behave in a meaningfully different way on the absence of this value vs. any valid `int`, this may be a good outcome. But if the program ends up treating the _absence_ of an `OurObj.secondfield` as equivalent to the _presence_ of some particular `int` value, the next option is likely a preferable: setting a default.
+If the behavior of a program accepting `Ship` would behave in a meaningfully different way on the absence of this value vs. any valid `int`, this may be a good outcome. But if the program ends up treating the _absence_ of an `Ship.secondfield` as equivalent to the _presence_ of some particular `int` value, the next option is likely a preferable: setting a default.
 
 ## Setting Defaults
 
 CUE allows [specifying default values](https://cuelang.org/docs/tutorials/tour/types/defaults/) for fields. We can do so with `secondfield`, which will make `0.1` backwards compatible with `0.0`, making our lineage valid. Here, we specify `42` as the default value.
 
 ```cue
-import "github.com/grafana/scuemata"
+import "github.com/grafana/thema"
 
-lin: scuemata.#Lineage 
-lin: Name: "OurObj"
+lin: thema.#Lineage 
+lin: Name: "Ship"
 lin: Seqs: [
     {
         schemas: [
@@ -160,15 +160,15 @@ Other considerations to be aware of:
 
 ## Safe Breaking Changes
 
-The third option for making our lineage valid is to rely on scuemata's foundational feature: making breaking changes safely. We choose this path over the others for some reason that's important to the semantics of a newer version of our program - the field is indeed required for all future correct behavior, and relies on information - say, some user input - that simply wasn't a part of the initial schema. Requirements evolve, and programs with them. It's nobody's fault.
+The third option for making our lineage valid is to rely on thema's foundational feature: making breaking changes safely. We choose this path over the others for some reason that's important to the semantics of a newer version of our program - the field is indeed required for all future correct behavior, and relies on information - say, some user input - that simply wasn't a part of the initial schema. Requirements evolve, and programs with them. It's nobody's fault.
 
 In this approach, rather than adding `secondfield` to a schema in the same sequence, we place our schema in a new sequence, thereby granting the new schema the version number `1.0`.
 
 ```cue
-import "github.com/grafana/scuemata"
+import "github.com/grafana/thema"
 
-lin: scuemata.#Lineage 
-lin: Name: "OurObj"
+lin: thema.#Lineage 
+lin: Name: "Ship"
 lin: Seqs: [
     {
         schemas: [
@@ -194,25 +194,25 @@ But this lineage is already invalid, because all sequences after the first requi
 
 ## Defining a Lens
 
-Lenses define a bidirectional mapping back and forth between sequences, logically connecting the final schema in one sequence to the first schema in its successor. They're the magical pixie dust that provide scuemata's foundational guarantee - translatability of a valid instance of a schema to other versions of that schema.
+Lenses define a bidirectional mapping back and forth between sequences, logically connecting the final schema in one sequence to the first schema in its successor sequence. They're the magical pixie dust that provide thema's foundational guarantee - translatability of a valid instance of a schema to other versions of that schema.
 
 But - as in all software - where there be magic, [there be dragons](https://en.wikipedia.org/wiki/Here_be_dragons). Checking syntactic, type-level backwards compatibility is trivial thanks to CUE, but _semantics_, best thought of as the intended behavior of the programs consuming schema instances, are the only reasonable motivation for making a breaking change. Because [no general algorithm can exist for specifying semantic correctness](https://en.wikipedia.org/wiki/Rice%27s_theorem), it's the responsibility of lineage authors to ensure that their lenses capture semantics correctly.
 
-The only help scuemata, or any generic system, can provide is linting, e.g. "field `x` isn't mapped to the new sequence - did you mean to do that?"
+The only help thema, or any generic system, can provide is linting, e.g. "field `x` isn't mapped to the new sequence - did you mean to do that?"
 
 TODO move ^ to concepts/termdef section on lenses
 
 Lenses map to the new sequence (`forward`) and back (`reverse`). In both directions, there's a schema being mapped `from` and `to`, and the actual mapping is encapsulated within the `rel` field.
 
-The change to the `OurObject` schema is trivial, but presents an interesting challenge - because we specifically don't want to make `secondfield` optional or give it a default value, how can we define a `rel` that still produces a valid instance of `OurObj@1.0` on the other side of the `forward` mapping? (Guaranteed valid concrete lens output [is a property we hope to generically enforce, but don't yet](TODOlinktoissue).)
+The change to the `Ship` schema is trivial, but presents an interesting challenge - because we specifically don't want to make `secondfield` optional or give it a default value, how can we define a `rel` that still produces a valid instance of `Ship@1.0` on the other side of the `forward` mapping? (Guaranteed valid concrete lens output [is a property we hope to generically enforce, but don't yet](TODOlinktoissue).)
 
 The only real answer is to add a placeholder value - here, `-1`.
 
 ```cue
-import "github.com/grafana/scuemata"
+import "github.com/grafana/thema"
 
-lin: scuemata.#Lineage
-lin: Name: "OurObj"
+lin: thema.#Lineage
+lin: Name: "Ship"
 lin: Seqs: [
     {
         schemas: [
@@ -269,25 +269,25 @@ Applied to some concrete JSON (with a `version` field implicitly added to the sc
 }
 ```
 
-The output is valid, but less than ideal. Are we just going to have `-1` values littered all over our instances of `OurObj.secondfield`? When would those get cleaned up? Does choosing `-1` as a placeholder grant special semantics to that particular value in perpetuity?
+The output is valid, but less than ideal. Are we just going to have `-1` values littered all over our instances of `Ship.secondfield`? When would those get cleaned up? Does choosing `-1` as a placeholder grant special semantics to that particular value in perpetuity?
 
-These questions bring us to the last part of scuemata: Lacunae.
+These questions bring us to the last part of thema: Lacunae.
 
 ## Emitting a Lacuna
 
-Scuemata's professed guarantee - all prior valid instances of schema will be translatable to all future valid instances of schema - sounds lovely. But the `secondfield` case shows how it's a pressure vessel, set to burst when requirements evolve in just _slightly_ the wrong way. The ability to encode translations in lenses means that scuemata will be able to withstand more pressure than other schema systems. And that's nice! But eventually, it'll still break, and people will pick their desired semantics over scuemata's rules.
+Thema's professed guarantee - all prior valid instances of schema will be translatable to all future valid instances of schema - sounds lovely. But the `secondfield` case shows it to be a pressure vessel, fit to burst when requirements evolve in just _slightly_ the wrong way. Other schema systems are similar - they "burst" when folks make breaking changes to attain the semantics they want. And it's nice that thema pushes this out further with the ability to encode translations in lenses. But eventually, it'll still burst, and folks will pick their desired semantics over thema's rules - just like they do today.
 
-What we really need is a pressure release valve. Which is where lacunae come in!
+To prevent this outcome, what we really need is a pressure release valve. Which is where lacunae come in!
 
-Lacunae are a gap or flaw in translation. As a lineage author, you add a lacuna to your lens when the translation results in a message that is syntactically valid (it conforms to schema), but has problematic semantics. Lacunae are accumulated during translation, and returned alongside the translated instance itself.
+Lacunae represent a gap or flaw in a lens translation. As a lineage author, you add a lacuna to your lens when the translation results in a message that, while syntactically valid (it conforms to schema), has problematic semantics. Lacunae are accumulated during translation, and returned alongside the translated instance itself.
 
-Scuemata defines a limited set of lacuna types that correspond to different types of flaws. (This area is under active development.) For our case, we should emit a `Placeholder` lacuna.
+Thema defines a limited set of lacuna types that correspond to different types of flaws. (This area is under active development.) For our case, we should emit a `Placeholder` lacuna.
 
 ```cue
-import "github.com/grafana/scuemata"
+import "github.com/grafana/thema"
 
-lin: scuemata.#Lineage
-lin: Name: "OurObj"
+lin: thema.#Lineage
+lin: Name: "Ship"
 lin: Seqs: [
     {
         schemas: [
@@ -312,14 +312,14 @@ lin: Seqs: [
                 secondfield: -1
             }
             lacunae: [
-                scuemata.#Lacuna & {
+                thema.#Lacuna & {
                     targetFields: [{
                         path: "secondfield"
                         value: to.secondfield
                     }]
                 }
                 message: "-1 used as a placeholder value - replace with a real value before persisting!"
-                type: scuemata.#LacunaTypes.Placeholder
+                type: thema.#LacunaTypes.Placeholder
             ]
             translated: to & rel
         }
@@ -367,10 +367,10 @@ Basic inputs and outputs:
 }
 ```
 
-Encapsulating translation flaws in this way relieves pressure on the schemas and translation. Schemas need not carry extra fields to reflect translation flaws, and lenses can disambiguate for the calling program between translations with flaws, and those without. In this case, we might imagine `secondfield` is actually some serial identifier/foreign key, and the calling program can be constructed to look for a `Placholder` lacuna on `secondfield`, and replace that `-1` with a correct value derived from somewhere else, after scuemata has done its part.
+Encapsulating translation flaws in this way relieves pressure on the schemas and translation. Schemas need not carry extra fields to reflect translation flaws, and lenses can disambiguate for the calling program between translations with flaws, and those without. In this case, we might imagine `secondfield` is actually some serial identifier/foreign key, and the calling program can be constructed to look for a `Placholder` lacuna on `secondfield`, and replace that `-1` with a correct value derived from somewhere else, after thema has done its part.
 
-Knowing when to emit a lacuna, and which type to emit, is nontrivial. The set of lacuna types and precise rules for when and how to use them appropriately are under active development. We hope to eventually have documentation specific to each lacuna type. In the meantime, the [exemplars directory](https://github.com/grafana/scuemata/tree/main/exemplars) contains a number of examples of lacuna use.
+Knowing when to emit a lacuna, and which type to emit, is nontrivial. The set of lacuna types and precise rules for when and how to use them appropriately are under active development. We hope to eventually have documentation specific to each lacuna type. In the meantime, the [exemplars directory](https://github.com/grafana/thema/tree/main/exemplars) contains a number of examples of lacuna use.
 
 ## Wrap-up
 
-You've now seen all the component parts of scuemata in action, and hopefully have a fair idea of what it takes to actually write a lineage! Next, we'll start looking at what consuming a schema looks like.
+You've now seen all the component parts of thema in action! With any luck, you now have a fair idea of how to express schemas using thema. Next, we'll start looking at what consuming thema lineages looks like.

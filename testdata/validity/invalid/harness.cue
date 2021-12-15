@@ -1,9 +1,9 @@
 package invalid
 
-import "github.com/grafana/scuemata"
+import "github.com/grafana/thema"
 
 _#Harness: {
-    l: scuemata.#Lineage
+    l: thema.#Lineage
     failMessage: string
 }
 

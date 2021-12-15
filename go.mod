@@ -1,4 +1,4 @@
-module github.com/grafana/scuemata
+module github.com/grafana/thema
 
 go 1.16
 

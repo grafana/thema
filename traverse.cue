@@ -1,4 +1,4 @@
-package scuemata
+package thema
 
 // TODO functionize
 #SearchAndValidate: {

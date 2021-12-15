@@ -1,10 +1,10 @@
 package exemplars
 
-import "github.com/grafana/scuemata"
+import "github.com/grafana/thema"
 
 single: {
     description: "Lineage containing one sequence with a single, trivial schema."
-    l: scuemata.#Lineage & {
+    l: thema.#Lineage & {
         Seqs: [
             {
                 schemas: [

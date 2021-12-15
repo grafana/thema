@@ -1,10 +1,10 @@
 package exemplars
 
-import "github.com/grafana/scuemata"
+import "github.com/grafana/thema"
 
 rename: {
     description: "A field is renamed - a breaking change, necessitating a new sequence."
-    l: scuemata.#Lineage & {
+    l: thema.#Lineage & {
         Seqs: [
             {
                 schemas: [
