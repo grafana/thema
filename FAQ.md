@@ -58,3 +58,9 @@ Semantic versioning [explicitly](https://semver.org/#spec-item-9) grants prerele
 Thema takes the stance that it is preferable to _never_ suspend version number-implied guarantees, and instead lean hard into the system of lenses, translations, and lacunae. In other words, it's fine to experiment and make breaking changes within your thema, so long as you write lenses and lacunae that can lead your users' objects to solid ground.
 
 Support for indicating a maturity level on individual schema may be added in the future. But it would have no bearing on core thema invariants. Instead, maturity would be an opaque string, used purely for signalling between humans: "we're really not sure about this yet; future lenses for translating from this schema may be sloppy!"
+
+## Where does the name "Thema" come from?
+
+Thema is a [portmanteau](https://en.wikipedia.org/wiki/Portmanteau) of "[[Ship of] Theseus](https://en.wikipedia.org/wiki/Ship_of_Theseus) with "Schema".
+
+The Ship of Theseus is a thought experiment that asks about the identity of objects as their constituent parts are replaced over time. Thema is a system that allows us to specify not only what a "thing" is (as all schema do), but also a means for changing all the constituent parts of that thing, while retaining its identity as that thing.
