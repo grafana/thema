@@ -1,10 +1,10 @@
-package scuemata
+package thema
 
 import (
     "list"
 )
 
-// A Lineage is the top-level container in scuemata, holding the complete
+// A Lineage is the top-level container in thema, holding the complete
 // evolutionary history of a particular kind of object: every schema that has
 // ever existed for that object, and the lenses that allow translating between
 // those schema versions.
@@ -102,7 +102,7 @@ _#vSch: {
 //
 // Internal only, because writing programs that include a textual references
 // which can float across backwards-incompatible changes (like this one) is
-// the exact thing scuemata is trying to avoid.
+// the exact thing thema is trying to avoid.
 //
 // TODO functionize
 _latest: {
@@ -155,9 +155,9 @@ _all: {
 // Unlike most version numbering systems, a schema's version is not an arbitrary
 // number declared by the lineage's author. Rather, version numbers are derived
 // from the position of the schema within the lineage's list of sequences.
-// Sequence position, in turn, is governed by scuemata's constraints on
+// Sequence position, in turn, is governed by thema's constraints on
 // backwards compatibility and lens existence. By tying version numbers to these
-// checkable invariants, scuemata versions gain a precise semantics absent from
+// checkable invariants, thema versions gain a precise semantics absent from
 // other systems.
 #SchemaVersion: [int & >= 0, int & >= 0]
 

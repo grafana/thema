@@ -1,4 +1,4 @@
-package scuemata
+package thema
 
 import (
 	"cuelang.org/go/cue"

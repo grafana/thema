@@ -1,4 +1,4 @@
-package scuemata
+package thema
 
 // A Lacuna represents a semantic gap in a Lens's mapping between schemas.
 //

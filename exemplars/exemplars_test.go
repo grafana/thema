@@ -8,8 +8,8 @@ import (
 	"cuelang.org/go/cue/cuecontext"
 	"cuelang.org/go/cue/errors"
 	"cuelang.org/go/cue/load"
-	"github.com/grafana/scuemata"
-	"github.com/grafana/scuemata/internal/util"
+	"github.com/grafana/thema"
+	"github.com/grafana/thema/internal/util"
 )
 
 func TestExemplarValidity(t *testing.T) {
@@ -21,7 +21,7 @@ func TestExemplarValidity(t *testing.T) {
 	ctx := cuecontext.New()
 	cfg := &load.Config{
 		Overlay: overlay,
-		Module:  "github.com/grafana/scuemata",
+		Module:  "github.com/grafana/thema",
 		Dir:     filepath.Join(util.Prefix, "exemplars"),
 	}
 
@@ -32,7 +32,7 @@ func TestExemplarValidity(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	lib := scuemata.NewLibrary(ctx)
+	lib := thema.NewLibrary(ctx)
 	for iter.Next() {
 		lin := iter.Value().LookupPath(cue.ParsePath("l"))
 		name, _ := lin.LookupPath(cue.ParsePath("Name")).String()
@@ -42,7 +42,7 @@ func TestExemplarValidity(t *testing.T) {
 				// subsumption in cue v0.4.0 panics in all three of these cases
 				t.Skip()
 			}
-			err = scuemata.ValidateCompatibilityInvariants(lin, lib)
+			err = thema.ValidateCompatibilityInvariants(lin, lib)
 			if err != nil {
 				t.Fatal(errors.Details(err, nil))
 			}
@@ -53,7 +53,7 @@ func TestExemplarValidity(t *testing.T) {
 func exemplarOverlay() (map[string]load.Source, error) {
 	overlay := make(map[string]load.Source)
 
-	if err := util.ToOverlay(util.Prefix, scuemata.CueJointFS, overlay); err != nil {
+	if err := util.ToOverlay(util.Prefix, thema.CueJointFS, overlay); err != nil {
 		return nil, err
 	}
 

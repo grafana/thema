@@ -1,10 +1,10 @@
-package scuemata
+package thema
 
 import (
 	"cuelang.org/go/cue"
 )
 
-// A Lineage is the top-level container in scuemata, holding the complete
+// A Lineage is the top-level container in thema, holding the complete
 // evolutionary history of a particular kind of object: every schema that has
 // ever existed for that object, and the lenses that allow translating between
 // those schema versions.
@@ -59,7 +59,7 @@ type FieldRef struct {
 	Value interface{}
 }
 
-// Schema represents a single, complete schema from a scuemata lineage. A Schema can
+// Schema represents a single, complete schema from a thema lineage. A Schema can
 // perform operations on resources.
 type Schema interface {
 	// Validate checks that the resource is correct with respect to the schema.

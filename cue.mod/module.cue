@@ -1,1 +1,1 @@
-module: "github.com/grafana/scuemata"
+module: "github.com/grafana/thema"

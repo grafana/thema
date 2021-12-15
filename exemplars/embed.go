@@ -4,7 +4,7 @@ import (
 	"embed"
 )
 
-// CueFS contains the raw .cue files with all the scuemata exemplars.
+// CueFS contains the raw .cue files with all the thema exemplars.
 //
 //go:embed *.cue
 var CueFS embed.FS
