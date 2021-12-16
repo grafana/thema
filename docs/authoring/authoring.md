@@ -13,7 +13,7 @@ A primer on writing CUE is out of scope; for that, the [official CUE tutorials](
 
 Thema lineages require only two fields to be explicitly defined: `Name`, and `Seqs`. 
 
-`Name` is the identifier for the thing schematized by the lineage. This should be a simple name, not a fully-qualified one - that's for later. We'll call our thing `"Ship"`.
+`Name` is the identifier for the thing schematized by the lineage. This should be a simple name, not a fully-qualified one - that's for later. We'll call our thing [`"Ship"`](https://github.com/grafana/thema/blob/main/FAQ.md#where-does-the-name-thema-come-from).
 
 `Seqs` contains the list of all sequences of all schemas within the lineage, and the lenses that map between them. It's basically a two-dimensional array.
 
