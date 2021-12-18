@@ -37,7 +37,7 @@ This definition is precise. Persnickety, even. But a design premise of thema is 
 
 ## Aren't breaking changes evil? Isn't thema encouraging bad behavior?
 
-If you are committed to believing this, we cannot offer definitive, contradictory proof.
+If you are committed to believing this, we cannot offer definitive contradictory proof.
 
 Our foundational belief is that, while breaking changes can cause considerable pain, that pain has not been, and is unlikely to ever be, sufficient basis for system authors to stop making breaking changes.
 
@@ -45,9 +45,9 @@ Given this premise, the best course of action is to create patterns that allow b
 
 ## Why did thema make up a new version numbering system instead of just using [semver](https://semver.org)?
 
-Thema schema versions, unlike most version numbering systems, are not an arbitrary declaration by the schema author. Rather, version numbers are derived from the position of the schema within the lineage's list of sequences. Sequence position, in turn, is governed by thema's checked invariants on backwards compatibility and lens existence.
+Thema versions, unlike most version numbering systems, are not an arbitrary declaration by the schema author. Rather, version numbers are derived from the position of the schema within the lineage's list of sequences. Sequence position, in turn, is governed by thema's checked invariants on backwards compatibility and lens existence.
 
-By associating version numbers with logical properties, thema versions gain precise semantics absent from other numbering systems.
+By associating version numbers with verified logical properties, thema versions gain precise semantics absent from other numbering systems.
 
 ## How do I express prerelease-type concepts: "alpha", "beta", etc.?
 
@@ -63,4 +63,4 @@ Support for indicating a maturity level on individual schema may be added in the
 
 Thema is a [portmanteau](https://en.wikipedia.org/wiki/Portmanteau) of "[[Ship of] Theseus](https://en.wikipedia.org/wiki/Ship_of_Theseus) with "Schema".
 
-The Ship of Theseus is a thought experiment that asks about the identity of objects as their constituent parts are replaced over time. Thema is a system that allows us to specify not only what a "thing" is (as all schema do), but also a means for changing all the constituent parts of that thing, while retaining its identity as that thing.
+The Ship of Theseus is a thought experiment that asks about the identity of objects as their constituent parts are replaced over time. Thema is a system that allows us to specify a "thing" in terms of its constituent parts (as all schema do), as well as the evolution of those parts incrementally over time, while still retaining its identity as that "thing".
