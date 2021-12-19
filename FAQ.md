@@ -2,13 +2,13 @@
 
 ## Why, why, _whyyy_ does the universe need yet another schema system?
 
-No existing schema system was reasonably capable of encapsulating all of the following within a unified, portable, verifiable structure:
+We asked the question, "what if a schema system managed backwards compatibility by construction, rather than post hoc, best effort, via separate tooling?" Thema is the answer we came up with - the minimal set of logical constructs for addressing the problem:
 
 1. Schemas themselves
-2. Backwards compatibility guarantees
-3. Logic for translating resources across schema versions
+2. Fully general backwards compatibility checks
+3. Logic for translating instances across schema versions
 
-Thema exists because we believe that the combination of these things fundamentally changes the kinds of loosely-coupled systems we can build.
+No existing system was reasonably capable of encapsulating all of these into a unified, portable, verifiable structure.
 
 ## You can't fool me. Breaking changes are breaking - how can they possibly be made non-breaking?
 
@@ -21,7 +21,7 @@ For example, say system `A` accepts messages which is comprised of a single fiel
 * **Traditional Schema:** `A` promises that messages with field `foo` containing an `int64` value will be valid in perpetuity.
 * **Thema:** `A` promises that messages with a field `foo` containing an `int64` will either be valid itself, or will be translatable into a valid message, in perpetuity.
 
-Thema shifts the contract up a level of abstraction - from rigid adherence to the contents of an individual schema, to the meta-property of relations between schemas.
+Thema shifts the contract up a level of abstraction - from rigid adherence to the contents of an individual schema, to the meta-property of relations between the schemas within a lineage.
 
 ## Is thema as expressive as other schema systems?
 
@@ -47,7 +47,7 @@ Given this premise, the best course of action is to create patterns that allow b
 
 Thema versions, unlike most version numbering systems, are not an arbitrary declaration by the schema author. Rather, version numbers are derived from the position of the schema within the lineage's list of sequences. Sequence position, in turn, is governed by thema's checked invariants on backwards compatibility and lens existence.
 
-By associating version numbers with verified logical properties, thema versions gain precise semantics absent from other numbering systems.
+The association of version numbers with verifiable properties grants thema versions transparent, precise meaning, absent from numbering systems like Semantic Versioning. It wouldn't be wrong to call thema's numbering system "Syntactic Versioning".
 
 ## How do I express prerelease-type concepts: "alpha", "beta", etc.?
 
