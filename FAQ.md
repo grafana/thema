@@ -10,11 +10,17 @@ We asked the question, "what if a schema system managed backwards compatibility 
 
 No existing system was reasonably capable of encapsulating all of these into a unified, portable, verifiable structure.
 
+## Where does the name "Thema" come from?
+
+Thema is a [portmanteau](https://en.wikipedia.org/wiki/Portmanteau) of "[Ship of Theseus](https://en.wikipedia.org/wiki/Ship_of_Theseus) with "Schema".
+
+The Ship of Theseus is a thought experiment that asks about the identity of objects as their constituent parts are replaced over time. Thema is a system that allows us to specify a "thing" in terms of its constituent parts (as all schema do), as well as the evolution of those parts incrementally over time, while still retaining its identity as that "thing".
+
 ## You can't fool me. Breaking changes are breaking - how can they possibly be made non-breaking?
 
 That's true. A breaking change to a contract like a schema is still breaking.
 
-What Thema does is change the nature of the contract between communicating systems. Instead of agreeing on a single schema, systems agree on the whole Thema lineage as the contract, with all the invariants about translation between schema versions that that entails.
+What Thema does is change the nature of the contract between communicating systems. Instead of agreeing on a single schema, systems agree on the whole Thema lineage as the contract, with all the guarantees about translation between schema versions that that entails.
 
 For example, say system `A` accepts messages which is comprised of a single field named `foo`, which has value of type `int64`. System `B` accepts the contract, and starts sending messages to `A` according to this schema. What Thema changes is not the schema in use by either `B` or `A` at any one time, but the agreement `A` and `B` implicitly make when `B` decides to start communicating with `A`:
 
@@ -57,10 +63,4 @@ Semantic versioning [explicitly](https://semver.org/#spec-item-9) grants prerele
 
 Thema takes the stance that it is preferable to _never_ suspend version number-implied guarantees, and instead lean hard into the system of lenses, translations, and lacunae. In other words, it's fine to experiment and make breaking changes within your Thema, so long as you write lenses and lacunae that can lead your users' objects to solid ground.
 
-Support for indicating a maturity level on individual schema may be added in the future. But it would have no bearing on core Thema invariants. Instead, maturity would be an opaque string, used purely for signalling between humans: "we're really not sure about this yet; future lenses for translating from this schema may be sloppy!"
-
-## Where does the name "Thema" come from?
-
-Thema is a [portmanteau](https://en.wikipedia.org/wiki/Portmanteau) of "[[Ship of] Theseus](https://en.wikipedia.org/wiki/Ship_of_Theseus) with "Schema".
-
-The Ship of Theseus is a thought experiment that asks about the identity of objects as their constituent parts are replaced over time. Thema is a system that allows us to specify a "thing" in terms of its constituent parts (as all schema do), as well as the evolution of those parts incrementally over time, while still retaining its identity as that "thing".
+Support for indicating a maturity level on individual schema may be added in the future. But it would have no bearing on core Thema guarantees. Instead, maturity would be an opaque string, used purely for signalling between humans: "we're really not sure about this yet; future lenses for translating from this schema may be sloppy!"
