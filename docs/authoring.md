@@ -6,7 +6,7 @@ The first, most basic task to be done with thema is to write a lineage.
 
 Writing lineages is fundamentally similar to any other schema-writing system: you're defining a specification for what data is supposed to look like. Two things are different with thema:
 
-1. You're writing schemas in CUE, rather than whatever other language you may be accustomed to
+1. You're writing schemas in CUE, rather than whatever other language you may be accustomed to.
 2. You're defining those schema _within_ a larger, well-defined structure - the lineage - which groups those schema together and enforces certain requirements.
 
 A primer on writing CUE is out of scope; for that, the [official CUE tutorials](https://cuelang.org/docs/tutorials/) and [CUE Playground](https://tip.cuelang.org/play/?id=#cue@export@cue) are a good place to start. This tutorial focuses on the second item: expressing collections of schemas as a valid lineage.
