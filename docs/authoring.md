@@ -1,4 +1,6 @@
-# Basic Thema Writing
+# How to Write a Lineage
+
+_It is strongly recommended to read the [Thema overview](overview.md) before beginning this tutorial._
 
 The first, most basic task to be done with thema is to write a lineage.
 
