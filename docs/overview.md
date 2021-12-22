@@ -31,9 +31,7 @@ These pieces are deeply interlinked. Fortunately, we can express the web of rela
 
 Lenses within a Sequence are implicit, because that's precisely what backwards compatibility means: Instances of old Schema are still valid with respect to newer Schema, without the need for translation. (NOTE: diagram notwithstanding, this is clearly not true in reverse - this is a [TODO](https://github.com/grafana/thema/issues/6).)
 
-The remaining two concepts - Instance and Lacuna - are best illustrated in the context of a program performing operations on a Lineage.
-
-For more on components, it's best to see concrete examples, either via the [Lineage authoring tutorial](authoring.md) or by looking at the [exemplars](https://github.com/grafana/thema/tree/main/exemplars).
+The remaining two concepts - Instance and Lacuna - are best illustrated in the context of a program performing operations on a Lineage. Beyond that, it's best to look at concrete examples, either via the [Lineage authoring tutorial](authoring.md) or by looking at the [exemplars](https://github.com/grafana/thema/tree/main/exemplars).
 
 ## Operations
 
@@ -72,7 +70,7 @@ The fundamental reason to use Thema rather than some other schema system is the 
 
 **You can write your program against any Schema in a Lineage, and know that any input valid against any Schema in that Lineage will be translatable to the Schema your program expects.**
 
-This guarantee eliminates the need to coordinate - the Achilles heel of all distributed systems - the deployment of independent systems that pass messages to each other, even indirectly. The communication contract between these systems [is no longer individual schema, but the Lineage](https://github.com/grafana/thema/blob/main/FAQ.md#you-cant-fool-me-breaking-changes-are-breaking---how-can-they-possibly-be-made-non-breaking). This **evolutionary decoupling** allows for a novel class of fundamentally decentralized development.
+Coordination is the Achilles heel of all distributed systems. This guarantee eliminates the need to coordinate the deployment of independent systems that pass messages to each other, even indirectly. The communication contract between these systems [is no longer individual schema, but the Lineage](https://github.com/grafana/thema/blob/main/FAQ.md#you-cant-fool-me-breaking-changes-are-breaking---how-can-they-possibly-be-made-non-breaking). This **evolutionary decoupling** allows for a novel class of fundamentally decentralized development.
 
 Thema's guarantee arises from the combination of smaller, machine-checkable constraints on what constitutes a valid Lineage. **Not all planned rules are fully implemented as checked invariants yet; until they are, this guarantee is wobbly, and the Thema project should be considered unstable.** The [Invariants (TODO) doc](invariants.md) enumerates the granular rules, their completeness, and enforcement mechanism.
 
