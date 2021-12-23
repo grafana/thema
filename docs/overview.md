@@ -35,13 +35,13 @@ The remaining two concepts - instance and lacuna - are most easily understood in
 
 Thema operations allow programs to combine data with a lineage and its schema. Because lineages are collections of schema, programs must first decide which schema to use. Two operations assist with selecting an individual schema out of the lineage:
 
-* **Pick():** get a particular schema from a lineage by version number.
-* **SearchAndValidate():** given some data, search the lineage for a schema of which the data is a valid instance.
+* **`Pick()`:** get a particular schema from a lineage by version number.
+* **`SearchAndValidate()`:** given some data, search the lineage for a schema of which the data is a valid instance.
 
 Individual schema, once chosen, offer two more operations:
 
-* **Validate():** given a schema from a lineage, check whether some data is a valid instance of that schema.
-* **Translate():** given an instance of a schema in a lineage, transform it to an instance of some other schema in the same lineage, and emit any lacuna arising from the transformation.
+* **`Validate()`:** given a schema from a lineage, check whether some data is a valid instance of that schema.
+* **`Translate()`:** given an instance of a schema in a lineage, transform it to an instance of some other schema in the same lineage, and emit any lacuna arising from the transformation.
 
 Most programs using Thema will begin with a three-step process, typically executed at the program boundary when input is first received:
 
