@@ -21,7 +21,7 @@ Thema is built from six fundamental logical components:
 * **Lens:** A bidirectional mapping between the final schema in one sequence, and the first schema in another sequence.
 * **Lineage:** An ordered list of sequences, linked tail-to-head by lenses, that collectively contain the history of all schemas for a single kind of object.
 * **Instance:** Some data that is valid with respect to a schema.
-* **Lacuna:** A gap in a lens's mapping logic such that a particular instance, having passed through that lens, has some meaningfully semantic deficiency.
+* **Lacuna:** A gap in a lens's mapping logic such that a particular instance, having passed through that lens, has some meaningful semantic deficiency.
 
 These logical components are deeply interlinked as illustrated below. The first four components - schema, sequence, lens, and lineage - can be understood independent of a program that is running a useful operation. If we had a valid lineage containing two sequences, each containing two schema, and thus necessarily one explicitly-defined lens, it would look like this:
 
