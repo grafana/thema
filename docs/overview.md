@@ -33,25 +33,29 @@ The remaining two concepts - instance and lacuna - are most easily understood in
 
 ## About Thema Operations
 
-Thema has three essential operations, given a valid lineage:
+Thema operations allow programs to combine data with a lineage and its schema. Because lineages are collections of schema, programs must first decide which schema to use. Two operations assist with selecting an individual schema out of the lineage:
 
 * **Pick():** get a particular schema from a lineage by version number.
-* **Validate():** check whether some data is an instance to identify whether it's valid with respect to a particular schema.
+* **SearchAndValidate():** given some data, search the lineage for a schema of which the data is a valid instance.
+
+Individual schema, once chosen, offer two more operations:
+
+* **Validate():** given a schema from a lineage, check whether some data is a valid instance of that schema.
 * **Translate():** given an instance of a schema in a lineage, transform it to an instance of some other schema in the same lineage, and emit any lacuna arising from the transformation.
 
-Other helpers exist, but are composed from these three parts. Most programs that work with Thema will base most of their operations around `Validate()` and `Translate()` in a three-step process, typically executed at the program boundary when input is first received:
+Most programs using Thema will begin with a three-step process, typically executed at the program boundary when input is first received:
 
-1. `Validate()` some data
-2. `Translate()` it to the schema version of the program with which it is currently designed to work
-3. Decide what to do (for example, ignore, log, error out, mutate the transformed instance) with any emitted lacunae
-
-Once this process is complete, the program can continue (or terminate based on obseved lacunae) to perform useful behavior based on the input, which is now both a) valid and b) represented in the form of the schema version against which the program has been written. 
+1. Receive some input data, `SearchAndValidate()` to confirm it is an instance, and of what schema version
+2. `Translate()` the instance to the schema version the program is currently designed to work with
+3. Decide what to do with any lacunae emitted from translation - for example: ignore, log, error out, mutate the translated instance
 
 This animation illustrates a program performing these first two steps across varying numbers of the schemas from the example above:
 
 ![Validate and Translate](validate-and-translate.gif) TODO fixup the graffle, make the gif
 
-These operations are exposed directly in CUE, and should be present in any consuming language library.
+Once this process is complete, the program can continue (or terminate based on observed lacunae) to perform useful behavior based on the input, now known to be both a) valid and b) represented in the form of the schema version against which the program has been written. Versioning and translation has been encapsulated at the program boundary, and the rest of the program can safely pretend that only the one version of the schema exists.
+
+These operations are exposed directly in CUE, and should be present in any consuming language library. Deeper exploration and concrete examples are available in the [guide to usage from Go (TODO)](go-usage.md).
 
 ### Defaults and Encoding
 
@@ -64,15 +68,15 @@ Defaults are both subtle and complex. To learn more, review [in a separate (TODO
 
 ## About Guarantees
 
-Thema makes it a better choice than any other schema system because of the guarantee it provides to code depending on lineage. "Depending" here includes code in the same repository, written by the lineage's author. In sum, the guarantee is:
+Thema makes is a better choice than other schema systems because of the guarantee it provides to code depending on a lineage. "Depending" here includes code in the same repository, written by the lineage's author. In sum, the guarantee is:
 
 **You can write your program against any schema in a lineage, and know that any input valid against any schema in that lineage will be translatable to the schema your program expects.**
 
-Coordination is the Achilles heel of all distributed systems. Thema's guarantee eliminates the need to coordinate the deployment of independent systems that pass messages to each other, even indirectly. The communication contract between these systems [is no longer individual schema, but the lineage](https://github.com/grafana/thema/blob/main/FAQ.md#you-cant-fool-me-breaking-changes-are-breaking---how-can-they-possibly-be-made-non-breaking). This **evolutionary decoupling** allows for a novel class of fundamentally decentralized development.
+Coordination is the Achilles heel of all distributed systems. Thema's guarantee eliminates the need to coordinate the deployment of independent systems that pass messages to each other. The communication contract between these systems [is no longer individual schema, but the lineage](https://github.com/grafana/thema/blob/main/FAQ.md#you-cant-fool-me-breaking-changes-are-breaking---how-can-they-possibly-be-made-non-breaking). This **evolutionary decoupling** allows for a novel class of fundamentally decentralized development.
 
 Thema's guarantee arises from the combination of smaller, machine-checkable constraints on what constitutes a valid lineage. **Not all planned rules are fully implemented as checked invariants yet; until they are, this guarantee is wobbly, and the Thema project should be considered unstable.** The [invariants (TODO) doc](invariants.md) enumerates the granular rules, their completeness, and enforcement mechanism.
 
 Thema will be considered a mature, stable project when all the intended invariants are machine-checked. Even when this milestone is reached, however, certain caveats will remain:
 
 * Programs need to have the most updated version of the lineage, in case they receive inputs that are valid, but against a schema they are not yet aware of. This implies a publishing and distribution model for lineages is necessary, as well as an append-only immutability requirement. See [Publishing (TODO)](publishing.md).
-* Even with lenses and lacunae, some data semantics will result in practical limits on surpriseless translation of message intent. As the Project Cambria folks [note](https://www.inkandswitch.com/cambria/#findings), a practical breaking point will eventually be reached.
+* Even with lenses and lacunae, some data semantics will result in practical limits on surpriseless translation of message intent. As the Project Cambria folks [note](https://www.inkandswitch.com/cambria/#findings), a practical breaking point will eventually be reached. Thema is not a magical silver bullet.
