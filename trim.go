@@ -11,26 +11,18 @@ import (
 // ApplyDefaults returns a new, concrete copy of the Resource with all paths
 // that are 1) missing in the Resource AND 2) specified by the schema,
 // filled with default values specified by the schema.
-func ApplyDefaults(r Resource, scue cue.Value) (Resource, error) {
-	name := r.Name
-	if name == "" {
-		name = "resource"
-	}
-	rv := scue.Context().CompileString(r.Value.(string), cue.Filename(name))
-	if rv.Err() != nil {
-		return r, rv.Err()
-	}
-
-	rvUnified, err := applyDefaultHelper(rv, scue)
+func ApplyDefaults(r Instance, scue cue.Value) (Instance, error) {
+	rvUnified, err := applyDefaultHelper(r.val, scue)
 	if err != nil {
 		return r, err
 	}
 
-	re, err := convertCUEValueToString(rvUnified)
-	if err != nil {
-		return r, err
-	}
-	return Resource{Value: re}, nil
+	// re, err := convertCUEValueToString(rvUnified)
+	// if err != nil {
+	// 	return r, err
+	// }
+
+	return Instance{val: rvUnified}, nil
 }
 
 func applyDefaultHelper(input cue.Value, scue cue.Value) (cue.Value, error) {
@@ -111,26 +103,18 @@ func convertCUEValueToString(inputCUE cue.Value) (string, error) {
 // TrimDefaults returns a new, concrete copy of the Resource where all paths
 // in the  where the values at those paths are the same as the default value
 // given in the schema.
-func TrimDefaults(r Resource, scue cue.Value) (Resource, error) {
-	name := r.Name
-	if name == "" {
-		name = "resource"
-	}
-	rvInstance := scue.Context().CompileString(r.Value.(string), cue.Filename(name))
-	if rvInstance.Err() != nil {
-		return r, rvInstance.Err()
-	}
-
-	rv, _, err := removeDefaultHelper(scue, rvInstance)
+func TrimDefaults(r Instance, scue cue.Value) (Instance, error) {
+	rv, _, err := removeDefaultHelper(scue, r.val)
 	if err != nil {
 		return r, err
 	}
-	re, err := convertCUEValueToString(rv)
 
-	if err != nil {
-		return r, err
-	}
-	return Resource{Value: re}, nil
+	// re, err := convertCUEValueToString(rv)
+	// if err != nil {
+	// 	return r, err
+	// }
+
+	return Instance{val: rv}, nil
 }
 
 func getDefault(icue cue.Value) (cue.Value, bool) {

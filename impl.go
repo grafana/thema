@@ -136,16 +136,8 @@ type genericVersionedSchema struct {
 }
 
 // Validate checks that the resource is correct with respect to the schema.
-func (gvs *genericVersionedSchema) Validate(r Resource) error {
-	name := r.Name
-	if name == "" {
-		name = "resource"
-	}
-	rv := gvs.actual.Context().CompileString(r.Value.(string), cue.Filename(name))
-	if rv.Err() != nil {
-		return rv.Err()
-	}
-	return gvs.actual.Unify(rv).Validate(cue.Concrete(true))
+func (gvs *genericVersionedSchema) Validate(r Instance) error {
+	return gvs.actual.Unify(r.val).Validate(cue.Concrete(true))
 }
 
 // CUE returns the cue.Value representing the actual schema.
@@ -165,14 +157,14 @@ func (gvs *genericVersionedSchema) Successor() Schema {
 
 // Translate transforms a resource into a new Resource that is correct with
 // respect to its Successor schema.
-func (gvs *genericVersionedSchema) Translate(x Resource) (Resource, Schema, error) { // TODO restrict input/return type to concrete
-	r, sch, err := gvs.translation(x.Value)
-	if err != nil || sch == nil {
-		r = x.Value.(cue.Value)
-	}
+// func (gvs *genericVersionedSchema) Translate(x Instance) (Instance, Schema, error) { // TODO restrict input/return type to concrete
+// 	r, sch, err := gvs.translation(x.Value)
+// 	if err != nil || sch == nil {
+// 		r = x.Value.(cue.Value)
+// 	}
 
-	return Resource{Value: r}, sch, nil
-}
+// 	return Instance{Value: r}, sch, nil
+// }
 
 type translationFunc func(x interface{}) (cue.Value, Schema, error)
 
