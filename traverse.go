@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"math/bits"
+
+	"cuelang.org/go/cue"
 )
 
 // SearchAndValidate traverses the family of schemas reachable from the provided
@@ -21,14 +23,14 @@ import (
 // non-nil error return. Success is indicated by a non-nil Schema.
 // If successful, the returned Schema will be the first one against
 // which the provided resource passed validation.
-func SearchAndValidate(s Schema, v interface{}) (Schema, error) {
+func SearchAndValidate(s Schema, v cue.Value) (Schema, error) {
 	arr := AsArray(s)
 
 	// Work from latest to earliest
 	var err error
 	for o := len(arr) - 1; o >= 0; o-- {
 		for i := len(arr[o]) - 1; i >= 0; i-- {
-			if err = arr[o][i].Validate(Resource{Value: v}); err == nil {
+			if _, err = arr[o][i].Validate(v); err == nil {
 				return arr[o][i], nil
 			}
 		}

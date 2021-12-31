@@ -15,13 +15,47 @@ type Lineage interface {
 	// method with a Version() of [0, 0].
 	First() Schema
 
-	// Raw returns the cue.Value of the entire lineage.
+	// RawValue returns the cue.Value of the entire lineage.
 	RawValue() cue.Value
 
 	// Name returns the name of the object schematized in the lineage, as defined
 	// in the lineage's Name field.
 	Name() string
 }
+
+// A LineageBuilder returns a Lineage, which represents a single instance of
+// #Lineage declared in CUE.
+//
+// LineageBuilder funcs are intended to be the main Go entrypoint to all of the
+// operations, guarantees, and capabilities of Thema lineages. Lineage authors
+// should define and export one instance of LineageBuilder per #Lineage
+// instance.
+//
+// It is idiomatic to name LineageBuilder funcs after the "name" field on the
+// lineage they return:
+//
+//   func Lineage<Name> ...
+//
+// If the Go package and lineage name are the same, the name should be omitted from
+// the builder func to reduce stutter:
+//
+//   func Lineage ...
+//
+// type LineageBuilder func(lib Library, opts ...BuildOption) (Lineage, error)
+type LineageBuilder func(lib Library) (Lineage, error)
+
+// A BuildOption defines build-time only options for constructing a Lineage.
+//
+// No options currently exist, but some are planned. This option is preemptively
+// defined to avoid breaking changes to the signature of BuildLineage and
+// LineageBuilder.
+// type BuildOption buildOption
+
+// Internal representation of BuildOption.
+type buildOption func(c *buildConfig)
+
+// Internal build-time configuration options.
+type buildConfig struct{}
 
 // A Lacuna represents a semantic gap in a Lens's mapping between schemas.
 //
@@ -36,8 +70,9 @@ type Lineage interface {
 // when certain values appear in the instance being translated between schema).
 // However, the conditionality of lacunae is expected to be expressed at the
 // level of the lens, and determines whether a particular lacuna object is
-// created; the production of a lacuna object as the output of a specific
-// translation indicates the lacuna applies to that specific translation.
+// created; the production of a lacuna object as the output of the translation
+// of a particular instance indicates the lacuna applies to that specific
+// translation.
 type Lacuna struct {
 	// The field path(s) and their value(s) in the pre-translation resource
 	// that are relevant to the lacuna.
@@ -62,8 +97,11 @@ type FieldRef struct {
 // Schema represents a single, complete schema from a thema lineage. A Schema can
 // perform operations on resources.
 type Schema interface {
-	// Validate checks that the resource is correct with respect to the schema.
-	Validate(Resource) error
+	// Validate checks that the provided data is valid with respect to the
+	// schema. If valid, the data is wrapped in an Instance and returned.
+	// Otherwise, a nil Instance is returned along with an error detailing the
+	// validation failure.
+	Validate(data cue.Value) (*Instance, error)
 
 	// Translate transforms a Resource into a new Resource that is correct with
 	// respect to its Successor schema. It returns the transformed resource,
@@ -79,39 +117,59 @@ type Schema interface {
 	// reflects a key design invariant of the system: all translations, whether
 	// they begin from a schema inside or outside of the lineage, must land
 	// somewhere on a lineage's sequence of schemas.
-	Translate(Resource) (Resource, Schema, error)
+	Translate(Instance) (Instance, Schema, error)
 
-	// Successor returns the next schema in the lineage.
+	// Successor returns the next schema in the lineage, or nil if it is the last schema.
 	Successor() Schema
 
-	// Raw returns the cue.Value containing the actual underlying CUE schema.
+	// Predecessor returns the previous schema in the lineage, or nil if it is the first schema.
+	Predecessor() Schema
+
+	// RawValue returns the cue.Value that represents the underlying CUE schema.
 	RawValue() cue.Value
 
-	// Version reports the major and minor versions of the schema.
+	// Version reports the canonical Thema version number for the schema: a
+	// two-tuple of sequence number and schema number.
 	Version() (major, minor int)
+
+	// Lineage returns the lineage of which this schema is a part.
+	Lineage() Lineage
 }
 
 type SSchema struct {
-	val        *cue.Value
+	val        cue.Value
 	pred, succ *SSchema
 }
 
-type ValidatedResource interface {
-	Forward() (ValidatedResource, []Lacuna, bool)
-	Backward() (ValidatedResource, []Lacuna, bool)
+type TranslationLacunae interface {
+	AsList() []Lacuna
 }
 
-// A Resource represents a concrete data object - e.g., JSON
-// representing a dashboard.
-//
-// This type mostly exists to improve readability for users. Having a type that
-// differentiates cue.Value that represent a schema from cue.Value that
-// represent a concrete object is quite helpful. It also gives us a working type
-// for a resource that can be reused across multiple calls, so that re-parsing
-// isn't necessary.
-//
-// TODO this is a terrible way to do this, refactor
-type Resource struct {
-	Value interface{}
-	Name  string
+// An Instance represents some data that has been validated against a
+// lineage's schema. It includes a reference to the schema.
+type Instance struct {
+	// The CUE representation of the input data
+	val cue.Value
+	// A name for the input data, primarily for use in error messages
+	name string
+	// The schema the data validated against/of which the input data is a valid instance
+	sch Schema
+}
+
+// func (i *Instance) Forward() (*Instance, []Lacuna) {
+
+// }
+
+// func (i *Instance) Reverse() (*Instance, []Lacuna) {
+
+// }
+
+// RawValue returns the cue.Value that represents the instance's underlying data.
+func (i *Instance) RawValue() cue.Value {
+	return i.val
+}
+
+// Schema returns the schema which validated the instance.
+func (i *Instance) Schema() Schema {
+	return i.sch
 }
