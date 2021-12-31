@@ -1,4 +1,4 @@
-package example
+package testmod
 
 import "github.com/grafana/thema"
 
