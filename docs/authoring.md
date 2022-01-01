@@ -319,9 +319,9 @@ lin: Seqs: [
                         path: "secondfield"
                         value: to.secondfield
                     }]
+                    message: "-1 used as a placeholder value - replace with a real value before persisting!"
+                    type: thema.#LacunaTypes.Placeholder
                 }
-                message: "-1 used as a placeholder value - replace with a real value before persisting!"
-                type: thema.#LacunaTypes.Placeholder
             ]
             translated: to & rel
         }
@@ -369,9 +369,17 @@ Basic inputs and outputs:
 }
 ```
 
-Encapsulating translation flaws in this way relieves pressure on the schemas and translation. Schemas need not carry extra fields to reflect translation flaws, and lenses can disambiguate for the calling program between translations with flaws, and those without. In this case, we might imagine `secondfield` is actually some serial identifier/foreign key, and the calling program can be constructed to look for a `Placholder` lacuna on `secondfield`, and replace that `-1` with a correct value derived from somewhere else, after thema has done its part.
+Encapsulating translation flaws as lacunae relieves pressure on the schemas and translation. Schemas need not carry extraneous, legacy fields to reflect translation flaws, and lacunae can disambiguate for the calling program between translations with flaws, and those without. In this case, we might imagine `secondfield` is actually some serial identifier/foreign key, and the calling program can be constructed to look for a `Placholder` lacuna on `secondfield`, then replace that `-1` with a correct value derived from somewhere else.
 
 Knowing when to emit a lacuna, and which type to emit, is nontrivial. The set of lacuna types and precise rules for when and how to use them appropriately are under active development. We hope to eventually have documentation specific to each lacuna type. In the meantime, the [exemplars directory](https://github.com/grafana/thema/tree/main/exemplars) contains a number of examples of lacuna use.
+
+## Advanced: Schema Openness
+
+TODO
+
+## Advanced: Constraining with `JoinSchema`
+
+TODO
 
 ## Wrap-up
 
