@@ -38,7 +38,7 @@ type Lineage interface {
 // It is idiomatic to name LineageFactory funcs after the "name" field on the
 // lineage they return:
 //
-//   func Lineage<Name> ...
+//   func <Name>Lineage ...
 //
 // If the Go package and lineage name are the same, the name should be omitted from
 // the builder func to reduce stutter:
