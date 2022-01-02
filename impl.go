@@ -14,14 +14,15 @@ func (e *ErrValueNotExist) Error() string {
 	return fmt.Sprintf("value from path %q does not exist, absent values cannot be lineages", e.path)
 }
 
-// BindLineage takes a raw cue.Value and checks that it is valid (that it upholds
-// the invariants which undergird Thema's translatability guarantees). If it is,
-// it returns the cue.Value wrapped in a Lineage, which provides access to all
-// the types and functions for working with Thema in Go.
+// BindLineage takes a raw cue.Value, checks that it is a valid lineage (that it
+// upholds the invariants which undergird Thema's translatability guarantees),
+// and returns the cue.Value wrapped in a Lineage, iff validity checks succeed. The Lineage type
+// provides access to all the types and functions for working with Thema in Go.
 //
-// This function is the sole intended mechanism for creating valid Lineage objects. It is
-// primarily intended for use by authors of lineages in the creation of a
-// LineageFactory.
+// This function is the sole intended mechanism for creating Lineage objects,
+// thereby providing a practical promise that all instances of Lineage uphold
+// Thema's invariants. It is primarily intended for use by authors of lineages
+// in the creation of a LineageFactory.
 func BindLineage(raw cue.Value, lib Library) (Lineage, error) {
 	if !raw.Exists() {
 		return nil, &ErrValueNotExist{
