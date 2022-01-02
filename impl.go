@@ -14,7 +14,15 @@ func (e *ErrValueNotExist) Error() string {
 	return fmt.Sprintf("value from path %q does not exist, absent values cannot be lineages", e.path)
 }
 
-func BuildLineage(raw cue.Value, lib Library) (Lineage, error) {
+// BindLineage takes a raw cue.Value and checks that it is valid (that it upholds
+// the invariants which undergird Thema's translatability guarantees). If it is,
+// it returns the cue.Value wrapped in a Lineage, which provides access to all
+// the types and functions for working with Thema in Go.
+//
+// This function is the sole intended mechanism for creating valid Lineage objects. It is
+// primarily intended for use by authors of lineages in the creation of a
+// LineageBuilder.
+func BindLineage(raw cue.Value, lib Library) (Lineage, error) {
 	if !raw.Exists() {
 		return nil, &ErrValueNotExist{
 			path: raw.Path().String(),
@@ -26,7 +34,7 @@ func BuildLineage(raw cue.Value, lib Library) (Lineage, error) {
 		return nil, err
 	}
 
-	// FIXME Guarded with unstable until the underlying CUE bugs related to complex
+	// FIXME Guarded with unstable until the underlying CUE bugs related to iterated
 	// object subsumption checks are fixed
 	if unstable {
 		if err := verifySeqCompatInvariants(raw, lib); err != nil {
@@ -34,51 +42,10 @@ func BuildLineage(raw cue.Value, lib Library) (Lineage, error) {
 		}
 	}
 
-	seqiter, err := raw.LookupPath(cue.MakePath(cue.Str("Seqs"))).List()
-	if err != nil {
-		return nil, err
-	}
-
-	// var seqv int
-	// var first, lastgvs *genericVersionedSchema
-	// for seqiter.Next() {
-	// 	var schv int
-	// 	schiter, _ := seqiter.Value().LookupPath(cue.MakePath(cue.Str("schemas"))).List()
-	// 	for schiter.Next() {
-	// 		gvs := &genericVersionedSchema{
-	// 			actual: schiter.Value(),
-	// 			major:  seqv,
-	// 			minor:  schv,
-	// 			// This gets overwritten on all but the very final schema
-	// 			translation: terminalTranslationFunc,
-	// 		}
-
-	// 		if schv != 0 {
-	// 			// TODO Verify that this schema is backwards compat with prior.
-	// 			// Create an implicit translation operation on the prior schema.
-	// 			lastgvs.translation = implicitTranslation(gvs.actual, gvs)
-	// 			lastgvs.next = gvs
-	// 		} else if seqv != 0 {
-	// 			lastgvs.next = gvs
-	// 			// x.0. There must exist a lens; load it up and ready it for
-	// 			// use, and place it on the final schema in the prior sequence.
-	// 			//
-	// 			// Also...should at least try to make sure it's pointing at the
-	// 			// expected schema, to maintain our invariants?
-
-	// 			// TODO impl
-	// 		} else {
-	// 			first = gvs
-	// 		}
-	// 		lastgvs = gvs
-	// 		schv++
-	// 	}
-	// 	seqv++
-	// }
-
-	return &lineage{
-		raw: raw,
-		lib: lib,
+	return &UnaryLineage{
+		validated: true,
+		raw:       raw,
+		lib:       lib,
 	}, nil
 }
 
@@ -136,24 +103,29 @@ func verifySeqCompatInvariants(lin cue.Value, lib Library) error {
 	return nil
 }
 
-type lineage struct {
-	name  string
-	first Schema
-	raw   cue.Value
-	lib   Library
+// A UnaryLineage is a Go facade over a valid CUE lineage that does not compose
+// other lineage.
+type UnaryLineage struct {
+	validated bool
+	name      string
+	first     Schema
+	raw       cue.Value
+	lib       Library
 }
 
-func (lin *lineage) First() Schema {
+func (lin *UnaryLineage) First() Schema {
 	return lin.first
 }
 
-func (lin *lineage) RawValue() cue.Value {
+func (lin *UnaryLineage) RawValue() cue.Value {
 	return lin.raw
 }
 
-func (lin *lineage) Name() string {
+func (lin *UnaryLineage) Name() string {
 	return lin.name
 }
+
+func (lin *UnaryLineage) _p() {}
 
 type genericVersionedSchema struct {
 	actual      cue.Value

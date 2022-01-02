@@ -21,17 +21,21 @@ type Lineage interface {
 	// Name returns the name of the object schematized in the lineage, as defined
 	// in the lineage's Name field.
 	Name() string
+
+	// Lineage must be a private interface in order to force creation of them
+	// through BindLineage().
+	_p()
 }
 
-// A LineageBuilder returns a Lineage, which represents a single instance of
-// #Lineage declared in CUE.
+// A LineageFactory returns a Lineage, which is immutably bound to a single
+// instance of #Lineage declared in CUE.
 //
-// LineageBuilder funcs are intended to be the main Go entrypoint to all of the
+// LineageFactory funcs are intended to be the main Go entrypoint to all of the
 // operations, guarantees, and capabilities of Thema lineages. Lineage authors
-// should define and export one instance of LineageBuilder per #Lineage
+// should define and export one instance of LineageFactory per #Lineage
 // instance.
 //
-// It is idiomatic to name LineageBuilder funcs after the "name" field on the
+// It is idiomatic to name LineageFactory funcs after the "name" field on the
 // lineage they return:
 //
 //   func Lineage<Name> ...
@@ -41,14 +45,14 @@ type Lineage interface {
 //
 //   func Lineage ...
 //
-// type LineageBuilder func(lib Library, opts ...BuildOption) (Lineage, error)
-type LineageBuilder func(lib Library) (Lineage, error)
+// type LineageFactory func(lib Library, opts ...BuildOption) (Lineage, error)
+type LineageFactory func(lib Library) (Lineage, error)
 
 // A BuildOption defines build-time only options for constructing a Lineage.
 //
 // No options currently exist, but some are planned. This option is preemptively
-// defined to avoid breaking changes to the signature of BuildLineage and
-// LineageBuilder.
+// defined to avoid breaking changes to the signature of BindLineage and
+// LineageFactory.
 // type BuildOption buildOption
 
 // Internal representation of BuildOption.
