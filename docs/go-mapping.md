@@ -15,13 +15,13 @@ Let's set up a local environment so you can create these components yourself. Yo
 Initialize a Git repository in a new directory:
 
 ```bash
-git init thema-example
+git init thema_example
 ```
 
 Next, initialize a Go module and a CUE module, both using the same path.
 
 ```bash
-MODPATH="github.com/example/thema"
+MODPATH="github.com/example/thema_example"
 go mod init $MODPATH
 cue mod init $MODPATH
 ```
@@ -32,6 +32,8 @@ Finally, grab [`ship.cue`](https://github.com/grafana/thema/blob/main/docs/ship.
 curl https://raw.githubusercontent.com/grafana/thema/main/docs/ship.cue > ship.cue
 ```
 
+**NOTE: the `package` name at the top of `ship.cue` must be the same as what appears in `cue.mod/module.cue`.** If you changed `MODPATH`, hand-edit `ship.cue` to have the same `package` value as the final element in `MODPATH`.
+
 We'll use the `Ship` lineage throughout this tutorial.
 
 ## Goal: The Lineage Factory
@@ -39,14 +41,14 @@ We'll use the `Ship` lineage throughout this tutorial.
 For each lineage you create in CUE, the recommended, idiomatic approach is to export a single Go function that satisfies the [`LineageFactory`](https://pkg.go.dev/github.com/grafana/thema#LineageFactory) type. The lineage factory function will be the canonical way of accessing your lineage in any Go program. It should follow a naming pattern:
 
 ```go
-func <Name>Lineage (lib thema.Library) (thema.Lineage, error) { ... }
+func <Name>Lineage (lib thema.Library, opts ...thema.BindOption) (thema.Lineage, error) { ... }
 var _ thema.LineageFactory = <Name>Lineage
 ```
 
 For Go packages that clearly correspond to a single lineage declaration, the lineage name may be omitted:
 
 ```go
-func Lineage (lib thema.Library) (thema.Lineage, error) { ... }
+func Lineage (lib thema.Library, opts ...thema.BindOption) (thema.Lineage, error) { ... }
 var _ thema.LineageFactory = Lineage
 ```
 
@@ -102,7 +104,7 @@ package example
 import (
     "embed"
 
-	"cuelang.org/go/cue/cuecontext"
+    "cuelang.org/go/cue/cuecontext"
     "github.com/grafana/thema/load"
 )
 
@@ -132,7 +134,6 @@ package example
 import (
     "embed"
 
-	"cuelang.org/go/cue/cuecontext"
     "github.com/grafana/thema"
     "github.com/grafana/thema/load"
 )
@@ -140,7 +141,7 @@ import (
 //go:embed ship.cue cue.mod
 var modFS embed.FS
 
-func loadLineage(lib *thema.Library) (cue.Value, error) {
+func loadLineage(lib thema.Library) (cue.Value, error) {
     insts, err := load.InstancesWithThema(modFS)
     if err != nil {
         return cue.Value{}, err
@@ -184,8 +185,7 @@ package example
 import (
     "embed"
 
-	"cuelang.org/go/cue"
-	"cuelang.org/go/cue/cuecontext"
+    "cuelang.org/go/cue"
     "github.com/grafana/thema"
     "github.com/grafana/thema/load"
 )
@@ -250,8 +250,7 @@ package example
 import (
     "embed"
 
-	"cuelang.org/go/cue"
-	"cuelang.org/go/cue/cuecontext"
+    "cuelang.org/go/cue"
     "github.com/grafana/thema"
     "github.com/grafana/thema/load"
 )
@@ -280,8 +279,7 @@ package example
 import (
     "embed"
 
-	"cuelang.org/go/cue"
-	"cuelang.org/go/cue/cuecontext"
+    "cuelang.org/go/cue"
     "github.com/grafana/thema"
     "github.com/grafana/thema/load"
 )
@@ -298,12 +296,12 @@ func loadLineage(lib thema.Library) (cue.Value, error) {
 }
 
 // ShipLineage constructs a Go handle representing the Ship lineage.
-func ShipLineage(lib thema.Library) (thema.Lineage, error) {
+func ShipLineage(lib thema.Library, opts ...thema.BindOption) (thema.Lineage, error) {
     linval, err := loadLineage(lib)
     if err != nil {
         return nil, err
     }
-    return thema.BindLineage(linval, lib)
+    return thema.BindLineage(linval, lib, opts...)
 }
 var _ thema.LineageFactory = ShipLineage // Ensure our factory fulfills the type
 ```
@@ -320,7 +318,7 @@ package example
 import (
     "testing"
 
-	"cuelang.org/go/cue/cuecontext"
+    "cuelang.org/go/cue/cuecontext"
     "github.com/grafana/thema"
 )
 
