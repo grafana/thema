@@ -39,8 +39,8 @@ We'll use the `Ship` lineage throughout this tutorial.
 For each lineage you create in CUE, the recommended, idiomatic approach is to export a single Go function that satisfies the [`LineageFactory`](https://pkg.go.dev/github.com/grafana/thema#LineageFactory) type. The lineage factory function will be the canonical way of accessing your lineage in any Go program. It should follow a naming pattern:
 
 ```go
-func Lineage<Name> (lib thema.Library) (thema.Lineage, error) { ... }
-var _ thema.LineageFactory = Lineage<Name>
+func <Name>Lineage (lib thema.Library) (thema.Lineage, error) { ... }
+var _ thema.LineageFactory = <Name>Lineage
 ```
 
 For Go packages that clearly correspond to a single lineage declaration, the lineage name may be omitted:
@@ -272,7 +272,7 @@ Now, there's still the nagging question about where the failure happens if the `
 
 ### Build and Verify
 
-We're ready to write our lineage factory func, `LineageShip()`!
+We're ready to write our lineage factory func, `ShipLineage()`!
 
 ```go
 package example
@@ -297,20 +297,20 @@ func loadLineage(lib thema.Library) (cue.Value, error) {
     }
 }
 
-// LineageShip constructs a Go handle representing the Ship lineage.
-func LineageShip(lib thema.Library) (thema.Lineage, error) {
+// ShipLineage constructs a Go handle representing the Ship lineage.
+func ShipLineage(lib thema.Library) (thema.Lineage, error) {
     linval, err := loadLineage(lib)
     if err != nil {
         return nil, err
     }
     return thema.BindLineage(linval, lib)
 }
-var _ thema.LineageFactory = LineageShip // Ensure our factory fulfills the type
+var _ thema.LineageFactory = ShipLineage // Ensure our factory fulfills the type
 ```
 
-Well, that was anticlimatic. `thema.BindLineage()` did all the work!
+That was anticlimatic. `thema.BindLineage()` did all the work!
 
-But that's the point: as the author of the `Ship` lineage, we want to offer it up as an instance of the Go `Lineage` type. Consumers of `LineageShip()` want certainty that the return value faithfully upholds the guarantees that Thema promises about lineages in general. If Thema authors were forced to make a lot of choices in their lineage factorys, it would introduce room for error in the delivery of those guarantees. Instead, responsibility for verification is delegated[^cuevalidity] to `BindLineage()`.
+But that's the point: as the author of the `Ship` lineage, we want to offer it up as an instance of the Go `Lineage` type. Consumers of `ShipLineage()` want certainty that the return value faithfully upholds the Thema's general guarantees around lineages. If Thema authors were forced to make a lot of choices in their lineage factorys, it would introduce room for error in the delivery of those guarantees. Instead, responsibility for verification is delegated[^cuevalidity] to `BindLineage()`.
 
 So, to check whether our `Ship` lineage is valid, all we have to do check the `error` return of our lineage factory. A trivial test is sufficient[^panic]:
 
@@ -325,7 +325,7 @@ import (
 )
 
 func TestShipIsValid(t *testing.T) {
-    if _, err := LineageShip(thema.NewLibrary(cuecontext.New())); err != nil {
+    if _, err := ShipLineage(thema.NewLibrary(cuecontext.New())); err != nil {
         t.Fatal(err)
     }
 }
@@ -335,7 +335,7 @@ Our `Ship` lineage is now wrapped up in a reliable package[^pubretrieve], ready 
 
 ### Advanced: Additional Verification
 
-`BindLineage()` provides basic lineage validity guarantees. However, we may have more things we want to verify about `Ship` - and if so, `LineageShip()` is the place to do it, _after_ a non-error return from `BindLineage()`.
+`BindLineage()` provides basic lineage validity guarantees. However, we may have more things we want to verify about `Ship` - and if so, `ShipLineage()` is the place to do it, _after_ a non-error return from `BindLineage()`.
 
 TODO
 
@@ -343,7 +343,7 @@ TODO
 
 This tutorial illustrated how, as a Thema lineage author, we take a CUE `#Lineage` and make it available to Go programs as a [`Lineage`](https://pkg.go.dev/github.com/grafana/thema#Lineage) via a standard [`LineageFactory`](https://pkg.go.dev/github.com/grafana/thema#LineageFactory) function.
 
-In the [next tutorial](go-usage.md), we'll trade our Thema author hat for a Thema consumer hat, and show how to write a Go program that uses the Thema `Lineage` returned from `LineageShip()` to be written against just one version of `Ship`, but be able to handle `Ship`s in any form specified in the lineage.
+In the [next tutorial](go-usage.md), we'll trade our Thema author hat for a Thema consumer hat, and show how to write a Go program that uses the Thema `Lineage` returned from `ShipLineage()` to be written against just one version of `Ship`, but be able to handle `Ship`s in any form specified in the lineage.
 
 [^loaderhelper]:
     `InstancesWithThema` abstracts over [`load.Instances`](https://pkg.go.dev/cuelang.org/go@v0.4.0/cue/load#Instances), which offers far more [options](https://pkg.go.dev/cuelang.org/go@v0.4.0/cue/load#Config) than are usually needed for Thema. It's expected that some more complex cases will not fit into `InstancesWithThema`; in such case, plan to write your own loader-helper.
@@ -354,10 +354,10 @@ In the [next tutorial](go-usage.md), we'll trade our Thema author hat for a Them
 [^cuevalidity]:
     The goal is that all constraints necessary for invariant enforcement on lineages are expressed natively in CUE. However, some of that enforcement is currently performed by `BindLineage()` in Go, because it's not (yet) possible to express the necessary constraints natively in CUE.
     
-    Today, lineage authors delegate verification to `BindLineage()`, resulting in uniform invariant enforcement across all Go `Lineage` instances. But when all necessary constraints are expressed in CUE, verification can shift left (up?). `BindLineage()` will delegate enforcement to CUE itself, becoming a passthrough more akin to `LineageShip()`, and guarantee uniformity will naturally extend not just to a Go `Lineage`, but to any analogous construct in the Thema bindings for another language (that has a CUE evaluator).
+    Today, lineage authors delegate verification to `BindLineage()`, resulting in uniform invariant enforcement across all Go `Lineage` instances. But when all necessary constraints are expressed in CUE, verification can shift left (up?). `BindLineage()` will delegate enforcement to CUE itself, becoming a passthrough more akin to `ShipLineage()`, and guarantee uniformity will naturally extend not just to a Go `Lineage`, but to any analogous construct in the Thema bindings for another language (that has a CUE evaluator).
 
 [^panic]:
-    Arguably, you could call `LineageShip()` in an `init()` function, and `panic()` on error. `panic()` is usually reserved in Go for unrecoverable errors, and a lineage failing to load is unrecoverable: the only possible sources of failure are a) a buggy CUE evaluator, b) backwards incompatible changes in CUE itself, or c) the input CUE is not a valid `#Lineage`. As long as the bytes representing the input CUE arrive through reliable transport (e.g. from a colocated file `//go:embed`-ed in the binary), no remediation is possible within the scope of the running program.
+    Arguably, you could call `ShipLineage()` in an `init()` function, and `panic()` on error. `panic()` is usually reserved in Go for unrecoverable errors, and a lineage failing to load is unrecoverable: the only possible sources of failure are a) a buggy CUE evaluator, b) backwards incompatible changes in CUE itself, or c) the input CUE is not a valid `#Lineage`. As long as the bytes representing the input CUE arrive through reliable transport (e.g. from a colocated file `//go:embed`-ed in the binary), no remediation is possible within the scope of the running program.
 
 [^pubretrieve]:
     Barring bugs, the only systemic failure mode is a side effect of what made this tutorial relatively uncomplicated: embedding. Embedding CUE files into Go makes them reliably available, but it also couples the set of known schema in the lineage to the version of the Go package into which they're embedded. If we add a new schema to `Ship`, Go programs in other repos/modules won't see it until their `go.mod` is updated and they're recompiled. The central Thema guarantee - translatability of any valid instance to the schema version the program expects - would be lost until recompilation.

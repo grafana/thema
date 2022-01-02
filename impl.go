@@ -21,7 +21,7 @@ func (e *ErrValueNotExist) Error() string {
 //
 // This function is the sole intended mechanism for creating valid Lineage objects. It is
 // primarily intended for use by authors of lineages in the creation of a
-// LineageBuilder.
+// LineageFactory.
 func BindLineage(raw cue.Value, lib Library) (Lineage, error) {
 	if !raw.Exists() {
 		return nil, &ErrValueNotExist{
