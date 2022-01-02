@@ -28,8 +28,9 @@ import (
     // TODO(must) https://github.com/cue-lang/cue/issues/943
     // Name: must(isconcrete(Name), "all lineages must have a name")
 
-    // A Sequence is an ordered list of schema, with the invariant that
-    // successive schemas are backwards compatible with their predecessors.
+    // A Sequence is a non-empty ordered list of schemas, with the property that
+    // every schema in the sequence is backwards compatible with (subsumes) its
+    // predecessors.
     #Sequence: [...JoinSchema] & list.MinItems(1)
 
     // This exists because constraining with list.MinItems(1) isn't able to
@@ -129,13 +130,15 @@ _all: {
     lin: #Lineage
     // The schema version to pick. Either:
     //
-    //   * An exact #SchemaVersion, e.g. [1, 0]
-    //   * Just the sequence number, list, e.g. [1]
+    //   * An exact #SchemaVersion: [1, 0]
+    //   * Just the sequence number: [1]
     //
     // The latter form will select the latest schema within the given
     // sequence.
     v: #SchemaVersion | [int & >= 0]
     v: [<len(lin.Seqs), <len(lin.Seqs[v[0]].schemas)] | [<len(lin.Seqs)]
+    // TODO(must) https://github.com/cue-lang/cue/issues/943
+    // must(isconcrete(v[0]), "must specify a concrete sequence number")
 
     let _v = #SchemaVersion & [
         v[0],
@@ -146,7 +149,6 @@ _all: {
     out: lin.Seqs[_v[0]].schemas[_v[1]]
     // TODO ^ apply object headers, etc.
 }
-
 
 // SchemaVersion represents the version of a schema within a lineage as a
 // 2-tuple of integers: coordinates, corresponding to the schema's index
