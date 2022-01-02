@@ -19,7 +19,7 @@ func TestInstanceLoadHelper(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	insts, err := InstancesWithThema(nil, tfs)
+	insts, err := InstancesWithThema(tfs)
 	if err != nil {
 		t.Fatal(err)
 	}

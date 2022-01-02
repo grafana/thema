@@ -37,7 +37,7 @@ var themamodpath string = filepath.Join("cue.mod", "pkg", "github.com", "grafana
 // cue.mod/pkg/, where CUE searches for mod-external imports.
 //
 // This loader is opinionated, preferring simple ease-of-use and fewer degrees
-// of freedom to the completeness of load.Instances.  Some reasonable use cases
+// of freedom to the completeness of load.Instances. Some reasonable use cases
 // may not be achievable. Make your own as needed - all key component parts are
 // exported from elsewhere in the Thema Go module.
 //
@@ -51,7 +51,7 @@ var themamodpath string = filepath.Join("cue.mod", "pkg", "github.com", "grafana
 //   module: "github.com/grafana/thema"
 //
 // The dirs parameter should specify directories containing .cue files with
-// lineages to be loaded, relative to the lmodule root directory. This is similar
+// lineages to be loaded, relative to the module root directory. This is similar
 // to load.Config.Dir, except:
 //   - There is no corollary to the load.Config.Packages property. Consequently,
 //     only .cue files with packages having the same name as their parent dir will be loaded.
@@ -61,7 +61,9 @@ var themamodpath string = filepath.Join("cue.mod", "pkg", "github.com", "grafana
 //   - If no values are passed for dirs, the loader will default to loading the
 //     root directory of the modFS. The root directory can be explicitly specified
 //     with ".".
-func InstancesWithThema(ctx *build.Context, modFS fs.FS, dirs ...string) ([]*build.Instance, error) {
+//
+// TODO decide on what, if anything, to do about passing/injecting a *build.Context
+func InstancesWithThema(modFS fs.FS, dirs ...string) ([]*build.Instance, error) {
 	var modname string
 	err := fs.WalkDir(modFS, "cue.mod", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
