@@ -1,12 +1,12 @@
 # Encapsulating Lineages in Go
 
-Once we know how to [write a Thema lineage in CUE](authoring.md), a common next step is to make the lineage available for use in a general-purpose programming language, like Go. No matter what we'd like this Go program to do with our lineages, we must first get the CUE text of our lineage declaration into Go and load it into the [types exported by the `thema` package](https://pkg.go.dev/github.com/grafana/thema).
+Once we know how to [write a Thema lineage in CUE](authoring.md), a common next step is to make the lineage available for use in a general-purpose programming language, like Go. No matter what we'd like this Go program to do with our lineages, we must first get the CUE text of our lineage declaration - often referred to as "the bytes" in this doc - into Go, and load it into the [types exported by the `thema` package](https://pkg.go.dev/github.com/grafana/thema).
 
-Thema's Go types are not readily extensible: exported interfaces and structs with some or all unexported members. This is by design. Thema's value as a schema system derives primarily from its [guarantees](invariants.md), and we want those guarantees to be reliably available in Go. Making it near-impossible to create a functional instance of `Lineage` outside of [`BuildLineage`](https://pkg.go.dev/github.com/grafana/thema#BuildLineage) turns `Lineage` into a powerful abstraction for Thema lineage consumers: if their Go code has a variable with a non-`nil` `thema.Lineage`, all of Thema's universal guarantees apply. Unconditionally.
+Thema's Go types are intentionally designed to limit extension: exported interfaces and structs with some or all unexported members. Thema's value as a schema system derives primarily from its [guarantees](invariants.md), and those guarantees must be available in Go, with the `Lineage` type as the entry point. To its consumers, `Lineage` should be a powerful, reliable abstraction: if some Go code has a non-`nil` variable of type `thema.Lineage`, all of Thema's (implemented) guarantees apply, unconditionally.
 
-It doesn't matter if the lineage author didn't write tests, or forgot to check something. There's nothing for the author to do - no (known) degrees of freedom in which to make an error. All `Lineage` come from `BuildLineage`, and `BuildLineage` won't let an invalid lineage through, and lineage validity is sufficient to confer Thema's high-level guarantees. It's as close as a runtime guarantee can get to a compile-time guarantee.
+That's a serious guarantee, especially given that responsibility for fulfilling it will fall to the Thema author. Hopeium won't cut it. For Thema guarantees to actually hold in the wild - where `Lineage` instances burst forth from Go code written by those of us mortals who haven't _quite_ gotten around to finishing our maths PhD _just_ yet - it must be near-impossible to produce a `Lineage` that doesn't keep Thema's promises. As we'll see, Thema approaches this by making [`BuildLineage()`](https://pkg.go.dev/github.com/grafana/thema#BuildLineage) a verification choke point: it's the only way to create a `Lineage`, and will error out if provided raw CUE that does not constitute a valid lineage.
 
-With this in mind, the goal in this tutorial is to play the role of the lineage author, and create a standalone Go package that can return an instance of `thema.Lineage` from the `Ship` lineage we [previously](authoring.md) created in CUE.
+With this in mind, this tutorial puts us in the role of the lineage author with the goal of creating a standalone Go package that can return an instance of `thema.Lineage` from the `Ship` lineage we [previously](authoring.md) created in CUE.
 
 ## Environment setup
 
@@ -90,7 +90,7 @@ func loadLineage() (cue.Value, error) {
 }
 ```
 
-_NOTE: this code won't compile. That's intentional. It will when we're done._
+_NOTE: this code won't compile. It will by the end._
 
 Making CUE files available from Go is typically a two-step process: first, you load the raw files from disk - as we've done above - which performs basic processing and validation, and results in [`[]*build.Instance`](https://pkg.go.dev/cuelang.org/go@v0.4.0/cue/build#Instance). These instances must then be loaded into a [`cue.Context`](https://pkg.go.dev/cuelang.org/go@v0.4.0/cue#Context) - the top-level container for the graph of values maintained by CUE's runtime. (`cue.Context` is very different from stdlib Go [context](https://pkg.go.dev/context) - it has nothing to do with timeouts or cancellation.)
 
@@ -206,9 +206,9 @@ func loadLineage(lib thema.Library) (cue.Value, error) {
 }
 ```
 
-Presto! We've retrieved the `cue.Value` that represents our lineage.
+Presto! We've retrieved the `cue.Value` that represents our lineage. But let's have a moment of consideration before continuing.
 
-But before we continue, let's pause and think about this for a moment. That hardcoded `"lin"` string tightly and implicitly couples our Go logic with this arbitrary choice made in CUE. If we change the `lin` path to something else, how would the above code fail?
+That hardcoded `"lin"` string tightly and implicitly couples our Go logic with this arbitrary choice made in CUE. If we change the `lin` path to something else, how would the above code fail?
 
 The simplicity of our `ship.cue` and example module as a whole suggests that it might've been better to omit the `lin` and just make the whole `ship.cue` file our lineage:
 
