@@ -24,14 +24,21 @@ func (e *ErrValueNotExist) Error() string {
 // Thema's invariants. It is primarily intended for use by authors of lineages
 // in the creation of a LineageFactory.
 func BindLineage(raw cue.Value, lib Library, opts ...BindOption) (Lineage, error) {
+	// The candidate lineage must exist.
 	if !raw.Exists() {
 		return nil, &ErrValueNotExist{
 			path: raw.Path().String(),
 		}
 	}
 
-	defLineage := lib.linDef()
-	if err := defLineage.Subsume(raw, cue.Raw(), cue.Schema()); err != nil {
+	// The candidate lineage must be error-free.
+	if err := raw.Validate(cue.Concrete(false)); err != nil {
+		return nil, err
+	}
+
+	// The candidate lineage must be an instance of #Lineage.
+	dlin := lib.linDef()
+	if err := dlin.Subsume(raw, cue.Raw(), cue.Schema()); err != nil {
 		return nil, err
 	}
 
@@ -41,6 +48,8 @@ func BindLineage(raw cue.Value, lib Library, opts ...BindOption) (Lineage, error
 	}
 
 	if !cfg.skipbuggychecks {
+		// The sequences and schema in the candidate lineage must follow
+		// backwards [in]compatibility rules.
 		if err := verifySeqCompatInvariants(raw, lib); err != nil {
 			return nil, err
 		}
@@ -122,3 +131,47 @@ func (lin *UnaryLineage) Name() string {
 }
 
 func (lin *UnaryLineage) _lineage() {}
+
+// A UnarySchema is a Go facade over a Thema schema that does not compose any
+// schemas from any other lineages.
+type UnarySchema struct {
+	raw        cue.Value
+	pred, succ *UnarySchema
+	lin        *UnaryLineage
+	v          SyntacticVersion
+}
+
+func (sch *UnarySchema) Validate(data cue.Value) (*Instance, error) {
+	err := sch.raw.Subsume(data, cue.Concrete(true))
+	if err != nil {
+		return nil, err
+	}
+
+	return &Instance{
+		raw:  data,
+		sch:  sch,
+		name: "", // FIXME how are we getting this out?
+	}, nil
+}
+
+func (sch *UnarySchema) Successor() Schema {
+	return sch.succ
+}
+
+func (sch *UnarySchema) Predecessor() Schema {
+	return sch.pred
+}
+
+func (sch *UnarySchema) RawValue() cue.Value {
+	return sch.raw
+}
+
+func (sch *UnarySchema) Version() SyntacticVersion {
+	return sch.v
+}
+
+func (sch *UnarySchema) Lineage() Lineage {
+	return sch.lin
+}
+
+func (sch *UnarySchema) _schema() {}
