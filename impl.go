@@ -1,19 +1,43 @@
 package thema
 
 import (
+	"fmt"
+
 	"cuelang.org/go/cue"
 )
 
+type ErrValueNotExist struct {
+	path string
+}
+
+func (e *ErrValueNotExist) Error() string {
+	return fmt.Sprintf("value from path %q does not exist, absent values cannot be lineages", e.path)
+}
+
 func BuildLineage(raw cue.Value, lib Library) (Lineage, error) {
+	if !raw.Exists() {
+		return nil, &ErrValueNotExist{
+			path: raw.Path().String(),
+		}
+	}
+
 	defLineage := lib.RawValue().LookupPath(cue.MakePath(cue.Def("#Lineage")))
 	if err := defLineage.Subsume(raw, cue.Raw()); err != nil {
 		return nil, err
 	}
 
-	// seqiter, err := raw.LookupPath(cue.MakePath(cue.Str("Seqs"))).List()
-	// if err != nil {
-	// 	return nil, err
-	// }
+	// FIXME Guarded with unstable until the underlying CUE bugs related to complex
+	// object subsumption checks are fixed
+	if unstable {
+		if err := verifySeqCompatInvariants(raw, lib); err != nil {
+			return nil, err
+		}
+	}
+
+	seqiter, err := raw.LookupPath(cue.MakePath(cue.Str("Seqs"))).List()
+	if err != nil {
+		return nil, err
+	}
 
 	// var seqv int
 	// var first, lastgvs *genericVersionedSchema
@@ -52,7 +76,10 @@ func BuildLineage(raw cue.Value, lib Library) (Lineage, error) {
 	// 	seqv++
 	// }
 
-	return &lineage{}, nil
+	return &lineage{
+		raw: raw,
+		lib: lib,
+	}, nil
 }
 
 type compatInvariantError struct {
@@ -65,7 +92,7 @@ func (e *compatInvariantError) Error() string {
 	panic("TODO")
 }
 
-func ValidateCompatibilityInvariants(lin cue.Value, lib Library) error {
+func verifySeqCompatInvariants(lin cue.Value, lib Library) error {
 	dlin := lib.RawValue().LookupPath(cue.MakePath(cue.Def("#Lineage")))
 	if dlin.Err() != nil {
 		panic(dlin.Err())
@@ -113,6 +140,7 @@ type lineage struct {
 	name  string
 	first Schema
 	raw   cue.Value
+	lib   Library
 }
 
 func (lin *lineage) First() Schema {

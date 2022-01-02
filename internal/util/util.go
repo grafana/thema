@@ -10,6 +10,7 @@ import (
 )
 
 func ToOverlay(prefix string, vfs fs.FS, overlay map[string]load.Source) error {
+	// TODO why not just stick the prefix on automatically...?
 	if !filepath.IsAbs(prefix) {
 		return fmt.Errorf("must provide absolute path prefix when generating cue overlay, got %q", prefix)
 	}
