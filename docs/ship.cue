@@ -1,4 +1,4 @@
-package example
+package thema_example
 
 import "github.com/grafana/thema"
 
