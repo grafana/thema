@@ -33,7 +33,7 @@ lin: Seqs: [
 
 To be a valid lineage, there must be at least one sequence in `Seqs`, which in turn must contain at least one schema in its `schemas` list. That means this isn't actually a valid lineage. Rather, this is just the minimum necessary structure to begin defining a lineage. (Note that the outermost `lin` can be omitted, in which case the entire file is the lineage.)
 
-It's essential that supporting tooling refuses to work with invalid lineages, a bit like a failed type check. Consequently, attempting to `cue eval`, [load the lineage for use in Go](https://pkg.go.dev/github.com/grafana/thema#BuildLineage), or otherwise do anything with the lineage, will ([should](TODOlinktoissue)) fail with a complaint about the length of `schemas` being less than 1.
+It's essential that supporting tooling refuses to work with invalid lineages, a bit like a failed type check. Consequently, attempting to `cue eval`, [load the lineage for use in Go](https://pkg.go.dev/github.com/grafana/thema#BindLineage), or otherwise do anything with the lineage, will ([should](TODOlinktoissue)) fail with a complaint about the length of `schemas` being less than 1.
 
 ## Defining a Schema
 

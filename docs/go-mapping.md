@@ -4,7 +4,7 @@ Once we know how to [write a Thema lineage in CUE](authoring.md), a common next 
 
 Thema's Go types are intentionally designed to limit extension: exported interfaces and structs with some or all unexported members. Thema's value as a schema system derives primarily from its [guarantees](invariants.md), and those guarantees must be available in Go, with the `Lineage` type as the entry point. To its consumers, `Lineage` should be a powerful, reliable abstraction: if some Go code has a non-`nil` variable of type `thema.Lineage`, all of Thema's (implemented) guarantees apply, unconditionally.
 
-That's a serious guarantee, especially given that responsibility for fulfilling it will fall to the Thema author. Hopeium won't cut it. For Thema guarantees to actually hold in the wild - where `Lineage` instances burst forth from Go code written by those of us mortals who haven't _quite_ gotten around to finishing our maths PhD _just_ yet - it must be near-impossible to produce a `Lineage` that doesn't keep Thema's promises. As we'll see, Thema approaches this by making [`BuildLineage()`](https://pkg.go.dev/github.com/grafana/thema#BuildLineage) a verification choke point: it's the only way to create a `Lineage`, and will error out if provided raw CUE that does not constitute a valid lineage.
+That's a serious guarantee, especially given that responsibility for fulfilling it will fall to the Thema author. Hopeium won't cut it. For Thema guarantees to actually hold in the wild - where `Lineage` instances burst forth from Go code written by those of us mortals who haven't _quite_ gotten around to finishing our maths PhD _just_ yet - it must be near-impossible to produce a `Lineage` that doesn't keep Thema's promises. As we'll see, Thema approaches this by making [`BindLineage()`](https://pkg.go.dev/github.com/grafana/thema#BindLineage) a verification choke point: it's the only way to create a `Lineage`, and will error out if provided raw CUE that does not constitute a valid lineage.
 
 With this in mind, this tutorial puts us in the role of the lineage author with the goal of creating a standalone Go package that can return an instance of `thema.Lineage` from the `Ship` lineage we [previously](authoring.md) created in CUE.
 
@@ -34,30 +34,30 @@ curl https://raw.githubusercontent.com/grafana/thema/main/docs/ship.cue > ship.c
 
 We'll use the `Ship` lineage throughout this tutorial.
 
-## Goal: The Lineage Builder
+## Goal: The Lineage Factory
 
-For each lineage you create in CUE, the recommended, idiomatic approach is to export a single Go function that satisfies the [`LineageBuilder`](https://pkg.go.dev/github.com/grafana/thema#LineageBuilder) type. The lineage builder function will be the canonical way of accessing your lineage in any Go program. It should follow a naming pattern:
+For each lineage you create in CUE, the recommended, idiomatic approach is to export a single Go function that satisfies the [`LineageFactory`](https://pkg.go.dev/github.com/grafana/thema#LineageFactory) type. The lineage factory function will be the canonical way of accessing your lineage in any Go program. It should follow a naming pattern:
 
 ```go
 func Lineage<Name> (lib thema.Library) (thema.Lineage, error) { ... }
-var _ thema.LineageBuilder = Lineage<Name>
+var _ thema.LineageFactory = Lineage<Name>
 ```
 
 For Go packages that clearly correspond to a single lineage declaration, the lineage name may be omitted:
 
 ```go
 func Lineage (lib thema.Library) (thema.Lineage, error) { ... }
-var _ thema.LineageBuilder = Lineage
+var _ thema.LineageFactory = Lineage
 ```
 
 This function should encapsulate the logic for getting the CUE bytes, building the `Lineage` object, etc. The remainder of this document deals with filling in the `...`.
 
 ### Idiomatic Thema
 
-Exporting exactly one lineage builder per declared lineage is almost always preferable. There are some other idiomatic approaches to providing Thema that are less universal, but should be followed when possible:
+Exporting exactly one lineage factory per declared lineage is almost always preferable. There are some other idiomatic approaches to providing Thema that are less universal, but should be followed when possible:
 
-* Colocate the Go package containing the lineage builder in the same directory as the `.cue` file containing the lineage declaration.
-* Use Go 1.16 [embedding](https://pkg.go.dev/embed) to bind `.cue` files to the package containing your lineage builder.
+* Colocate the Go package containing the lineage factory in the same directory as the `.cue` file containing the lineage declaration.
+* Use Go 1.16 [embedding](https://pkg.go.dev/embed) to bind `.cue` files to the package containing your lineage factory.
 
 Thema's exemplars package, which we'll refer to continuously throughout this doc, illustrates most of these idioms.
 
@@ -94,9 +94,7 @@ _NOTE: this code won't compile. It will by the end._
 
 Making CUE files available from Go is typically a two-step process: first, you load the raw files from disk - as we've done above - which performs basic processing and validation, and results in [`[]*build.Instance`](https://pkg.go.dev/cuelang.org/go@v0.4.0/cue/build#Instance). These instances must then be loaded into a [`cue.Context`](https://pkg.go.dev/cuelang.org/go@v0.4.0/cue#Context) - the top-level container for the graph of values maintained by CUE's runtime. (`cue.Context` is very different from stdlib Go [context](https://pkg.go.dev/context) - it has nothing to do with timeouts or cancellation.)
 
-This matters for how we create our lineage builder because higher-level Thema operations over lineages and schemas are built from lower-level CUE operations over [cue.Values](https://pkg.go.dev/cuelang.org/go@v0.4.0/cue#Value). All the Go types Thema provides are largely just handles pointing to some particular `cue.Value`. And the whole point of a lineage builder is to create a canonical place where
-
-To work properly, those values all have be in the same universe/runtime/`cue.Context`. It's the responsibility of the author of the Go program that calls the lineage builder we're now creating to ensure the same `cue.Context` is used everywhere. That "author" will be us in the next tutorial when we start using this lineage builder we're now creating - but ofr now Let's create one, then build our `[]*build.Instance` into the `cue.Context` universe, resulting in a useful thing: a `cue.Value`. 
+This matters for how we create our lineage factory because higher-level Thema operations over lineages and schemas are built from lower-level CUE operations over [cue.Values](https://pkg.go.dev/cuelang.org/go@v0.4.0/cue#Value). All the Go types Thema provides are largely just handles pointing to some particular `cue.Value`. To work properly, those `cue.Value`s all have be in the same universe/runtime/`cue.Context`. Let's create one, then build our `[]*build.Instance` into the `cue.Context` universe, resulting in a useful thing: a `cue.Value`.
 
 ```go
 package example
@@ -154,13 +152,13 @@ func loadLineage(lib *thema.Library) (cue.Value, error) {
 
 Much better. Now, with a `cue.Value` in hand, the first critical stage of mapping is complete: we've mapped raw file bytes into a working object in a CUE context-universe provided by the caller.
 
-## Build a `Lineage`
+## Bind a `Lineage`
 
 We have a `cue.Value` - great! But there's a low ceiling on how much we can actually say about this freshly-loaded `val`. In our particular case, we can be sure that `val` points to just the contents of `ship.cue`, because that's literally the only file in our CUE module. But in general, each element returned from `InstancesWithThema` can represent a pile of files from a hierarchy of directories, all automatically unified together, according to [CUE's rules for filesystem organization](https://cuelang.org/docs/references/spec/#modules-instances-and-packages).
 
-All we can say for sure is that `val` represents a bunch of syntactically valid CUE statements. That's a far cry from the [strong guarantees](invariants.md) lineages are supposed to provide. That's what we do next - in two phases:
+All we can say for sure is that `val` represents a bunch of syntactically valid CUE statements. That's a far cry from the [strong guarantees](invariants.md) lineages are supposed to provide. That's what we do next, in two phases:
 
-1. Retrieve the particular `cue.Value` that's actually supposed to be the `#Lineage` for our `Ship` type
+1. Retrieve the particular `cue.Value` that's actually supposed to be the `#Lineage` of our `Ship`
 2. Verify that it's a valid lineage, and wrap it in our Go `Lineage` type
 
 ### Retrieval
@@ -274,7 +272,7 @@ Now, there's still the nagging question about where the failure happens if the `
 
 ### Build and Verify
 
-We're ready to write our lineage builder func, `LineageShip()`!
+We're ready to write our lineage factory func, `LineageShip()`!
 
 ```go
 package example
@@ -305,16 +303,16 @@ func LineageShip(lib thema.Library) (thema.Lineage, error) {
     if err != nil {
         return nil, err
     }
-    return thema.BuildLineage(linval, lib)
+    return thema.BindLineage(linval, lib)
 }
-var _ thema.LineageBuilder = LineageShip // Ensure our builder fulfills the type
+var _ thema.LineageFactory = LineageShip // Ensure our factory fulfills the type
 ```
 
-Well, that was anticlimatic. `thema.BuildLineage()` did all the work!
+Well, that was anticlimatic. `thema.BindLineage()` did all the work!
 
-But that's the point: as the author of the `Ship` lineage, we want to offer it up as an instance of the Go `Lineage` type. Consumers of `LineageShip()` want certainty that the return value faithfully upholds the guarantees that Thema promises about lineages in general. If Thema authors were forced to make a lot of choices in their lineage builders, it would introduce room for error in the delivery of those guarantees. Instead, responsibility for verification is delegated[^cuevalidity] to `BuildLineage()`.
+But that's the point: as the author of the `Ship` lineage, we want to offer it up as an instance of the Go `Lineage` type. Consumers of `LineageShip()` want certainty that the return value faithfully upholds the guarantees that Thema promises about lineages in general. If Thema authors were forced to make a lot of choices in their lineage factorys, it would introduce room for error in the delivery of those guarantees. Instead, responsibility for verification is delegated[^cuevalidity] to `BindLineage()`.
 
-So, to check whether our `Ship` lineage is valid, all we have to do check the `error` return of our lineage builder. A trivial test is sufficient[^panic]:
+So, to check whether our `Ship` lineage is valid, all we have to do check the `error` return of our lineage factory. A trivial test is sufficient[^panic]:
 
 ```go
 package example
@@ -337,26 +335,26 @@ Our `Ship` lineage is now wrapped up in a reliable package[^pubretrieve], ready 
 
 ### Advanced: Additional Verification
 
-`BuildLineage()` provides basic lineage validity guarantees. However, we may have more things we want to verify about `Ship` - and if so, `LineageShip()` is the place to do it, _after_ a non-error return from `BuildLineage()`.
+`BindLineage()` provides basic lineage validity guarantees. However, we may have more things we want to verify about `Ship` - and if so, `LineageShip()` is the place to do it, _after_ a non-error return from `BindLineage()`.
 
 TODO
 
 ## Wrap-up
 
-This tutorial illustrated how, as a Thema lineage author, we take a CUE `#Lineage` and make it available to Go programs as a [`Lineage`](https://pkg.go.dev/github.com/grafana/thema#Lineage) via a standard [`LineageBuilder`](https://pkg.go.dev/github.com/grafana/thema#LineageBuilder) function.
+This tutorial illustrated how, as a Thema lineage author, we take a CUE `#Lineage` and make it available to Go programs as a [`Lineage`](https://pkg.go.dev/github.com/grafana/thema#Lineage) via a standard [`LineageFactory`](https://pkg.go.dev/github.com/grafana/thema#LineageFactory) function.
 
 In the [next tutorial](go-usage.md), we'll trade our Thema author hat for a Thema consumer hat, and show how to write a Go program that uses the Thema `Lineage` returned from `LineageShip()` to be written against just one version of `Ship`, but be able to handle `Ship`s in any form specified in the lineage.
 
 [^loaderhelper]:
-    `InstancesWithThema` abstracts over [`load.Instances`](https://pkg.go.dev/cuelang.org/go@v0.4.0/cue/load#Instances), which offers far more [options](https://pkg.go.dev/cuelang.org/go@v0.4.0/cue/load#Config) than are usually needed for Thema. It's expected that you may need to write your own loader-helper for more complex Thema use cases.
+    `InstancesWithThema` abstracts over [`load.Instances`](https://pkg.go.dev/cuelang.org/go@v0.4.0/cue/load#Instances), which offers far more [options](https://pkg.go.dev/cuelang.org/go@v0.4.0/cue/load#Config) than are usually needed for Thema. It's expected that some more complex cases will not fit into `InstancesWithThema`; in such case, plan to write your own loader-helper.
 
 [^cuetsy]:
     Grafana currently relies on an attribute-driven mechanism for translating Thema schemas to TypeScript using the [cuetsy](https://github.com/grafana/cuetsy) library. Current usage is different than the protobuf example here because cuetsy is not Thema-aware, and authors therefore apply attributes to individual schema within lineages.
 
 [^cuevalidity]:
-    The goal is that all constraints necessary for invariant enforcement on lineages are expressed natively in CUE. However, some of that enforcement is currently performed by `BuildLineage()` in Go, because it's not (yet) possible to express the necessary constraints natively in CUE.
+    The goal is that all constraints necessary for invariant enforcement on lineages are expressed natively in CUE. However, some of that enforcement is currently performed by `BindLineage()` in Go, because it's not (yet) possible to express the necessary constraints natively in CUE.
     
-    Today, lineage authors delegate verification to `BuildLineage()`, resulting in uniform invariant enforcement across all Go `Lineage` instances. But when all necessary constraints are expressed in CUE, verification can shift left (up?). `BuildLineage()` will delegate enforcement to CUE itself, becoming a passthrough more akin to `LineageShip()`, and guarantee uniformity will naturally extend not just to a Go `Lineage`, but to any analogous construct in the Thema bindings for another language (that has a CUE evaluator).
+    Today, lineage authors delegate verification to `BindLineage()`, resulting in uniform invariant enforcement across all Go `Lineage` instances. But when all necessary constraints are expressed in CUE, verification can shift left (up?). `BindLineage()` will delegate enforcement to CUE itself, becoming a passthrough more akin to `LineageShip()`, and guarantee uniformity will naturally extend not just to a Go `Lineage`, but to any analogous construct in the Thema bindings for another language (that has a CUE evaluator).
 
 [^panic]:
     Arguably, you could call `LineageShip()` in an `init()` function, and `panic()` on error. `panic()` is usually reserved in Go for unrecoverable errors, and a lineage failing to load is unrecoverable: the only possible sources of failure are a) a buggy CUE evaluator, b) backwards incompatible changes in CUE itself, or c) the input CUE is not a valid `#Lineage`. As long as the bytes representing the input CUE arrive through reliable transport (e.g. from a colocated file `//go:embed`-ed in the binary), no remediation is possible within the scope of the running program.
@@ -366,4 +364,4 @@ In the [next tutorial](go-usage.md), we'll trade our Thema author hat for a Them
 
     Ideally, package version and lineage state would be decoupled, and lineage state updates handled at runtime. Mapping from CUE `#Lineage` to (lang) `Lineage`-equivalent is something that programs could do continuously in the background by periodically polling a lineage registry service over HTTP, and integrating updates into the `Lineage`-equivalent. Recompilation would no longer be needed; evolutionary independence would be restored.
 
-    In theory, [append-only immutability constraints](invariants.md) on published lineages should make this straightforward, to the point where any language's Thema bindings could encapsulate the polling and hot-updating of the in-language `Lineage` handle into a single function, similar to what `BuildLineage()` does today. (In fact, the two are likely to be complementary: start by building from reliably-available embedded, local CUE bytes, then kick off a background thread that continuously polls a server for newer bytes.) A [registry and publishing flow](https://github.com/grafana/thema/issues/6) are prerequisite to a fully general solution, but in the meantime, org-by-org one-offs should be feasible in a pinch.
+    In theory, [append-only immutability constraints](invariants.md) on published lineages should make this straightforward, to the point where any language's Thema bindings could encapsulate the polling and hot-updating of the in-language `Lineage` handle into a single function, similar to what `BindLineage()` does today. (In fact, the two are likely to be complementary: start by building from reliably-available embedded, local CUE bytes, then kick off a background thread that continuously polls a server for newer bytes.) A [registry and publishing flow](https://github.com/grafana/thema/issues/6) are prerequisite to a fully general solution, but in the meantime, org-by-org one-offs should be feasible in a pinch.
