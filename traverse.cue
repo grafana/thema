@@ -17,7 +17,7 @@ package thema
     // ])
 
     out: [for seqv, seq in lin.Seqs {
-        // TODO need (?) proper validation check here, not unification
+        // TODO need (?) proper subsumption validation check here, not unification
         for schv, sch in seq.schemas if ((sch & resource) | *_|_) != _|_ {
             // TODO object headers especially important here
             #ValidatedResource & {
@@ -38,6 +38,50 @@ package thema
 
     // TODO need proper validation check here, not simple unification
     _valid: r & _lin.Seqs[_v[0]].schemas[_v[1]]
+}
+
+// Predecessor returns the schema prior to the one indicated by the
+// SchemaVersion set in `of`.
+//
+// TODO functionize
+#Predecessor: {
+    of: #SchemaVersion
+    lin: #Lineage
+    out: {
+        // TODO use constraints on input instead of allowing null return on output?
+        lin.JoinSchema | null
+        [ // this conditional list is a "switch" statement with null as default
+            if (of[1] > 0) {
+                (#Pick & {lin: lin, v: [of[0], of[1]-1]}).out
+            },
+            if (of[1] == 0 && of[0] != 0) {
+                (#LatestWithinSequence & {lin: lin, from: [of[0]-1, 0]}).out
+            },
+            null
+        ][0]
+    }
+}
+
+// Successor returns the schema after the one indicated by the SchemaVersion
+// provided to `of`.
+//
+// TODO functionize
+#Successor: {
+    of: #SchemaVersion
+    lin: #Lineage
+    out: {
+        // TODO use constraints on input instead of allowing null return on output?
+        lin.JoinSchema | null
+        [ // this conditional list is a "switch" statement with null as default
+            if (of[1] > 0) {
+                (#Pick & {lin: lin, v: [of[0], of[1]-1]}).out
+            },
+            if (of[1] == 0 && of[0] != 0) {
+                (#LatestWithinSequence & {lin: lin, from: [of[0]-1, 0]}).out
+            }
+            null
+        ][0]
+    }
 }
 
 #SearchCriteria: {
