@@ -24,7 +24,7 @@ type Lineage interface {
 
 	// Lineage must be a private interface in order to force creation of them
 	// through BindLineage().
-	_p()
+	_lineage()
 }
 
 // A LineageFactory returns a Lineage, which is immutably bound to a single
@@ -45,21 +45,40 @@ type Lineage interface {
 //
 //   func Lineage ...
 //
-// type LineageFactory func(lib Library, opts ...BuildOption) (Lineage, error)
-type LineageFactory func(lib Library) (Lineage, error)
+type LineageFactory func(lib Library, opts ...BindOption) (Lineage, error)
 
-// A BuildOption defines build-time only options for constructing a Lineage.
+// A BindOption defines options that may be specified only at initial
+// construction of a Lineage via BindLineage.
+type BindOption bindOption
+
+// Internal representation of BindOption.
+type bindOption func(c *bindConfig)
+
+// Internal bind-time configuration options.
+type bindConfig struct {
+	skipbuggychecks bool
+}
+
+// SkipBuggyChecks indicates that BindLineage should skip validation checks
+// which have known bugs (e.g. panics) for certain should-be-valid CUE inputs.
 //
-// No options currently exist, but some are planned. This option is preemptively
-// defined to avoid breaking changes to the signature of BindLineage and
-// LineageFactory.
-// type BuildOption buildOption
-
-// Internal representation of BuildOption.
-type buildOption func(c *buildConfig)
-
-// Internal build-time configuration options.
-type buildConfig struct{}
+// By default, BindLineage performs these checks anyway, as otherwise the
+// default behavior of BindLineage is to not provide the guarantees it's
+// supposed to provide.
+//
+// As Thema and CUE move towards maturity and the set of validations that are
+// both a) necessary and b) buggy empties out, this will naturally become a
+// no-op. At that point, this function will be marked deprecated.
+//
+// Ratcheting up verification checks in this way does mean that any code relying
+// on this to bypass verification in BindLineage may begin failing in future
+// versions of Thema if the underlying lineage being verified doesn't comply
+// with a planned invariant.
+func SkipBuggyChecks() BindOption {
+	return func(c *bindConfig) {
+		c.skipbuggychecks = true
+	}
+}
 
 // A Lacuna represents a semantic gap in a Lens's mapping between schemas.
 //

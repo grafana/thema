@@ -14,7 +14,6 @@ import (
 // Each Library is bound to a single cue.Context (Runtime), set at the time
 // of Library creation via NewLibrary.
 type Library struct {
-	ctx *cue.Context
 	val cue.Value
 }
 
@@ -59,20 +58,24 @@ func NewLibrary(ctx *cue.Context) Library {
 		panic(lib.Err())
 	}
 
-	// iter, err := lib.Fields(cue.All())
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// for iter.Next() {
-	// 	fmt.Println(iter.Value().Path(), iter.Value())
-	// }
-
 	return Library{
-		ctx: ctx,
 		val: lib,
 	}
 }
 
 func (lib Library) RawValue() cue.Value {
 	return lib.val
+}
+
+func (lib Library) Context() *cue.Context {
+	return lib.val.Context()
+}
+
+// Return the #Lineage definition (or panic)
+func (lib Library) linDef() cue.Value {
+	dlin := lib.val.LookupPath(cue.MakePath(cue.Def("#Lineage")))
+	if dlin.Err() != nil {
+		panic(dlin.Err())
+	}
+	return dlin
 }
