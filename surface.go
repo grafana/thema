@@ -124,23 +124,14 @@ type Schema interface {
 	// schema. If valid, the data is wrapped in an Instance and returned.
 	// Otherwise, a nil Instance is returned along with an error detailing the
 	// validation failure.
+	//
+	// While Validate takes a cue.Value, this is only to avoid having to trigger
+	// the translation internally; input values must be concrete. To use
+	// incomplete CUE values with Thema schemas, prefer working directly in CUE,
+	// or if you must, rely on the RawValue().
+	//
+	// TODO should this instead be interface{} (ugh ugh wish Go had tagged unions) like FillPath?
 	Validate(data cue.Value) (*Instance, error)
-
-	// Translate transforms a Resource into a new Resource that is correct with
-	// respect to its Successor schema. It returns the transformed resource,
-	// the schema to which the resource now conforms, and any errors that
-	// may have occurred during the translation.
-	//
-	// No translation occurs and the input Resource is returned in two cases:
-	//
-	//   - The translation encountered an error; the third return is non-nil.
-	//   - There exists no schema to migrate to; the second and third return are nil.
-	//
-	// Note that the returned schema is always a Schema. This
-	// reflects a key design invariant of the system: all translations, whether
-	// they begin from a schema inside or outside of the lineage, must land
-	// somewhere on a lineage's sequence of schemas.
-	Translate(Instance) (Instance, Schema, error)
 
 	// Successor returns the next schema in the lineage, or nil if it is the last schema.
 	Successor() Schema
@@ -151,18 +142,25 @@ type Schema interface {
 	// RawValue returns the cue.Value that represents the underlying CUE schema.
 	RawValue() cue.Value
 
-	// Version reports the canonical Thema version number for the schema: a
-	// two-tuple of sequence number and schema number.
-	Version() (major, minor int)
+	// Version returns the schema's version number.
+	Version() SyntacticVersion
 
-	// Lineage returns the lineage of which this schema is a part.
+	// Lineage returns the lineage that contains this schema.
 	Lineage() Lineage
+
+	// Schema must be a private interface in order to ensure all instances fully
+	// conform to Thema invariants.
+	_schema()
 }
 
-type SSchema struct {
-	val        cue.Value
-	pred, succ *SSchema
-}
+// SyntacticVersion is a two-tuple of uints describing the position of a schema
+// within a lineage. Syntactic versions are Thema's canonical version numbering
+// system.
+//
+// The first element is the index of the sequence containing the schema within
+// the lineage, and the second element is the index of the schema within that
+// sequence.
+type SyntacticVersion [2]uint
 
 type TranslationLacunae interface {
 	AsList() []Lacuna
@@ -172,27 +170,25 @@ type TranslationLacunae interface {
 // lineage's schema. It includes a reference to the schema.
 type Instance struct {
 	// The CUE representation of the input data
-	val cue.Value
+	raw cue.Value
 	// A name for the input data, primarily for use in error messages
 	name string
 	// The schema the data validated against/of which the input data is a valid instance
 	sch Schema
 }
 
-// func (i *Instance) Forward() (*Instance, []Lacuna) {
-
+// func (i *Instance) TranslateForward() (*Instance, []Lacuna) {
 // }
 
-// func (i *Instance) Reverse() (*Instance, []Lacuna) {
-
+// func (i *Instance) TranslateReverse() (*Instance, []Lacuna) {
 // }
 
 // RawValue returns the cue.Value that represents the instance's underlying data.
 func (i *Instance) RawValue() cue.Value {
-	return i.val
+	return i.raw
 }
 
-// Schema returns the schema which validated the instance.
+// Schema returns the schema which previously validated the instance.
 func (i *Instance) Schema() Schema {
 	return i.sch
 }

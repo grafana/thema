@@ -57,11 +57,11 @@ func AsArray(sch Schema) [][]Schema {
 	}
 
 	for _, sch := range flat {
-		maj, _ := sch.Version()
-		if len(ret) == maj {
+		seqv := int(sch.Version()[0])
+		if len(ret) == seqv {
 			ret = append(ret, []Schema{})
 		}
-		ret[maj] = append(ret[maj], sch)
+		ret[seqv] = append(ret[seqv], sch)
 	}
 
 	return ret
@@ -91,33 +91,32 @@ func Find(s Schema, opt SearchOption) Schema {
 		return s
 
 	case p.latestInCurrentMajor:
-		p.latestInMajor, _ = s.Version()
+		p.latestInMajor = s.Version()[0]
 		fallthrough
 
 	case p.hasLatestInMajor:
-		imaj, _ := s.Version()
-		if imaj > p.latestInMajor {
+		iseqv := s.Version()[0]
+		if iseqv > p.latestInMajor {
 			return nil
 		}
 
 		var last Schema
-		for imaj <= p.latestInMajor {
+		for iseqv <= p.latestInMajor {
 			last, s = s, s.Successor()
 			if s == nil {
-				if imaj == p.latestInMajor {
+				if iseqv == p.latestInMajor {
 					return last
 				}
 				return nil
 			}
 
-			imaj, _ = s.Version()
+			iseqv = s.Version()[0]
 		}
 		return last
 
 	default: // exact
 		for s != nil {
-			maj, min := s.Version()
-			if p.exact == [2]int{maj, min} {
+			if p.exact == s.Version() {
 				return s
 			}
 			s = s.Successor()
@@ -134,10 +133,10 @@ type sso func(p *ssopt)
 
 type ssopt struct {
 	latest               bool
-	latestInMajor        int
+	latestInMajor        uint
 	hasLatestInMajor     bool
 	latestInCurrentMajor bool
-	exact                [2]int
+	exact                SyntacticVersion
 }
 
 func (p *ssopt) validate() error {
@@ -145,13 +144,11 @@ func (p *ssopt) validate() error {
 	if p.latest {
 		which = which + 1<<1
 	}
-	if p.exact != [2]int{0, 0} {
+	if p.exact != [2]uint{0, 0} {
 		which = which + 1<<2
 	}
 	if p.hasLatestInMajor {
-		if p.latestInMajor != -1 {
-			which = which + 1<<3
-		}
+		which = which + 1<<3
 	} else if p.latestInMajor != 0 {
 		// Disambiguate real zero from default zero
 		return fmt.Errorf("latestInMajor should never be non-zero if hasLatestInMajor is false, got %v", p.latestInMajor)
@@ -177,9 +174,9 @@ func Latest() SearchOption {
 // LatestInMajor will find the latest schema within the provided major version
 // sequence. If no sequence exists corresponding to the provided number, traversal
 // will terminate with an error.
-func LatestInMajor(maj int) SearchOption {
+func LatestInMajor(seqv uint) SearchOption {
 	return func(p *ssopt) {
-		p.latestInMajor = maj
+		p.latestInMajor = seqv
 	}
 }
 
@@ -193,8 +190,8 @@ func LatestInCurrentMajor() SearchOption {
 
 // Exact will find the schema with the exact major and minor version number
 // provided.
-func Exact(maj, min int) SearchOption {
+func Exact(v SyntacticVersion) SearchOption {
 	return func(p *ssopt) {
-		p.exact = [2]int{maj, min}
+		p.exact = v
 	}
 }
