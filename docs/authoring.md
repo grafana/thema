@@ -11,6 +11,8 @@ Writing lineages is fundamentally similar to any other schema-writing system: yo
 
 A primer on writing CUE is out of scope; for that, the [official CUE tutorials](https://cuelang.org/docs/tutorials/) and [CUE Playground](https://tip.cuelang.org/play/?id=#cue@export@cue) are a good place to start. This tutorial focuses on the second item: expressing collections of schemas as a valid lineage.
 
+**NOTE: lineage validity is not yet [fully enforced](invariants.md) in pure CUE. Consequently, lineages described as "invalid" by this tutorial may not complain when you `cue eval` them.**
+
 ## Scaffolding
 
 Thema lineages require only two fields to be explicitly defined: `Name`, and `Seqs`. 
