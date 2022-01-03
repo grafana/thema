@@ -71,12 +71,12 @@ This function should encapsulate the logic for getting the CUE bytes, building t
 
 ### Idiomatic Thema
 
-Exporting exactly one `LineageFactory` per lineage is usually strongly preferable. There are some other idiomatic approaches to providing Thema that are less universal, but should be followed when possible:
+Exporting exactly one `LineageFactory` per lineage is usually preferable. There are some other idiomatic approaches to providing Thema that are less universal, but should be followed when possible:
 
 * Colocate the Go package containing the lineage factory in the same directory as the `.cue` file containing the lineage declaration.
 * Use Go 1.16 [embedding](https://pkg.go.dev/embed) to bind `.cue` files to the package containing your lineage factory.
 
-Thema's exemplars package, which we'll refer to continuously throughout this doc, illustrates most of these idioms.
+Thema's [exemplars](https://github.com/grafana/thema/tree/main/exemplars) package illustrates these idioms.
 
 ## Map the bytes 
 
@@ -344,7 +344,9 @@ func TestShipIsValid(t *testing.T) {
 }
 ```
 
-Our `Ship` lineage is now wrapped up in a reliable package[^pubretrieve], ready to be consumed.
+Now, an important note: as of CUE v0.4.0, running the above test will panic due to a [CUE bug (link TODO)]() in the logic for checking backwards compatibility. These problems will naturally go away as CUE and Thema progress towards maturity. In the meantime, passing [`SkipBuggyChecks()`](https://pkg.go.dev/github.com/grafana/thema#SkipBuggyChecks) to `BindLineage()` will skip checks with known bugs. Unfortunately, it also means a loss of guarantees - but those will be restored automatically as the bugs are resolved, without you having to remove your `SkipBuggyChecks()` call.
+
+Our `Ship` lineage is now wrapped up in a reliable (modulo bugs!) package[^pubretrieve], ready to be consumed.
 
 ### Advanced: Additional Verification
 
