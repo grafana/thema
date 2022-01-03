@@ -2,7 +2,7 @@
 
 Once we know how to [write a Thema lineage in CUE](authoring.md), a common next step is to make the lineage available for use in a general-purpose programming language, like Go. No matter what we'd like this Go program to do with our lineages, we must first get the CUE text of our lineage declaration - often referred to as "the bytes" in this doc - into Go, and load it into the [types exported by the `thema` package](https://pkg.go.dev/github.com/grafana/thema).
 
-Thema's Go types are intentionally designed to limit extension: exported interfaces and structs with some or all unexported members. Thema's value as a schema system derives primarily from its [guarantees](invariants.md), and those guarantees must be available in Go, with the `Lineage` type as the entry point. To its consumers, `Lineage` should be a powerful, reliable abstraction: if some Go code has a non-`nil` variable of type `thema.Lineage`, all of Thema's (implemented) guarantees apply, unconditionally.
+Thema's Go types are intentionally designed to limit extension: exported interfaces and structs with some or all unexported members. Thema's value as a schema system derives primarily from its [guarantees](invariants.md), so for Thema to be useful in Go, those guarantees must hold. To that end, we make the `Lineage` type the face of those guarantees. To its consumers, `Lineage` should be a powerful, reliable abstraction: if some Go code has a non-`nil` variable of type `thema.Lineage`, all of Thema's (implemented) guarantees apply, unconditionally.
 
 That's a serious guarantee, especially given that responsibility for fulfilling it will fall to the lineage author. Hopeium won't cut it. For Thema guarantees to actually hold in the wild - where `Lineage` instances burst forth from Go code written by those of us mortals who haven't _quite_ gotten around to finishing our maths PhD _just_ yet - it must be near-impossible to produce a `Lineage` that doesn't keep Thema's promises. As we'll see, Thema approaches this by making [`BindLineage()`](https://pkg.go.dev/github.com/grafana/thema#BindLineage) a verification choke point: it's the only way to create a `Lineage`, and will error out if provided raw CUE that does not constitute a valid lineage.
 
@@ -36,6 +36,21 @@ curl https://raw.githubusercontent.com/grafana/thema/main/docs/ship.cue > ship.c
 
 We'll use the `Ship` lineage throughout this tutorial.
 
+### Optional: Populate Thema as a CUE dependency
+
+This tutorial is focused on Go, but if you want to be able to run `cue eval` along the way, you'll need to populate your `cue.mod/pkg` directory, which [CUE searches to satisfy imports](https://cuelang.org/docs/concepts/packages/#location-on-disk), similar to a Go `vendor` directory.
+
+These commands should work, though grabbing a tarball of the latest Thema repo and placing it yourself is more reliable.
+
+```
+mkdir -p cue.mod/pkg/github.com/grafana/thema && \
+curl -LJ0 https://github.com/grafana/thema/zipball/main > thema.zip && \
+unzip -oj thema.zip '*.cue' -d cue.mod/pkg/github.com/grafana/thema && \
+rm thema.zip
+```
+
+This is nothing even resembling a proper package management solution (there's [a proposal](https://github.com/cue-lang/cue/issues/851)) - just a good-enough hack for a tutorial!
+
 ## Goal: The Lineage Factory
 
 For each lineage you create in CUE, the recommended, idiomatic approach is to export a single Go function that satisfies the [`LineageFactory`](https://pkg.go.dev/github.com/grafana/thema#LineageFactory) type. The lineage factory function will be the canonical way of accessing your lineage in any Go program. It should follow a naming pattern:
@@ -56,7 +71,7 @@ This function should encapsulate the logic for getting the CUE bytes, building t
 
 ### Idiomatic Thema
 
-Exporting exactly one lineage factory per declared lineage is almost always preferable. There are some other idiomatic approaches to providing Thema that are less universal, but should be followed when possible:
+Exporting exactly one `LineageFactory` per lineage is usually strongly preferable. There are some other idiomatic approaches to providing Thema that are less universal, but should be followed when possible:
 
 * Colocate the Go package containing the lineage factory in the same directory as the `.cue` file containing the lineage declaration.
 * Use Go 1.16 [embedding](https://pkg.go.dev/embed) to bind `.cue` files to the package containing your lineage factory.
@@ -78,7 +93,7 @@ import (
     "github.com/grafana/thema/load"
 )
 
-//go:embed ship.cue cue.mod
+//go:embed ship.cue cue.mod/module.cue
 var modFS embed.FS
 
 func loadLineage() (cue.Value, error) {
@@ -108,7 +123,7 @@ import (
     "github.com/grafana/thema/load"
 )
 
-//go:embed ship.cue cue.mod
+//go:embed ship.cue cue.mod/module.cue
 var modFS embed.FS
 
 func loadLineage() (cue.Value, error) {
@@ -138,7 +153,7 @@ import (
     "github.com/grafana/thema/load"
 )
 
-//go:embed ship.cue cue.mod
+//go:embed ship.cue cue.mod/module.cue
 var modFS embed.FS
 
 func loadLineage(lib thema.Library) (cue.Value, error) {
@@ -190,7 +205,7 @@ import (
     "github.com/grafana/thema/load"
 )
 
-//go:embed ship.cue cue.mod
+//go:embed ship.cue cue.mod/module.cue
 var modFS embed.FS
 
 func loadLineage(lib thema.Library) (cue.Value, error) {
@@ -255,7 +270,7 @@ import (
     "github.com/grafana/thema/load"
 )
 
-//go:embed ship.cue cue.mod
+//go:embed ship.cue cue.mod/module.cue
 var modFS embed.FS
 
 func loadLineage(lib thema.Library) (cue.Value, error) {
@@ -284,7 +299,7 @@ import (
     "github.com/grafana/thema/load"
 )
 
-//go:embed ship.cue cue.mod
+//go:embed ship.cue cue.mod/module.cue
 var modFS embed.FS
 
 func loadLineage(lib thema.Library) (cue.Value, error) {
