@@ -12,7 +12,7 @@ import (
 // that are 1) missing in the Resource AND 2) specified by the schema,
 // filled with default values specified by the schema.
 func ApplyDefaults(r Instance, scue cue.Value) (Instance, error) {
-	rvUnified, err := applyDefaultHelper(r.val, scue)
+	rvUnified, err := applyDefaultHelper(r.raw, scue)
 	if err != nil {
 		return r, err
 	}
@@ -22,7 +22,7 @@ func ApplyDefaults(r Instance, scue cue.Value) (Instance, error) {
 	// 	return r, err
 	// }
 
-	return Instance{val: rvUnified}, nil
+	return Instance{raw: rvUnified}, nil
 }
 
 func applyDefaultHelper(input cue.Value, scue cue.Value) (cue.Value, error) {
@@ -104,7 +104,7 @@ func convertCUEValueToString(inputCUE cue.Value) (string, error) {
 // in the  where the values at those paths are the same as the default value
 // given in the schema.
 func TrimDefaults(r Instance, scue cue.Value) (Instance, error) {
-	rv, _, err := removeDefaultHelper(scue, r.val)
+	rv, _, err := removeDefaultHelper(scue, r.raw)
 	if err != nil {
 		return r, err
 	}
@@ -114,7 +114,7 @@ func TrimDefaults(r Instance, scue cue.Value) (Instance, error) {
 	// 	return r, err
 	// }
 
-	return Instance{val: rv}, nil
+	return Instance{raw: rv}, nil
 }
 
 func getDefault(icue cue.Value) (cue.Value, bool) {
