@@ -51,11 +51,9 @@ lin: Name: "Ship"
 lin: Seqs: [
     {
         schemas: [
-// Scaffold ∧ | ∨ Schema
             {
                 firstfield: string
             }
-// Scaffold ∨ | ∧ Schema
         ]
     }
 ]
