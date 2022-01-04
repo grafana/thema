@@ -1,9 +1,11 @@
 package thema
 
 import (
+	"fmt"
 	"path/filepath"
 
 	"cuelang.org/go/cue"
+	"cuelang.org/go/cue/errors"
 	"cuelang.org/go/cue/load"
 	"github.com/grafana/thema/internal/util"
 )
@@ -14,6 +16,8 @@ import (
 // Each Library is bound to a single cue.Context (Runtime), set at the time
 // of Library creation via NewLibrary.
 type Library struct {
+	// Value corresponds to loading the whole github.com/grafana/thema:thema
+	// package.
 	val cue.Value
 }
 
@@ -63,10 +67,13 @@ func NewLibrary(ctx *cue.Context) Library {
 	}
 }
 
+// RawValue returns the underlying cue.Value representing the whole Thema CUE
+// library (github.com/grafana/thema).
 func (lib Library) RawValue() cue.Value {
 	return lib.val
 }
 
+// Context returns the *cue.Context in which this library was built.
 func (lib Library) Context() *cue.Context {
 	return lib.val.Context()
 }
@@ -79,3 +86,80 @@ func (lib Library) linDef() cue.Value {
 	}
 	return dlin
 }
+
+// Pick returns the schema with the provided version number from the provided
+// lineage, if it exists.
+func Pick(lin Lineage, v SyntacticVersion) (Schema, error) {
+	lib := getLinLib(lin)
+	schval, err := cueArgs{
+		"v":   v,
+		"lin": lin,
+	}.call("#Pick", lib)
+	if err != nil {
+		return nil, err
+	}
+
+	switch tlin := lin.(type) {
+	case *UnaryLineage:
+		return &UnarySchema{
+			raw: schval,
+			lin: tlin,
+			v:   v,
+		}, nil
+	default:
+		panic("unreachable")
+	}
+}
+
+type cueArgs map[string]interface{}
+
+func (ca cueArgs) call(path string, lib Library) (cue.Value, error) {
+	var cpath cue.Path
+	if path[0] == '_' {
+		cpath = cue.MakePath(cue.Hid(path, "github.com/grafana/thema"))
+	} else {
+		cpath = cue.ParsePath(path)
+	}
+	cfunc := lib.val.LookupPath(cpath)
+	if !cfunc.Exists() {
+		panic(fmt.Sprintf("cannot call nonexistent CUE func %q", path))
+	}
+	if cfunc.Err() != nil {
+		panic(cfunc.Err())
+	}
+
+	applic := []cue.Value{cfunc}
+	for arg, val := range ca {
+		p := cue.ParsePath(arg)
+		step := applic[len(applic)-1]
+
+		if !step.Allows(p.Selectors()[0]) {
+			panic(fmt.Sprintf("CUE func %q does not take an argument named %q", path, arg))
+		}
+
+		next := step.FillPath(p, val)
+		argv := next.LookupPath(p)
+		if argv.Err() != nil {
+			return cue.Value{}, &errInvalidCUEFuncArg{
+				cuefunc: path,
+				argpath: arg,
+				err:     argv.Err(),
+			}
+		}
+
+		applic = append(applic, next)
+	}
+	return applic[len(applic)-1].LookupPath(outpath), nil
+}
+
+type errInvalidCUEFuncArg struct {
+	cuefunc string
+	argpath string
+	err     error
+}
+
+func (e *errInvalidCUEFuncArg) Error() string {
+	return fmt.Sprintf("err on arg %q to CUE func %q: %s", e.argpath, e.cuefunc, errors.Details(e.err, nil))
+}
+
+var outpath = cue.MakePath(cue.Str("out"))
