@@ -50,20 +50,17 @@ var themamodpath string = filepath.Join("cue.mod", "pkg", "github.com", "grafana
 //
 //   module: "github.com/grafana/thema"
 //
-// The dirs parameter should specify directories containing .cue files with
+// The dir parameter must specify a directory containing .cue files with
 // lineages to be loaded, relative to the module root directory. This is similar
 // to load.Config.Dir, except:
 //   - There is no corollary to the load.Config.Packages property. Consequently,
 //     only .cue files with packages having the same name as their parent dir will be loaded.
 //       - The package name of the root dir is the final element of the module name.
-//   - Multiple directories may be loaded by passing additional strings to the
-//     variadic dirs.
-//   - If no values are passed for dirs, the loader will default to loading the
-//     root directory of the modFS. The root directory can be explicitly specified
-//     with ".".
+//   - "." and the empty string are a special value that will load the root
+//     directory of the modFS.
 //
 // TODO decide on what, if anything, to do about passing/injecting a *build.Context
-func InstancesWithThema(modFS fs.FS, dirs ...string) ([]*build.Instance, error) {
+func InstancesWithThema(modFS fs.FS, dir string) (*build.Instance, error) {
 	var modname string
 	err := fs.WalkDir(modFS, "cue.mod", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -107,10 +104,6 @@ func InstancesWithThema(modFS fs.FS, dirs ...string) ([]*build.Instance, error) 
 		return nil, &ErrFSNotACueModule{fserr: fmt.Errorf("cue.mod/module.cue did not exist")}
 	}
 
-	if len(dirs) == 0 {
-		dirs = append(dirs, ".")
-	}
-
 	modroot := filepath.FromSlash(filepath.Join(util.Prefix, modname))
 	overlay := make(map[string]load.Source)
 	if err := util.ToOverlay(modroot, modFS, overlay); err != nil {
@@ -128,26 +121,28 @@ func InstancesWithThema(modFS fs.FS, dirs ...string) ([]*build.Instance, error) 
 		}
 	}
 
+	if dir == "" {
+		dir = "."
+	}
+
 	cfg := &load.Config{
 		Overlay:    overlay,
 		ModuleRoot: modroot,
 		Module:     modname,
+		Dir:        filepath.Join(modroot, dir),
+		Package:    filepath.Base(dir),
+	}
+	if dir == "." {
+		cfg.Package = filepath.Base(modroot)
+		cfg.Dir = modroot
 	}
 
-	var insts []*build.Instance
-	for _, dir := range dirs {
-		dir = filepath.FromSlash(dir)
-		if dir == "." {
-			cfg.Package = filepath.Base(modroot)
-			cfg.Dir = modroot
-		} else {
-			cfg.Dir = filepath.Join(modroot, dir)
-			cfg.Package = filepath.Base(dir)
-		}
-		insts = append(insts, load.Instances(nil, cfg)...)
+	inst := load.Instances(nil, cfg)[0]
+	if inst.Err != nil {
+		return nil, inst.Err
 	}
 
-	return insts, nil
+	return inst, nil
 }
 
 // ToOverlay maps the provided fs.FS into an Overlay for use in load.Config.

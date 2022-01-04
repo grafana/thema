@@ -5,7 +5,9 @@ import (
 	"io/fs"
 	"testing"
 
+	"cuelang.org/go/cue"
 	"cuelang.org/go/cue/cuecontext"
+	"github.com/grafana/thema"
 )
 
 //go:embed testdata
@@ -19,14 +21,19 @@ func TestInstanceLoadHelper(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	insts, err := InstancesWithThema(tfs)
+	inst, err := InstancesWithThema(tfs, ".")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	val := ctx.BuildInstance(insts[0])
+	val := ctx.BuildInstance(inst)
 	if val.Err() != nil {
 		t.Fatal(val.Err())
+	}
+
+	_, err = thema.BindLineage(val.LookupPath(cue.ParsePath("lin")), thema.NewLibrary(ctx), thema.SkipBuggyChecks())
+	if err != nil {
+		t.Fatal(err)
 	}
 }
 

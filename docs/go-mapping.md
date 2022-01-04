@@ -97,10 +97,8 @@ import (
 var modFS embed.FS
 
 func loadLineage() (cue.Value, error) {
-    // "." loads the root directory of the modFS, where our our ship.cue is
-    // located. If no args are passed to InstancesWithThema's third variadic
-    // parameter, "." is used as the default.
-    insts, err := load.InstancesWithThema(modFS, ".")
+    // "." loads the root directory of the modFS, where our our ship.cue is located.
+    inst, err := load.InstancesWithThema(modFS, ".")
     if err != nil {
         return cue.Value{}, err
     }
@@ -127,13 +125,13 @@ import (
 var modFS embed.FS
 
 func loadLineage() (cue.Value, error) {
-    insts, err := load.InstancesWithThema(modFS)
+    inst, err := load.InstancesWithThema(modFS, ".")
     if err != nil {
         return cue.Value{}, err
     }
 
     ctx := cuecontext.New()
-    val := ctx.BuildInstance(insts[0]) // above args to InstancesWithThema() guarantee len(insts) == 1
+    val := ctx.BuildInstance(inst)
 }
 ```
 
@@ -157,12 +155,12 @@ import (
 var modFS embed.FS
 
 func loadLineage(lib thema.Library) (cue.Value, error) {
-    insts, err := load.InstancesWithThema(modFS)
+    inst, err := load.InstancesWithThema(modFS, ".")
     if err != nil {
         return cue.Value{}, err
     }
 
-    val := lib.Context().BuildInstance(insts[0])
+    val := lib.Context().BuildInstance(inst)
 }
 ```
 
@@ -209,12 +207,12 @@ import (
 var modFS embed.FS
 
 func loadLineage(lib thema.Library) (cue.Value, error) {
-    insts, err := load.InstancesWithThema(modFS)
+    inst, err := load.InstancesWithThema(modFS, ".")
     if err != nil {
         return cue.Value{}, err
     }
 
-    val := lib.Context().BuildInstance(insts[0])
+    val := lib.Context().BuildInstance(inst)
     return val.LookupPath(cue.MakePath(cue.Str("lin"))), nil
 }
 ```
@@ -257,32 +255,7 @@ lin: Seqs: [
 
 There's nothing wrong or inadvisable about either of these approaches. If anything, they demonstrate the importance of keeping the Go loading layer flexible in order to avoid unnecessary, composition-limiting constraints on what's done in CUE.
 
-Let's tidy up our Go program into terse, final form, without getting rid of the `lin` from `ship.cue`:
-
-```go
-package example
-
-import (
-    "embed"
-
-    "cuelang.org/go/cue"
-    "github.com/grafana/thema"
-    "github.com/grafana/thema/load"
-)
-
-//go:embed ship.cue cue.mod/module.cue
-var modFS embed.FS
-
-func loadLineage(lib thema.Library) (cue.Value, error) {
-    if insts, err := load.InstancesWithThema(modFS); err == nil {
-        return lib.Context().BuildInstance(insts[0]).LookupPath(cue.ParsePath("lin")), nil
-    } else {
-        return cue.Value{}, err
-    }
-}
-```
-
-Now, there's still the nagging question about where the failure happens if the `lin` path changes. But that's a verification issue - which is what's up next.
+That said, there's still the nagging question about where the failure happens if the `lin` path changes. But that's a verification issue - which is what's up next.
 
 ### Build and Verify
 
@@ -303,11 +276,13 @@ import (
 var modFS embed.FS
 
 func loadLineage(lib thema.Library) (cue.Value, error) {
-    if insts, err := load.InstancesWithThema(modFS); err == nil {
-        return lib.Context().BuildInstance(insts[0]).LookupPath(cue.ParsePath("lin")), nil
-    } else {
+    inst, err := load.InstancesWithThema(modFS, ".")
+    if err != nil {
         return cue.Value{}, err
     }
+
+    val := lib.Context().BuildInstance(inst)
+    return val.LookupPath(cue.MakePath(cue.Str("lin"))), nil
 }
 
 // ShipLineage constructs a Go handle representing the Ship lineage.
