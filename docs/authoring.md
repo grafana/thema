@@ -377,7 +377,7 @@ Knowing when to emit a lacuna, and which type to emit, is nontrivial. The set of
 
 TODO
 
-## Advanced: Constraining with `JoinSchema`
+## Advanced: Constraining with `joinSchema`
 
 TODO
 

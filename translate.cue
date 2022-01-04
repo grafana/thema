@@ -14,7 +14,7 @@ import "list"
 // TODO functionize
 // TODO backwards-translation is not yet supported
 #Translate: {
-    resource: lin.JoinSchema
+    resource: lin.joinSchema
     lin: #Lineage
     to: #SearchCriteria
 
@@ -23,7 +23,7 @@ import "list"
         schemarange: [..._#vSch]
 
         _#step: {
-            resource: lin.JoinSchema
+            resource: lin.joinSchema
             v: #SchemaVersion
             lacunae: [...#Lacuna]
         }
