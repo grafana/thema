@@ -186,7 +186,7 @@ import "github.com/grafana/thema"
 
 lin: thema.#Lineage
 lin: Name: "Ship"
-lin: Seqs: [
+lin: seqs: [
 // ...
 ```
 
@@ -230,7 +230,7 @@ import "github.com/grafana/thema"
 
 thema.#Lineage
 Name: "Ship"
-Seqs: [
+seqs: [
 // ...
 ```
 
@@ -249,7 +249,7 @@ import "github.com/grafana/thema"
 
 lin: thema.#Lineage @thematranslate(protobuf) // purely illustrative; not real/supported by any tool
 lin: Name: "Ship"
-lin: Seqs: [
+lin: seqs: [
 // ...
 ```
 

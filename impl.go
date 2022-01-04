@@ -98,7 +98,7 @@ func (e *compatInvariantError) Error() string {
 
 // Assumes that lin has already been verified to be subsumed by #Lineage
 func verifySeqCompatInvariants(lin cue.Value, lib Library) error {
-	seqiter, _ := lin.LookupPath(cue.MakePath(cue.Str("Seqs"))).List()
+	seqiter, _ := lin.LookupPath(cue.MakePath(cue.Str("seqs"))).List()
 	var seqv uint
 	var predecessor cue.Value
 	var predsv SyntacticVersion

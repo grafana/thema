@@ -5,7 +5,7 @@ import "github.com/grafana/thema"
 rename: {
     description: "A field is renamed - a breaking change, necessitating a new sequence."
     l: thema.#Lineage & {
-        Seqs: [
+        seqs: [
             {
                 schemas: [
                     {
@@ -23,8 +23,8 @@ rename: {
                 ]
 
                 lens: forward: {
-                    to: Seqs[1].schemas[0]
-                    from: Seqs[0].schemas[0]
+                    to: seqs[1].schemas[0]
+                    from: seqs[0].schemas[0]
                     translated: to & rel
                     rel: {
                         after: from.before
@@ -33,8 +33,8 @@ rename: {
                     lacunae: []
                 }
                 lens: reverse: {
-                    to: Seqs[0].schemas[0]
-                    from: Seqs[1].schemas[0]
+                    to: seqs[0].schemas[0]
+                    from: seqs[1].schemas[0]
                     translated: to & rel
                     rel: {
                         before: from.after

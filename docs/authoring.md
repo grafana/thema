@@ -15,25 +15,25 @@ A primer on writing CUE is out of scope; for that, the [official CUE tutorials](
 
 ## Scaffolding
 
-Thema lineages require only two fields to be explicitly defined: `Name`, and `Seqs`. 
+Thema lineages require only two fields to be explicitly defined: `Name`, and `seqs`. 
 
 `Name` is the identifier for the thing schematized by the lineage. This should be a simple name, not a fully-qualified one - that's for later. We'll call our thing [`"Ship"`](https://github.com/grafana/thema/blob/main/FAQ.md#where-does-the-name-thema-come-from).
 
-`Seqs` contains the list of all sequences of all schemas within the lineage, and the lenses that map between them. It's basically a two-dimensional array.
+`seqs` contains the list of all sequences of all schemas within the lineage, and the lenses that map between them. It's basically a two-dimensional array.
 
 ```cue
 import "github.com/grafana/thema"
 
 lin: thema.#Lineage 
 lin: Name: "Ship"
-lin: Seqs: [
+lin: seqs: [
     {
         schemas: []
     }
 ]
 ```
 
-To be a valid lineage, there must be at least one sequence in `Seqs`, which in turn must contain at least one schema in its `schemas` list. That means this isn't actually a valid lineage. Rather, this is just the minimum necessary structure to begin defining a lineage. (Note that the outermost `lin` can be omitted, in which case the entire file is the lineage.)
+To be a valid lineage, there must be at least one sequence in `seqs`, which in turn must contain at least one schema in its `schemas` list. That means this isn't actually a valid lineage. Rather, this is just the minimum necessary structure to begin defining a lineage. (Note that the outermost `lin` can be omitted, in which case the entire file is the lineage.)
 
 It's essential that supporting tooling refuses to work with invalid lineages, a bit like a failed type check. Consequently, attempting to `cue eval`, [load the lineage for use in Go](https://pkg.go.dev/github.com/grafana/thema#BindLineage), or otherwise do anything with the lineage, will ([should](TODOlinktoissue)) fail with a complaint about the length of `schemas` being less than 1.
 
@@ -50,7 +50,7 @@ import "github.com/grafana/thema"
 
 lin: thema.#Lineage 
 lin: Name: "Ship"
-lin: Seqs: [
+lin: seqs: [
     {
         schemas: [
             {
@@ -71,14 +71,14 @@ When writing real thema, the question of whether to define a new schema or make 
 
 For this tutorial, we'll sidestep the issue by assuming that publication has happened. Therefore, making changes entails creating a new schema. Let's add one more field, `secondfield`, which must be an `int`.
 
-_Note: in thema, schema version is determined by its position within the two-dimensional array structure of `Seqs`, rather than through arbitrary choice by the author. These structurally-determined version numbers are indicated as comments._
+_Note: in thema, schema version is determined by its position within the two-dimensional array structure of `seqs`, rather than through arbitrary choice by the author. These structurally-determined version numbers are indicated as comments._
 
 ```cue
 import "github.com/grafana/thema"
 
 lin: thema.#Lineage 
 lin: Name: "Ship"
-lin: Seqs: [
+lin: seqs: [
     {
         schemas: [
             { // 0.0
@@ -107,7 +107,7 @@ import "github.com/grafana/thema"
 
 lin: thema.#Lineage 
 lin: Name: "Ship"
-lin: Seqs: [
+lin: seqs: [
     {
         schemas: [
             { // 0.0
@@ -135,7 +135,7 @@ import "github.com/grafana/thema"
 
 lin: thema.#Lineage 
 lin: Name: "Ship"
-lin: Seqs: [
+lin: seqs: [
     {
         schemas: [
             { // 0.0
@@ -171,7 +171,7 @@ import "github.com/grafana/thema"
 
 lin: thema.#Lineage 
 lin: Name: "Ship"
-lin: Seqs: [
+lin: seqs: [
     {
         schemas: [
             { // 0.0
@@ -215,7 +215,7 @@ import "github.com/grafana/thema"
 
 lin: thema.#Lineage
 lin: Name: "Ship"
-lin: Seqs: [
+lin: seqs: [
     {
         schemas: [
             { // 0.0
@@ -232,8 +232,8 @@ lin: Seqs: [
         ]
 
         lens: forward: {
-            from: Seqs[0].schemas[0]
-            to: Seqs[1].schemas[0]
+            from: seqs[0].schemas[0]
+            to: seqs[1].schemas[0]
             rel: {
                 // Direct mapping of the first field
                 firstfield: from.firstfield
@@ -243,8 +243,8 @@ lin: Seqs: [
             translated: to & rel
         }
         lens: reverse: {
-            from: Seqs[1].schemas[0]
-            to: Seqs[0].schemas[0]
+            from: seqs[1].schemas[0]
+            to: seqs[0].schemas[0]
             rel: {
                 // Map the first field back
                 firstfield: from.firstfield
@@ -290,7 +290,7 @@ import "github.com/grafana/thema"
 
 lin: thema.#Lineage
 lin: Name: "Ship"
-lin: Seqs: [
+lin: seqs: [
     {
         schemas: [
             { // 0.0
@@ -307,8 +307,8 @@ lin: Seqs: [
         ]
 
         lens: forward: {
-            from: Seqs[0].schemas[0]
-            to: Seqs[1].schemas[0]
+            from: seqs[0].schemas[0]
+            to: seqs[1].schemas[0]
             rel: {
                 firstfield: from.firstfield
                 secondfield: -1
@@ -326,8 +326,8 @@ lin: Seqs: [
             translated: to & rel
         }
         lens: reverse: {
-            from: Seqs[1].schemas[0]
-            to: Seqs[0].schemas[0]
+            from: seqs[1].schemas[0]
+            to: seqs[0].schemas[0]
             rel: {
                 // Map the first field back
                 firstfield: from.firstfield

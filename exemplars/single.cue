@@ -5,7 +5,7 @@ import "github.com/grafana/thema"
 single: {
     description: "Lineage containing one sequence with a single, trivial schema."
     l: thema.#Lineage & {
-        Seqs: [
+        seqs: [
             {
                 schemas: [
                     {
