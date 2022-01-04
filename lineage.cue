@@ -125,6 +125,16 @@ _all: {
     }], 1)
 }
 
+// Helper that constructs a one-dimensional list of all the schema versions that
+// exist in a lineage.
+_allv: {
+    lin: #Lineage
+    out: [...#SchemaVersion] & list.FlattenN(
+        [for seqv, seq in lin.Seqs {
+            [for schv, _ in seq.schemas { [seqv, schv] }]
+        }], 1)
+}
+
 // Select a single schema version from the lineage.
 #Pick: {
     lin: #Lineage
@@ -151,13 +161,13 @@ _all: {
 }
 
 // SchemaVersion represents the version of a schema within a lineage as a
-// 2-tuple of integers: coordinates, corresponding to the schema's index
+// 2-tuple of integers > 0: coordinates, corresponding to the schema's index
 // in a sequence, and that sequence's index within the list of sequences.
 //
 // Unlike most version numbering systems, a schema's version is not an arbitrary
-// number declared by the lineage's author. Rather, version numbers are derived
-// from the position of the schema within the lineage's list of sequences.
-// Sequence position, in turn, is governed by thema's constraints on
+// number declared by the lineage's author. Rather, version numbers are a
+// property of the position of the schema within the lineage's list of
+// sequences. Sequence position, in turn, is governed by thema's constraints on
 // backwards compatibility and lens existence. By tying version numbers to these
 // checkable invariants, thema versions gain a precise semantics absent from
 // other systems.
