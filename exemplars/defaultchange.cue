@@ -5,7 +5,7 @@ import "github.com/grafana/thema"
 defaultchange: {
     description: "The default value for a field is changed, entailing a new sequence."
     l: thema.#Lineage & {
-        Seqs: [
+        seqs: [
             {
                 schemas: [
                     {
@@ -21,8 +21,8 @@ defaultchange: {
                 ]
 
                 lens: forward: {
-                    to: Seqs[1].schemas[0]
-                    from: Seqs[0].schemas[0]
+                    to: seqs[1].schemas[0]
+                    from: seqs[0].schemas[0]
                     translated: to & rel
                     rel: {
                         // FIXME lenses need more structure to allow disambiguating absence and presence in the instance
@@ -52,8 +52,8 @@ defaultchange: {
                     ]
                 }
                 lens: reverse: {
-                    to: Seqs[0].schemas[0]
-                    from: Seqs[1].schemas[0]
+                    to: seqs[0].schemas[0]
+                    from: seqs[1].schemas[0]
                     translated: to & rel
                     rel: {
                         if from.aunion == "bar" {

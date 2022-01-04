@@ -65,10 +65,10 @@ import (
         }
     }
 
-    // Seqs is the list of sequences of schema that comprise the overall
+    // seqs is the list of sequences of schema that comprise the overall
     // lineage, along with the lenses that allow translation back and forth
     // across sequences.
-    Seqs: [
+    seqs: [
         {
             schemas: #Sequence
         },
@@ -81,12 +81,12 @@ import (
     // Constrain that ancestor and descendant for each defined lens are the
     // final and initial schemas in the predecessor seq and the seq containing
     // the lens, respectively.
-    if len(Seqs) > 1 {
-        for lv, l in Seqs {
-            if lv < len(Seqs)-1 {
+    if len(seqs) > 1 {
+        for lv, l in seqs {
+            if lv < len(seqs)-1 {
                 // TODO can we close these? would be great to close these
-                Seqs[lv+1] & { lens: ancestor: l.schemas[len(l.schemas)-1] }
-                Seqs[lv+1] & { lens: descendant: Seqs[lv+1].schemas[0] }
+                seqs[lv+1] & { lens: ancestor: l.schemas[len(l.schemas)-1] }
+                seqs[lv+1] & { lens: descendant: seqs[lv+1].schemas[0] }
             }
         }
     }
@@ -108,7 +108,7 @@ _#vSch: {
 // TODO functionize
 _latest: {
     lin: #Lineage
-    out: #SchemaVersion & [len(lin.Seqs)-1, len(lin.Seqs[len(lin.Seqs)-1].schemas)-1]
+    out: #SchemaVersion & [len(lin.seqs)-1, len(lin.seqs[len(lin.seqs)-1].schemas)-1]
 }
 
 // Helper that flattens all schema into a single list, putting their
@@ -117,7 +117,7 @@ _latest: {
 // TODO functionize
 _all: {
     lin: #Lineage
-    out: [..._#vSch] & list.FlattenN([for seqv, seq in lin.Seqs {
+    out: [..._#vSch] & list.FlattenN([for seqv, seq in lin.seqs {
         [for schv, sch in seq.schemas {
             v: [seqv, schv]
             sch: sch
@@ -130,7 +130,7 @@ _all: {
 _allv: {
     lin: #Lineage
     out: [...#SchemaVersion] & list.FlattenN(
-        [for seqv, seq in lin.Seqs {
+        [for seqv, seq in lin.seqs {
             [for schv, _ in seq.schemas { [seqv, schv] }]
         }], 1)
 }
@@ -146,17 +146,17 @@ _allv: {
     // The latter form will select the latest schema within the given
     // sequence.
     v: #SchemaVersion | [int & >= 0]
-    v: [<len(lin.Seqs), <len(lin.Seqs[v[0]].schemas)] | [<len(lin.Seqs)]
+    v: [<len(lin.seqs), <len(lin.seqs[v[0]].schemas)] | [<len(lin.seqs)]
     // TODO(must) https://github.com/cue-lang/cue/issues/943
     // must(isconcrete(v[0]), "must specify a concrete sequence number")
 
     let _v = #SchemaVersion & [
         v[0],
         if len(v) == 2 { v[1] },
-        if len(v) == 1 { len(lin.Seqs[v[0].schemas]) - 1 },
+        if len(v) == 1 { len(lin.seqs[v[0].schemas]) - 1 },
     ]
 
-    out: lin.Seqs[_v[0]].schemas[_v[1]]
+    out: lin.seqs[_v[0]].schemas[_v[1]]
     // TODO ^ apply object headers, etc.
 }
 

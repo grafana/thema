@@ -4,7 +4,7 @@ import "github.com/grafana/thema"
 
 lin: thema.#Lineage
 lin: Name: "Ship"
-lin: Seqs: [
+lin: seqs: [
     {
         schemas: [
             { // 0.0
@@ -21,8 +21,8 @@ lin: Seqs: [
         ]
 
         lens: forward: {
-            from: Seqs[0].schemas[0]
-            to: Seqs[1].schemas[0]
+            from: seqs[0].schemas[0]
+            to: seqs[1].schemas[0]
             rel: {
                 firstfield: from.firstfield
                 secondfield: -1
@@ -40,8 +40,8 @@ lin: Seqs: [
             translated: to & rel
         }
         lens: reverse: {
-            from: Seqs[1].schemas[0]
-            to: Seqs[0].schemas[0]
+            from: seqs[1].schemas[0]
+            to: seqs[0].schemas[0]
             rel: {
                 // Map the first field back
                 firstfield: from.firstfield
