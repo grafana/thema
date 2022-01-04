@@ -3,7 +3,7 @@ package thema
 // TODO functionize
 #SearchAndValidate: {
     lin: #Lineage
-    resource: lin.JoinSchema
+    resource: lin.joinSchema
     out: #ValidatedResource | *_|_
 
     // Disjunction approach. Probably a bad idea to use at least until
@@ -32,7 +32,7 @@ package thema
 // A ValidatedResource represents a resource, and the schema from a particular
 // lineage that it validates against.
 #ValidatedResource: {
-    r: _lin.JoinSchema
+    r: _lin.joinSchema
     _lin: #Lineage
     _v: #SchemaVersion
 
@@ -60,7 +60,7 @@ package thema
 #LatestWithinSequence: #SearchCriteria & {
     lin: #Lineage
     from: #SchemaVersion
-    fromResource?: lin.JoinSchema
+    fromResource?: lin.joinSchema
     if fromResource != _|_ {
         from: (#SearchAndValidate & { resource: fromResource, lin: lin }).out._v
     }

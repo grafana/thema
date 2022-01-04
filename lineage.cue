@@ -9,19 +9,19 @@ import (
 // ever existed for that object, and the lenses that allow translating between
 // those schema versions.
 #Lineage: {
-    // JoinSchema governs the shape of schema that may be expressed in a
+    // joinSchema governs the shape of schema that may be expressed in a
     // lineage. It is the least upper bound, or join, of the acceptable schema
     // value space; the schemas defined in this lineage must be instances of the
-    // JoinSchema.
+    // joinSchema.
     // 
-    // In the base case, the JoinSchema is unconstrained/top - any value may be
+    // In the base case, the joinSchema is unconstrained/top - any value may be
     // used as a schema.
     //
-    // A lineage's JoinSchema may never change as the lineage evolves.
+    // A lineage's joinSchema may never change as the lineage evolves.
     //
     // TODO should it be an open struct rather than top?
     // TODO can this be a def? should it?
-    JoinSchema: _
+    joinSchema: _
 
     // The name of the thing being schematized in this lineage.
     Name: string
@@ -31,24 +31,24 @@ import (
     // A Sequence is a non-empty ordered list of schemas, with the property that
     // every schema in the sequence is backwards compatible with (subsumes) its
     // predecessors.
-    #Sequence: [...JoinSchema] & list.MinItems(1)
+    #Sequence: [...joinSchema] & list.MinItems(1)
 
     // This exists because constraining with list.MinItems(1) isn't able to
     // tell the evaluator that it is always safe to reference #Sequence[0],
     // resulting in lots of garbage errors.
     //
     // Unfortunately, this allows empty lineage declarations by making the first
-    // schema an actual JoinSchema, which we do not want to be valid text for
+    // schema an actual joinSchema, which we do not want to be valid text for
     // authors to write.
     //
     // TODO figure out how to express the constraint without blowing up our Go logic
-    #Sequence: [JoinSchema, ...JoinSchema]
+    #Sequence: [joinSchema, ...joinSchema]
 
     #Lens: {
         // The last schema in the previous sequence; logical predecessor
-        ancestor: JoinSchema
+        ancestor: joinSchema
         // The first schema in this sequence; logical successor
-        descendant: JoinSchema
+        descendant: joinSchema
         forward: {
             to: descendant
             from: ancestor

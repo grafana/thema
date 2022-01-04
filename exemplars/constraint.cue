@@ -6,10 +6,10 @@ _#Exemplar: {
     l: thema.#Lineage
     description: string
     // tt: [string]: {
-    //     r: l.JoinSchema
+    //     r: l.joinSchema
     //     to: thema.#SearchCriteria
     //     expect: {
-    //         to: l.JoinSchema
+    //         to: l.joinSchema
     //     }
     // }
 }
@@ -21,7 +21,7 @@ _#Exemplar: {
 // Cases to create
 // 
 // 5. Complex combination and remapping of fields across seqs
-// 6. Subtype/constrained JoinSchema
+// 6. Subtype/constrained joinSchema
 
 // Composed cases
 //
