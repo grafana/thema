@@ -19,7 +19,7 @@ type Lineage interface {
 	RawValue() cue.Value
 
 	// Name returns the name of the object schematized by the lineage, as declared
-	// in the lineage's name field.
+	// in the lineage's `name` field.
 	Name() string
 
 	// Lineage must be a private interface in order to restrict their creation
@@ -38,7 +38,7 @@ type Lineage interface {
 // It is idiomatic to name LineageFactory funcs after the "name" field on the
 // lineage they return:
 //
-//   func <Name>Lineage ...
+//   func <name>Lineage ...
 //
 // If the Go package and lineage name are the same, the name should be omitted from
 // the builder func to reduce stutter:
@@ -167,10 +167,7 @@ type Schema interface {
 type SyntacticVersion [2]uint
 
 func (sv SyntacticVersion) less(osv SyntacticVersion) bool {
-	if sv[0] < osv[0] || sv[1] < osv[1] {
-		return true
-	}
-	return false
+	return sv[0] < osv[0] || sv[1] < osv[1]
 }
 
 // TranslationLacunae defines common patterns for unary and composite lineages

@@ -24,9 +24,9 @@ import (
     joinSchema: _
 
     // The name of the thing being schematized in this lineage.
-    Name: string
+    name: string
     // TODO(must) https://github.com/cue-lang/cue/issues/943
-    // Name: must(isconcrete(Name), "all lineages must have a name")
+    // name: must(isconcrete(name), "all lineages must have a name")
 
     // A Sequence is a non-empty ordered list of schemas, with the property that
     // every schema in the sequence is backwards compatible with (subsumes) its

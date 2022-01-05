@@ -36,7 +36,7 @@ import (
             // CamelCase and singular. Custom resource instances will use
             // this value as the `kind` attribute in API calls.
             // TODO default this to thema name
-            kind: string | *lin.Name
+            kind: string | *lin.name
 
             // listKind is the serialized kind of the list for this resource.
             listKind: string | *"\(kind)List"
@@ -44,7 +44,7 @@ import (
             // plural is the plural name of the resource to serve. The custom
             // resources are served under
             // `/apis/<group>/<version>/.../<plural>`.
-            plural: string | =~ #"[a-z]"# | *"\(lin.Name)s"
+            plural: string | =~ #"[a-z]"# | *"\(lin.name)s"
 
             // shortNames allow shorter string to match your resource on the CLI
             shortNames?: [...string]

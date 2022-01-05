@@ -3,7 +3,7 @@ package testmod
 import "github.com/grafana/thema"
 
 lin: thema.#Lineage
-lin: Name: "Ship"
+lin: name: "Ship"
 lin: seqs: [
     {
         schemas: [

@@ -43,7 +43,7 @@ package thema
     type: or([for t in #LacunaTypes {t}])
 }
 
-#LacunaTypes: [N=string]: #LacunaType & { Name: N }
+#LacunaTypes: [N=string]: #LacunaType & { name: N }
 #LacunaTypes: {
     // Placeholder lacunae indicate that a field in the target resource has
     // been filled with a placeholder value.
@@ -91,6 +91,6 @@ package thema
 }
 
 #LacunaType: {
-    Name: string
+    name: string
     id: int // FIXME this is a dumb way of trying to express identity
 }
