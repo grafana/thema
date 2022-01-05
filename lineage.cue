@@ -168,9 +168,11 @@ _allv: {
 // number declared by the lineage's author. Rather, version numbers are a
 // property of the position of the schema within the lineage's list of
 // sequences. Sequence position, in turn, is governed by thema's constraints on
-// backwards compatibility and lens existence. By tying version numbers to these
-// checkable invariants, thema versions gain a precise semantics absent from
-// other systems.
+// backwards compatibility and lens existence. In a language like CUE, these are
+// syntactic, structural properties.
+//
+// By tying version numbers to these checkable properties, Thema versions are an
+// encoding of those syntactic properties - hence the name SyntacticVersion.
 #SchemaVersion: [int & >= 0, int & >= 0]
 
 // TODO functionize
