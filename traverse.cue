@@ -40,35 +40,25 @@ package thema
     _valid: inst & _lin.seqs[_v[0]].schemas[_v[1]]
 }
 
-
-#SearchCriteria: {
-    lin: #Lineage
-    from: #SchemaVersion
-    to: #SchemaVersion & [<=lin._latest[0], <len(lin.seqs[to[0]].schemas)]
-}
-
 // Latest indicates that traversal should continue until the latest schema in
 // the entire lineage is reached.
-#Latest: #SearchCriteria & {
+#Latest: _#resolver & {
     lin: #Lineage
-    to: lin._latest
+    to: (_latest & { lin: lin }).out
 }
 
-// LatestWithinSequence indicates that, given a starting schema version (or a
-// instance, whose version will be extracted), traversal should continue to the
-// latest version within the starting version's sequence.
-#LatestWithinSequence: #SearchCriteria & {
+// LatestWithinSequence indicates that, given a starting schema version,
+// traversal should continue to the latest version within the starting version's
+// sequence.
+#LatestWithinSequence: _#resolver & {
     lin: #Lineage
     from: #SchemaVersion
-    fromResource?: lin.joinSchema
-    if fromResource != _|_ {
-        from: (#SearchAndValidate & { inst: fromResource, lin: lin }).out._v
-    }
     to: [from[0], len(lin.seqs[from[0]].schemas)]
 }
 
-// Exact indicates traversal should continue until an exact, explicitly
-// specified version is reached.
-#Exact: #SearchCriteria & {
-    to: #SchemaVersion
+// common type over #Latest and #LatestWithinSequence
+_#resolver: {
+    lin: #Lineage
+    from?: #SchemaVersion
+    to: #SchemaVersion & [<=lin._latest[0], <len(lin.seqs[to[0]].schemas)]
 }

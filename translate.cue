@@ -14,23 +14,26 @@ import "list"
 // TODO functionize
 // TODO backwards-translation is not yet supported
 #Translate: {
-    inst: lin.joinSchema
-    lin: #Lineage
-    to: #SearchCriteria
+    linst: #LinkedInstance
+    to: #SchemaVersion
+
+    // make em stand out
+    let VF = linst._v
+    let VT = to
 
     _transl: {
         init: #LinkedInstance
         schemarange: [..._#vSch]
 
         _#step: {
-            inst: lin.joinSchema
+            inst: init._lin.joinSchema
             v: #SchemaVersion
             lacunae: [...#Lacuna]
         }
 
         // The accumulator holds the results of each translation step.
         accum: list.Repeat([_#step], len(schemarange)+1)
-        accum: [{ inst: init.inst, v: init._v, lacunae: [] }, for i, vsch in schemarange {
+        accum: [{ inst: init.inst, v: VF, lacunae: [] }, for i, vsch in schemarange {
             let lasti = accum[i-1]
             v: vsch.v
 
@@ -42,7 +45,7 @@ import "list"
                 // the key places where thema is maybe-sorta implicitly assuming
                 // its inputs are concrete instances, and won't work quite right
                 // with incomplete CUE structures
-                inst:  lasti.inst.inst & (#Pick & { lin: lin, v: vsch }).out
+                inst:  lasti.inst.inst & (#Pick & { lin: inst._lin, v: vsch }).out
                 lacunae: []
             }
 
@@ -51,7 +54,7 @@ import "list"
 
                 // Feed the lens "from" input with the instance output of the
                 // last translation (or init)
-                let lens = { from: lasti.inst } & lin.seqs[vsch.v[0]].lens.forward
+                let lens = { from: lasti.inst } & inst._lin.seqs[vsch.v[0]].lens.forward
                 inst: lens.translated
                 lacunae: lens.lacunae
             }
@@ -65,19 +68,15 @@ import "list"
         }
     }
 
-    let inputinst = (#SearchAndValidate & { inst: inst, lin: lin }).out
-    // FIXME Must necessarily anchor translation at the input instance's schema
-    // version. Nevertheless, this has an unfortunate, magical smell.
-    to: from: inputinst._v
-    let cmp = (_cmpSV & { l: inputinst._v, r: to.to }).out
     out: {
+        let cmp = (_cmpSV & { l: VF, r: VT }).out
         if cmp == 0 {
-            (_transl & { init: inputinst, schemarange: [] }).out
+            (_transl & { init: linst, schemarange: [] }).out
         }
         if cmp == -1 {
-            let lo = (_flatidx & { lin: lin, inputinst._v}).fidx
-            let hi = (_flatidx & { lin: lin, to.to[0]}).fidx
-            (_transl & { init: inputinst, schemarange: (_all & { lin: lin }).out[lo+1:hi]}).out
+            let lo = (_flatidx & { lin: linst._lin, VT}).fidx
+            let hi = (_flatidx & { lin: linst._lin, VT[0]}).fidx
+            (_transl & { init: linst, schemarange: (_all & { lin: linst._lin }).out[lo+1:hi]}).out
         }
         if cmp == 1 {
             // FIXME For now, we don't support backwards translation. This must change.
