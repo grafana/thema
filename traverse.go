@@ -22,11 +22,10 @@ import (
 // Failure to validate against any schema in the family is indicated by a
 // non-nil error return. Success is indicated by a non-nil Schema.
 // If successful, the returned Schema will be the first one against
-// which the provided resource passed validation.
+// which the provided instance passed validation.
 func SearchAndValidate(s Schema, v cue.Value) (Schema, error) {
 	arr := AsArray(s)
 
-	// Work from latest to earliest
 	var err error
 	for o := len(arr) - 1; o >= 0; o-- {
 		for i := len(arr[o]) - 1; i >= 0; i-- {

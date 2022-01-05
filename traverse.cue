@@ -3,8 +3,8 @@ package thema
 // TODO functionize
 #SearchAndValidate: {
     lin: #Lineage
-    resource: lin.joinSchema
-    out: #ValidatedResource | *_|_
+    inst: lin.joinSchema
+    out: #LinkedInstance | *_|_
 
     // Disjunction approach. Probably a bad idea to use at least until
     // disjunction performance is addressed, and maybe just in general.
@@ -18,26 +18,26 @@ package thema
 
     out: [for seqv, seq in lin.seqs {
         // TODO need (?) proper subsumption validation check here, not unification
-        for schv, sch in seq.schemas if ((sch & resource) | *_|_) != _|_ {
+        for schv, sch in seq.schemas if ((sch & inst) | *_|_) != _|_ {
             // TODO object headers especially important here
-            #ValidatedResource & {
+            #LinkedInstance & {
                 _v: [seqv, schv]
                 _lin: lin
-                resource: resource
+                inst: inst
             }
         }
     }][0]
 }
 
-// A ValidatedResource represents a resource, and the schema from a particular
-// lineage that it validates against.
-#ValidatedResource: {
-    r: _lin.joinSchema
+// #LinkedInstance represents data that is an instance of some schema, that
+// schema, the version of that schema, and the lineage from which they all hail.
+#LinkedInstance: {
+    inst: _lin.joinSchema
     _lin: #Lineage
     _v: #SchemaVersion
 
-    // TODO need proper validation check here, not simple unification
-    _valid: r & _lin.seqs[_v[0]].schemas[_v[1]]
+    // TODO need proper validation/subsumption check here, not simple unification
+    _valid: inst & _lin.seqs[_v[0]].schemas[_v[1]]
 }
 
 
@@ -55,14 +55,14 @@ package thema
 }
 
 // LatestWithinSequence indicates that, given a starting schema version (or a
-// resource, whose version will be extracted), traversal should continue to the
+// instance, whose version will be extracted), traversal should continue to the
 // latest version within the starting version's sequence.
 #LatestWithinSequence: #SearchCriteria & {
     lin: #Lineage
     from: #SchemaVersion
     fromResource?: lin.joinSchema
     if fromResource != _|_ {
-        from: (#SearchAndValidate & { resource: fromResource, lin: lin }).out._v
+        from: (#SearchAndValidate & { inst: fromResource, lin: lin }).out._v
     }
     to: [from[0], len(lin.seqs[from[0]].schemas)]
 }

@@ -97,11 +97,11 @@ func SkipBuggyChecks() BindOption {
 // of a particular instance indicates the lacuna applies to that specific
 // translation.
 type Lacuna struct {
-	// The field path(s) and their value(s) in the pre-translation resource
+	// The field path(s) and their value(s) in the pre-translation instance
 	// that are relevant to the lacuna.
 	SourceFields []FieldRef
 
-	// The field path(s) and their value(s) in the post-translation resource
+	// The field path(s) and their value(s) in the post-translation instance
 	// that are relevant to the lacuna.
 	TargetFields []FieldRef
 	Type         LacunaType
@@ -121,8 +121,8 @@ type FieldRef struct {
 	Value interface{}
 }
 
-// Schema represents a single, complete schema from a thema lineage. A Schema can
-// perform operations on resources.
+// Schema represents a single, complete schema from a thema lineage. A Schema's
+// Validate() method determines whether some data constitutes an Instance.
 type Schema interface {
 	// Validate checks that the provided data is valid with respect to the
 	// schema. If valid, the data is wrapped in an Instance and returned.
