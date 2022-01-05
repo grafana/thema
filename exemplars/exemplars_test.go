@@ -35,7 +35,7 @@ func TestExemplarValidity(t *testing.T) {
 	lib := thema.NewLibrary(ctx)
 	for iter.Next() {
 		lin := iter.Value().LookupPath(cue.ParsePath("l"))
-		name, _ := lin.LookupPath(cue.ParsePath("Name")).String()
+		name, _ := lin.LookupPath(cue.ParsePath("name")).String()
 		t.Run(name, func(t *testing.T) {
 			switch name {
 			case "defaultchange", "narrowing", "rename":

@@ -15,7 +15,7 @@ _#Exemplar: {
 }
 
 [N=string]: _#Exemplar & {
-    l: Name: N
+    l: name: N
 }
 
 // Cases to create

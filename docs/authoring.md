@@ -15,9 +15,9 @@ A primer on writing CUE is out of scope; for that, the [official CUE tutorials](
 
 ## Scaffolding
 
-Thema lineages require only two fields to be explicitly defined: `Name`, and `seqs`. 
+Thema lineages require only two fields to be explicitly defined: `name`, and `seqs`. 
 
-`Name` is the identifier for the thing schematized by the lineage. This should be a simple name, not a fully-qualified one - that's for later. We'll call our thing [`"Ship"`](https://github.com/grafana/thema/blob/main/FAQ.md#where-does-the-name-thema-come-from).
+`name` is the identifier for the thing schematized by the lineage. This should be a simple name, not a fully-qualified one - that's for later. We'll call our thing [`"Ship"`](https://github.com/grafana/thema/blob/main/FAQ.md#where-does-the-name-thema-come-from).
 
 `seqs` contains the list of all sequences of all schemas within the lineage, and the lenses that map between them. It's basically a two-dimensional array.
 
@@ -25,7 +25,7 @@ Thema lineages require only two fields to be explicitly defined: `Name`, and `se
 import "github.com/grafana/thema"
 
 lin: thema.#Lineage 
-lin: Name: "Ship"
+lin: name: "Ship"
 lin: seqs: [
     {
         schemas: []
@@ -49,7 +49,7 @@ Let's define our first schema as an object containing a single field named `firs
 import "github.com/grafana/thema"
 
 lin: thema.#Lineage 
-lin: Name: "Ship"
+lin: name: "Ship"
 lin: seqs: [
     {
         schemas: [
@@ -77,7 +77,7 @@ _Note: in thema, schema version is determined by its position within the two-dim
 import "github.com/grafana/thema"
 
 lin: thema.#Lineage 
-lin: Name: "Ship"
+lin: name: "Ship"
 lin: seqs: [
     {
         schemas: [
@@ -106,7 +106,7 @@ The simplest fix involves just one character: `?`. This indicates that `secondfi
 import "github.com/grafana/thema"
 
 lin: thema.#Lineage 
-lin: Name: "Ship"
+lin: name: "Ship"
 lin: seqs: [
     {
         schemas: [
@@ -134,7 +134,7 @@ CUE allows [specifying default values](https://cuelang.org/docs/tutorials/tour/t
 import "github.com/grafana/thema"
 
 lin: thema.#Lineage 
-lin: Name: "Ship"
+lin: name: "Ship"
 lin: seqs: [
     {
         schemas: [
@@ -170,7 +170,7 @@ In this approach, rather than adding `secondfield` to a schema in the same seque
 import "github.com/grafana/thema"
 
 lin: thema.#Lineage 
-lin: Name: "Ship"
+lin: name: "Ship"
 lin: seqs: [
     {
         schemas: [
@@ -214,7 +214,7 @@ The only real answer is to add a placeholder value - here, `-1`.
 import "github.com/grafana/thema"
 
 lin: thema.#Lineage
-lin: Name: "Ship"
+lin: name: "Ship"
 lin: seqs: [
     {
         schemas: [
@@ -289,7 +289,7 @@ Thema defines a limited set of lacuna types that correspond to different types o
 import "github.com/grafana/thema"
 
 lin: thema.#Lineage
-lin: Name: "Ship"
+lin: name: "Ship"
 lin: seqs: [
     {
         schemas: [

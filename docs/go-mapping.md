@@ -56,8 +56,8 @@ This is nothing even resembling a proper package management solution (there's [a
 For each lineage you create in CUE, the recommended, idiomatic approach is to export a single Go function that satisfies the [`LineageFactory`](https://pkg.go.dev/github.com/grafana/thema#LineageFactory) type. The lineage factory function will be the canonical way of accessing your lineage in any Go program. It should follow a naming pattern:
 
 ```go
-func <Name>Lineage (lib thema.Library, opts ...thema.BindOption) (thema.Lineage, error) { ... }
-var _ thema.LineageFactory = <Name>Lineage
+func <name>Lineage (lib thema.Library, opts ...thema.BindOption) (thema.Lineage, error) { ... }
+var _ thema.LineageFactory = <name>Lineage
 ```
 
 For Go packages that clearly correspond to a single lineage declaration, the lineage name may be omitted:
@@ -185,7 +185,7 @@ package example
 import "github.com/grafana/thema"
 
 lin: thema.#Lineage
-lin: Name: "Ship"
+lin: name: "Ship"
 lin: seqs: [
 // ...
 ```
@@ -229,7 +229,7 @@ package example
 import "github.com/grafana/thema"
 
 thema.#Lineage
-Name: "Ship"
+name: "Ship"
 seqs: [
 // ...
 ```
@@ -248,7 +248,7 @@ package example
 import "github.com/grafana/thema"
 
 lin: thema.#Lineage @thematranslate(protobuf) // purely illustrative; not real/supported by any tool
-lin: Name: "Ship"
+lin: name: "Ship"
 lin: seqs: [
 // ...
 ```
