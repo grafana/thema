@@ -179,11 +179,11 @@ _cmpSV: {
     r: #SchemaVersion
     out: -1 | 0 | 1
     out: {
-        if l == r { 0 }
         if l[0] < r[0] { -1 }
-        if l[1] < r[1] { -1 }
         if l[0] > r[0] { 1 }
-        if l[1] > r[1] { 1 }
+        if l[0] == r[0] && l[1] < r[1] { -1 }
+        if l[0] == r[0] && l[1] > r[1] { 1 }
+        if l == r { 0 }
     }
 }
 
