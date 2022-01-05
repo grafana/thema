@@ -16,7 +16,7 @@ package thema
 // created; the production of a lacuna object as the output of a specific
 // translation indicates the lacuna applies to that specific translation.
 #Lacuna: {
-    // A reference to a field and its value in a schema/resource.
+    // A reference to a field and its value in a schema/instance.
     #FieldRef: {
         // TODO would be great to be able to constrain that value should always be a reference,
         // and path is (a modified version of) the string representation of the reference
@@ -24,11 +24,11 @@ package thema
         path: string
     }
 
-    // The field path(s) and their value(s) in the pre-translation resource
+    // The field path(s) and their value(s) in the pre-translation instance
     // that are relevant to the lacuna.
     sourceFields: [...#FieldRef]
 
-    // The field path(s) and their value(s) in the post-translation resource
+    // The field path(s) and their value(s) in the post-translation instance
     // that are relevant to the lacuna.
     targetFields: [...#FieldRef]
 
@@ -45,7 +45,7 @@ package thema
 
 #LacunaTypes: [N=string]: #LacunaType & { name: N }
 #LacunaTypes: {
-    // Placeholder lacunae indicate that a field in the target resource has
+    // Placeholder lacunae indicate that a field in the target instance has
     // been filled with a placeholder value.
     //
     // Use Placeholder when introducing a new required field that lacks a default,
@@ -59,11 +59,11 @@ package thema
         id: 1
     }
 
-    // DroppedField lacunae indicate that field(s) in the source resource were
+    // DroppedField lacunae indicate that field(s) in the source instance were
     // dropped in a manner that potentially lost some of their contained semantics.
     //
     // When a lens drops multiple fields, prefer to create one DroppedField
-    // lacuna per distinct cause. For example, if multiple resource fields are
+    // lacuna per distinct cause. For example, if multiple instance fields are
     // dropped from a single open struct because they were absent from the
     // schema, all of those fields should be included in a single DroppedField.
     DroppedField: {
@@ -84,7 +84,7 @@ package thema
     // schema-specified default, and the default changed in the target field,
     // and the value in the instance was changed as well.
     //
-    // NOTE the semantics of field presence/absence in the resource are subtle here, and this may need refinement
+    // NOTE the semantics of field presence/absence in the instance are subtle here, and this may need refinement
     ChangedDefault: {
         id: 4
     }
