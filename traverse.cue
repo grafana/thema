@@ -34,7 +34,7 @@ package thema
 #LinkedInstance: {
     inst: _lin.joinSchema
     _lin: #Lineage
-    _v: #SchemaVersion
+    _v: #SyntacticVersion
 
     // TODO need proper validation/subsumption check here, not simple unification
     _valid: inst & _lin.seqs[_v[0]].schemas[_v[1]]
@@ -52,13 +52,13 @@ package thema
 // sequence.
 #LatestWithinSequence: _#resolver & {
     lin: #Lineage
-    from: #SchemaVersion
+    from: #SyntacticVersion
     to: [from[0], len(lin.seqs[from[0]].schemas)]
 }
 
 // common type over #Latest and #LatestWithinSequence
 _#resolver: {
     lin: #Lineage
-    from?: #SchemaVersion
-    to: #SchemaVersion & [<=lin._latest[0], <len(lin.seqs[to[0]].schemas)]
+    from?: #SyntacticVersion
+    to: #SyntacticVersion & [<=lin._latest[0], <len(lin.seqs[to[0]].schemas)]
 }

@@ -95,11 +95,11 @@ import (
 }
 
 _#vSch: {
-    v: #SchemaVersion
+    v: #SyntacticVersion
     sch: _
 }
 
-// Helper that extracts SchemaVersion of latest schema.
+// Helper that extracts SyntacticVersion of latest schema.
 //
 // Internal only, because writing programs that include a textual references
 // which can float across backwards-incompatible changes (like this one) is
@@ -108,11 +108,11 @@ _#vSch: {
 // TODO functionize
 _latest: {
     lin: #Lineage
-    out: #SchemaVersion & [len(lin.seqs)-1, len(lin.seqs[len(lin.seqs)-1].schemas)-1]
+    out: #SyntacticVersion & [len(lin.seqs)-1, len(lin.seqs[len(lin.seqs)-1].schemas)-1]
 }
 
 // Helper that flattens all schema into a single list, putting their
-// SchemaVersion in an adjacent property.
+// SyntacticVersion in an adjacent property.
 //
 // TODO functionize
 _all: {
@@ -129,7 +129,7 @@ _all: {
 // exist in a lineage.
 _allv: {
     lin: #Lineage
-    out: [...#SchemaVersion] & list.FlattenN(
+    out: [...#SyntacticVersion] & list.FlattenN(
         [for seqv, seq in lin.seqs {
             [for schv, _ in seq.schemas { [seqv, schv] }]
         }], 1)
@@ -140,17 +140,17 @@ _allv: {
     lin: #Lineage
     // The schema version to pick. Either:
     //
-    //   * An exact #SchemaVersion: [1, 0]
+    //   * An exact #SyntacticVersion: [1, 0]
     //   * Just the sequence number: [1]
     //
     // The latter form will select the latest schema within the given
     // sequence.
-    v: #SchemaVersion | [int & >= 0]
+    v: #SyntacticVersion | [int & >= 0]
     v: [<len(lin.seqs), <len(lin.seqs[v[0]].schemas)] | [<len(lin.seqs)]
     // TODO(must) https://github.com/cue-lang/cue/issues/943
     // must(isconcrete(v[0]), "must specify a concrete sequence number")
 
-    let _v = #SchemaVersion & [
+    let _v = #SyntacticVersion & [
         v[0],
         if len(v) == 2 { v[1] },
         if len(v) == 1 { len(lin.seqs[v[0].schemas]) - 1 },
@@ -160,25 +160,28 @@ _allv: {
     // TODO ^ apply object headers, etc.
 }
 
-// SchemaVersion represents the version of a schema within a lineage as a
-// 2-tuple of integers > 0: coordinates, corresponding to the schema's index
-// in a sequence, and that sequence's index within the list of sequences.
-//
-// Unlike most version numbering systems, a schema's version is not an arbitrary
-// number declared by the lineage's author. Rather, version numbers are a
-// property of the position of the schema within the lineage's list of
-// sequences. Sequence position, in turn, is governed by thema's constraints on
-// backwards compatibility and lens existence. In a language like CUE, these are
-// syntactic, structural properties.
-//
-// By tying version numbers to these checkable properties, Thema versions are an
-// encoding of those syntactic properties - hence the name SyntacticVersion.
-#SchemaVersion: [int & >= 0, int & >= 0]
+// SyntacticVersion is an ordered pair of non negative integers. It represents
+// the version of a schema within a lineage, or the version of an instance that
+// is valid with respect to a schema having the same version.
+// 
+// Most version numbering systems leave it to the author to assign a version
+// number.  In Thema, a schema's version is a property of the position of the
+// schema within the lineage's list of sequences. Sequence position, in turn, is
+// governed by thema's constraints on backwards compatibility and lens
+// completeness. A SyntacticVersion ordered pair is a coordinate system, giving
+// first the index of the sequence within the lineage, and second the index of
+// the schema within that sequence.
+// 
+// In a language like CUE, schema/sequence backwards compatibility are
+// structural (syntactic) properties. By tying version numbers to these
+// checkable properties, Thema versions are an encoding of those syntactic
+// properties - hence the name SyntacticVersion.
+#SyntacticVersion: [int & >= 0, int & >= 0]
 
 // TODO functionize
 _cmpSV: {
-    l: #SchemaVersion
-    r: #SchemaVersion
+    l: #SyntacticVersion
+    r: #SyntacticVersion
     out: -1 | 0 | 1
     out: {
         if l[0] < r[0] { -1 }
@@ -192,6 +195,6 @@ _cmpSV: {
 // TODO functionize
 _flatidx: {
     lin: #Lineage
-    v: #SchemaVersion
+    v: #SyntacticVersion
     fidx: {for i, sch in (_all & { lin: lin }).out if sch.v == v { i }}
 }
