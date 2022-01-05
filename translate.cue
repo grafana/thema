@@ -15,7 +15,7 @@ import "list"
 // TODO backwards-translation is not yet supported
 #Translate: {
     linst: #LinkedInstance
-    to: #SchemaVersion
+    to: #SyntacticVersion
 
     // make em stand out
     let VF = linst._v
@@ -27,7 +27,7 @@ import "list"
 
         _#step: {
             inst: init._lin.joinSchema
-            v: #SchemaVersion
+            v: #SyntacticVersion
             lacunae: [...#Lacuna]
         }
 
