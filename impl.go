@@ -65,9 +65,10 @@ func BindLineage(raw cue.Value, lib Library, opts ...BindOption) (Lineage, error
 		lib:       lib,
 	}
 
+	lin.first, _ = Pick(lin, synv())
 	allv, err := cueArgs{
 		"lin": raw,
-	}.call("_allv", lin.lib)
+	}.call("_allv", lib)
 	if err != nil {
 		// This can't happen without a name change or something
 		panic(err)
@@ -168,6 +169,57 @@ func (lin *UnaryLineage) Name() string {
 	return lin.name
 }
 
+// LatestVersion returns the version number of the newest (largest) schema
+// version in the lineage.
+func (lin *UnaryLineage) LatestVersion() SyntacticVersion {
+	if !lin.validated {
+		panic("lineage not validated")
+	}
+	return lin.allv[len(lin.allv)-1]
+}
+
+// LatestVersionInSequence returns the version number of the newest (largest) schema
+// version in the provided sequence number.
+//
+// An error indicates the number of the provided sequence does not exist.
+func (lin *UnaryLineage) LatestVersionInSequence(seqv uint) (SyntacticVersion, error) {
+	if !lin.validated {
+		panic("lineage not validated")
+	}
+	latest := lin.LatestVersion()
+	switch {
+	case latest[0] < seqv:
+		return synv(), fmt.Errorf("lineage does not contain a sequence with number %v", seqv)
+	case latest[0] == seqv:
+		return latest, nil
+	default:
+		return lin.allv[searchSynv(lin.allv, SyntacticVersion{seqv + 1, 0})], nil
+	}
+}
+
+// ValidateAny checks that the provided data is valid with respect to at
+// least one of the schemas in the lineage. The oldest (smallest) schema against
+// which the data validates is chosen. A nil return indicates no validating
+// schema was found.
+//
+// While this method takes a cue.Value, this is only to avoid having to trigger
+// the translation internally; input values must be concrete. To use
+// incomplete CUE values with Thema schemas, prefer working directly in CUE,
+// or if you must, rely on the RawValue().
+//
+// TODO should this instead be interface{} (ugh ugh wish Go had tagged unions) like FillPath?
+func (lin *UnaryLineage) ValidateAny(data cue.Value) *Instance {
+	if !lin.validated {
+		panic("lineage not validated")
+	}
+	for sch := lin.first; sch != nil; sch.Successor() {
+		if inst, err := sch.Validate(data); err == nil {
+			return inst
+		}
+	}
+	return nil
+}
+
 func (lin *UnaryLineage) _lineage() {}
 
 func searchSynv(a []SyntacticVersion, x SyntacticVersion) int {
@@ -192,7 +244,7 @@ type UnarySchema struct {
 // incomplete CUE values with Thema schemas, prefer working directly in CUE,
 // or if you must, rely on the RawValue().
 //
-// TODO should this instead be interface{} (ugh ugh wish Go had tagged unions) like FillPath?
+// TODO should this instead be interface{} (ugh ugh wish Go had discriminated unions) like FillPath?
 func (sch *UnarySchema) Validate(data cue.Value) (*Instance, error) {
 	err := sch.raw.Subsume(data, cue.Concrete(true))
 	if err != nil {
@@ -226,6 +278,16 @@ func (sch *UnarySchema) Predecessor() Schema {
 	predv := sch.lin.allv[searchSynv(sch.lin.allv, sch.v)-1]
 	pred, _ := Pick(sch.lin, predv)
 	return pred
+}
+
+// LatestVersionInSequence returns the version number of the newest (largest) schema
+// version in the provided sequence number.
+//
+// An error indicates the number of the provided sequence does not exist.
+func (sch *UnarySchema) LatestVersionInSequence() SyntacticVersion {
+	// Lineage invariants preclude an error
+	sv, _ := sch.lin.LatestVersionInSequence(sch.v[0])
+	return sv
 }
 
 // RawValue returns the cue.Value that represents the underlying CUE schema.
