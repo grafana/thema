@@ -17,27 +17,36 @@ import "list"
     linst: #LinkedInstance
     to: #SyntacticVersion
 
-    // make em stand out
-    let VF = linst._v
+    // Shape of output
+    out: {
+        linst: #LinkedInstance
+        lacunae: [...{
+            v: #SyntacticVersion
+            lacunae: [...#Lacuna]
+        }]
+    }
+
+    let VF = linst.v
     let VT = to
+    let inlin = linst.lin
+    let inlinst = linst
 
     _transl: {
-        init: #LinkedInstance
         schemarange: [..._#vSch]
 
         _#step: {
-            inst: init._lin.joinSchema
+            inst: inlinst.lin.joinSchema
             v: #SyntacticVersion
             lacunae: [...#Lacuna]
         }
 
         // The accumulator holds the results of each translation step.
         accum: list.Repeat([_#step], len(schemarange)+1)
-        accum: [{ inst: init.inst, v: VF, lacunae: [] }, for i, vsch in schemarange {
-            let lasti = accum[i-1]
+        accum: [{ inst: inlinst.inst, v: VF, lacunae: [] }, for i, vsch in schemarange {
+            let lasti = accum[i]
             v: vsch.v
 
-            if vsch.v[0] == lasti._v[0] {
+            if vsch.v[0] == lasti.v[0] {
                 // Same sequence. Translation is through the implicit lens;
                 // simple unification.
 
@@ -45,25 +54,27 @@ import "list"
                 // the key places where thema is maybe-sorta implicitly assuming
                 // its inputs are concrete instances, and won't work quite right
                 // with incomplete CUE structures
-                inst:  lasti.inst.inst & (#Pick & { lin: inst._lin, v: vsch }).out
+                // inst: lasti.inst & (#Pick & { lin: inlin, v: vsch.v }).out
+                inst: lasti.inst & inlin.seqs[vsch.v[0]].schemas[vsch.v[1]]
                 lacunae: []
             }
-
-            if vsch.v[0] > lasti._v[0] {
+            if vsch.v[0] > lasti.v[0] {
                 // Crossing sequences. Translate via the explicit lens.
 
                 // Feed the lens "from" input with the instance output of the
-                // last translation (or init)
-                let lens = { from: lasti.inst } & inst._lin.seqs[vsch.v[0]].lens.forward
+                // last translation
+                let lens = { from: lasti.inst } & inlin.seqs[vsch.v[0]].lens.forward
                 inst: lens.translated
                 lacunae: lens.lacunae
             }
         }]
 
         out: {
-            from: init._v
-            to: accum[len(accum)-1].v
-            inst: accum[len(accum)-1].v
+            linst: {
+                inst: accum[len(accum)-1].inst
+                v: accum[len(accum)-1].v
+                lin: inlin
+            }
             lacunae: [for step in accum if len(step.lacunae) > 0 { v: step.v, lacunae: step.lacunae }]
         }
     }
@@ -71,12 +82,12 @@ import "list"
     out: {
         let cmp = (_cmpSV & { l: VF, r: VT }).out
         if cmp == 0 {
-            (_transl & { init: linst, schemarange: [] }).out
+            (_transl & { schemarange: [] }).out
         }
         if cmp == -1 {
-            let lo = (_flatidx & { lin: linst._lin, VT}).fidx
-            let hi = (_flatidx & { lin: linst._lin, VT[0]}).fidx
-            (_transl & { init: linst, schemarange: (_all & { lin: linst._lin }).out[lo+1:hi]}).out
+            let lo = (_flatidx & { lin: inlin, v: VF }).out
+            let hi = (_flatidx & { lin: inlin, v: VT }).out
+            (_transl & { schemarange: (_all & { lin: inlin }).out[lo+1:hi]}).out
         }
         if cmp == 1 {
             // FIXME For now, we don't support backwards translation. This must change.

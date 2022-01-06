@@ -31,6 +31,7 @@ import (
     // A Sequence is a non-empty ordered list of schemas, with the property that
     // every schema in the sequence is backwards compatible with (subsumes) its
     // predecessors.
+    // #Sequence: [...joinSchema]
     #Sequence: [...joinSchema] & list.MinItems(1)
 
     // This exists because constraining with list.MinItems(1) isn't able to
@@ -82,11 +83,11 @@ import (
     // final and initial schemas in the predecessor seq and the seq containing
     // the lens, respectively.
     if len(seqs) > 1 {
-        for lv, l in seqs {
-            if lv < len(seqs)-1 {
+        for seqv, seq in seqs {
+            if seqv < len(seqs)-1 {
                 // TODO can we close these? would be great to close these
-                seqs[lv+1] & { lens: ancestor: l.schemas[len(l.schemas)-1] }
-                seqs[lv+1] & { lens: descendant: seqs[lv+1].schemas[0] }
+                // seqs[seqv+1] & { lens: ancestor: seq.schemas[len(seq.schemas)-1] }
+                // seqs[seqv+1] & { lens: descendant: seqs[seqv+1].schemas[0] }
             }
         }
     }
@@ -112,15 +113,15 @@ _latest: {
 }
 
 // Helper that flattens all schema into a single list, putting their
-// SyntacticVersion in an adjacent property.
+// version in an adjacent property.
 //
 // TODO functionize
 _all: {
     lin: #Lineage
     out: [..._#vSch] & list.FlattenN([for seqv, seq in lin.seqs {
-        [for schv, sch in seq.schemas {
+        [for schv, seqsch in seq.schemas {
             v: [seqv, schv]
-            sch: sch
+            sch: seqsch
         }]
     }], 1)
 }
@@ -135,7 +136,7 @@ _allv: {
         }], 1)
 }
 
-// Select a single schema version from the lineage.
+// Get a single schema version from the lineage.
 #Pick: {
     lin: #Lineage
     // The schema version to pick. Either:
@@ -172,7 +173,7 @@ _allv: {
 // first the index of the sequence within the lineage, and second the index of
 // the schema within that sequence.
 // 
-// In a language like CUE, schema/sequence backwards compatibility are
+// In a language like CUE, schema/sequence backwards compatibility amount to
 // structural (syntactic) properties. By tying version numbers to these
 // checkable properties, Thema versions are an encoding of those syntactic
 // properties - hence the name SyntacticVersion.
@@ -196,5 +197,8 @@ _cmpSV: {
 _flatidx: {
     lin: #Lineage
     v: #SyntacticVersion
-    fidx: {for i, sch in (_all & { lin: lin }).out if sch.v == v { i }}
+
+    let inlin = lin
+    let all = (_all & { lin: inlin }).out
+    out: [for i, sch in all if sch.v == v { i }][0]
 }
