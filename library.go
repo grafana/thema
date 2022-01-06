@@ -52,14 +52,16 @@ func NewLibrary(ctx *cue.Context) Library {
 	}
 
 	lib := ctx.BuildInstance(load.Instances(nil, cfg)[0])
-	if lib.Err() != nil {
+	if lib.Validate(cue.All()) != nil {
+		// if lib.Err() != nil {
 		// As with the above, an error means that a problem exists in the
 		// literal CUE code embedded in this version of package (that should
 		// have trivially been caught with CI), so the caller can't fix anything
 		// without changing the version of the thema Go library they're
 		// depending on. It's a hard failure that should be unreachable outside
 		// thema internal testing, so just panic.
-		panic(lib.Err())
+		// panic(lib.Err())
+		panic(lib.Validate(cue.All()))
 	}
 
 	return Library{
@@ -93,7 +95,7 @@ func Pick(lin Lineage, v SyntacticVersion) (Schema, error) {
 	lib := getLinLib(lin)
 	schval, err := cueArgs{
 		"v":   v,
-		"lin": lin,
+		"lin": lin.RawValue(),
 	}.call("#Pick", lib)
 	if err != nil {
 		return nil, err
@@ -113,7 +115,7 @@ func Pick(lin Lineage, v SyntacticVersion) (Schema, error) {
 
 type cueArgs map[string]interface{}
 
-func (ca cueArgs) call(path string, lib Library) (cue.Value, error) {
+func (ca cueArgs) make(path string, lib Library) (cue.Value, error) {
 	var cpath cue.Path
 	if path[0] == '_' {
 		cpath = cue.MakePath(cue.Hid(path, "github.com/grafana/thema"))
@@ -132,13 +134,18 @@ func (ca cueArgs) call(path string, lib Library) (cue.Value, error) {
 	for arg, val := range ca {
 		p := cue.ParsePath(arg)
 		step := applic[len(applic)-1]
-
 		if !step.Allows(p.Selectors()[0]) {
 			panic(fmt.Sprintf("CUE func %q does not take an argument named %q", path, arg))
 		}
+		applic = append(applic, step.FillPath(p, val))
+	}
+	last := applic[len(applic)-1]
 
-		next := step.FillPath(p, val)
-		argv := next.LookupPath(p)
+	// Have to do the error check in a separate loop after all args are applied,
+	// because args may depend on each other and erroneously error depending on
+	// the order of application.
+	for arg := range ca {
+		argv := last.LookupPath(cue.ParsePath(arg))
 		if argv.Err() != nil {
 			return cue.Value{}, &errInvalidCUEFuncArg{
 				cuefunc: path,
@@ -146,10 +153,16 @@ func (ca cueArgs) call(path string, lib Library) (cue.Value, error) {
 				err:     argv.Err(),
 			}
 		}
-
-		applic = append(applic, next)
 	}
-	return applic[len(applic)-1].LookupPath(outpath), nil
+	return last, nil
+}
+
+func (ca cueArgs) call(path string, lib Library) (cue.Value, error) {
+	v, err := ca.make(path, lib)
+	if err != nil {
+		return cue.Value{}, err
+	}
+	return v.LookupPath(outpath), nil
 }
 
 type errInvalidCUEFuncArg struct {

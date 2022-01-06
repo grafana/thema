@@ -10,10 +10,9 @@ import (
 // those schema versions.
 type Lineage interface {
 	// First returns the first schema in the lineage.
-	//
-	// All valid Lineage implementations must return a non-nil Schema from this
-	// method with a Version() of [0, 0].
 	First() Schema
+
+	// Schema(SyntacticVersion) Schema
 
 	// RawValue returns the cue.Value of the entire lineage.
 	RawValue() cue.Value
@@ -21,6 +20,29 @@ type Lineage interface {
 	// Name returns the name of the object schematized by the lineage, as declared
 	// in the lineage's `name` field.
 	Name() string
+
+	// LatestVersion returns the version number of the newest (largest) schema
+	// version in the lineage.
+	LatestVersion() SyntacticVersion
+
+	// LatestVersionInSequence returns the version number of the newest (largest) schema
+	// version in the provided sequence number.
+	//
+	// An error indicates the number of the provided sequence does not exist.
+	LatestVersionInSequence(seqv uint) (SyntacticVersion, error)
+
+	// ValidateAny checks that the provided data is valid with respect to at
+	// least one of the schemas in the lineage. The oldest (smallest) schema against
+	// which the data validates is chosen. A nil return indicates no validating
+	// schema was found.
+	//
+	// While this method takes a cue.Value, this is only to avoid having to trigger
+	// the translation internally; input values must be concrete. To use
+	// incomplete CUE values with Thema schemas, prefer working directly in CUE,
+	// or if you must, rely on the RawValue().
+	//
+	// TODO should this instead be interface{} (ugh ugh wish Go had tagged unions) like FillPath?
+	ValidateAny(data cue.Value) *Instance
 
 	// Lineage must be a private interface in order to restrict their creation
 	// through BindLineage().
@@ -80,47 +102,6 @@ func SkipBuggyChecks() BindOption {
 	}
 }
 
-// A Lacuna represents a semantic gap in a Lens's mapping between schemas.
-//
-// For any given mapping between schema, there may exist some valid values and
-// intended semantics on either side that are impossible to precisely translate.
-// When such gaps occur, and an actual schema instance falls into such a gap,
-// the Lens is expected to emit Lacuna that describe the general nature of the
-// translation gap.
-//
-// A lacuna may be unconditional (the gap exists for all possible instances
-// being translated between the schema pair) or conditional (the gap only exists
-// when certain values appear in the instance being translated between schema).
-// However, the conditionality of lacunae is expected to be expressed at the
-// level of the lens, and determines whether a particular lacuna object is
-// created; the production of a lacuna object as the output of the translation
-// of a particular instance indicates the lacuna applies to that specific
-// translation.
-type Lacuna struct {
-	// The field path(s) and their value(s) in the pre-translation instance
-	// that are relevant to the lacuna.
-	SourceFields []FieldRef
-
-	// The field path(s) and their value(s) in the post-translation instance
-	// that are relevant to the lacuna.
-	TargetFields []FieldRef
-	Type         LacunaType
-
-	// A human-readable message describing the gap in translation.
-	Message string
-}
-
-// LacunaType assigns numeric identifiers to different classes of Lacunae.
-//
-// FIXME this is a terrible way of doing this and needs to change
-type LacunaType uint16
-
-// FieldRef identifies a path/field and the value in it within a Lacuna.
-type FieldRef struct {
-	Path  string
-	Value interface{}
-}
-
 // Schema represents a single, complete schema from a thema lineage. A Schema's
 // Validate() method determines whether some data constitutes an Instance.
 type Schema interface {
@@ -142,6 +123,10 @@ type Schema interface {
 
 	// Predecessor returns the previous schema in the lineage, or nil if it is the first schema.
 	Predecessor() Schema
+
+	// LatestVersionInSequence returns the version number of the newest (largest) schema
+	// in this schema's sequence.
+	LatestVersionInSequence() SyntacticVersion
 
 	// RawValue returns the cue.Value that represents the underlying CUE schema.
 	RawValue() cue.Value
@@ -166,14 +151,17 @@ type Schema interface {
 // sequence.
 type SyntacticVersion [2]uint
 
-func (sv SyntacticVersion) less(osv SyntacticVersion) bool {
-	return sv[0] < osv[0] || sv[1] < osv[1]
+// SV creates a SyntacticVersion.
+//
+// A trivial helper to avoid repetitive Go-stress disorder from typing
+//
+//   SyntacticVersion([2]uint{0, 0})
+func SV(seqv, schv uint) SyntacticVersion {
+	return SyntacticVersion([2]uint{seqv, schv})
 }
 
-// TranslationLacunae defines common patterns for unary and composite lineages
-// in the lacunae their translations emit.
-type TranslationLacunae interface {
-	AsList() []Lacuna
+func (sv SyntacticVersion) less(osv SyntacticVersion) bool {
+	return sv[0] < osv[0] || sv[1] < osv[1]
 }
 
 // An Instance represents some data that has been validated against a
@@ -187,11 +175,21 @@ type Instance struct {
 	sch Schema
 }
 
-// func (i *Instance) TranslateForward() (*Instance, []Lacuna) {
-// }
+// AsSuccessor translates the instance into the form specified by the successor
+// schema.
+//
+// TODO figure out how to represent unary vs. composite lineages here
+func (i *Instance) AsSuccessor() (*Instance, TranslationLacunae) {
+	return Translate(i, i.sch.Successor().Version())
+}
 
-// func (i *Instance) TranslateReverse() (*Instance, []Lacuna) {
-// }
+// AsPredecessor translates the instance into the form specified by the predecessor
+// schema.
+//
+// TODO figure out how to represent unary vs. composite lineages here
+func (i *Instance) AsPredecessor() (*Instance, TranslationLacunae) {
+	panic("TODO translation from newer to older schema is not yet implemented")
+}
 
 // RawValue returns the cue.Value that represents the instance's underlying data.
 func (i *Instance) RawValue() cue.Value {
@@ -201,4 +199,8 @@ func (i *Instance) RawValue() cue.Value {
 // Schema returns the schema which subsumes/validated this instance.
 func (i *Instance) Schema() Schema {
 	return i.sch
+}
+
+func (i *Instance) lib() Library {
+	return getLinLib(i.Schema().Lineage())
 }
