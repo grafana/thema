@@ -53,14 +53,12 @@ func NewLibrary(ctx *cue.Context) Library {
 
 	lib := ctx.BuildInstance(load.Instances(nil, cfg)[0])
 	if lib.Validate(cue.All()) != nil {
-		// if lib.Err() != nil {
 		// As with the above, an error means that a problem exists in the
 		// literal CUE code embedded in this version of package (that should
 		// have trivially been caught with CI), so the caller can't fix anything
 		// without changing the version of the thema Go library they're
 		// depending on. It's a hard failure that should be unreachable outside
 		// thema internal testing, so just panic.
-		// panic(lib.Err())
 		panic(lib.Validate(cue.All()))
 	}
 

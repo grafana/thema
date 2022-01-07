@@ -82,15 +82,17 @@ import (
     // Constrain that ancestor and descendant for each defined lens are the
     // final and initial schemas in the predecessor seq and the seq containing
     // the lens, respectively.
-    if len(seqs) > 1 {
-        for seqv, seq in seqs {
-            if seqv < len(seqs)-1 {
-                // TODO can we close these? would be great to close these
-                // seqs[seqv+1] & { lens: ancestor: seq.schemas[len(seq.schemas)-1] }
-                // seqs[seqv+1] & { lens: descendant: seqs[seqv+1].schemas[0] }
-            }
-        }
-    }
+    //
+    // FIXME figure out how to actually do this correctly
+    // if len(seqs) > 1 {
+    // seqs: [for seqv, seq in S {
+    //     if seqv == 0 { {} }
+    //     if seqv != 0 {
+    //         lens: ancestor: S[seqv-1].schemas[len(S[seqv-1].schemas)-1]
+    //         lens: descendant: seq.schemas[0]
+    //     }
+    // }]
+    // }
 
     // TODO check subsumption (backwards compat) of each schema with its successor natively in CUE
 }
@@ -102,9 +104,9 @@ _#vSch: {
 
 // Helper that extracts SyntacticVersion of latest schema.
 //
-// Internal only, because writing programs that include a textual references
-// which can float across backwards-incompatible changes (like this one) is
-// the exact thing thema is trying to avoid.
+// Internal only, because writing programs where the text expresses an intent to
+// float across backwards-incompatible changes is exactly the antipattern thema
+// is trying to get away from.
 //
 // TODO functionize
 _latest: {
@@ -166,17 +168,17 @@ _allv: {
 // is valid with respect to a schema having the same version.
 // 
 // Most version numbering systems leave it to the author to assign a version
-// number.  In Thema, a schema's version is a property of the position of the
-// schema within the lineage's list of sequences. Sequence position, in turn, is
-// governed by thema's constraints on backwards compatibility and lens
-// completeness. A SyntacticVersion ordered pair is a coordinate system, giving
-// first the index of the sequence within the lineage, and second the index of
-// the schema within that sequence.
+// number. In Thema, a schema's version is a property of the position of the
+// schema within the lineage's list of sequences, which in turn is governed by
+// Thema's constraints on backwards compatibility and lens completeness. A
+// SyntacticVersion ordered pair is a coordinate system, giving first the index
+// of the sequence within the lineage, and second the index of the schema within
+// that sequence.
 // 
 // In a language like CUE, schema/sequence backwards compatibility amount to
-// structural (syntactic) properties. By tying version numbers to these
-// checkable properties, Thema versions are an encoding of those syntactic
-// properties - hence the name SyntacticVersion.
+// syntactic (i.e. structurally analyzable) properties. Relating version numbers
+// to these checkable properties makes Thema versions an encoding of those
+// properties - hence the name, "SyntacticVersion".
 #SyntacticVersion: [int & >= 0, int & >= 0]
 
 // TODO functionize
@@ -199,6 +201,10 @@ _flatidx: {
     v: #SyntacticVersion
 
     let inlin = lin
+    // TODO this constraint should be fine to express, but uncommenting it seems
+    // to blow up Go programs when they call in to unrelated pseudofuncs with
+    // complaints about an incomplete v
+    // _has: (_allv & { lin: inlin }).out & list.Contains(v)
     let all = (_all & { lin: inlin }).out
-    out: [for i, sch in all if sch.v == v { i }][0]
+    out: {for i, sch in all if sch.v == v { i }}
 }

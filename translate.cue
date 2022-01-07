@@ -63,9 +63,9 @@ import "list"
 
                 // Feed the lens "from" input with the instance output of the
                 // last translation
-                let lens = { from: lasti.inst } & inlin.seqs[vsch.v[0]].lens.forward
-                inst: lens.translated
-                lacunae: lens.lacunae
+                let _lens = { from: lasti.inst } & inlin.seqs[vsch.v[0]].lens.forward
+                inst: _lens.translated
+                lacunae: _lens.lacunae
             }
         }]
 
@@ -79,19 +79,21 @@ import "list"
         }
     }
 
-    out: {
+    schrange: {
         let cmp = (_cmpSV & { l: VF, r: VT }).out
         if cmp == 0 {
-            (_transl & { schemarange: [] }).out
+            []
         }
         if cmp == -1 {
             let lo = (_flatidx & { lin: inlin, v: VF }).out
             let hi = (_flatidx & { lin: inlin, v: VT }).out
-            (_transl & { schemarange: (_all & { lin: inlin }).out[lo+1:hi]}).out
+            list.Slice((_all & { lin: inlin }).out, lo+1, hi+1)
         }
         if cmp == 1 {
             // FIXME For now, we don't support backwards translation. This must change.
             _|_
         }
     }
+
+    out: (_transl & { schemarange: schrange }).out
 }
