@@ -16,6 +16,96 @@ Many of these cases have mature solutions. Some are unlikely to ever be reached 
 
 This tutorial will focus on a general approach to encapsulating the problem of receiving input data, validating it, translating it, and make it available for use as a Go struct. We refer to this cluster of behavior as an **Input Kernel**.
 
-## Input Kernel Overview
+But before we run, we must learn to walk. Input kernels are patterned clusters of behavior composed from Thema's core operations. The best way to understand what you're doing when you create an input kernel is to learn those core operations, one at a time.
 
-TODO
+## Thema Core Operations
+
+At the start of every story involving schemas, Thema included, there exist two things:
+
+1. Some data
+2. A schema
+
+However that schema is expressed - JSON Schema, OpenAPI, native language types, etc. - and whatever format the data is in - CSV, JSON, YAML, Protobuf, Arrow Dataframes, native language objects, etc. - the first thing we want to know is, "is the data a valid instance of the schema?"
+
+With Thema, this question has a new dimension. Thema shifts the contract from "data must be an instance of **THIS** schema," to "data must an instance of **A** schema in the lineage." That suggests our validation process also may contain a search component. 
+
+We're still working with the `Ship` lineage we created over the past couple tutorials. Let's use this JSON as our input:
+
+```json
+{
+    "firstfield": "foovalue"
+}
+```
+### Load
+
+Before we can validate, we have to get the data into the form that Thema's validation functions expect: a `cue.Value`.
+
+The challenge here - efficiency aside - is picking from a large buffet of options. CUE's Go API has [many](https://pkg.go.dev/cuelang.org/go@v0.4.0/cue#Context.Encode) [different](https://pkg.go.dev/cuelang.org/go@v0.4.0/cue#Context.EncodeType) [ways](https://pkg.go.dev/cuelang.org/go@v0.4.0/cue#Value.FillPath) [to](https://pkg.go.dev/cuelang.org/go@v0.4.0/cue#Context.CompileString) [convert](https://pkg.go.dev/cuelang.org/go@v0.4.0/cue#Context.BuildInstance) [various](https://pkg.go.dev/cuelang.org/go@v0.4.0/encoding/json#Extract) [inputs](https://pkg.go.dev/cuelang.org/go@v0.4.0/encoding/yaml#Extract) [to](https://pkg.go.dev/cuelang.org/go@v0.4.0/encoding/jsonschema#Extract) their corresponding `cue.Value`. The right method depends on how your program has received its inputs, in what format, and whether you're trying to work with concrete data or abstract types[^cueduality], ("incomplete," in CUE parlance).
+
+In our case, we've hand-written raw JSON in a byte slice. This requires two calls - one to extract a CUE AST-equivalent to the JSON (an `ast.Expr`), and a second to build that AST value into our universe. We'll wrap these into a function called `dataAsValue()`:
+
+```go
+package example
+
+import (
+    "testing"
+
+	"cuelang.org/go/cue/cuecontext"
+	"cuelang.org/go/encoding/json"
+	"github.com/grafana/thema"
+)
+
+var input = []byte(`{
+    "firstfield": "foo"
+}`)
+
+func dataAsValue(lib thema.Library) cue.Value {
+    // The first parameter gives the CUE evaluator a name that it will use for
+    // any future errors involving the extracted data. Usually this is derived
+    // from a file path, but our input is coming from an arbitrary string, so we
+    // must name it ourselves.
+    expr, _ := json.Extract("input", input)
+
+    // Load our data into a CUE context-universe and return a cue.Value reference to it.
+    return lib.Context().BuildExpr(expr)
+}
+```
+
+With data-as-`cue.Value` prepared, we're ready to start validating.
+
+### Hand-pick and validate
+
+The simplest approach to validation is to pretend that Thema is like any old schema system, and manually select one schema at a time to work with. We'll express this using standard Go tests, as it makes it easiest to see the output on your machine.
+
+```go
+package example
+
+import (
+    "testing"
+
+    "cuelang.org/go/cue/cuecontext"
+    "github.com/grafana/thema"
+)
+
+var lib thema.Library = thema.NewLibrary(cuecontext.New())
+var shiplin thema.Lineage
+
+func init() {
+    var err error
+    if shiplin, err = ShipLineage(lib); err != nil { panic(err) }
+}
+
+func TestManual(t *testing.T) {
+    sch00 := shiplin.Schema(thema.SV(0, 0))
+}
+```
+### Search by validity
+
+### Translate
+
+## Input Kernel
+
+[^cueduality]:
+    We've seen `cue.Value` before, when creating the lineage factory in the previous tutorial. That one represented our whole lineage, but this one represents JSON data. It may seem odd that both abstract schema and concrete JSON are represented in the same way. And indeed, if you end up going deeper with CUE's Go API, keeping track of exactly what's represented by the `cue.Value` you're working with gets challenging.
+    
+    But the lack of distinction between schema and data here isn't just a quirk. It's a direct outgrowth of CUE's most foundational property: [types are values](https://cuelang.org/docs/concepts/logic/#types-are-values).
