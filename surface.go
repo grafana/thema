@@ -16,16 +16,6 @@ type Lineage interface {
 	// in the lineage's `name` field.
 	Name() string
 
-	// LatestVersion returns the version number of the newest (largest) schema
-	// version in the lineage.
-	LatestVersion() SyntacticVersion
-
-	// LatestVersionInSequence returns the version number of the newest (largest) schema
-	// version in the provided sequence number.
-	//
-	// An error indicates the number of the provided sequence does not exist.
-	LatestVersionInSequence(seqv uint) (SyntacticVersion, error)
-
 	// ValidateAny checks that the provided data is valid with respect to at
 	// least one of the schemas in the lineage. The oldest (smallest) schema against
 	// which the data validates is chosen. A nil return indicates no validating
@@ -47,6 +37,42 @@ type Lineage interface {
 	// Lineage must be a private interface in order to restrict their creation
 	// through BindLineage().
 	_lineage()
+}
+
+// LatestVersion returns the version number of the newest (largest) schema
+// version in the provided lineage.
+func LatestVersion(lin Lineage) SyntacticVersion {
+	isValidLineage(lin)
+
+	switch tlin := lin.(type) {
+	case *UnaryLineage:
+		return tlin.allv[len(tlin.allv)-1]
+	default:
+		panic("unreachable")
+	}
+}
+
+// LatestVersionInSequence returns the version number of the newest (largest) schema
+// version in the provided sequence number.
+//
+// An error indicates the number of the provided sequence does not exist.
+func LatestVersionInSequence(lin Lineage, seqv uint) (SyntacticVersion, error) {
+	isValidLineage(lin)
+
+	switch tlin := lin.(type) {
+	case *UnaryLineage:
+		latest := tlin.allv[len(tlin.allv)-1]
+		switch {
+		case latest[0] < seqv:
+			return synv(), fmt.Errorf("lineage does not contain a sequence with number %v", seqv)
+		case latest[0] == seqv:
+			return latest, nil
+		default:
+			return tlin.allv[searchSynv(tlin.allv, SyntacticVersion{seqv + 1, 0})], nil
+		}
+	default:
+		panic("unreachable")
+	}
 }
 
 // A LineageFactory returns a Lineage, which is immutably bound to a single
