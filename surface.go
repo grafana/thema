@@ -9,11 +9,6 @@ import (
 // ever existed for that object, and the lenses that allow translating between
 // those schema versions.
 type Lineage interface {
-	// First returns the first schema in the lineage.
-	First() Schema
-
-	// Schema(SyntacticVersion) Schema
-
 	// RawValue returns the cue.Value of the entire lineage.
 	RawValue() cue.Value
 
@@ -43,6 +38,11 @@ type Lineage interface {
 	//
 	// TODO should this instead be interface{} (ugh ugh wish Go had tagged unions) like FillPath?
 	ValidateAny(data cue.Value) *Instance
+
+	// Schema returns the schema identified by the provided version, if one exists.
+	//
+	// Only the [0, 0] schema is guaranteed to exist in all valid lineages.
+	Schema(v SyntacticVersion) (Schema, error)
 
 	// Lineage must be a private interface in order to restrict their creation
 	// through BindLineage().
@@ -155,7 +155,7 @@ type SyntacticVersion [2]uint
 //
 // A trivial helper to avoid repetitive Go-stress disorder from typing
 //
-//   SyntacticVersion([2]uint{0, 0})
+//   SyntacticVersion{0, 0}
 func SV(seqv, schv uint) SyntacticVersion {
 	return SyntacticVersion([2]uint{seqv, schv})
 }

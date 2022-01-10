@@ -17,6 +17,17 @@ func (e *ErrValueNotExist) Error() string {
 	return fmt.Sprintf("value from path %q does not exist, absent values cannot be lineages", e.path)
 }
 
+// ErrNoSchemaWithVersion indicates that an operation was requested against a
+// schema version that does not exist within a particular lineage.
+type ErrNoSchemaWithVersion struct {
+	lin Lineage
+	v   SyntacticVersion
+}
+
+func (e *ErrNoSchemaWithVersion) Error() string {
+	return fmt.Sprintf("lineage %q does not contain a schema with version %v", e.lin.Name(), e.v)
+}
+
 // BindLineage takes a raw cue.Value, checks that it is a valid lineage (that it
 // upholds the invariants which undergird Thema's translatability guarantees),
 // and returns the cue.Value wrapped in a Lineage, iff validity checks succeed.
@@ -76,6 +87,19 @@ func BindLineage(raw cue.Value, lib Library, opts ...BindOption) (Lineage, error
 	_ = allv.Decode(&lin.allv)
 
 	return lin, nil
+}
+
+func isValidLineage(lin Lineage) {
+	switch tlin := lin.(type) {
+	case nil:
+		panic("nil lineage")
+	case *UnaryLineage:
+		if !tlin.validated {
+			panic("lineage not validated")
+		}
+	default:
+		panic("unreachable")
+	}
 }
 
 func getLinLib(lin Lineage) Library {
@@ -144,16 +168,10 @@ type UnaryLineage struct {
 	allv      []SyntacticVersion
 }
 
-// First returns the first schema in the lineage.
-func (lin *UnaryLineage) First() Schema {
-	if !lin.validated {
-		panic("lineage not validated")
-	}
-	return lin.first
-}
-
 // RawValue returns the cue.Value of the entire lineage.
 func (lin *UnaryLineage) RawValue() cue.Value {
+	isValidLineage(lin)
+
 	if !lin.validated {
 		panic("lineage not validated")
 	}
@@ -163,6 +181,8 @@ func (lin *UnaryLineage) RawValue() cue.Value {
 // Name returns the name of the object schematized by the lineage, as declared in
 // the lineage's name field.
 func (lin *UnaryLineage) Name() string {
+	isValidLineage(lin)
+
 	if !lin.validated {
 		panic("lineage not validated")
 	}
@@ -172,9 +192,8 @@ func (lin *UnaryLineage) Name() string {
 // LatestVersion returns the version number of the newest (largest) schema
 // version in the lineage.
 func (lin *UnaryLineage) LatestVersion() SyntacticVersion {
-	if !lin.validated {
-		panic("lineage not validated")
-	}
+	isValidLineage(lin)
+
 	return lin.allv[len(lin.allv)-1]
 }
 
@@ -183,9 +202,8 @@ func (lin *UnaryLineage) LatestVersion() SyntacticVersion {
 //
 // An error indicates the number of the provided sequence does not exist.
 func (lin *UnaryLineage) LatestVersionInSequence(seqv uint) (SyntacticVersion, error) {
-	if !lin.validated {
-		panic("lineage not validated")
-	}
+	isValidLineage(lin)
+
 	latest := lin.LatestVersion()
 	switch {
 	case latest[0] < seqv:
@@ -209,9 +227,8 @@ func (lin *UnaryLineage) LatestVersionInSequence(seqv uint) (SyntacticVersion, e
 //
 // TODO should this instead be interface{} (ugh ugh wish Go had tagged unions) like FillPath?
 func (lin *UnaryLineage) ValidateAny(data cue.Value) *Instance {
-	if !lin.validated {
-		panic("lineage not validated")
-	}
+	isValidLineage(lin)
+
 	for sch := lin.first; sch != nil; sch.Successor() {
 		if inst, err := sch.Validate(data); err == nil {
 			return inst
@@ -220,10 +237,43 @@ func (lin *UnaryLineage) ValidateAny(data cue.Value) *Instance {
 	return nil
 }
 
+// Schema returns the schema identified by the provided version, if one exists.
+//
+// Only the [0, 0] schema is guaranteed to exist in all valid lineages.
+func (lin *UnaryLineage) Schema(v SyntacticVersion) (Schema, error) {
+	isValidLineage(lin)
+
+	if !synvExists(lin.allv, v) {
+		return nil, &ErrNoSchemaWithVersion{
+			lin: lin,
+			v:   v,
+		}
+	}
+
+	schval, err := cueArgs{
+		"v":   v,
+		"lin": lin.RawValue(),
+	}.call("#Pick", lin.lib)
+	if err != nil {
+		return nil, err
+	}
+
+	return &UnarySchema{
+		raw: schval,
+		lin: lin,
+		v:   v,
+	}, nil
+}
+
 func (lin *UnaryLineage) _lineage() {}
 
 func searchSynv(a []SyntacticVersion, x SyntacticVersion) int {
 	return sort.Search(len(a), func(i int) bool { return !a[i].less(x) })
+}
+
+func synvExists(a []SyntacticVersion, x SyntacticVersion) bool {
+	i := searchSynv(a, x)
+	return i < len(a) && a[i] == x
 }
 
 // A UnarySchema is a Go facade over a Thema schema that does not compose any
