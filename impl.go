@@ -189,32 +189,6 @@ func (lin *UnaryLineage) Name() string {
 	return lin.name
 }
 
-// LatestVersion returns the version number of the newest (largest) schema
-// version in the lineage.
-func (lin *UnaryLineage) LatestVersion() SyntacticVersion {
-	isValidLineage(lin)
-
-	return lin.allv[len(lin.allv)-1]
-}
-
-// LatestVersionInSequence returns the version number of the newest (largest) schema
-// version in the provided sequence number.
-//
-// An error indicates the number of the provided sequence does not exist.
-func (lin *UnaryLineage) LatestVersionInSequence(seqv uint) (SyntacticVersion, error) {
-	isValidLineage(lin)
-
-	latest := lin.LatestVersion()
-	switch {
-	case latest[0] < seqv:
-		return synv(), fmt.Errorf("lineage does not contain a sequence with number %v", seqv)
-	case latest[0] == seqv:
-		return latest, nil
-	default:
-		return lin.allv[searchSynv(lin.allv, SyntacticVersion{seqv + 1, 0})], nil
-	}
-}
-
 // ValidateAny checks that the provided data is valid with respect to at
 // least one of the schemas in the lineage. The oldest (smallest) schema against
 // which the data validates is chosen. A nil return indicates no validating
@@ -336,7 +310,7 @@ func (sch *UnarySchema) Predecessor() Schema {
 // An error indicates the number of the provided sequence does not exist.
 func (sch *UnarySchema) LatestVersionInSequence() SyntacticVersion {
 	// Lineage invariants preclude an error
-	sv, _ := sch.lin.LatestVersionInSequence(sch.v[0])
+	sv, _ := LatestVersionInSequence(sch.lin, sch.v[0])
 	return sv
 }
 
