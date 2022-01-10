@@ -79,7 +79,7 @@ func (lac multiTranslationLacunae) AsList() []Lacuna {
 func (i *Instance) asLinkedInstance() cue.Value {
 	li, err := cueArgs{
 		"inst": i.raw,
-		"lin":  i.Schema().Lineage().RawValue(),
+		"lin":  i.Schema().Lineage().UnwrapCUE(),
 		"v":    i.Schema().Version(),
 	}.make("#LinkedInstance", i.lib())
 	if err != nil {

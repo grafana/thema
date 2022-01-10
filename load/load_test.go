@@ -65,7 +65,7 @@ func TestInstanceLoadHelper(t *testing.T) {
 		t.Fail()
 	}
 
-	_, err = cuejson.Marshal(tinst.RawValue())
+	_, err = cuejson.Marshal(tinst.UnwrapCUE())
 	if err != nil {
 		t.Fatalf("Failed to marshal translation output to JSON with err: \n\t%s", err)
 	}
@@ -75,8 +75,8 @@ func TestInstanceLoadHelper(t *testing.T) {
 		"secondfield": -1
 	}`))
 	wantval := ctx.BuildExpr(expr)
-	if !wantval.Equals(tinst.RawValue()) {
-		t.Fatalf("Did not receive expected value after translation:\nWANT: %s\nGOT: %s", wantval, inst.RawValue())
+	if !wantval.Equals(tinst.UnwrapCUE()) {
+		t.Fatalf("Did not receive expected value after translation:\nWANT: %s\nGOT: %s", wantval, inst.UnwrapCUE())
 	}
 }
 
