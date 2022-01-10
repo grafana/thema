@@ -67,9 +67,9 @@ func NewLibrary(ctx *cue.Context) Library {
 	}
 }
 
-// RawValue returns the underlying cue.Value representing the whole Thema CUE
+// UnwrapCUE returns the underlying cue.Value representing the whole Thema CUE
 // library (github.com/grafana/thema).
-func (lib Library) RawValue() cue.Value {
+func (lib Library) UnwrapCUE() cue.Value {
 	return lib.val
 }
 
@@ -93,7 +93,7 @@ func Pick(lin Lineage, v SyntacticVersion) (Schema, error) {
 	lib := getLinLib(lin)
 	schval, err := cueArgs{
 		"v":   v,
-		"lin": lin.RawValue(),
+		"lin": lin.UnwrapCUE(),
 	}.call("#Pick", lib)
 	if err != nil {
 		return nil, err

@@ -168,8 +168,8 @@ type UnaryLineage struct {
 	allv      []SyntacticVersion
 }
 
-// RawValue returns the cue.Value of the entire lineage.
-func (lin *UnaryLineage) RawValue() cue.Value {
+// UnwrapCUE returns the cue.Value of the entire lineage.
+func (lin *UnaryLineage) UnwrapCUE() cue.Value {
 	isValidLineage(lin)
 
 	if !lin.validated {
@@ -197,7 +197,7 @@ func (lin *UnaryLineage) Name() string {
 // While this method takes a cue.Value, this is only to avoid having to trigger
 // the translation internally; input values must be concrete. To use
 // incomplete CUE values with Thema schemas, prefer working directly in CUE,
-// or if you must, rely on the RawValue().
+// or if you must, rely on the UnwrapCUE().
 //
 // TODO should this instead be interface{} (ugh ugh wish Go had tagged unions) like FillPath?
 func (lin *UnaryLineage) ValidateAny(data cue.Value) *Instance {
@@ -226,7 +226,7 @@ func (lin *UnaryLineage) Schema(v SyntacticVersion) (Schema, error) {
 
 	schval, err := cueArgs{
 		"v":   v,
-		"lin": lin.RawValue(),
+		"lin": lin.UnwrapCUE(),
 	}.call("#Pick", lin.lib)
 	if err != nil {
 		return nil, err
@@ -266,7 +266,7 @@ type UnarySchema struct {
 // While Validate takes a cue.Value, this is only to avoid having to trigger
 // the translation internally; input values must be concrete. To use
 // incomplete CUE values with Thema schemas, prefer working directly in CUE,
-// or if you must, rely on the RawValue().
+// or if you must, rely on UnwrapCUE().
 //
 // TODO should this instead be interface{} (ugh ugh wish Go had discriminated unions) like FillPath?
 func (sch *UnarySchema) Validate(data cue.Value) (*Instance, error) {
@@ -314,8 +314,8 @@ func (sch *UnarySchema) LatestVersionInSequence() SyntacticVersion {
 	return sv
 }
 
-// RawValue returns the cue.Value that represents the underlying CUE schema.
-func (sch *UnarySchema) RawValue() cue.Value {
+// UnwrapCUE returns the cue.Value that represents the underlying CUE schema.
+func (sch *UnarySchema) UnwrapCUE() cue.Value {
 	return sch.raw
 }
 

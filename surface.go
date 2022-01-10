@@ -1,16 +1,23 @@
 package thema
 
 import (
+	"fmt"
+
 	"cuelang.org/go/cue"
 )
+
+// A CUEWrapper wraps a cue.Value, and can return that value for inspection.
+type CUEWrapper interface {
+	// UnwrapCUE returns the underlying cue.Value wrapped by the object.
+	UnwrapCUE() cue.Value
+}
 
 // A Lineage is the top-level container in thema, holding the complete
 // evolutionary history of a particular kind of object: every schema that has
 // ever existed for that object, and the lenses that allow translating between
 // those schema versions.
 type Lineage interface {
-	// RawValue returns the cue.Value of the entire lineage.
-	RawValue() cue.Value
+	CUEWrapper
 
 	// Name returns the name of the object schematized by the lineage, as declared
 	// in the lineage's `name` field.
@@ -24,7 +31,7 @@ type Lineage interface {
 	// While this method takes a cue.Value, this is only to avoid having to trigger
 	// the translation internally; input values must be concrete. To use
 	// incomplete CUE values with Thema schemas, prefer working directly in CUE,
-	// or if you must, rely on the RawValue().
+	// or if you must, rely on UnwrapCUE().
 	//
 	// TODO should this instead be interface{} (ugh ugh wish Go had tagged unions) like FillPath?
 	ValidateAny(data cue.Value) *Instance
@@ -131,6 +138,8 @@ func SkipBuggyChecks() BindOption {
 // Schema represents a single, complete schema from a thema lineage. A Schema's
 // Validate() method determines whether some data constitutes an Instance.
 type Schema interface {
+	CUEWrapper
+
 	// Validate checks that the provided data is valid with respect to the
 	// schema. If valid, the data is wrapped in an Instance and returned.
 	// Otherwise, a nil Instance is returned along with an error detailing the
@@ -139,7 +148,7 @@ type Schema interface {
 	// While Validate takes a cue.Value, this is only to avoid having to trigger
 	// the translation internally; input values must be concrete. To use
 	// incomplete CUE values with Thema schemas, prefer working directly in CUE,
-	// or if you must, rely on the RawValue().
+	// or if you must, rely on the UnwrapCUE().
 	//
 	// TODO should this instead be interface{} (ugh ugh wish Go had tagged unions) like FillPath?
 	Validate(data cue.Value) (*Instance, error)
@@ -153,9 +162,6 @@ type Schema interface {
 	// LatestVersionInSequence returns the version number of the newest (largest) schema
 	// in this schema's sequence.
 	LatestVersionInSequence() SyntacticVersion
-
-	// RawValue returns the cue.Value that represents the underlying CUE schema.
-	RawValue() cue.Value
 
 	// Version returns the schema's version number.
 	Version() SyntacticVersion
@@ -217,8 +223,8 @@ func (i *Instance) AsPredecessor() (*Instance, TranslationLacunae) {
 	panic("TODO translation from newer to older schema is not yet implemented")
 }
 
-// RawValue returns the cue.Value that represents the instance's underlying data.
-func (i *Instance) RawValue() cue.Value {
+// UnwrapCUE returns the cue.Value that represents the instance's underlying data.
+func (i *Instance) UnwrapCUE() cue.Value {
 	return i.raw
 }
 
