@@ -3,7 +3,7 @@
 The most fundamental task in thema is writing a lineage. Writing a lineage is similar to other schema-writing systems: you're defining a specification for what data is supposed to look like, with two key differences:
 
 1. CUE is the only language supported for schemas
-2. Schemas are wrutten _within_ a larger, well-defined structure - the lineage - which groups those schema together and enforces certain requirements.
+2. Schemas are written _within_ a larger, well-defined structure - the lineage - which groups those schema together and enforces certain requirements.
 
 This tutorial focuses on the second key difference: expressing collections of schemas as a valid lineage.
 
