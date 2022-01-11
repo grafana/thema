@@ -1,51 +1,29 @@
 package kernel
 
 import (
+	"errors"
+	"fmt"
+	"reflect"
+
 	"cuelang.org/go/cue"
-	"cuelang.org/go/encoding/gocode/gocodec"
-	"cuelang.org/go/encoding/json"
 	"github.com/grafana/thema"
 )
 
-// A TypeFactory must emit a pointer to the Go type that a kernel will
-// ultimately produce as output.
-//
-// TODO the function accomplished by this should be trivial to achieve with generics...?
-type TypeFactory func() interface{}
-
-// A Decoder takes some input data as an []byte and loads it into a
-// cue.Value.
-type Decoder func(*cue.Context, []byte) (cue.Value, error)
-
-// NewJSONByteDecoder creates a Decoder func that translates some JSON data
-// input into a cue.Value.
-//
-// The provided path is used as the sourcename for the input data (the
-// identifier for the data used by CUE error messages). Any provided
-// cue.BuildOptions are passed along to cue.Context.BuildExpr().
-func NewJSONByteDecoder(path string, o ...cue.BuildOption) Decoder {
-	return func(ctx *cue.Context, data []byte) (cue.Value, error) {
-		expr, err := json.Extract(path, data)
-		if err != nil {
-			return cue.Value{}, err
-		}
-		return ctx.BuildExpr(expr, o...), nil
-	}
-}
-
 // InputKernelConfig holds configuration options for InputKernel.
 type InputKernelConfig struct {
-	// TypeFactory determines the Go type that processed values will be
-	// loaded into by Converge(). It must return a pointer to a Go type that is
-	// valid with respect to the `to` schema in the `lin` lineage.
+	// TypeFactory determines the Go type that processed values will be loaded
+	// into by Converge(). It must return a non-pointer Go value that is valid
+	// with respect to the `to` schema in the `lin` lineage.
 	//
 	// Attempting to create an InputKernel with a nil TypeFactory will panic.
+	//
+	// TODO investigate if we can allow pointer types without things getting weird
 	TypeFactory TypeFactory
 
-	// Decoder accepts input data and converts it to a cue.Value.
+	// Loader takes input data and converts it to a cue.Value.
 	//
-	// Attempting to create an InputKernel with a nil Decoder will panic.
-	Decoder Decoder
+	// Attempting to create an InputKernel with a nil Loader will panic.
+	Loader DataLoader
 
 	// Lineage is the Thema lineage containing the schema for data to be validated
 	// against and translated through.
@@ -63,18 +41,20 @@ type InputKernelConfig struct {
 // them onto a single statically-chosen schema version via Thema translation,
 // and emits the result in a native Go type.
 type InputKernel struct {
-	init   bool
-	tf     TypeFactory
-	decode Decoder
-	lin    thema.Lineage
-	to     thema.SyntacticVersion
+	init bool
+	tf   TypeFactory
+	// whether or not the TypeFactory returns a pointer type
+	ptrtype bool
+	load    DataLoader
+	lin     thema.Lineage
+	to      thema.SyntacticVersion
 	// TODO add something for interrupting/mediating translation vis-a-vis accumulated lacunae
 }
 
 // NewInputKernel constructs an input kernel.
 //
 // InputKernels accepts input data in whatever format (e.g. JSON, YAML)
-// supported by its Decoder, validates the data, translates it to a single target version, then
+// supported by its DataLoader, validates the data, translates it to a single target version, then
 func NewInputKernel(cfg InputKernelConfig) (InputKernel, error) {
 	if cfg.Lineage == nil {
 		panic("must provide a non-nil Lineage")
@@ -82,49 +62,50 @@ func NewInputKernel(cfg InputKernelConfig) (InputKernel, error) {
 	if cfg.TypeFactory == nil {
 		panic("must provide a non-nil TypeFactory")
 	}
-	if cfg.Decoder == nil {
+	if cfg.Loader == nil {
 		panic("must provide a non-nil Decoder")
 	}
 
-	// The concurrency warnings in the docs on Codec are concerning - don't use
-	// the Runtime concurrently for any other operations, but concurrent use of
-	// only the codec is fine? ugh, that wouldn't be easy to coordinate under the
-	// best of circumstances. And there's really nothing we can do in a
-	// situation like this. So...guess we're YOLOing it for now?
-	codec := gocodec.New((*cue.Runtime)(cfg.Lineage.UnwrapCUE().Context()), nil)
 	sch, err := cfg.Lineage.Schema(cfg.To)
 	if err != nil {
 		return InputKernel{}, err
 	}
 
+	t := cfg.TypeFactory()
+	// Ensure that the type returned from the TypeFactory is not a pointer. (If
+	// it is, it will encode to a cue.Value as a disjunction allowing null as a
+	// default.)
+	if k := reflect.ValueOf(t).Kind(); k == reflect.Ptr {
+		return InputKernel{}, fmt.Errorf("cfg.TypeFactory must return a non-pointer type, got %T (%s)", t, k)
+	}
+
 	// Verify that the input Go type is valid with respect to the indicated
 	// schema. Effect is that the caller cannot get an InputKernel without a
 	// valid Go type to write to.
-	//
-	// TODO verify this is actually how we check this
-	if err = codec.Validate(sch.UnwrapCUE(), cfg.TypeFactory()); err != nil {
+	tv := cfg.Lineage.UnwrapCUE().Context().EncodeType(t)
+	if err := sch.UnwrapCUE().Subsume(tv, cue.Schema(), cue.Raw()); err != nil {
 		return InputKernel{}, err
 	}
 
 	return InputKernel{
-		init:   true,
-		tf:     cfg.TypeFactory,
-		decode: cfg.Decoder,
-		lin:    cfg.Lineage,
-		to:     cfg.To,
+		init: true,
+		tf:   cfg.TypeFactory,
+		load: cfg.Loader,
+		lin:  cfg.Lineage,
+		to:   cfg.To,
 	}, nil
 }
 
 // Converge runs input data through the full kernel process: validate, translate to a
 // fixed version, return transformed instance along with any emitted lacunae.
 //
-// Valid formats for the input data are determined by the Decoder func with which
+// Valid formats for the input data are determined by the DataLoader func with which
 // the kernel was constructed. Invalid data will result in an error.
 //
 // Type safety of the return value is guaranteed by checks performed in
-// NewInputKernel() - if error is non-nil, the first return value is guaranteed
-// to be an instance of the type returned from the TypeFactory with which the
-// kernel was constructed.
+// NewInputKernel(). If error is non-nil, the concrete type of the first return
+// value is guaranteed to be the type returned from the TypeFactory with
+// which the kernel was constructed.
 //
 // It is safe to call Converge frm multiple goroutines.
 func (k InputKernel) Converge(data []byte) (interface{}, thema.TranslationLacunae, error) {
@@ -133,15 +114,17 @@ func (k InputKernel) Converge(data []byte) (interface{}, thema.TranslationLacuna
 	}
 
 	// Decode the input data into a cue.Value
-	v, err := k.decode(k.lin.UnwrapCUE().Context(), data)
+	v, err := k.load(k.lin.UnwrapCUE().Context(), data)
 	if err != nil {
+		// TODO wrap error for use with errors.Is
 		return nil, nil, err
 	}
 
 	// Validate that the data constitutes an instance of at least one of the schemas in the lineage
 	inst := k.lin.ValidateAny(v)
 	if err != nil {
-		return nil, nil, err
+		// TODO wrap error for use with errors.Is
+		return nil, nil, errors.New("validation failed")
 	}
 
 	transval, lac := inst.Translate(k.to)
@@ -166,8 +149,16 @@ func (k InputKernel) Config() InputKernelConfig {
 
 	return InputKernelConfig{
 		TypeFactory: k.tf,
-		Decoder:     k.decode,
+		Loader:      k.load,
 		Lineage:     k.lin,
 		To:          k.to,
 	}
 }
+
+// type ErrDataUnloadable struct {
+
+// }
+
+// type ErrInvalidData struct {
+
+// }
