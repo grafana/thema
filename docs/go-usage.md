@@ -16,7 +16,7 @@ Many of these cases have mature solutions. Some are unlikely to ever be reached 
 
 This tutorial will focus on a general approach to encapsulating the problem of receiving input data, validating it, translating it, and make it available for use as a Go struct. We refer to this cluster of behavior as an **Input Kernel**.
 
-But before we run, we must learn to walk. Input kernels are patterned clusters of behavior composed from Thema's core operations. The best way to understand what you're doing when you create an input kernel is to learn those core operations, one at a time.
+But before we run, we should learn to walk. Input kernels are patterned clusters of behavior composed from Thema's core operations. You can [jump ahead](#input-kernels) to read about the kernels , The best way to understand what you're doing when you create an input kernel is to learn those core operations, one at a time.
 
 ## Thema Core Operations
 
@@ -71,11 +71,25 @@ func dataAsValue(lib thema.Library) cue.Value {
 }
 ```
 
-With data-as-`cue.Value` prepared, we're ready to start validating.
+With data-as-`cue.Value` prepared, we're ready to start validating. But first, let's quickly overview the types we'll be relying on.
+
+### Type Overview
+
+Thema's Go library presents three types for its core operations:
+
+* [`Lineage`](https://pkg.go.dev/github.com/grafana/thema#Lineage): represents a whole lineage; what we created in previous tutorials. Closed interface.
+* [`Schema`](https://pkg.go.dev/github.com/grafana/thema#Schema): represents an individual schema from a lineage. Closed interface.
+* [`Instance`](https://pkg.go.dev/github.com/grafana/thema#Instance): represents data that's a valid instance of some schema from some lineage. Struct with hidden members.
+
+These directly represent three of the [core concepts](overview.md). All of these types are closed in order to ensure that a non-nil variable of the type is constructed in a manner that confers Thema's [guarantees](invariants.md).
+
+These types are connected through methods that represent their well-defined relations. You can look up a particular `Schema` from a `Lineage` by version number, or go from a `Schema` to its `Lineage`. An `Instance` can return its `Schema`, but that's a one-way trip - `Schema` do not keep an internal index of validated `Instance`s. The graph of connected objects is always limited to those associated with a single lineage.
 
 ### Hand-pick and validate
 
 The simplest approach to validation is to pretend that Thema is like any old schema system, and manually select one schema at a time to work with. We'll express this using standard Go tests, as it makes it easiest to see the output on your machine.
+
+Let's start with a simple test to check what we already know - our input is an instance of schema 0.0, but not of schema 1.0. For that, we'll rely on `Lineage.Schema()` to retrieve a particular schema, and `Schema.Validate()` to check the data.
 
 ```go
 package example
@@ -95,17 +109,198 @@ func init() {
     if shiplin, err = ShipLineage(lib); err != nil { panic(err) }
 }
 
-func TestManual(t *testing.T) {
-    sch00 := shiplin.Schema(thema.SV(0, 0))
+func TestHandpickValidation(t *testing.T) {
+    // Ask the lineage for the schema with version 0.0. An error can only happen
+    // if you request a schema version that doesn't exist.
+    sch, _ := shiplin.Schema(thema.SV(0, 0))
+    _, err := sch00.Validate(dataAsValue(lib))
+    // Our input is valid according to schema 0.0, so there should be no error
+    if err != nil {
+        t.Fatal(err)
+    }
 }
 ```
+
+Here, we've hand-picked the schema version we want to validate against - `0.0`, which every lineage is guaranteed to contain. The [`LatestVersion()`](https://pkg.go.dev/github.com/grafana/thema#LatestVersion) and [`LatestVersionInSequence()`](https://pkg.go.dev/github.com/grafana/thema#LatestVersionInSequence) functions provide fuzzier version selection logic. But allowing only one schema version as input somewhat defeats the purpose of using Thema in the first place. Ideally, we'd have something more dynamic.
+
 ### Search by validity
+
+The first step to simplifying the ingestion of data from multiple possible schemas is to stop treating them individually. (It's like ["cattle, not pets"](http://cloudscaling.com/blog/cloud-computing/the-history-of-pets-vs-cattle/), but for schema!) [`Lineage.ValidateAny()`](https://pkg.go.dev/github.com/grafana/thema#Lineage) gives us what we want, here: instead of having to preselect the schema we want to validate against, we only want to know if the data is valid against _any_ schema in our lineage.
+
+```go
+package example
+
+import (
+    "testing"
+
+    "cuelang.org/go/cue/cuecontext"
+    "github.com/grafana/thema"
+)
+
+var lib thema.Library = thema.NewLibrary(cuecontext.New())
+var shiplin thema.Lineage
+
+func init() {
+    var err error
+    if shiplin, err = ShipLineage(lib); err != nil { panic(err) }
+}
+
+func TestSearchByValid(t *testing.T) {
+    inst := shiplin.ValidateAny(dataAsValue(lib))
+    // The returned schema is the one with the smallest version number for which
+    // the data is valid. Failure to find any schema for which the data is
+    // valid results in a nil return. 
+    if inst == nil {
+        t.Fatal("expected input data to validate against schema 0.0")
+    }
+}
+```
+
+Of course, this approach presents a new question. Any of the schemas could have matched, but we don't actually know which one did. To find out, we ask the instance for its schema, then ask that schema for its version.
+
+```go
+func TestSearchByValid(t *testing.T) {
+    inst := shiplin.ValidateAny(dataAsValue(lib))
+    if inst == nil {
+        t.Fatal("expected input data to validate against schema 0.0")
+    }
+    // Figure out which schema version validated by getting the schema of the
+    // instance, then asking the schema for its version.
+    fmt.Println(inst.Schema().Version()) // 0.0
+}
+```
+
+OK, now we know what version we validated against. But relying on search means we just fanned out to accept every possible schema as input. That's the opposite of the outcome we want - writing our programs against a single version of schema - so we need to fan back in.
 
 ### Translate
 
+Fanning in to a single version of our schema means putting Thema's system of lenses and translation to work. Given an instance of `Ship`, regardless of what version it starts at, we want to translate to one known, fixed version throughout our program. (This is analogous to pinning a dependency's version with a traditional package manager.) For now, let's put it in a package variable called `targetVersion`, and pick `1.0`.
+
+Calling `Translate()` on an instance will produce two values: a new instance valid with respect to the schema version that was specified, and any lacunas that the translation process produced. And our `Ship` lineage [does emit one](https://github.com/grafana/thema/blob/main/docs/authoring.md#emitting-a-lacuna), because we had to put that placeholder `-1` value in for `secondfield`.
+
+```go
+var targetVersion = thema.SV(1, 0)
+
+func TestSearchByValid(t *testing.T) {
+    inst00 := shiplin.ValidateAny(dataAsValue(lib))
+    if inst == nil {
+        t.Fatal("expected input data to validate against schema 0.0")
+    }
+
+    inst10, lacunas := inst.Translate(targetVersion)
+	byt, _ := json.MarshalIndent(map[string]interface{}{
+		"inst0.0": inst00.UnwrapCUE(),
+		"inst1.0": inst10.UnwrapCUE(),
+		"lacunas": lacunas.AsList(),
+	}, "", "    ")
+	fmt.Println(string(byt))
+}
+```
+
+Output:
+
+```json
+{
+    "inst0.0": {
+        "firstfield": "foo",
+    },
+    "inst1.0": {
+        "firstfield": "foo",
+        "secondfield": -1
+    },
+    "lacunas": [
+        {
+            "targetFields": [
+                {
+                    "path": "secondfield",
+                    "value": null
+                }
+            ],
+            "type": 0,
+            "message": "-1 used as a placeholder value - replace with a real value before persisting!"
+        }
+    ]
+}
+```
+
+We've got our `Ship` instance that's valid with respect schema `1.0`!
+
+We also have a lacuna, telling us that the contents of `secondfield` is a placeholder value. In a real program, we'd want to do something about this. But working with lacuna is its own, complex topic, so we're going to ignore it for now.
+
+### Decode
+
+If we're planning on actually working with this `Ship` instance in our Go program, there's one last step to take: populate a Go type with our data.
+
+First, we need a Go type. For now[^gocodegen], we'll need to hand-write a `Ship` struct:
+
+```go
+// CUE piggybacks `json` struct tags.
+type Ship struct {
+	Firstfield  string `json:"firstfield`
+	Secondfield int    `json:"secondfield`
+}
+```
+
+Next, we'll expand our test to load the contents of our `*Instance` into a Go variable of this new `Ship` type. (This is somewhat analogous to JSON unmarshalling, but in CUE is called `Decode`.)
+
+```go
+func TestSearchByValid(t *testing.T) {
+    inst00 := shiplin.ValidateAny(dataAsValue(lib))
+    if inst == nil {
+        t.Fatal("expected input data to validate against schema 0.0")
+    }
+
+    inst10, _ := inst.Translate(targetVersion)
+
+    var ship Ship
+    inst10.UnwrapCUE().Decode(&ship)
+    fmt.Printf("%+v\n", ship) // "{Firstfield:foo Secondfield:-1}"
+}
+```
+
+One last thing to do: type safety. We want to make sure that the Go `Ship` type will accurately represent what's specified in the `1.0` schema of our lineage. Another test will do the trick:
+
+```go
+import (
+    "testing"
+
+    "cuelang.org/go/cue/cuecontext"
+	"cuelang.org/go/encoding/gocode/gocodec"
+    "github.com/grafana/thema"
+)
+
+func TestShipIsValidReceiver(t *testing.T) {
+    sch, _ := shiplin.Schema(thema.SV(1, 0))
+    codec := (*cue.Runtime)(lin.UnwrapCUE().Context())
+}
+```
+
+* Verify that the Go `Ship` struct type is compatible with what's declared in schema `1.0`.
+
 ## Input Kernel
+
+Manually stitching together a Thema-based input processing flow can be done. Clearly - we've just done it. But all we've really made is a function calls scattered across tests. Ideally, there'd be an approach that miimally distracts us from the harder problem: composing Thema into larger systems. Start with an `io.Reader`, `[]byte` or similar of input data, end with our desired Go type, all in a minimal structure made from the answer to a few high-level questions: 
+
+* Which lineage are we using?
+* What data format are we expecting as input?
+* Which schema version are we targeting?
+* What Go type do we want our data to end up in?
+
+Enter, [`InputKernel`](https://pkg.go.dev/github.com/grafana/thema/kernel#InputKernel).
+
+Thema's kernels encapsulate common patterns for getting data into and out of a running program. The `InputKernel` does so for the pattern we just worked out by hand.
+
+, it's laborious, and  The above, manual approach gets the job done, but it's 
+
+
+We want to reduce a many-to-many relationship to many-to-one.
+
+Throughout this and the preceding tutorial, we've kept the contents of our lineage in `ship.cue` the same. Thema's design makes that  whole design is that 
 
 [^cueduality]:
     We've seen `cue.Value` before, when creating the lineage factory in the previous tutorial. That one represented our whole lineage, but this one represents JSON data. It may seem odd that both abstract schema and concrete JSON are represented in the same way. And indeed, if you end up going deeper with CUE's Go API, keeping track of exactly what's represented by the `cue.Value` you're working with gets challenging.
     
     But the lack of distinction between schema and data here isn't just a quirk. It's a direct outgrowth of CUE's most foundational property: [types are values](https://cuelang.org/docs/concepts/logic/#types-are-values).
+
+[^gocodegen]:
+    CUE doesn't yet have standard library support for generating Go structs from CUE values. When it does, it will slot in nicely here. Even without codegen, we don't compromise on correctness - we can validate hand-written types against the CUE schema, as well.
