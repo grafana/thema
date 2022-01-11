@@ -106,11 +106,16 @@ func harnessForExemplar(name string, lib thema.Library) cue.Value {
 		panic(fmt.Sprintf("no exemplar exists with name %q", name))
 	}
 
-	return lval
+	return lval.LookupPath(cue.MakePath(cue.Str("l")))
 }
 
 // Build a Lineage representing a single exemplar.
 func lineageForExemplar(name string, lib thema.Library, o ...thema.BindOption) (thema.Lineage, error) {
+	switch name {
+	case "defaultchange", "narrowing", "rename":
+		// subsumption in cue v0.4.0 panics in all three of these cases
+		o = append(o, thema.SkipBuggyChecks())
+	}
 	return thema.BindLineage(harnessForExemplar(name, lib), lib, o...)
 }
 
