@@ -43,23 +43,23 @@ func TestInstanceLoadHelper(t *testing.T) {
 	}`))
 
 	cv := ctx.BuildExpr(expr)
-	sch1, err := thema.Pick(lin, thema.SyntacticVersion{0, 0})
+	sch1, err := lin.Schema(thema.SV(0, 0))
 	if err != nil {
-		t.Fatal("Could not Pick existing schema:", err)
+		t.Fatal("Could not get existing schema:", err)
 	}
 
-	inst, err := sch1.Validate(cv)
+	_, err = sch1.Validate(cv)
 	if err != nil {
 		t.Fatal("validation failed:", err)
 	}
 
-	inst = lin.ValidateAny(cv)
+	inst := lin.ValidateAny(cv)
 	if inst == nil {
 		t.Fatal("No schema validated the inst; should have validated against [0, 0]")
 	}
 
 	to := thema.SV(1, 0)
-	tinst, _ := thema.Translate(inst, to)
+	tinst, _ := inst.Translate(to)
 	if tinst.Schema().Version() != to {
 		t.Logf("Expected output schema version %v, got %v", to, tinst.Schema().Version())
 		t.Fail()

@@ -72,18 +72,25 @@ func NewInputKernel(cfg InputKernelConfig) (InputKernel, error) {
 	}
 
 	t := cfg.TypeFactory()
-	// Ensure that the type returned from the TypeFactory is not a pointer. (If
-	// it is, it will encode to a cue.Value as a disjunction allowing null as a
-	// default.)
-	if k := reflect.ValueOf(t).Kind(); k == reflect.Ptr {
-		return InputKernel{}, fmt.Errorf("cfg.TypeFactory must return a non-pointer type, got %T (%s)", t, k)
+	// Ensure that the type returned from the TypeFactory is a pointer. If it's
+	// not, we can't create a pointer to it in a way that's necessary for
+	// decoding later. Downside is that having it be a pointer means it allows a
+	// null, which isn't what we want.
+	if k := reflect.ValueOf(t).Kind(); k != reflect.Ptr {
+		return InputKernel{}, fmt.Errorf("cfg.TypeFactory must return a pointer type, got %T (%s)", t, k)
 	}
 
 	// Verify that the input Go type is valid with respect to the indicated
 	// schema. Effect is that the caller cannot get an InputKernel without a
 	// valid Go type to write to.
 	tv := cfg.Lineage.UnwrapCUE().Context().EncodeType(t)
-	if err := sch.UnwrapCUE().Subsume(tv, cue.Schema(), cue.Raw()); err != nil {
+	// Try to dodge around the *null we get back by pulling out the latter part of the expr
+	op, vals := tv.Expr()
+	if op != cue.OrOp {
+		panic("not an or")
+	}
+	realval := vals[1]
+	if err := sch.UnwrapCUE().Subsume(realval, cue.Schema(), cue.Raw()); err != nil {
 		return InputKernel{}, err
 	}
 
@@ -107,7 +114,7 @@ func NewInputKernel(cfg InputKernelConfig) (InputKernel, error) {
 // value is guaranteed to be the type returned from the TypeFactory with
 // which the kernel was constructed.
 //
-// It is safe to call Converge frm multiple goroutines.
+// It is safe to call Converge from multiple goroutines.
 func (k InputKernel) Converge(data []byte) (interface{}, thema.TranslationLacunae, error) {
 	if !k.init {
 		panic("kernel not initialized")
@@ -141,7 +148,7 @@ func (k InputKernel) IsInitialized() bool {
 	return k.init
 }
 
-// Config returns a copy of the kernel's active configuration.
+// Config returns a copy of the kernel's configuration.
 func (k InputKernel) Config() InputKernelConfig {
 	if !k.init {
 		panic("kernel not initialized")
