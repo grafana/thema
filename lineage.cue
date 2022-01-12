@@ -175,10 +175,11 @@ _allv: {
 // of the sequence within the lineage, and second the index of the schema within
 // that sequence.
 // 
-// In a language like CUE, schema/sequence backwards compatibility amount to
-// syntactic (i.e. structurally analyzable) properties. Relating version numbers
-// to these checkable properties makes Thema versions an encoding of those
-// properties - hence the name, "SyntacticVersion".
+// In a Turing-incomplete language like CUE, schema/sequence backwards
+// compatibility are properties that can be reliably checked by the CUE's
+// evaluator. Relating version numbers to these checkable properties turns Thema
+// versions into an encoding of those properties - hence the name,
+// "SyntacticVersion".
 #SyntacticVersion: [int & >= 0, int & >= 0]
 
 // TODO functionize
