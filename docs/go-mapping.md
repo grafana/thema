@@ -1,4 +1,4 @@
-# Encapsulating Lineages in Go
+# Tutorial: Mapping CUE Lineages into Go
 
 Once we know how to [write a Thema lineage in CUE](authoring.md), a common next step is to make the lineage available for use in a general-purpose programming language, like Go. No matter what we'd like this Go program to do with our lineages, we must first get the CUE text of our lineage declaration - often referred to as "the bytes" in this doc - into Go, and load it into the [types exported by the `thema` package](https://pkg.go.dev/github.com/grafana/thema).
 
