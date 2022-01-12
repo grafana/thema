@@ -1,4 +1,4 @@
-# Using Thema in Programs
+# Using Thema in (Go) Programs
 
 In prior articles, we [wrote a `Ship` lineage in CUE](authoring.md), then made it reliably available in Go via a canonical [`LineageFactory`](https://pkg.go.dev/github.com/grafana/thema#LineageFactory) function named `ShipLineage()`. With that done, we're ready to write a program that puts Thema to work doing something useful.
 
@@ -241,7 +241,7 @@ type Ship struct {
 }
 ```
 
-Next, we'll expand our test to load the contents of our `*Instance` into a Go variable of this new `Ship` type. (This is somewhat analogous to JSON unmarshalling, but in CUE is called `Decode`.)
+Finally, we'll expand our test to load the contents of our `*Instance` into a Go variable of this new `Ship` type. (This is somewhat analogous to JSON unmarshalling, but in CUE is called `Decode`.)
 
 ```go
 func TestSearchByValid(t *testing.T) {
@@ -258,28 +258,13 @@ func TestSearchByValid(t *testing.T) {
 }
 ```
 
-One last thing to do: type safety. We want to make sure that the Go `Ship` type will accurately represent what's specified in the `1.0` schema of our lineage. Another test will do the trick:
-
-```go
-import (
-    "testing"
-
-    "cuelang.org/go/cue/cuecontext"
-	"cuelang.org/go/encoding/gocode/gocodec"
-    "github.com/grafana/thema"
-)
-
-func TestShipIsValidReceiver(t *testing.T) {
-    sch, _ := shiplin.Schema(thema.SV(1, 0))
-    codec := (*cue.Runtime)(lin.UnwrapCUE().Context())
-}
-```
+With our native Go type populated, our program is now ready to act like any other Go program, and forget that Thema exists.
 
 * Verify that the Go `Ship` struct type is compatible with what's declared in schema `1.0`.
 
 ## Input Kernel
 
-Manually stitching together a Thema-based input processing flow can be done. Clearly - we've just done it. But all we've really made is a function calls scattered across tests. Ideally, there'd be an approach that miimally distracts us from the harder problem: composing Thema into larger systems. Start with an `io.Reader`, `[]byte` or similar of input data, end with our desired Go type, all in a minimal structure made from the answer to a few high-level questions: 
+Manually stitching together a Thema-based input processing flow can be done. Clearly - we've just done it. But all we've really made is function calls scattered across tests, rather than a nice, tight system. Ideally, there'd be an approach that miimally distracts us from the harder problem: composing Thema into larger systems. Start with an `io.Reader`, `[]byte` or similar of input data, end with our desired Go type, all in a minimal structure made from the answer to a few high-level questions: 
 
 * Which lineage are we using?
 * What data format are we expecting as input?
@@ -288,12 +273,33 @@ Manually stitching together a Thema-based input processing flow can be done. Cle
 
 Enter, [`InputKernel`](https://pkg.go.dev/github.com/grafana/thema/kernel#InputKernel).
 
-Thema's kernels encapsulate common patterns for getting data into and out of a running program. The `InputKernel` does so for the pattern we just worked out by hand.
+Thema's kernels encapsulate common patterns for getting data into and out of a running program. The `InputKernel` does this for the pattern we just wrote out manually. In our test environment, 
 
-, it's laborious, and  The above, manual approach gets the job done, but it's 
+```go
+package example
 
+type Ship struct {
+	Firstfield  string `json:"firstfield`
+	Secondfield int    `json:"secondfield`
+}
 
-We want to reduce a many-to-many relationship to many-to-one.
+func kernel() InputKernel {
+    lib := thema.NewLibrary(cuecontext.New())
+    lin, _ := ShipLineage(lib)
+
+    k, err := kernel.NewInputKernel(kernel.InputKernelConfig{
+		Loader:      kernel.NewJSONDecoder("shipinput.json"),
+		TypeFactory: func() interface{} { return &Ship{} },
+		Lineage:     lin,
+		To:          thema.SV(1, 0),
+	})
+}
+```
+
+### Use case: HTTP middleware
+
+Once we have an `InputKernel` for our 
+
 
 Throughout this and the preceding tutorial, we've kept the contents of our lineage in `ship.cue` the same. Thema's design makes that  whole design is that 
 
