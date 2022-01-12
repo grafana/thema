@@ -5,7 +5,6 @@ import (
 
 	"cuelang.org/go/cue"
 	"cuelang.org/go/cue/cuecontext"
-	"cuelang.org/go/cue/errors"
 	"github.com/grafana/thema"
 )
 
@@ -44,7 +43,7 @@ func TestExemplarValidity(t *testing.T) {
 			}
 			_, err = thema.BindLineage(lin, alllib, o...)
 			if err != nil {
-				t.Fatal(errors.Details(err, nil))
+				t.Fatal(err)
 			}
 		})
 	}
