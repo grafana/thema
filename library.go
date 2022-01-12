@@ -87,30 +87,6 @@ func (lib Library) linDef() cue.Value {
 	return dlin
 }
 
-// Pick returns the schema with the provided version number from the provided
-// lineage, if it exists.
-func Pick(lin Lineage, v SyntacticVersion) (Schema, error) {
-	lib := getLinLib(lin)
-	schval, err := cueArgs{
-		"v":   v,
-		"lin": lin.UnwrapCUE(),
-	}.call("#Pick", lib)
-	if err != nil {
-		return nil, err
-	}
-
-	switch tlin := lin.(type) {
-	case *UnaryLineage:
-		return &UnarySchema{
-			raw: schval,
-			lin: tlin,
-			v:   v,
-		}, nil
-	default:
-		panic("unreachable")
-	}
-}
-
 type cueArgs map[string]interface{}
 
 func (ca cueArgs) make(path string, lib Library) (cue.Value, error) {
