@@ -8,10 +8,10 @@ import (
 	cuejson "cuelang.org/go/pkg/encoding/json"
 )
 
-// ApplyDefaults returns a new, concrete copy of the Resource with all paths
+// applyDefaults returns a new, concrete copy of the Resource with all paths
 // that are 1) missing in the Resource AND 2) specified by the schema,
 // filled with default values specified by the schema.
-func ApplyDefaults(r Instance, scue cue.Value) (Instance, error) {
+func applyDefaults(r Instance, scue cue.Value) (Instance, error) {
 	rvUnified, err := applyDefaultHelper(r.raw, scue)
 	if err != nil {
 		return r, err
@@ -56,9 +56,8 @@ func applyDefaultHelper(input cue.Value, scue cue.Value) (cue.Value, error) {
 				return input, liInstance.Err()
 			}
 			return liInstance, nil
-		} else {
-			return input.Unify(scue), nil
 		}
+		return input.Unify(scue), nil
 	case cue.StructKind:
 		iter, err := scue.Fields(cue.Optional(true))
 		if err != nil {
@@ -100,10 +99,10 @@ func convertCUEValueToString(inputCUE cue.Value) (string, error) {
 	return string(result), nil
 }
 
-// TrimDefaults returns a new, concrete copy of the Resource where all paths
+// trimDefaults returns a new, concrete copy of the Resource where all paths
 // in the  where the values at those paths are the same as the default value
 // given in the schema.
-func TrimDefaults(r Instance, scue cue.Value) (Instance, error) {
+func trimDefaults(r Instance, scue cue.Value) (Instance, error) {
 	rv, _, err := removeDefaultHelper(scue, r.raw)
 	if err != nil {
 		return r, err
