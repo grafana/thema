@@ -1,4 +1,4 @@
-# Tutorial on writing a lineage
+# Tutorial: writing a lineage
 
 The most fundamental task in thema is writing a lineage. Writing a lineage is similar to other schema-writing systems: you're defining a specification for what data is supposed to look like, with two key differences:
 
