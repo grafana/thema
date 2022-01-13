@@ -12,7 +12,7 @@ Now, there are lots of kinds of programs that might use Thema. Here are a few:
 * Something that is a backend to a frontend/browser app, and both need a common language for specifying the data they exchange
 * Something that acts as a [Kubernetes Operator](https://www.redhat.com/en/topics/containers/what-is-a-kubernetes-operator), where defining evolvable schema ([CRDs](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/)) is table stakes
 
-Many of these cases have mature solutions. Some are unlikely to ever be reached by Thema, and some uses for Thema aren't represented. But all of these cases share at least one property: whatever the task at hand is, simultaneously juggling schema versions multiplies the task's complexity. Since we'll never get rid of the need to evolve and change our schemas, the best outcome is encapsulating that juggling to a corner of the program, thereby allowing the rest of the program to _pretend_ that only one version exists.
+Many of these cases have mature solutions. Some are unlikely to ever be reached by Thema, and some uses for Thema aren't represented. But all of these cases share at least one property: whatever the task at hand is, simultaneously juggling schema versions multiplies the task's complexity. We'll never get rid of the need to evolve and change our schemas, so the best outcome is encapsulating that juggling to a corner of the program, thereby allowing the rest of the program to _pretend_ that only one version exists.
 
 This tutorial will focus on a general approach to encapsulating the problem of receiving input data, validating it, translating it, and make it available for use as a Go struct. We refer to this cluster of behavior as an **Input Kernel**.
 
@@ -27,7 +27,7 @@ At the start of every story involving schemas, Thema included, there exist two t
 
 However that schema is expressed - JSON Schema, OpenAPI, native language types, etc. - and whatever format the data is in - CSV, JSON, YAML, Protobuf, Arrow Dataframes, native language objects, etc. - the first thing we want to know is, "is the data a valid instance of the schema?"
 
-With Thema, this question has a new dimension. Thema shifts the contract from "data must be an instance of **THIS** schema," to "data must an instance of **A** schema in the lineage." That suggests our validation process also may contain a search component. 
+With Thema, this question has a new dimension. Thema shifts the contract from "data must be an instance of **THIS** schema," to "data must an instance of **SOME** schema in the lineage." That suggests our validation process also may contain a search component.
 
 We're still working with the `Ship` lineage we created over the past couple tutorials. Let's use this JSON as our input:
 
@@ -81,7 +81,7 @@ Thema's Go library presents three types for its core operations:
 * [`Schema`](https://pkg.go.dev/github.com/grafana/thema#Schema): represents an individual schema from a lineage. Closed interface.
 * [`Instance`](https://pkg.go.dev/github.com/grafana/thema#Instance): represents data that's a valid instance of some schema from some lineage. Struct with hidden members.
 
-These directly represent three of the [core concepts](overview.md). All of these types are closed in order to ensure that a non-nil variable of the type is constructed in a manner that confers Thema's [guarantees](invariants.md).
+These directly represent three of the [core concepts](overview.md). All of these types are closed in order to ensure that a non-nil variable of the type is constructed in a manner that is ready for use, and confers Thema's [guarantees](invariants.md).
 
 These types are connected through methods that represent their well-defined relations. You can look up a particular `Schema` from a `Lineage` by version number, or go from a `Schema` to its `Lineage`. An `Instance` can return its `Schema`, but that's a one-way trip - `Schema` do not keep an internal index of validated `Instance`s. The graph of connected objects is always limited to those associated with a single lineage.
 
@@ -258,7 +258,7 @@ func TestSearchByValid(t *testing.T) {
 }
 ```
 
-With our native Go type populated, our program is now ready to act like any other Go program, and forget that Thema exists.
+With our native Go type populated, our program is now ready to forget that Thema exists and act like any other Go program.
 
 * Verify that the Go `Ship` struct type is compatible with what's declared in schema `1.0`.
 
@@ -372,7 +372,7 @@ func init() {
 }
 ```
 
-`JSONToShip()` composes the entire Thema stack together into a single input processing function. It's opinionated, and won't be appropriate for all use cases. But it's built from small, exported, composable parts, so adapting it to other use cases ought not be prohibitively difficult.
+`JSONToShip()` composes the entire Thema stack together into a single input processing function. To get there, we've made some opinionated choices that won't be appropriate for all use cases. But it's built from small, exported, composable parts, so adapting it to other use cases ought not be prohibitively difficult.
 
 ### Use case: parsing config
 
