@@ -112,12 +112,12 @@ func BindLineage(raw cue.Value, lib Library, opts ...BindOption) (Lineage, error
 		}
 		seqv++
 	}
-	verifyDirect(raw, cfg.skipbuggychecks)
+	verifyDirect(raw)
 
 	return lin, nil
 }
 
-func verifyDirect(raw cue.Value, skip bool) error {
+func verifyDirect(raw cue.Value) error {
 	seqslen, err := raw.LookupPath(cue.MakePath(cue.Str("seqs"))).Len().Int64()
 	if err != nil {
 		panic(err)
@@ -150,17 +150,16 @@ func verifyDirect(raw cue.Value, skip bool) error {
 
 			// The sequences and schema in the candidate lineage must follow
 			// backwards [in]compatibility rules.
-			if !skip {
-				bcompat := sch.Subsume(predecessor, cue.Raw(), cue.Schema())
-				fmt.Println(bcompat)
-				if (schv == 0 && bcompat == nil) || (schv != 0 && bcompat != nil) {
-					return &compatInvariantError{
-						rawlin:    raw,
-						violation: [2]SyntacticVersion{predsv, v},
-						detail:    bcompat,
-					}
+			bcompat := sch.Subsume(predecessor, cue.Raw(), cue.Schema())
+			fmt.Println(bcompat)
+			if (schv == 0 && bcompat == nil) || (schv != 0 && bcompat != nil) {
+				return &compatInvariantError{
+					rawlin:    raw,
+					violation: [2]SyntacticVersion{predsv, v},
+					detail:    bcompat,
 				}
 			}
+
 			predecessor = sch
 			predsv = v
 		}
