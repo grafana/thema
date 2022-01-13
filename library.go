@@ -67,9 +67,9 @@ func NewLibrary(ctx *cue.Context) Library {
 	}
 }
 
-// RawValue returns the underlying cue.Value representing the whole Thema CUE
+// UnwrapCUE returns the underlying cue.Value representing the whole Thema CUE
 // library (github.com/grafana/thema).
-func (lib Library) RawValue() cue.Value {
+func (lib Library) UnwrapCUE() cue.Value {
 	return lib.val
 }
 
@@ -85,30 +85,6 @@ func (lib Library) linDef() cue.Value {
 		panic(dlin.Err())
 	}
 	return dlin
-}
-
-// Pick returns the schema with the provided version number from the provided
-// lineage, if it exists.
-func Pick(lin Lineage, v SyntacticVersion) (Schema, error) {
-	lib := getLinLib(lin)
-	schval, err := cueArgs{
-		"v":   v,
-		"lin": lin.RawValue(),
-	}.call("#Pick", lib)
-	if err != nil {
-		return nil, err
-	}
-
-	switch tlin := lin.(type) {
-	case *UnaryLineage:
-		return &UnarySchema{
-			raw: schval,
-			lin: tlin,
-			v:   v,
-		}, nil
-	default:
-		panic("unreachable")
-	}
 }
 
 type cueArgs map[string]interface{}

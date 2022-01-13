@@ -1,65 +1,62 @@
 package exemplars
 
 import (
-	"path/filepath"
 	"testing"
 
 	"cuelang.org/go/cue"
 	"cuelang.org/go/cue/cuecontext"
-	"cuelang.org/go/cue/errors"
-	"cuelang.org/go/cue/load"
 	"github.com/grafana/thema"
-	"github.com/grafana/thema/internal/util"
 )
 
+var allctx = cuecontext.New()
+var dirinst cue.Value
+var alllib thema.Library
+
+var nameOpts = map[string][]thema.BindOption{
+	"defaultchange": {thema.SkipBuggyChecks()},
+	"narrowing":     {thema.SkipBuggyChecks()},
+	"rename":        {thema.SkipBuggyChecks()},
+	"expand":        {},
+	"single":        {},
+}
+
+func init() {
+	dirinst = buildAll(allctx)
+	alllib = thema.NewLibrary(allctx)
+}
+
 func TestExemplarValidity(t *testing.T) {
-	overlay, err := exemplarOverlay()
+	iter, err := dirinst.Fields(cue.Definitions(false))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	ctx := cuecontext.New()
-	cfg := &load.Config{
-		Overlay: overlay,
-		Module:  "github.com/grafana/thema",
-		Dir:     filepath.Join(util.Prefix, "exemplars"),
-	}
-
-	all := ctx.BuildInstance(load.Instances(nil, cfg)[0])
-
-	iter, err := all.Fields(cue.Definitions(false))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	lib := thema.NewLibrary(ctx)
 	for iter.Next() {
 		lin := iter.Value().LookupPath(cue.ParsePath("l"))
 		name, _ := lin.LookupPath(cue.ParsePath("name")).String()
-		t.Run(name, func(t *testing.T) {
+		t.Run("Bind"+name, func(t *testing.T) {
+			var o []thema.BindOption
 			switch name {
 			case "defaultchange", "narrowing", "rename":
 				// subsumption in cue v0.4.0 panics in all three of these cases
-				t.Skip()
+				o = append(o, thema.SkipBuggyChecks())
 			}
-			err = thema.ValidateCompatibilityInvariants(lin, lib)
+			_, err = thema.BindLineage(lin, alllib, o...)
 			if err != nil {
-				t.Fatal(errors.Details(err, nil))
+				t.Fatal(err)
 			}
 		})
 	}
 }
 
-func exemplarOverlay() (map[string]load.Source, error) {
-	overlay := make(map[string]load.Source)
-
-	if err := util.ToOverlay(util.Prefix, thema.CueJointFS, overlay); err != nil {
-		return nil, err
+func BenchmarkBindLineage(b *testing.B) {
+	for name, o := range nameOpts {
+		b.Run(name, func(b *testing.B) {
+			lib := thema.NewLibrary(cuecontext.New())
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				lineageForExemplar(name, lib, o...)
+			}
+		})
 	}
-
-	if err := util.ToOverlay(filepath.Join(util.Prefix, "exemplars"), CueFS, overlay); err != nil {
-		return nil, err
-	}
-
-	return overlay, nil
 }

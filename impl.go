@@ -17,6 +17,17 @@ func (e *ErrValueNotExist) Error() string {
 	return fmt.Sprintf("value from path %q does not exist, absent values cannot be lineages", e.path)
 }
 
+// ErrNoSchemaWithVersion indicates that an operation was requested against a
+// schema version that does not exist within a particular lineage.
+type ErrNoSchemaWithVersion struct {
+	lin Lineage
+	v   SyntacticVersion
+}
+
+func (e *ErrNoSchemaWithVersion) Error() string {
+	return fmt.Sprintf("lineage %q does not contain a schema with version %v", e.lin.Name(), e.v)
+}
+
 // BindLineage takes a raw cue.Value, checks that it is a valid lineage (that it
 // upholds the invariants which undergird Thema's translatability guarantees),
 // and returns the cue.Value wrapped in a Lineage, iff validity checks succeed.
@@ -51,31 +62,73 @@ func BindLineage(raw cue.Value, lib Library, opts ...BindOption) (Lineage, error
 		opt(cfg)
 	}
 
-	if !cfg.skipbuggychecks {
-		// The sequences and schema in the candidate lineage must follow
-		// backwards [in]compatibility rules.
-		if err := verifySeqCompatInvariants(raw, lib); err != nil {
-			return nil, err
-		}
-	}
-
 	lin := &UnaryLineage{
 		validated: true,
 		raw:       raw,
 		lib:       lib,
 	}
 
-	lin.first, _ = Pick(lin, synv())
-	allv, err := cueArgs{
-		"lin": raw,
-	}.call("_allv", lib)
-	if err != nil {
-		// This can't happen without a name change or something
-		panic(err)
+	// Populate the version list and enforce compat/subsumption invariants
+	seqiter, _ := raw.LookupPath(cue.MakePath(cue.Str("seqs"))).List()
+	var seqv uint
+	var predecessor cue.Value
+	var predsv SyntacticVersion
+	for seqiter.Next() {
+		var schv uint
+		schemas := seqiter.Value().LookupPath(cue.MakePath(cue.Str("schemas")))
+		schiter, _ := schemas.List()
+		for schiter.Next() {
+			v := synv(seqv, schv)
+			lin.allv = append(lin.allv, v)
+
+			sch := schiter.Value()
+			lin.allsch = append(lin.allsch, &UnarySchema{
+				raw: sch,
+				lin: lin,
+				v:   v,
+			})
+
+			if schv == 0 && seqv == 0 {
+				// Very first schema, no predecessor to compare against
+				continue
+			}
+
+			if !cfg.skipbuggychecks {
+				// The sequences and schema in the candidate lineage must follow
+				// backwards [in]compatibility rules.
+				bcompat := sch.Subsume(predecessor, cue.Raw(), cue.Schema())
+				// bcompat := sch.Unify(predecessor).Err()
+				if (schv == 0 && bcompat == nil) || (schv != 0 && bcompat != nil) {
+					fmt.Println(bcompat)
+					return nil, &compatInvariantError{
+						rawlin:    raw,
+						violation: [2]SyntacticVersion{predsv, {seqv, schv}},
+						detail:    bcompat,
+					}
+				}
+			}
+
+			predecessor = sch
+			predsv = SyntacticVersion{seqv, schv}
+			schv++
+		}
+		seqv++
 	}
-	_ = allv.Decode(&lin.allv)
 
 	return lin, nil
+}
+
+func isValidLineage(lin Lineage) {
+	switch tlin := lin.(type) {
+	case nil:
+		panic("nil lineage")
+	case *UnaryLineage:
+		if !tlin.validated {
+			panic("lineage not validated")
+		}
+	default:
+		panic("unreachable")
+	}
 }
 
 func getLinLib(lin Lineage) Library {
@@ -94,43 +147,8 @@ type compatInvariantError struct {
 }
 
 func (e *compatInvariantError) Error() string {
-	panic("TODO")
-}
-
-// Assumes that lin has already been verified to be subsumed by #Lineage
-func verifySeqCompatInvariants(lin cue.Value, lib Library) error {
-	seqiter, _ := lin.LookupPath(cue.MakePath(cue.Str("seqs"))).List()
-	var seqv uint
-	var predecessor cue.Value
-	var predsv SyntacticVersion
-	for seqiter.Next() {
-		var schv uint
-		schemas := seqiter.Value().LookupPath(cue.MakePath(cue.Str("schemas")))
-		schiter, _ := schemas.List()
-		for schiter.Next() {
-			if schv == 0 && seqv == 0 {
-				// Very first schema, no predecessor to compare against
-				continue
-			}
-
-			sch := schiter.Value()
-			bcompat := sch.Subsume(predecessor, cue.Raw(), cue.Schema())
-			if (schv == 0 && bcompat == nil) || (schv != 0 && bcompat != nil) {
-				return &compatInvariantError{
-					rawlin:    lin,
-					violation: [2]SyntacticVersion{predsv, {seqv, schv}},
-					detail:    bcompat,
-				}
-			}
-
-			predecessor = sch
-			predsv = SyntacticVersion{seqv, schv}
-			schv++
-		}
-		seqv++
-	}
-
-	return nil
+	// TODO better
+	return e.detail.Error()
 }
 
 // A UnaryLineage is a Go facade over a valid CUE lineage that does not compose
@@ -138,22 +156,17 @@ func verifySeqCompatInvariants(lin cue.Value, lib Library) error {
 type UnaryLineage struct {
 	validated bool
 	name      string
-	first     Schema
-	raw       cue.Value
-	lib       Library
-	allv      []SyntacticVersion
+	// schmap    sync.Map
+	raw    cue.Value
+	lib    Library
+	allv   []SyntacticVersion
+	allsch []*UnarySchema
 }
 
-// First returns the first schema in the lineage.
-func (lin *UnaryLineage) First() Schema {
-	if !lin.validated {
-		panic("lineage not validated")
-	}
-	return lin.first
-}
+// UnwrapCUE returns the cue.Value of the entire lineage.
+func (lin *UnaryLineage) UnwrapCUE() cue.Value {
+	isValidLineage(lin)
 
-// RawValue returns the cue.Value of the entire lineage.
-func (lin *UnaryLineage) RawValue() cue.Value {
 	if !lin.validated {
 		panic("lineage not validated")
 	}
@@ -163,38 +176,12 @@ func (lin *UnaryLineage) RawValue() cue.Value {
 // Name returns the name of the object schematized by the lineage, as declared in
 // the lineage's name field.
 func (lin *UnaryLineage) Name() string {
+	isValidLineage(lin)
+
 	if !lin.validated {
 		panic("lineage not validated")
 	}
 	return lin.name
-}
-
-// LatestVersion returns the version number of the newest (largest) schema
-// version in the lineage.
-func (lin *UnaryLineage) LatestVersion() SyntacticVersion {
-	if !lin.validated {
-		panic("lineage not validated")
-	}
-	return lin.allv[len(lin.allv)-1]
-}
-
-// LatestVersionInSequence returns the version number of the newest (largest) schema
-// version in the provided sequence number.
-//
-// An error indicates the number of the provided sequence does not exist.
-func (lin *UnaryLineage) LatestVersionInSequence(seqv uint) (SyntacticVersion, error) {
-	if !lin.validated {
-		panic("lineage not validated")
-	}
-	latest := lin.LatestVersion()
-	switch {
-	case latest[0] < seqv:
-		return synv(), fmt.Errorf("lineage does not contain a sequence with number %v", seqv)
-	case latest[0] == seqv:
-		return latest, nil
-	default:
-		return lin.allv[searchSynv(lin.allv, SyntacticVersion{seqv + 1, 0})], nil
-	}
 }
 
 // ValidateAny checks that the provided data is valid with respect to at
@@ -205,14 +192,13 @@ func (lin *UnaryLineage) LatestVersionInSequence(seqv uint) (SyntacticVersion, e
 // While this method takes a cue.Value, this is only to avoid having to trigger
 // the translation internally; input values must be concrete. To use
 // incomplete CUE values with Thema schemas, prefer working directly in CUE,
-// or if you must, rely on the RawValue().
+// or if you must, rely on UnwrapCUE().
 //
 // TODO should this instead be interface{} (ugh ugh wish Go had tagged unions) like FillPath?
 func (lin *UnaryLineage) ValidateAny(data cue.Value) *Instance {
-	if !lin.validated {
-		panic("lineage not validated")
-	}
-	for sch := lin.first; sch != nil; sch.Successor() {
+	isValidLineage(lin)
+
+	for sch := lin.schema(synv()); sch != nil; sch.Successor() {
 		if inst, err := sch.Validate(data); err == nil {
 			return inst
 		}
@@ -220,10 +206,56 @@ func (lin *UnaryLineage) ValidateAny(data cue.Value) *Instance {
 	return nil
 }
 
+// Schema returns the schema identified by the provided version, if one exists.
+//
+// Only the [0, 0] schema is guaranteed to exist in all valid lineages.
+func (lin *UnaryLineage) Schema(v SyntacticVersion) (Schema, error) {
+	isValidLineage(lin)
+
+	if !synvExists(lin.allv, v) {
+		return nil, &ErrNoSchemaWithVersion{
+			lin: lin,
+			v:   v,
+		}
+	}
+
+	return lin.schema(v), nil
+}
+
+func (lin *UnaryLineage) schema(v SyntacticVersion) *UnarySchema {
+	return lin.allsch[searchSynv(lin.allv, v)]
+}
+
+// lazy approach, uses sync.Map
+// func (lin *UnaryLineage) schemam(v SyntacticVersion) *UnarySchema {
+// 	isch, ok := lin.schmap.Load(v)
+// 	if !ok {
+// 		schval, err := cueArgs{
+// 			"v":   v,
+// 			"lin": lin.UnwrapCUE(),
+// 		}.call("#Pick", lin.lib)
+// 		if err != nil {
+// 			panic(err)
+// 		}
+// 		sch := &UnarySchema{
+// 			raw: schval,
+// 			lin: lin,
+// 			v:   v,
+// 		}
+// 		isch, _ = lin.schmap.LoadOrStore(v, sch)
+// 	}
+// 	return isch.(*UnarySchema)
+// }
+
 func (lin *UnaryLineage) _lineage() {}
 
 func searchSynv(a []SyntacticVersion, x SyntacticVersion) int {
 	return sort.Search(len(a), func(i int) bool { return !a[i].less(x) })
+}
+
+func synvExists(a []SyntacticVersion, x SyntacticVersion) bool {
+	i := searchSynv(a, x)
+	return i < len(a) && a[i] == x
 }
 
 // A UnarySchema is a Go facade over a Thema schema that does not compose any
@@ -242,12 +274,17 @@ type UnarySchema struct {
 // While Validate takes a cue.Value, this is only to avoid having to trigger
 // the translation internally; input values must be concrete. To use
 // incomplete CUE values with Thema schemas, prefer working directly in CUE,
-// or if you must, rely on the RawValue().
+// or if you must, rely on UnwrapCUE().
 //
 // TODO should this instead be interface{} (ugh ugh wish Go had discriminated unions) like FillPath?
 func (sch *UnarySchema) Validate(data cue.Value) (*Instance, error) {
-	err := sch.raw.Subsume(data, cue.Concrete(true))
-	if err != nil {
+	// TODO which approach is actually the right one, unify or subsume? ugh
+	// err := sch.raw.Subsume(data, cue.Concrete(true))
+	x := sch.raw.Unify(data)
+	if err := x.Err(); err != nil {
+		return nil, err
+	}
+	if err := x.Validate(cue.Concrete(true)); err != nil {
 		return nil, err
 	}
 
@@ -265,8 +302,7 @@ func (sch *UnarySchema) Successor() Schema {
 	}
 
 	succv := sch.lin.allv[searchSynv(sch.lin.allv, sch.v)+1]
-	succ, _ := Pick(sch.lin, succv)
-	return succ
+	return sch.lin.schema(succv)
 }
 
 // Predecessor returns the previous schema in the lineage, or nil if it is the first schema.
@@ -276,8 +312,7 @@ func (sch *UnarySchema) Predecessor() Schema {
 	}
 
 	predv := sch.lin.allv[searchSynv(sch.lin.allv, sch.v)-1]
-	pred, _ := Pick(sch.lin, predv)
-	return pred
+	return sch.lin.schema(predv)
 }
 
 // LatestVersionInSequence returns the version number of the newest (largest) schema
@@ -286,12 +321,12 @@ func (sch *UnarySchema) Predecessor() Schema {
 // An error indicates the number of the provided sequence does not exist.
 func (sch *UnarySchema) LatestVersionInSequence() SyntacticVersion {
 	// Lineage invariants preclude an error
-	sv, _ := sch.lin.LatestVersionInSequence(sch.v[0])
+	sv, _ := LatestVersionInSequence(sch.lin, sch.v[0])
 	return sv
 }
 
-// RawValue returns the cue.Value that represents the underlying CUE schema.
-func (sch *UnarySchema) RawValue() cue.Value {
+// UnwrapCUE returns the cue.Value that represents the underlying CUE schema.
+func (sch *UnarySchema) UnwrapCUE() cue.Value {
 	return sch.raw
 }
 

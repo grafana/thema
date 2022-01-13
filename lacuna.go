@@ -31,15 +31,15 @@ func (fl flatLacunae) AsList() []Lacuna {
 type Lacuna struct {
 	// The field path(s) and their value(s) in the pre-translation instance
 	// that are relevant to the lacuna.
-	SourceFields []FieldRef
+	SourceFields []FieldRef `json:"sourceFields,omitempty"`
 
 	// The field path(s) and their value(s) in the post-translation instance
 	// that are relevant to the lacuna.
-	TargetFields []FieldRef
-	Type         LacunaType
+	TargetFields []FieldRef `json:"targetFields,omitempty"`
+	Type         LacunaType `json:"type"`
 
 	// A human-readable message describing the gap in translation.
-	Message string
+	Message string `json:"message"`
 }
 
 // LacunaType assigns numeric identifiers to different classes of Lacunae.
@@ -49,6 +49,6 @@ type LacunaType uint16
 
 // FieldRef identifies a path/field and the value in it within a Lacuna.
 type FieldRef struct {
-	Path  string
-	Value interface{}
+	Path  string      `json:"path"`
+	Value interface{} `json:"value"`
 }
