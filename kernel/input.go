@@ -34,7 +34,7 @@ type InputKernelConfig struct {
 	// To is the schema version on which all operations will converge.
 	To thema.SyntacticVersion
 
-	// TODO add something for interrupting/mediating translation vis-a-vis accumulated lacunae
+	// TODO add something for interrupting/mediating translation vis-a-vis accumulated lacunas
 }
 
 // An InputKernel accepts all the valid inputs for a given lineage, converges
@@ -48,7 +48,7 @@ type InputKernel struct {
 	load    DataLoader
 	lin     thema.Lineage
 	to      thema.SyntacticVersion
-	// TODO add something for interrupting/mediating translation vis-a-vis accumulated lacunae
+	// TODO add something for interrupting/mediating translation vis-a-vis accumulated lacunas
 }
 
 // NewInputKernel constructs an input kernel.
@@ -104,7 +104,7 @@ func NewInputKernel(cfg InputKernelConfig) (InputKernel, error) {
 }
 
 // Converge runs input data through the full kernel process: validate, translate to a
-// fixed version, return transformed instance along with any emitted lacunae.
+// fixed version, return transformed instance along with any emitted lacunas.
 //
 // Valid formats for the input data are determined by the DataLoader func with which
 // the kernel was constructed. Invalid data will result in an error.
@@ -115,7 +115,7 @@ func NewInputKernel(cfg InputKernelConfig) (InputKernel, error) {
 // which the kernel was constructed.
 //
 // It is safe to call Converge from multiple goroutines.
-func (k InputKernel) Converge(data []byte) (interface{}, thema.TranslationLacunae, error) {
+func (k InputKernel) Converge(data []byte) (interface{}, thema.TranslationLacunas, error) {
 	if !k.init {
 		panic("kernel not initialized")
 	}

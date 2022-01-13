@@ -54,14 +54,14 @@ import (
             to: descendant
             from: ancestor
             rel: descendant
-            lacunae: [...#Lacuna]
+            lacunas: [...#Lacuna]
             translated: to & rel
         }
         reverse: {
             to: ancestor
             from: descendant
             rel: ancestor
-            lacunae: [...#Lacuna]
+            lacunas: [...#Lacuna]
             translated: to & rel
         }
     }

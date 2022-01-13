@@ -58,13 +58,13 @@ This pattern begins with a three-step process, typically executed at the program
 
 1. Receive some input data and `ValidateAny()` to confirm it is an instance, and of what schema version
 2. `Translate()` the instance to the schema version the program is currently designed to work with
-3. Decide what to do with any lacunae emitted from translation - for example: ignore, log, error out, mutate the translated instance
+3. Decide what to do with any lacunas emitted from translation - for example: ignore, log, error out, mutate the translated instance
 
 This animation illustrates a program performing these first two steps across varying numbers of the schemas from the example above:
 
 ![Validate and Translate](validate-and-translate.gif) TODO fixup the graffle, make the gif
 
-Once this process is complete, the program can continue (or terminate based on observed lacunae) to perform useful behavior based on the input, now known to be both a) valid and b) represented in the form of the schema version against which the program has been written. Versioning and translation has been encapsulated at the program boundary, and the rest of the program can safely pretend that only the one version of the schema exists.
+Once this process is complete, the program can continue (or terminate based on observed lacunas) to perform useful behavior based on the input, now known to be both a) valid and b) represented in the form of the schema version against which the program has been written. Versioning and translation has been encapsulated at the program boundary, and the rest of the program can safely pretend that only the one version of the schema exists.
 
 Deeper exploration and concrete examples are available in the [tutorial on using Thema from Go](go-usage.md).
 
@@ -81,4 +81,4 @@ Thema's guarantee arises from the combination of smaller, machine-checkable cons
 Thema will be considered a mature, stable project when all the intended invariants are machine-checked. Even when this milestone is reached, however, certain caveats will remain:
 
 * Programs need to have the most updated version of the lineage, in case they receive inputs that are valid, but against a schema they are not yet aware of. This implies a publishing and distribution model for lineages is necessary, as well as an append-only immutability requirement. See [Publishing (TODO)](publishing.md).
-* Even with lenses and lacunae, some data semantics will result in practical limits on surpriseless translation of message intent. As the Project Cambria folks [note](https://www.inkandswitch.com/cambria/#findings), a practical breaking point will eventually be reached. Thema is not a magical silver bullet.
+* Even with lenses and lacunas, some data semantics will result in practical limits on surpriseless translation of message intent. As the Project Cambria folks [note](https://www.inkandswitch.com/cambria/#findings), a practical breaking point will eventually be reached. Thema is not a magical silver bullet.

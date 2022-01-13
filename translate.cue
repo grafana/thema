@@ -8,7 +8,7 @@ import "list"
 // continuing until the target schema version is reached.
 //
 // The out values are the instance in final translated form, the schema versions
-// at which the translation started and ended, and any lacunae emitted during
+// at which the translation started and ended, and any lacunas emitted during
 // translation.
 //
 // TODO functionize
@@ -20,9 +20,9 @@ import "list"
     // Shape of output
     out: {
         linst: #LinkedInstance
-        lacunae: [...{
+        lacunas: [...{
             v: #SyntacticVersion
-            lacunae: [...#Lacuna]
+            lacunas: [...#Lacuna]
         }]
     }
 
@@ -37,12 +37,12 @@ import "list"
         _#step: {
             inst: inlinst.lin.joinSchema
             v: #SyntacticVersion
-            lacunae: [...#Lacuna]
+            lacunas: [...#Lacuna]
         }
 
         // The accumulator holds the results of each translation step.
         accum: list.Repeat([_#step], len(schemarange)+1)
-        accum: [{ inst: inlinst.inst, v: VF, lacunae: [] }, for i, vsch in schemarange {
+        accum: [{ inst: inlinst.inst, v: VF, lacunas: [] }, for i, vsch in schemarange {
             let lasti = accum[i]
             v: vsch.v
 
@@ -56,7 +56,7 @@ import "list"
                 // with incomplete CUE structures
                 // inst: lasti.inst & (#Pick & { lin: inlin, v: vsch.v }).out
                 inst: lasti.inst & inlin.seqs[vsch.v[0]].schemas[vsch.v[1]]
-                lacunae: []
+                lacunas: []
             }
             if vsch.v[0] > lasti.v[0] {
                 // Crossing sequences. Translate via the explicit lens.
@@ -65,7 +65,7 @@ import "list"
                 // last translation
                 let _lens = { from: lasti.inst } & inlin.seqs[vsch.v[0]].lens.forward
                 inst: _lens.translated
-                lacunae: _lens.lacunae
+                lacunas: _lens.lacunas
             }
         }]
 
@@ -75,7 +75,7 @@ import "list"
                 v: accum[len(accum)-1].v
                 lin: inlin
             }
-            lacunae: [for step in accum if len(step.lacunae) > 0 { v: step.v, lacunae: step.lacunae }]
+            lacunas: [for step in accum if len(step.lacunas) > 0 { v: step.v, lacunas: step.lacunas }]
         }
     }
 

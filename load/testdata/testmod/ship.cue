@@ -27,7 +27,7 @@ lin: seqs: [
                 firstfield: from.firstfield
                 secondfield: -1
             }
-            lacunae: [
+            lacunas: [
                 thema.#Lacuna & {
                     targetFields: [{
                         path: "secondfield"

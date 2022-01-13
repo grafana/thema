@@ -30,7 +30,7 @@ rename: {
                         after: from.before
                         unchanged: from.unchanged
                     }
-                    lacunae: []
+                    lacunas: []
                 }
                 lens: reverse: {
                     to: seqs[0].schemas[0]
@@ -40,7 +40,7 @@ rename: {
                         before: from.after
                         unchanged: from.unchanged
                     }
-                    lacunae: []
+                    lacunas: []
                 }
             }
         ]

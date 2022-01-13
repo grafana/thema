@@ -1,14 +1,14 @@
 package thema
 
-// TranslationLacunae defines common patterns for unary and composite lineages
-// in the lacunae their translations emit.
-type TranslationLacunae interface {
+// TranslationLacunas defines common patterns for unary and composite lineages
+// in the lacunas their translations emit.
+type TranslationLacunas interface {
 	AsList() []Lacuna
 }
 
-type flatLacunae []Lacuna
+type flatLacunas []Lacuna
 
-func (fl flatLacunae) AsList() []Lacuna {
+func (fl flatLacunas) AsList() []Lacuna {
 	return fl
 }
 
@@ -23,7 +23,7 @@ func (fl flatLacunae) AsList() []Lacuna {
 // A lacuna may be unconditional (the gap exists for all possible instances
 // being translated between the schema pair) or conditional (the gap only exists
 // when certain values appear in the instance being translated between schema).
-// However, the conditionality of lacunae is expected to be expressed at the
+// However, the conditionality of lacunas is expected to be expressed at the
 // level of the lens, and determines whether a particular lacuna object is
 // created; the production of a lacuna object as the output of the translation
 // of a particular instance indicates the lacuna applies to that specific
@@ -42,7 +42,7 @@ type Lacuna struct {
 	Message string `json:"message"`
 }
 
-// LacunaType assigns numeric identifiers to different classes of Lacunae.
+// LacunaType assigns numeric identifiers to different classes of Lacunas.
 //
 // FIXME this is a terrible way of doing this and needs to change
 type LacunaType uint16

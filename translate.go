@@ -21,7 +21,7 @@ type Instance struct {
 // schema.
 //
 // TODO figure out how to represent unary vs. composite lineages here
-func (i *Instance) AsSuccessor() (*Instance, TranslationLacunae) {
+func (i *Instance) AsSuccessor() (*Instance, TranslationLacunas) {
 	return i.Translate(i.sch.Successor().Version())
 }
 
@@ -29,7 +29,7 @@ func (i *Instance) AsSuccessor() (*Instance, TranslationLacunae) {
 // schema.
 //
 // TODO figure out how to represent unary vs. composite lineages here
-func (i *Instance) AsPredecessor() (*Instance, TranslationLacunae) {
+func (i *Instance) AsPredecessor() (*Instance, TranslationLacunas) {
 	panic("TODO translation from newer to older schema is not yet implemented")
 }
 
@@ -49,18 +49,18 @@ func (i *Instance) lib() Library {
 
 // Translate transforms the Instance so that it's an instance of another schema
 // in the lineage. A new *Instance is returned representing the transformed
-// value, along with any lacunae accumulated along the way.
+// value, along with any lacunas accumulated along the way.
 //
 // Forward translation within a sequence (e.g. [0, 0] to [0, 7]) is trivial, as
 // all those schema changes are established as backwards compatible by Thema's
 // lineage invariants. In such cases, the lens is referred to as implicit, as
 // the lineage author does not write it, with translation relying on simple
-// unification. Lacunae cannot be emitted from such translations.
+// unification. Lacunas cannot be emitted from such translations.
 //
 // Forward translation across sequences (e.g. [0, 0] to [1, 0]), and all reverse
 // translation regardless of sequence boundaries (e.g. [1, 2] to either [1, 0]
 // or [0, 0]), is nontrivial and relies on explicitly defined lenses, which
-// introduce room for lacunae, author judgment, and bugs.
+// introduce room for lacunas, author judgment, and bugs.
 //
 // Translations are non-invertible over instances in the general case. That is,
 // Thema does not guarantee that translating from [0, 0] to [1, 0] and back to
@@ -70,7 +70,7 @@ func (i *Instance) lib() Library {
 //
 // TODO define this in terms of Instance.AsSuccessor/AsPredecessor, rather than
 // those in terms of this.
-func (i *Instance) Translate(to SyntacticVersion) (*Instance, TranslationLacunae) {
+func (i *Instance) Translate(to SyntacticVersion) (*Instance, TranslationLacunas) {
 	if to.less(i.Schema().Version()) {
 		panic("TODO translation from newer to older schema is not yet implemented")
 	}
@@ -88,8 +88,8 @@ func (i *Instance) Translate(to SyntacticVersion) (*Instance, TranslationLacunae
 		panic(err)
 	}
 
-	lac := make(multiTranslationLacunae, 0)
-	out.LookupPath(cue.MakePath(cue.Str("lacunae"))).Decode(&lac)
+	lac := make(multiTranslationLacunas, 0)
+	out.LookupPath(cue.MakePath(cue.Str("lacunas"))).Decode(&lac)
 
 	return &Instance{
 		raw:  out.LookupPath(cue.MakePath(cue.Str("linst"), cue.Str("inst"))),
@@ -98,12 +98,12 @@ func (i *Instance) Translate(to SyntacticVersion) (*Instance, TranslationLacunae
 	}, lac
 }
 
-type multiTranslationLacunae []struct {
+type multiTranslationLacunas []struct {
 	V   SyntacticVersion `json:"v"`
-	Lac []Lacuna         `json:"lacunae"`
+	Lac []Lacuna         `json:"lacunas"`
 }
 
-func (lac multiTranslationLacunae) AsList() []Lacuna {
+func (lac multiTranslationLacunas) AsList() []Lacuna {
 	// FIXME This loses info, naturally - need to rework the lacuna types
 	var l []Lacuna
 	for _, v := range lac {
