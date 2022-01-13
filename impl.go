@@ -112,8 +112,60 @@ func BindLineage(raw cue.Value, lib Library, opts ...BindOption) (Lineage, error
 		}
 		seqv++
 	}
+	verifyDirect(raw, cfg.skipbuggychecks)
 
 	return lin, nil
+}
+
+func verifyDirect(raw cue.Value, skip bool) error {
+	seqslen, err := raw.LookupPath(cue.MakePath(cue.Str("seqs"))).Len().Int64()
+	if err != nil {
+		panic(err)
+	}
+	var predecessor cue.Value
+	var predsv SyntacticVersion
+	for seqv := 0; seqv < int(seqslen); seqv++ {
+		schp := cue.MakePath(cue.Str("seqs"), cue.Index(seqv), cue.Str("schemas"))
+		schemas := raw.LookupPath(schp)
+		schslen, err := schemas.Len().Int64()
+		if err != nil {
+			panic(err)
+		}
+		// fmt.Printf("caps: [%v, %v]\n", seqslen, schslen)
+		for schv := 0; schv < int(schslen); schv++ {
+			v := synv(uint(seqv), uint(schv))
+			// fmt.Println(v)
+
+			// path := fmt.Sprintf("seqs[%v].schemas[%v]")
+			// sch := raw.LookupPath(cue.MakePath(cue.Index(int(schv))))
+			path := cue.MakePath(append(schp.Selectors(), cue.Index(int(schv)))...)
+			// fmt.Println(path)
+			sch := raw.LookupPath(path)
+			// fmt.Println(sch)
+
+			if schv == 0 && seqv == 0 {
+				// Very first schema, no predecessor to compare against
+				continue
+			}
+
+			// The sequences and schema in the candidate lineage must follow
+			// backwards [in]compatibility rules.
+			if !skip {
+				bcompat := sch.Subsume(predecessor, cue.Raw(), cue.Schema())
+				fmt.Println(bcompat)
+				if (schv == 0 && bcompat == nil) || (schv != 0 && bcompat != nil) {
+					return &compatInvariantError{
+						rawlin:    raw,
+						violation: [2]SyntacticVersion{predsv, v},
+						detail:    bcompat,
+					}
+				}
+			}
+			predecessor = sch
+			predsv = v
+		}
+	}
+	return nil
 }
 
 func isValidLineage(lin Lineage) {
