@@ -1,35 +1,27 @@
 package thema
 
 import (
+	"fmt"
+
 	"cuelang.org/go/cue"
 )
+
+// A CUEWrapper wraps a cue.Value, and can return that value for inspection.
+type CUEWrapper interface {
+	// UnwrapCUE returns the underlying cue.Value wrapped by the object.
+	UnwrapCUE() cue.Value
+}
 
 // A Lineage is the top-level container in thema, holding the complete
 // evolutionary history of a particular kind of object: every schema that has
 // ever existed for that object, and the lenses that allow translating between
 // those schema versions.
 type Lineage interface {
-	// First returns the first schema in the lineage.
-	First() Schema
-
-	// Schema(SyntacticVersion) Schema
-
-	// RawValue returns the cue.Value of the entire lineage.
-	RawValue() cue.Value
+	CUEWrapper
 
 	// Name returns the name of the object schematized by the lineage, as declared
 	// in the lineage's `name` field.
 	Name() string
-
-	// LatestVersion returns the version number of the newest (largest) schema
-	// version in the lineage.
-	LatestVersion() SyntacticVersion
-
-	// LatestVersionInSequence returns the version number of the newest (largest) schema
-	// version in the provided sequence number.
-	//
-	// An error indicates the number of the provided sequence does not exist.
-	LatestVersionInSequence(seqv uint) (SyntacticVersion, error)
 
 	// ValidateAny checks that the provided data is valid with respect to at
 	// least one of the schemas in the lineage. The oldest (smallest) schema against
@@ -39,14 +31,55 @@ type Lineage interface {
 	// While this method takes a cue.Value, this is only to avoid having to trigger
 	// the translation internally; input values must be concrete. To use
 	// incomplete CUE values with Thema schemas, prefer working directly in CUE,
-	// or if you must, rely on the RawValue().
+	// or if you must, rely on UnwrapCUE().
 	//
 	// TODO should this instead be interface{} (ugh ugh wish Go had tagged unions) like FillPath?
 	ValidateAny(data cue.Value) *Instance
 
+	// Schema returns the schema identified by the provided version, if one exists.
+	//
+	// Only the [0, 0] schema is guaranteed to exist in all valid lineages.
+	Schema(v SyntacticVersion) (Schema, error)
+
 	// Lineage must be a private interface in order to restrict their creation
 	// through BindLineage().
 	_lineage()
+}
+
+// LatestVersion returns the version number of the newest (largest) schema
+// version in the provided lineage.
+func LatestVersion(lin Lineage) SyntacticVersion {
+	isValidLineage(lin)
+
+	switch tlin := lin.(type) {
+	case *UnaryLineage:
+		return tlin.allv[len(tlin.allv)-1]
+	default:
+		panic("unreachable")
+	}
+}
+
+// LatestVersionInSequence returns the version number of the newest (largest) schema
+// version in the provided sequence number.
+//
+// An error indicates the number of the provided sequence does not exist.
+func LatestVersionInSequence(lin Lineage, seqv uint) (SyntacticVersion, error) {
+	isValidLineage(lin)
+
+	switch tlin := lin.(type) {
+	case *UnaryLineage:
+		latest := tlin.allv[len(tlin.allv)-1]
+		switch {
+		case latest[0] < seqv:
+			return synv(), fmt.Errorf("lineage does not contain a sequence with number %v", seqv)
+		case latest[0] == seqv:
+			return latest, nil
+		default:
+			return tlin.allv[searchSynv(tlin.allv, SyntacticVersion{seqv + 1, 0})], nil
+		}
+	default:
+		panic("unreachable")
+	}
 }
 
 // A LineageFactory returns a Lineage, which is immutably bound to a single
@@ -105,6 +138,8 @@ func SkipBuggyChecks() BindOption {
 // Schema represents a single, complete schema from a thema lineage. A Schema's
 // Validate() method determines whether some data constitutes an Instance.
 type Schema interface {
+	CUEWrapper
+
 	// Validate checks that the provided data is valid with respect to the
 	// schema. If valid, the data is wrapped in an Instance and returned.
 	// Otherwise, a nil Instance is returned along with an error detailing the
@@ -113,7 +148,7 @@ type Schema interface {
 	// While Validate takes a cue.Value, this is only to avoid having to trigger
 	// the translation internally; input values must be concrete. To use
 	// incomplete CUE values with Thema schemas, prefer working directly in CUE,
-	// or if you must, rely on the RawValue().
+	// or if you must, rely on the UnwrapCUE().
 	//
 	// TODO should this instead be interface{} (ugh ugh wish Go had tagged unions) like FillPath?
 	Validate(data cue.Value) (*Instance, error)
@@ -127,9 +162,6 @@ type Schema interface {
 	// LatestVersionInSequence returns the version number of the newest (largest) schema
 	// in this schema's sequence.
 	LatestVersionInSequence() SyntacticVersion
-
-	// RawValue returns the cue.Value that represents the underlying CUE schema.
-	RawValue() cue.Value
 
 	// Version returns the schema's version number.
 	Version() SyntacticVersion
@@ -155,52 +187,11 @@ type SyntacticVersion [2]uint
 //
 // A trivial helper to avoid repetitive Go-stress disorder from typing
 //
-//   SyntacticVersion([2]uint{0, 0})
+//   SyntacticVersion{0, 0}
 func SV(seqv, schv uint) SyntacticVersion {
 	return SyntacticVersion([2]uint{seqv, schv})
 }
 
 func (sv SyntacticVersion) less(osv SyntacticVersion) bool {
 	return sv[0] < osv[0] || sv[1] < osv[1]
-}
-
-// An Instance represents some data that has been validated against a
-// lineage's schema. It includes a reference to the schema.
-type Instance struct {
-	// The CUE representation of the input data
-	raw cue.Value
-	// A name for the input data, primarily for use in error messages
-	name string
-	// The schema the data validated against/of which the input data is a valid instance
-	sch Schema
-}
-
-// AsSuccessor translates the instance into the form specified by the successor
-// schema.
-//
-// TODO figure out how to represent unary vs. composite lineages here
-func (i *Instance) AsSuccessor() (*Instance, TranslationLacunae) {
-	return Translate(i, i.sch.Successor().Version())
-}
-
-// AsPredecessor translates the instance into the form specified by the predecessor
-// schema.
-//
-// TODO figure out how to represent unary vs. composite lineages here
-func (i *Instance) AsPredecessor() (*Instance, TranslationLacunae) {
-	panic("TODO translation from newer to older schema is not yet implemented")
-}
-
-// RawValue returns the cue.Value that represents the instance's underlying data.
-func (i *Instance) RawValue() cue.Value {
-	return i.raw
-}
-
-// Schema returns the schema which subsumes/validated this instance.
-func (i *Instance) Schema() Schema {
-	return i.sch
-}
-
-func (i *Instance) lib() Library {
-	return getLinLib(i.Schema().Lineage())
 }

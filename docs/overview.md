@@ -2,13 +2,13 @@
 
 Thema is a system for expressing schema for a particular kind of object and safely evolving that schema definition over time, including across what would otherwise be breaking changes. Thema consists of:
 
-* **Components:** named, related logical structures that form the foundation of the system. A rough analogy for components would be classes or nouns.
-* **Operations:** things that can be done, given valid components. A rough analogy for operations would be functions or verbs.
-* **Guarantees:** essential system properties that arise from invariants ensured by constraints determining the validity of particular Thema instances. A rough analogy for guarantees would be type checking or rules of syntax.
+* **Components:** schemas themselves, and related logical structures around those schemas. Components are the "nouns" of the system, roughly analogous to classes or types.
+* **Operations:** things that can be done with valid components. These are the "verbs" of the system, roughly analogous to functions or methods.
+* **Guarantees:** whole-system properties that arise from machine-checked constraints on what it means to be a valid component. These are the universal rules of Thema, roughly analogous to type checking or rules of syntax.
 
-Thema's components are expressed in CUE. Thema schemas must also be authored in CUE. Operations are how you build useful programs based on Thema. They may be performed directly in CUE, or from any language with a [CUE spec](https://cuelang.org/docs/references/spec)-compliant evaluator, which is necessary for writing language bindings - currently only Go.
+Thema schemas (and the other components) are written in CUE, much like implementing an interface. Operations are how you build useful programs based on Thema. They may be performed directly in CUE, or from any language with a [CUE spec](https://cuelang.org/docs/references/spec)-compliant evaluator, which is necessary for writing language bindings - currently only Go.
 
-Invariants are ideally expressed and checked as pure CUE constraints, resulting in uniform guarantees across the consuming language. That's a [WIP](https://github.com/grafana/thema/issues/6), and for now some must be checked in the consuming language (so, Go).
+Invariants are ideally expressed and checked as pure CUE constraints, resulting in uniform guarantees across the consuming language. That's a [WIP](invariants.md), and for now some must be checked in the consuming language (so, Go).
 
 Components and operations are exposed as exported structs definitions in CUE (no standard docs system yet) and as a [library in Go](https://pkg.go.dev/github.com/grafana/thema).
 
@@ -33,19 +33,30 @@ The remaining two concepts - instance and lacuna - are most easily understood in
 
 ## About Thema Operations
 
-Thema operations allow programs to combine data with a lineage and its schema. Because lineages are collections of schema, programs must first decide which schema to use. Two operations assist with selecting an individual schema out of the lineage:
+Thema operations allow programs to combine data with a lineage and its schema. Because lineages are collections of schema, programs must first decide which schema to use. Two key operations assist with selecting an individual schema out of the lineage:
 
-* **`Pick()`:** get a particular schema from a lineage by version number.
-* **`SearchAndValidate()`:** given some data, search the lineage for a schema of which the data is a valid instance.
+* **`Schema()`:** given a version number, get a particular schema from a lineage.
+* **`ValidateAny()`:** given some data, search the lineage for a schema that the data validates against.
 
-Individual schema, once chosen, offer two more operations:
+In the Go library, these are the methods on the `Lineage` [interface](https://pkg.go.dev/github.com/grafana/thema#Lineage).
 
-* **`Validate()`:** given a schema from a lineage, check whether some data is a valid instance of that schema.
+Individual schema, once chosen, have one key operation:
+
+* **`Validate()`:** given a schema from a lineage, check whether some data is valid instance of that schema
+
+In Thema's Go library, successful validation of some data returns an [`Instance`](https://pkg.go.dev/github.com/grafana/thema#Instance), which presents the final key operation:
+
 * **`Translate()`:** given an instance of a schema in a lineage, transform it to an instance of some other schema in the same lineage, and emit any lacuna arising from the transformation.
 
-Most programs using Thema will begin with a three-step process, typically executed at the program boundary when input is first received:
+### Usage Patterns
 
-1. Receive some input data, `SearchAndValidate()` to confirm it is an instance, and of what schema version
+There are some common usage patterns for integrating Thema into programs. Where possible, we codify these patterns into language library helpers, called "kernels".
+
+The most common pattern (codified as [`InputKernel`](https://pkg.go.dev/github.com/grafana/thema/kernel#InputKernel) in Go) is to accept input data from any schema, then converge onto a single version. This allows your program to accept all schema versions for your object, but to be written against only one form.
+
+This pattern begins with a three-step process, typically executed at the program boundary when input is first received:
+
+1. Receive some input data and `ValidateAny()` to confirm it is an instance, and of what schema version
 2. `Translate()` the instance to the schema version the program is currently designed to work with
 3. Decide what to do with any lacunae emitted from translation - for example: ignore, log, error out, mutate the translated instance
 
@@ -55,20 +66,11 @@ This animation illustrates a program performing these first two steps across var
 
 Once this process is complete, the program can continue (or terminate based on observed lacunae) to perform useful behavior based on the input, now known to be both a) valid and b) represented in the form of the schema version against which the program has been written. Versioning and translation has been encapsulated at the program boundary, and the rest of the program can safely pretend that only the one version of the schema exists.
 
-These operations are exposed directly in CUE, and should be present in any consuming language library. Deeper exploration and concrete examples are available in the [guide to usage from Go (TODO)](go-usage.md).
-
-### Defaults and Encoding
-
-Two other basic operations are also available, although they are focused on encoding CUE in other representations (for example, JSON). These two operations are less foundational, and exposed only in a Thema-consuming language library:
-
-* **Dehydrate():** shrink an instance by removing all fields containing values redundant with/equal to schema-specified [defaults](https://cuelang.org/docs/tutorials/tour/types/defaults/).
-* **Hydrate():** fill an instance's absent fields with their schema-defined defaults. 
-
-Defaults are both subtle and complex. To learn more, review [in a separate (TODO) doc](defaults.md).
+Deeper exploration and concrete examples are available in the [tutorial on using Thema from Go](go-usage.md).
 
 ## About Guarantees
 
-Thema makes is a better choice than other schema systems because of the guarantee it provides to code depending on a lineage. "Depending" here includes code in the same repository, written by the lineage's author. In sum, the guarantee is:
+Thema's benefits over other schema systems comes from the guarantees it provides to code depending on a Thema lineage. "Depending" here includes code in the same repository, written by the lineage's author. In sum, the guarantee is:
 
 **You can write your program against any schema in a lineage, and know that any input valid against any schema in that lineage will be translatable to the schema your program expects.**
 
