@@ -264,7 +264,7 @@ With our native Go type populated, our program is now ready to act like any othe
 
 ## Input Kernel
 
-Manually stitching together a Thema-based input processing flow can be done. Clearly - we've just done it. But all we've really made is function calls scattered across tests, rather than a nice, tight system. Ideally, there'd be an approach that miimally distracts us from the harder problem: composing Thema into larger systems. Start with an `io.Reader`, `[]byte` or similar of input data, end with our desired Go type, all in a minimal structure made from the answer to a few high-level questions: 
+Manually stitching together a Thema-based input processing flow can be done. Clearly - we've just done it. But all we've really made is function calls scattered across tests, rather than a nice, tight system. Ideally, there'd be an approach that miimally distracts us from the harder problem: composing Thema into larger systems. Start with a `[]byte` of input data, end with our desired Go type, all in a minimal structure made from the answer to a few high-level questions:
 
 * Which lineage are we using?
 * What data format are we expecting as input?
@@ -273,35 +273,122 @@ Manually stitching together a Thema-based input processing flow can be done. Cle
 
 Enter, [`InputKernel`](https://pkg.go.dev/github.com/grafana/thema/kernel#InputKernel).
 
-Thema's kernels encapsulate common patterns for getting data into and out of a running program. The `InputKernel` does this for the pattern we just wrote out manually. In our test environment, 
+Thema's kernels encapsulate common patterns for getting data into and out of a running program. The `InputKernel` does this for the pattern we just wrote out manually. To create one, we answer those four questions:
+
+```go
+func TestKernel(t *testing.T) {
+    lib := thema.NewLibrary(cuecontext.New())
+    lin, _ := ShipLineage(lib)
+
+    k, _ := kernel.NewInputKernel(kernel.InputKernelConfig{
+        // "Which lineage are we using?"
+		Lineage:     lin,
+        // "What data format are we expecting as input?"
+		Loader:      kernel.NewJSONDecoder("shipinput.json"),
+        // "What schema version are we targeting?"
+		To:          thema.SV(1, 0),
+        // "What Go type do we want our data to end up in?"
+		TypeFactory: func() interface{} { return &Ship{} },
+	})
+
+    val, _, _ := k.Converge([]byte(`{
+        "firstfield": "foo"
+    }`))
+    var ship *Ship = val.(*Ship)
+    fmt.Printf("%+v\n", ship) // "{Firstfield:foo Secondfield:-1}"
+}
+```
+
+`InputKernel.Converge()` returns `interface{}` (which wraps a `*Ship` returned from `TypeFactory`), meaning that we've lost conventional Go type safety[^generics]. But there's a trick: `NewInputKernel()` validates that the return from `TypeFactory` is valid with respect to the schema specified by `To`, and errors out otherwise.
+
+Enforcing type-checking in `NewInputKernel()` means that every instance of `InputKernel` has certain runtime type safety guarantees:
+
+* The concrete type returned from `TypeFactory` can correctly represent any data valid with respect to the `To` CUE schema
+* A non-error return from `Converge()` will always return the same concrete type returned from `TypeFactory`
+
+These guarantees, alongside the fact that `InputKernel.Converge()` is stateless, makes all this a good candidate for wrapping everything up into a function `JSONToShip()`, that makes sense to export alongside our `Ship` Go type:
 
 ```go
 package example
 
+// Ship is a Thesian data vessel. Version 1.0
 type Ship struct {
 	Firstfield  string `json:"firstfield`
 	Secondfield int    `json:"secondfield`
 }
 
-func kernel() InputKernel {
-    lib := thema.NewLibrary(cuecontext.New())
-    lin, _ := ShipLineage(lib)
+// JSONToShip converts a byte slice of JSON data containing a single instance of
+// ship valid against any schema
+func JSONToShip(data []byte) (*Ship, thema.TranslationLacunae, error) {
+	ship, lac, err := jshipk.Converge(data)
+	if err != nil {
+		return nil, nil, err
+	}
+	return ship.(*Ship), lac, nil
+}
 
-    k, err := kernel.NewInputKernel(kernel.InputKernelConfig{
-		Loader:      kernel.NewJSONDecoder("shipinput.json"),
-		TypeFactory: func() interface{} { return &Ship{} },
+// ShipVersion reports which Ship Thema schema this program is currently written
+// against.
+func ShipVersion() thema.SyntacticVersion {
+	return shipVersion
+}
+
+// The single, canonical version of Ship the program is currently written
+// against. Real programs should figure out how and where to keep a
+// runtime-immutable catalog of these.
+var shipVersion = thema.SV(1, 0)
+
+// Because there is no conceivable case in which ShipVersion should change at
+// runtime (the definition of the Ship type would have to change, thereby
+// requiring recompilation), keeping a kernel in package state and computing it
+// in init() is perfectly fine.
+var jshipk InputKernel
+
+func init() {
+	// Creating a one-off cue.Context for this purpose is acceptable because
+	// there's no possibility of having to combine with externally-defined
+	// cue.Values that may have come from a different cue.Context. However, real
+	// programs may find some performance benefit due to reuse if they create a
+	// package with a singleton Library.
+	lib := thema.NewLibrary(cuecontext.New())
+
+	lin, err := ShipLineage(lib)
+	if err != nil {
+		panic(err)
+	}
+
+	jshipk, err = NewInputKernel(InputKernelConfig{
 		Lineage:     lin,
-		To:          thema.SV(1, 0),
+		Loader:      NewJSONDecoder("shipinput.json"),
+		To:          shipVersion,
+		TypeFactory: func() interface{} { return &Ship{} },
 	})
+	if err != nil {
+		// Panic here guarantees that our program cannot start if the Go ship type is
+		// not aligned with the shipVersion schema from our lineage
+		panic(err)
+	}
+
 }
 ```
 
-### Use case: HTTP middleware
+`JSONToShip()` composes the entire Thema stack together into a single input processing function. It's opinionated, and won't be appropriate for all use cases. But it's built from small, exported, composable parts, so adapting it to other use cases ought not be prohibitively difficult.
 
-Once we have an `InputKernel` for our 
+### Use case: parsing config
 
+TODO this one is trivial
 
-Throughout this and the preceding tutorial, we've kept the contents of our lineage in `ship.cue` the same. Thema's design makes that  whole design is that 
+### Use case: HTTP frameworks
+
+TODO trickier than config because reusable middleware requires generics, and even then it's not simple `http.Handler`, so applying `JSONToShip()` probably has to happen at the tail end of `http.Handler`
+
+TODO mention how HTTP Request headers can be used to decide which version to translate the `Ship` back to on egress
+
+## Wrap-up
+
+This tutorial illustrated how to take the [`LineageFactory`](https://pkg.go.dev/github.com/grafana/thema#LineageFactory) called `ShipLineage` that we created in the [last tutorial](go-mapping.md), and use it to create an `InputKernel` around a Go `Ship` type that can handle valid input of any ship schema in our lineage and land on a populated instance of our `Ship` type.
+
+The [next (TODO)](lacuna-programming.md) tutorial will show how to add the final, tidy layer for working with Thema in programs: handling lacunas that are emitted from `Translate()`.
 
 [^cueduality]:
     We've seen `cue.Value` before, when creating the lineage factory in the previous tutorial. That one represented our whole lineage, but this one represents JSON data. It may seem odd that both abstract schema and concrete JSON are represented in the same way. And indeed, if you end up going deeper with CUE's Go API, keeping track of exactly what's represented by the `cue.Value` you're working with gets challenging.
@@ -310,3 +397,6 @@ Throughout this and the preceding tutorial, we've kept the contents of our linea
 
 [^gocodegen]:
     CUE doesn't yet have standard library support for generating Go structs from CUE values. When it does, it will slot in nicely here. Even without codegen, we don't compromise on correctness - we can validate hand-written types against the CUE schema, as well.
+
+[^generics]:
+    Yes, this should be a case that generics can address - though they still won't be able to cover everything CUE schemas provide (defaults, value bounds, precise optionality semantics).
