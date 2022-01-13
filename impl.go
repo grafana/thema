@@ -90,26 +90,24 @@ func BindLineage(raw cue.Value, lib Library, opts ...BindOption) (Lineage, error
 
 			if schv == 0 && seqv == 0 {
 				// Very first schema, no predecessor to compare against
+				schv++
 				continue
 			}
-
 			if !cfg.skipbuggychecks {
 				// The sequences and schema in the candidate lineage must follow
 				// backwards [in]compatibility rules.
 				bcompat := sch.Subsume(predecessor, cue.Raw(), cue.Schema())
-				// bcompat := sch.Unify(predecessor).Err()
 				if (schv == 0 && bcompat == nil) || (schv != 0 && bcompat != nil) {
-					fmt.Println(bcompat)
 					return nil, &compatInvariantError{
 						rawlin:    raw,
-						violation: [2]SyntacticVersion{predsv, {seqv, schv}},
+						violation: [2]SyntacticVersion{predsv, v},
 						detail:    bcompat,
 					}
 				}
 			}
 
 			predecessor = sch
-			predsv = SyntacticVersion{seqv, schv}
+			predsv = v
 			schv++
 		}
 		seqv++
