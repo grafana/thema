@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"cuelang.org/go/cue"
+	"github.com/grafana/thema/internal/envvars"
 )
 
 // A CUEWrapper wraps a cue.Value, and can return that value for inspection.
@@ -131,7 +132,10 @@ type bindConfig struct {
 // with a planned invariant.
 func SkipBuggyChecks() BindOption {
 	return func(c *bindConfig) {
-		c.skipbuggychecks = true
+		// We let the env var override this to make it easy to disable on tests.
+		if !envvars.ForceVerify {
+			c.skipbuggychecks = true
+		}
 	}
 }
 
