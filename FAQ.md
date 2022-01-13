@@ -61,6 +61,6 @@ You don't.
 
 Semantic versioning [explicitly](https://semver.org/#spec-item-9) grants prereleases an exception to its compatibility semantics. This makes each [contiguous series of] prerelease a subsequence where "anything goes."
 
-Thema takes the stance that it is preferable to _never_ suspend version number-implied guarantees, and instead lean hard into the system of lenses, translations, and lacunae. In other words, it's fine to experiment and make breaking changes within your Thema, so long as you write lenses and lacunae that can lead your users' objects to solid ground.
+Thema takes the stance that it is preferable to _never_ suspend version number-implied guarantees, and instead lean hard into the system of lenses, translations, and lacunas. In other words, it's fine to experiment and make breaking changes within your Thema, so long as you write lenses and lacunas that can lead your users' objects to solid ground.
 
 Support for indicating a maturity level on individual schema may be added in the future. But it would have no bearing on core Thema guarantees. Instead, maturity would be an opaque string, used purely for signalling between humans: "we're really not sure about this yet; future lenses for translating from this schema may be sloppy!"

@@ -11,7 +11,7 @@ package thema
 // A lacuna may be unconditional (the gap exists for all possible instances
 // being translated between the schema pair) or conditional (the gap only exists
 // when certain values appear in the instance being translated between schema).
-// However, the conditionality of lacunae is expected to be expressed at the
+// However, the conditionality of lacunas is expected to be expressed at the
 // level of the lens, and determines whether a particular lacuna object is
 // created; the production of a lacuna object as the output of a specific
 // translation indicates the lacuna applies to that specific translation.
@@ -45,7 +45,7 @@ package thema
 
 #LacunaTypes: [N=string]: #LacunaType & { name: N }
 #LacunaTypes: {
-    // Placeholder lacunae indicate that a field in the target instance has
+    // Placeholder lacunas indicate that a field in the target instance has
     // been filled with a placeholder value.
     //
     // Use Placeholder when introducing a new required field that lacks a default,
@@ -59,7 +59,7 @@ package thema
         id: 1
     }
 
-    // DroppedField lacunae indicate that field(s) in the source instance were
+    // DroppedField lacunas indicate that field(s) in the source instance were
     // dropped in a manner that potentially lost some of their contained semantics.
     //
     // When a lens drops multiple fields, prefer to create one DroppedField
@@ -70,7 +70,7 @@ package thema
         id: 2
     }
 
-    // LossyFieldMapping lacunae indicate that no clear mapping existed from the
+    // LossyFieldMapping lacunas indicate that no clear mapping existed from the
     // source field value to the intended semantics of any valid target field
     // value. 
     // 
@@ -80,7 +80,7 @@ package thema
         id: 3
     }
 
-    // ChangedDefault lacunae indicate that the source field value was the
+    // ChangedDefault lacunas indicate that the source field value was the
     // schema-specified default, and the default changed in the target field,
     // and the value in the instance was changed as well.
     //

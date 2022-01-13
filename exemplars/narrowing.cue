@@ -32,7 +32,7 @@ narrowing: {
                             properbool: from.boolish
                         }
                     }
-                    lacunae: [
+                    lacunas: [
                         if ((from.boolish & string) != _|_) && ((from.boolish & ("true" | "false")) == _|_) {
                             thema.#Lacuna & {
                                 sourceFields: [{
@@ -58,7 +58,7 @@ narrowing: {
                         // Preserving preicse original form is a non-goal of thema in general.
                         boolish: from.properbool
                     }
-                    lacunae: []
+                    lacunas: []
                 }
             }
         ]

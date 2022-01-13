@@ -279,15 +279,15 @@ Applied to some concrete JSON (with a `version` field implicitly added to the sc
 
 The output is valid, but less than ideal. Are we just going to have `-1` values littered all over our instances of `Ship.secondfield`? When would those get cleaned up? Does choosing `-1` as a placeholder grant special semantics to that particular value in perpetuity?
 
-These questions bring us to the last part of thema: Lacunae.
+These questions bring us to the last part of thema: Lacunas.
 
 ## Emitting a lacuna
 
 Thema's professed guarantee - all prior valid instances of schema will be translatable to all future valid instances of schema - sounds lovely. But the `secondfield` case shows it to be a pressure vessel, fit to burst when requirements evolve in just _slightly_ the wrong way. Other schema systems are similar - they "burst" when folks make breaking changes to attain the semantics they want. And it's nice that thema pushes this out further with the ability to encode translations in lenses. But eventually, it'll still burst, and folks will pick their desired semantics over thema's rules - just like they do today.
 
-To prevent this outcome, what we really need is a pressure release valve. Which is where lacunae come in.
+To prevent this outcome, what we really need is a pressure release valve. Which is where lacunas come in.
 
-Lacunae represent a gap or flaw in a lens translation. As a lineage author, you add a lacuna to your lens when the translation results in a message that, while syntactically valid (it conforms to schema), has problematic semantics. Lacunae are accumulated during translation, and returned alongside the translated instance itself.
+Lacunas represent a gap or flaw in a lens translation. As a lineage author, you add a lacuna to your lens when the translation results in a message that, while syntactically valid (it conforms to schema), has problematic semantics. Lacunas are accumulated during translation, and returned alongside the translated instance itself.
 
 Thema defines a limited set of lacuna types that correspond to different types of flaws. (This area is under active development.) For our case, we should emit a `Placeholder` lacuna.
 
@@ -319,7 +319,7 @@ lin: seqs: [
                 firstfield: from.firstfield
                 secondfield: -1
             }
-            lacunae: [
+            lacunas: [
                 thema.#Lacuna & {
                     targetFields: [{
                         path: "secondfield"
@@ -358,7 +358,7 @@ Basic inputs and outputs:
             "firstfield": "foobar",
             "secondfield": -1
         },
-        "lacunae": [
+        "lacunas": [
             {
                 "sourceFields": [],
                 "targetFields": [
@@ -375,7 +375,7 @@ Basic inputs and outputs:
 }
 ```
 
-Encapsulating translation flaws as lacunae relieves pressure on the schemas and translation. Schemas need not carry extraneous, legacy fields to reflect translation flaws, and lacunae can disambiguate for the calling program between translations with flaws, and those without. In this case, we can imagine `secondfield` is actually a serial identifier/foreign key, and the calling program can be constructed to look for a `Placeholder` lacuna on `secondfield`, then replace that `-1` with a correct value derived from another source.
+Encapsulating translation flaws as lacunas relieves pressure on the schemas and translation. Schemas need not carry extraneous, legacy fields to reflect translation flaws, and lacunas can disambiguate for the calling program between translations with flaws, and those without. In this case, we can imagine `secondfield` is actually a serial identifier/foreign key, and the calling program can be constructed to look for a `Placeholder` lacuna on `secondfield`, then replace that `-1` with a correct value derived from another source.
 
 Knowing when to emit a lacuna, and which type to emit, is nontrivial. The set of lacuna types and precise rules for when and how to use them appropriately are under active development. We will, in future, provide documentation specific to each lacuna type. In the meantime, the [exemplars directory](https://github.com/grafana/thema/tree/main/exemplars) contains a number of examples of lacuna use.
 
