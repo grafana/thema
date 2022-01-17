@@ -13,11 +13,11 @@ var dirinst cue.Value
 var alllib thema.Library
 
 var nameOpts = map[string][]thema.BindOption{
-	"defaultchange": {thema.SkipBuggyChecks()},
-	"narrowing":     {thema.SkipBuggyChecks()},
-	"rename":        {thema.SkipBuggyChecks()},
-	"expand":        {thema.SkipBuggyChecks()},
-	"single":        {thema.SkipBuggyChecks()},
+	"defaultchange": {},
+	"narrowing":     {},
+	"rename":        {},
+	"expand":        {},
+	"single":        {},
 }
 
 func init() {
@@ -34,7 +34,7 @@ func TestExemplarValidity(t *testing.T) {
 	for iter.Next() {
 		lin := iter.Value().LookupPath(cue.ParsePath("l"))
 		name, _ := lin.LookupPath(cue.ParsePath("name")).String()
-		t.Run("Bind"+name, func(t *testing.T) {
+		t.Run("Bind-"+name, func(t *testing.T) {
 			_, err = thema.BindLineage(lin, alllib, nameOpts[name]...)
 			if err != nil {
 				t.Fatal(err)
