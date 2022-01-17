@@ -248,7 +248,7 @@ func (lin *UnaryLineage) schema(v SyntacticVersion) *UnarySchema {
 func (lin *UnaryLineage) _lineage() {}
 
 func searchSynv(a []SyntacticVersion, x SyntacticVersion) int {
-	return sort.Search(len(a), func(i int) bool { return !a[i].less(x) })
+	return sort.Search(len(a), func(i int) bool { return !a[i].Less(x) })
 }
 
 func synvExists(a []SyntacticVersion, x SyntacticVersion) bool {

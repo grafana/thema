@@ -196,6 +196,8 @@ func SV(seqv, schv uint) SyntacticVersion {
 	return SyntacticVersion([2]uint{seqv, schv})
 }
 
-func (sv SyntacticVersion) less(osv SyntacticVersion) bool {
+// Less reports whether the provided SyntacticVersion is less than the receiver,
+// consistent with the expectations of Go's sort package.
+func (sv SyntacticVersion) Less(osv SyntacticVersion) bool {
 	return sv[0] < osv[0] || sv[1] < osv[1]
 }
