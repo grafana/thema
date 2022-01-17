@@ -140,30 +140,33 @@ func TestInputKernelConverge(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	tt := map[string]struct {
-		jsonstr  string
-		valid    bool
-		output00 type00
-		output10 type10
+	invalidtt := map[string]struct {
+		jsonstr string
 	}{
-		// Commented cases fail due to what appear to be the same underlying bug
-		// with having the schema declared within lists
 		"malformed-json": {
 			jsonstr: `
 			{
 				foo": "bar"
 			}
 			`,
-			valid: false,
 		},
-		// "invalid": {
-		// 	jsonstr: `
-		// 	{
-		// 		"foo": "bar"
-		// 	}
-		// 	`,
-		// 	valid: false,
-		// },
+		"invalid": {
+			jsonstr: `
+			{
+				"foo": "bar"
+			}
+			`,
+		},
+	}
+
+	validtt := map[string]struct {
+		jsonstr  string
+		from     thema.SyntacticVersion
+		output00 type00
+		output10 type10
+	}{
+		// Commented cases fail due to what appear to be the same underlying bug
+		// with having the schema declared within lists
 		"00good": {
 			jsonstr: `
 			{
@@ -171,7 +174,7 @@ func TestInputKernelConverge(t *testing.T) {
 				"unchanged": "unchanged str val"
 			}
 			`,
-			valid: true,
+			from: thema.SV(0, 0),
 			output00: type00{
 				Before:    "renamedstr",
 				Unchanged: "unchanged str val",
@@ -181,38 +184,78 @@ func TestInputKernelConverge(t *testing.T) {
 				Unchanged: "unchanged str val",
 			},
 		},
-		// "10good": {
-		// 	jsonstr: `
-		// 	{
-		// 		"after": "renamedstr",
-		// 		"unchanged": "unchanged str val"
-		// 	}
-		// 	`,
-		// 	valid: true,
-		// 	output00: type00{
-		// 		Before:    "renamedstr",
-		// 		Unchanged: "unchanged str val",
-		// 	},
-		// 	output10: type10{
-		// 		After:     "renamedstr",
-		// 		Unchanged: "unchanged str val",
-		// 	},
-		// },
+		"10good": {
+			jsonstr: `
+			{
+				"after": "renamedstr",
+				"unchanged": "unchanged str val"
+			}
+			`,
+			from: thema.SV(1, 0),
+			output00: type00{
+				Before:    "renamedstr",
+				Unchanged: "unchanged str val",
+			},
+			output10: type10{
+				After:     "renamedstr",
+				Unchanged: "unchanged str val",
+			},
+		},
+		"00empty": {
+			jsonstr: `
+			{
+				"before": "",
+				"unchanged": ""
+			}
+			`,
+			from: thema.SV(0, 0),
+			output00: type00{
+				Before:    "",
+				Unchanged: "",
+			},
+			output10: type10{
+				After:     "",
+				Unchanged: "",
+			},
+		},
+		"10empty": {
+			jsonstr: `
+			{
+				"after": "",
+				"unchanged": ""
+			}
+			`,
+			from: thema.SV(1, 0),
+			output00: type00{
+				Before:    "",
+				Unchanged: "",
+			},
+			output10: type10{
+				After:     "",
+				Unchanged: "",
+			},
+		},
 	}
 
 	testfunc := func(t *testing.T, k InputKernel) {
 		to := k.Config().To
 		to00 := to == thema.SV(0, 0)
 		t.Run(fmt.Sprintf("to-%v", to), func(t *testing.T) {
-			for testname, tab := range tt {
+			for testname, tab := range invalidtt {
 				t.Run(testname, func(t *testing.T) {
+					_, _, err := k.Converge([]byte(tab.jsonstr))
+					if err == nil {
+						t.Fatal("should have failed to converge, but no err received")
+					}
+				})
+			}
+			for testname, tab := range validtt {
+				t.Run(testname, func(t *testing.T) {
+					if k.Config().To.Less(tab.from) {
+						t.Skip("reverse translation is not yet supported")
+					}
 					out, _, err := k.Converge([]byte(tab.jsonstr))
-					if !tab.valid {
-						if err == nil {
-							t.Fatal("should have failed to converge, but no err received")
-						}
-						return
-					} else if err != nil {
+					if err != nil {
 						t.Fatal(err)
 					}
 
