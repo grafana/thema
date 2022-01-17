@@ -88,14 +88,12 @@ func BindLineage(raw cue.Value, lib Library, opts ...BindOption) (Lineage, error
 				v:   v,
 			})
 
-			if schv == 0 && seqv == 0 {
-				// Very first schema, no predecessor to compare against
-				schv++
-				continue
-			}
-			if !cfg.skipbuggychecks {
+			// No predecessor to compare against with the very first schema
+			if !(schv == 0 && seqv == 0) {
 				// The sequences and schema in the candidate lineage must follow
 				// backwards [in]compatibility rules.
+				// TODO Subsumption may not be what we actually want to check here,
+				// as it does not allow the addition of required fields with defaults
 				bcompat := sch.Subsume(predecessor, cue.Raw(), cue.Schema())
 				if (schv == 0 && bcompat == nil) || (schv != 0 && bcompat != nil) {
 					return nil, &compatInvariantError{
