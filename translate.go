@@ -71,7 +71,7 @@ func (i *Instance) lib() Library {
 // TODO define this in terms of Instance.AsSuccessor/AsPredecessor, rather than
 // those in terms of this.
 func (i *Instance) Translate(to SyntacticVersion) (*Instance, TranslationLacunas) {
-	if to.less(i.Schema().Version()) {
+	if to.Less(i.Schema().Version()) {
 		panic("TODO translation from newer to older schema is not yet implemented")
 	}
 	newsch, err := i.Schema().Lineage().Schema(to)
