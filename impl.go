@@ -56,6 +56,10 @@ func BindLineage(raw cue.Value, lib Library, opts ...BindOption) (Lineage, error
 	if err := dlin.Subsume(raw, cue.Raw(), cue.Schema()); err != nil {
 		return nil, err
 	}
+	nam, err := raw.LookupPath(cue.MakePath(cue.Str("name"))).String()
+	if err != nil {
+		return nil, err
+	}
 
 	cfg := &bindConfig{}
 	for _, opt := range opts {
@@ -66,6 +70,7 @@ func BindLineage(raw cue.Value, lib Library, opts ...BindOption) (Lineage, error
 		validated: true,
 		raw:       raw,
 		lib:       lib,
+		name:      nam,
 	}
 
 	// Populate the version list and enforce compat/subsumption invariants
@@ -90,16 +95,20 @@ func BindLineage(raw cue.Value, lib Library, opts ...BindOption) (Lineage, error
 
 			// No predecessor to compare against with the very first schema
 			if !(schv == 0 && seqv == 0) {
-				// The sequences and schema in the candidate lineage must follow
-				// backwards [in]compatibility rules.
-				// TODO Subsumption may not be what we actually want to check here,
-				// as it does not allow the addition of required fields with defaults
-				bcompat := sch.Subsume(predecessor, cue.Raw(), cue.Schema())
-				if (schv == 0 && bcompat == nil) || (schv != 0 && bcompat != nil) {
-					return nil, &compatInvariantError{
-						rawlin:    raw,
-						violation: [2]SyntacticVersion{predsv, v},
-						detail:    bcompat,
+				// TODO Marked as buggy until we figure out how to both _not_ require
+				// schema to be closed, _and_ how to detect
+				if !cfg.skipbuggychecks {
+					// The sequences and schema in the candidate lineage must follow
+					// backwards [in]compatibility rules.
+					// TODO Subsumption may not be what we actually want to check here,
+					// as it does not allow the addition of required fields with defaults
+					bcompat := sch.Subsume(predecessor, cue.Raw(), cue.Schema(), cue.Definitions(true), cue.All(), cue.Final())
+					if (schv == 0 && bcompat == nil) || (schv != 0 && bcompat != nil) {
+						return nil, &compatInvariantError{
+							rawlin:    raw,
+							violation: [2]SyntacticVersion{predsv, v},
+							detail:    bcompat,
+						}
 					}
 				}
 			}
@@ -143,8 +152,11 @@ type compatInvariantError struct {
 }
 
 func (e *compatInvariantError) Error() string {
-	// TODO better
-	return e.detail.Error()
+	if e.violation[0][0] == e.violation[1][0] {
+		// TODO better
+		return e.detail.Error()
+	}
+	return fmt.Sprintf("schema %s must be backwards incompatible with schema %s", e.violation[0], e.violation[1])
 }
 
 // A UnaryLineage is a Go facade over a valid CUE lineage that does not compose

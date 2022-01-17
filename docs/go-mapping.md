@@ -4,7 +4,7 @@ Once we know how to [write a Thema lineage in CUE](authoring.md), a common next 
 
 Thema's Go types are intentionally designed to limit extension: exported interfaces and structs with some or all unexported members. Thema's value as a schema system derives primarily from its [guarantees](invariants.md), so for Thema to be useful in Go, those guarantees must hold. To that end, we make the `Lineage` type the face of those guarantees. To its consumers, `Lineage` should be a powerful, reliable abstraction: if some Go code has a non-`nil` variable of type `thema.Lineage`, all of Thema's (implemented) guarantees apply, unconditionally.
 
-That's a serious guarantee, especially given that responsibility for fulfilling it will fall to the lineage author. Hopeium won't cut it. For Thema guarantees to actually hold in the wild - where `Lineage` instances burst forth from Go code written by those of us mortals who haven't _quite_ gotten around to finishing our maths PhD _just_ yet - it must be near-impossible to produce a `Lineage` that doesn't keep Thema's promises. As we'll see, Thema approaches this by making [`BindLineage()`](https://pkg.go.dev/github.com/grafana/thema#BindLineage) a verification choke point: it's the only way to create a `Lineage`, and will error out if provided raw CUE that does not constitute a valid lineage.
+That's a serious guarantee, especially given that responsibility for fulfilling it will fall to the lineage author. Hopeium won't cut it. For Thema guarantees to actually hold in the wild - where `Lineage` instances burst forth from Go code written by us mortals who haven't _quite_ gotten around to finishing our maths PhD yet - it must be near-impossible to produce a `Lineage` that doesn't keep Thema's promises. As we'll see, Thema approaches this by making [`BindLineage()`](https://pkg.go.dev/github.com/grafana/thema#BindLineage) a verification choke point: it's the only way to create a `Lineage`, and will error out if provided raw CUE that does not constitute a valid lineage.
 
 With this in mind, this tutorial puts us in the role of the lineage author with the goal of creating a standalone Go package that can return an instance of `thema.Lineage` from the `Ship` lineage we [previously](authoring.md) created in CUE.
 
@@ -318,8 +318,6 @@ func TestShipIsValid(t *testing.T) {
     }
 }
 ```
-
-Now, an important note: as of CUE v0.4.0, running the above test will panic due to a [CUE bug (link TODO)]() in the logic for checking backwards compatibility. These problems will naturally go away as CUE and Thema progress towards maturity. In the meantime, passing [`SkipBuggyChecks()`](https://pkg.go.dev/github.com/grafana/thema#SkipBuggyChecks) to `BindLineage()` will skip checks with known bugs. Unfortunately, it also means a loss of guarantees - but those will be restored automatically as the bugs are resolved, without you having to remove your `SkipBuggyChecks()` call.
 
 Our `Ship` lineage is now wrapped up in a reliable (modulo bugs!) package[^pubretrieve], ready to be consumed.
 

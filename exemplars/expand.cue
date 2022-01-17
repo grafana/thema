@@ -8,23 +8,23 @@ expand: {
         seqs: [
             {
                 schemas: [
-                    close({
+                    {
                         init: string
-                    }),
-                    close({
+                    },
+                    {
                         init: string
                         optional?: int
-                    }),
-                    close({
+                    },
+                    {
                         init: string
                         optional?: int
                         withDefault?: *"foo" | "bar"
-                    }),
-                    close({
+                    },
+                    {
                         init: string
                         optional?: int
                         withDefault?: *"foo" | "bar" | "baz"
-                    })
+                    }
                 ]
             }
         ]
