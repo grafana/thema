@@ -13,7 +13,7 @@ var dirinst cue.Value
 var alllib thema.Library
 
 var nameOpts = map[string][]thema.BindOption{
-	"defaultchange": {},
+	"defaultchange": {thema.SkipBuggyChecks()},
 	"narrowing":     {},
 	"rename":        {},
 	"expand":        {},

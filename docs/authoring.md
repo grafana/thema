@@ -99,9 +99,9 @@ lin: seqs: [
 
 This isn't a valid lineage, though. `secondfield` is required and lacks a default, which means that valid instances of `0.0` will be invalid with respect to `0.1`. Our change is backward incompatible, which breaks the rules of thema.
 
-You can fix this using one of three possibilities: 
+There are three approaches to fixing this:
 - make `secondfield` optional
-- give `secondfield` a default
+- give `secondfield` a default[^defaultcompat]
 - start a new sequence
 
 ## Optional fields
@@ -134,7 +134,7 @@ If the behavior of a program accepting `Ship` behaves in a meaningfully differen
 
 ## Setting defaults
 
-CUE allows [specifying default values](https://cuelang.org/docs/tutorials/tour/types/defaults/) for fields. We can do so with `secondfield`, which will make `0.1` backward compatible with `0.0`, making our lineage valid. In this example, specify `42` as the default value.
+CUE allows [specifying default values](https://cuelang.org/docs/tutorials/tour/types/defaults/) for fields. We can do so with `secondfield`, which will (may[^defaultcompat]) make `0.1` backward compatible with `0.0`, making our lineage valid. In this example, specify `42` as the default value.
 
 ```cue
 import "github.com/grafana/thema"
@@ -390,3 +390,6 @@ TODO
 ## Wrap up
 
 You've now seen all the component parts of thema and how they work together, which provides a sense of how to express schemas using thema. In the [next tutorial](go-mapping.md), we'll map the `Ship` lineage created here to a general-purpose language (Go), which is prerequisite to writing useful programs around lineages.
+
+[^defaultcompat]:
+    Including a default [may or may not](https://github.com/grafana/thema/discussions/15) ultimately be considered a backwards compatible change by Thema. For now, prefer using optional fields.

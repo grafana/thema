@@ -201,3 +201,7 @@ func SV(seqv, schv uint) SyntacticVersion {
 func (sv SyntacticVersion) Less(osv SyntacticVersion) bool {
 	return sv[0] < osv[0] || sv[1] < osv[1]
 }
+
+func (sv SyntacticVersion) String() string {
+	return fmt.Sprintf("%v.%v", sv[0], sv[1])
+}
