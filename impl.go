@@ -196,7 +196,7 @@ func (lin *UnaryLineage) Name() string {
 func (lin *UnaryLineage) ValidateAny(data cue.Value) *Instance {
 	isValidLineage(lin)
 
-	for sch := lin.schema(synv()); sch != nil; sch.Successor() {
+	for sch := lin.schema(synv()); sch != nil; sch = sch.successor() {
 		if inst, err := sch.Validate(data); err == nil {
 			return inst
 		}
@@ -295,6 +295,10 @@ func (sch *UnarySchema) Validate(data cue.Value) (*Instance, error) {
 
 // Successor returns the next schema in the lineage, or nil if it is the last schema.
 func (sch *UnarySchema) Successor() Schema {
+	return sch.successor()
+}
+
+func (sch *UnarySchema) successor() *UnarySchema {
 	if sch.lin.allv[len(sch.lin.allv)-1] == sch.v {
 		return nil
 	}
@@ -305,6 +309,10 @@ func (sch *UnarySchema) Successor() Schema {
 
 // Predecessor returns the previous schema in the lineage, or nil if it is the first schema.
 func (sch *UnarySchema) Predecessor() Schema {
+	return sch.predecessor()
+}
+
+func (sch *UnarySchema) predecessor() *UnarySchema {
 	if sch.v == synv() {
 		return nil
 	}

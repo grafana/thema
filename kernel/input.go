@@ -129,7 +129,7 @@ func (k InputKernel) Converge(data []byte) (interface{}, thema.TranslationLacuna
 
 	// Validate that the data constitutes an instance of at least one of the schemas in the lineage
 	inst := k.lin.ValidateAny(v)
-	if err != nil {
+	if inst == nil {
 		// TODO wrap error for use with errors.Is
 		return nil, nil, errors.New("validation failed")
 	}
