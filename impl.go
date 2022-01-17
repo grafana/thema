@@ -66,7 +66,7 @@ func BindLineage(raw cue.Value, lib Library, opts ...BindOption) (Lineage, error
 		opt(cfg)
 	}
 
-	lin := &UnaryLineage{
+	lin := &unaryLineage{
 		validated: true,
 		raw:       raw,
 		lib:       lib,
@@ -87,7 +87,7 @@ func BindLineage(raw cue.Value, lib Library, opts ...BindOption) (Lineage, error
 			lin.allv = append(lin.allv, v)
 
 			sch := schiter.Value()
-			lin.allsch = append(lin.allsch, &UnarySchema{
+			lin.allsch = append(lin.allsch, &unarySchema{
 				raw: sch,
 				lin: lin,
 				v:   v,
@@ -96,7 +96,7 @@ func BindLineage(raw cue.Value, lib Library, opts ...BindOption) (Lineage, error
 			// No predecessor to compare against with the very first schema
 			if !(schv == 0 && seqv == 0) {
 				// TODO Marked as buggy until we figure out how to both _not_ require
-				// schema to be closed, _and_ how to detect
+				// schema to be closed, _and_ how to detect default changes
 				if !cfg.skipbuggychecks {
 					// The sequences and schema in the candidate lineage must follow
 					// backwards [in]compatibility rules.
@@ -127,7 +127,7 @@ func isValidLineage(lin Lineage) {
 	switch tlin := lin.(type) {
 	case nil:
 		panic("nil lineage")
-	case *UnaryLineage:
+	case *unaryLineage:
 		if !tlin.validated {
 			panic("lineage not validated")
 		}
@@ -138,7 +138,7 @@ func isValidLineage(lin Lineage) {
 
 func getLinLib(lin Lineage) Library {
 	switch tlin := lin.(type) {
-	case *UnaryLineage:
+	case *unaryLineage:
 		return tlin.lib
 	default:
 		panic("unreachable")
@@ -159,20 +159,20 @@ func (e *compatInvariantError) Error() string {
 	return fmt.Sprintf("schema %s must be backwards incompatible with schema %s", e.violation[0], e.violation[1])
 }
 
-// A UnaryLineage is a Go facade over a valid CUE lineage that does not compose
+// A unaryLineage is a Go facade over a valid CUE lineage that does not compose
 // other lineage.
-type UnaryLineage struct {
+type unaryLineage struct {
 	validated bool
 	name      string
 	// schmap    sync.Map
 	raw    cue.Value
 	lib    Library
 	allv   []SyntacticVersion
-	allsch []*UnarySchema
+	allsch []*unarySchema
 }
 
 // UnwrapCUE returns the cue.Value of the entire lineage.
-func (lin *UnaryLineage) UnwrapCUE() cue.Value {
+func (lin *unaryLineage) UnwrapCUE() cue.Value {
 	isValidLineage(lin)
 
 	if !lin.validated {
@@ -183,7 +183,7 @@ func (lin *UnaryLineage) UnwrapCUE() cue.Value {
 
 // Name returns the name of the object schematized by the lineage, as declared in
 // the lineage's name field.
-func (lin *UnaryLineage) Name() string {
+func (lin *unaryLineage) Name() string {
 	isValidLineage(lin)
 
 	if !lin.validated {
@@ -203,7 +203,7 @@ func (lin *UnaryLineage) Name() string {
 // or if you must, rely on UnwrapCUE().
 //
 // TODO should this instead be interface{} (ugh ugh wish Go had tagged unions) like FillPath?
-func (lin *UnaryLineage) ValidateAny(data cue.Value) *Instance {
+func (lin *unaryLineage) ValidateAny(data cue.Value) *Instance {
 	isValidLineage(lin)
 
 	for sch := lin.schema(synv()); sch != nil; sch = sch.successor() {
@@ -217,7 +217,7 @@ func (lin *UnaryLineage) ValidateAny(data cue.Value) *Instance {
 // Schema returns the schema identified by the provided version, if one exists.
 //
 // Only the [0, 0] schema is guaranteed to exist in all valid lineages.
-func (lin *UnaryLineage) Schema(v SyntacticVersion) (Schema, error) {
+func (lin *unaryLineage) Schema(v SyntacticVersion) (Schema, error) {
 	isValidLineage(lin)
 
 	if !synvExists(lin.allv, v) {
@@ -230,7 +230,7 @@ func (lin *UnaryLineage) Schema(v SyntacticVersion) (Schema, error) {
 	return lin.schema(v), nil
 }
 
-func (lin *UnaryLineage) schema(v SyntacticVersion) *UnarySchema {
+func (lin *unaryLineage) schema(v SyntacticVersion) *unarySchema {
 	return lin.allsch[searchSynv(lin.allv, v)]
 }
 
@@ -255,7 +255,7 @@ func (lin *UnaryLineage) schema(v SyntacticVersion) *UnarySchema {
 // 	return isch.(*UnarySchema)
 // }
 
-func (lin *UnaryLineage) _lineage() {}
+func (lin *unaryLineage) _lineage() {}
 
 func searchSynv(a []SyntacticVersion, x SyntacticVersion) int {
 	return sort.Search(len(a), func(i int) bool { return !a[i].Less(x) })
@@ -266,11 +266,11 @@ func synvExists(a []SyntacticVersion, x SyntacticVersion) bool {
 	return i < len(a) && a[i] == x
 }
 
-// A UnarySchema is a Go facade over a Thema schema that does not compose any
+// A unarySchema is a Go facade over a Thema schema that does not compose any
 // schemas from any other lineages.
-type UnarySchema struct {
+type unarySchema struct {
 	raw cue.Value
-	lin *UnaryLineage
+	lin *unaryLineage
 	v   SyntacticVersion
 }
 
@@ -285,7 +285,7 @@ type UnarySchema struct {
 // or if you must, rely on UnwrapCUE().
 //
 // TODO should this instead be interface{} (ugh ugh wish Go had discriminated unions) like FillPath?
-func (sch *UnarySchema) Validate(data cue.Value) (*Instance, error) {
+func (sch *unarySchema) Validate(data cue.Value) (*Instance, error) {
 	// TODO which approach is actually the right one, unify or subsume? ugh
 	// err := sch.raw.Subsume(data, cue.Concrete(true))
 	x := sch.raw.Unify(data)
@@ -304,11 +304,11 @@ func (sch *UnarySchema) Validate(data cue.Value) (*Instance, error) {
 }
 
 // Successor returns the next schema in the lineage, or nil if it is the last schema.
-func (sch *UnarySchema) Successor() Schema {
+func (sch *unarySchema) Successor() Schema {
 	return sch.successor()
 }
 
-func (sch *UnarySchema) successor() *UnarySchema {
+func (sch *unarySchema) successor() *unarySchema {
 	if sch.lin.allv[len(sch.lin.allv)-1] == sch.v {
 		return nil
 	}
@@ -318,11 +318,11 @@ func (sch *UnarySchema) successor() *UnarySchema {
 }
 
 // Predecessor returns the previous schema in the lineage, or nil if it is the first schema.
-func (sch *UnarySchema) Predecessor() Schema {
+func (sch *unarySchema) Predecessor() Schema {
 	return sch.predecessor()
 }
 
-func (sch *UnarySchema) predecessor() *UnarySchema {
+func (sch *unarySchema) predecessor() *unarySchema {
 	if sch.v == synv() {
 		return nil
 	}
@@ -335,28 +335,28 @@ func (sch *UnarySchema) predecessor() *UnarySchema {
 // version in the provided sequence number.
 //
 // An error indicates the number of the provided sequence does not exist.
-func (sch *UnarySchema) LatestVersionInSequence() SyntacticVersion {
+func (sch *unarySchema) LatestVersionInSequence() SyntacticVersion {
 	// Lineage invariants preclude an error
 	sv, _ := LatestVersionInSequence(sch.lin, sch.v[0])
 	return sv
 }
 
 // UnwrapCUE returns the cue.Value that represents the underlying CUE schema.
-func (sch *UnarySchema) UnwrapCUE() cue.Value {
+func (sch *unarySchema) UnwrapCUE() cue.Value {
 	return sch.raw
 }
 
 // Version returns the schema's version number.
-func (sch *UnarySchema) Version() SyntacticVersion {
+func (sch *unarySchema) Version() SyntacticVersion {
 	return sch.v
 }
 
 // Lineage returns the lineage that contains this schema.
-func (sch *UnarySchema) Lineage() Lineage {
+func (sch *unarySchema) Lineage() Lineage {
 	return sch.lin
 }
 
-func (sch *UnarySchema) _schema() {}
+func (sch *unarySchema) _schema() {}
 
 // Call with no args to get init v, {0, 0}
 // Call with one to get first version in a seq, {x, 0}

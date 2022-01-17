@@ -53,7 +53,7 @@ func LatestVersion(lin Lineage) SyntacticVersion {
 	isValidLineage(lin)
 
 	switch tlin := lin.(type) {
-	case *UnaryLineage:
+	case *unaryLineage:
 		return tlin.allv[len(tlin.allv)-1]
 	default:
 		panic("unreachable")
@@ -68,7 +68,7 @@ func LatestVersionInSequence(lin Lineage, seqv uint) (SyntacticVersion, error) {
 	isValidLineage(lin)
 
 	switch tlin := lin.(type) {
-	case *UnaryLineage:
+	case *unaryLineage:
 		latest := tlin.allv[len(tlin.allv)-1]
 		switch {
 		case latest[0] < seqv:
@@ -202,6 +202,8 @@ func (sv SyntacticVersion) Less(osv SyntacticVersion) bool {
 	return sv[0] < osv[0] || sv[1] < osv[1]
 }
 
+// String returns the SyntacticVersion in standard form, with the sequence
+// version and schema version delimited by a single dot, e.g. "0.0"
 func (sv SyntacticVersion) String() string {
 	return fmt.Sprintf("%v.%v", sv[0], sv[1])
 }
