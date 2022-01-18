@@ -96,7 +96,7 @@ func BindLineage(raw cue.Value, lib Library, opts ...BindOption) (Lineage, error
 			// No predecessor to compare against with the very first schema
 			if !(schv == 0 && seqv == 0) {
 				// TODO Marked as buggy until we figure out how to both _not_ require
-				// schema to be closed, _and_ how to detect
+				// schema to be closed in the .cue file, _and_ how to detect default changes
 				if !cfg.skipbuggychecks {
 					// The sequences and schema in the candidate lineage must follow
 					// backwards [in]compatibility rules.
