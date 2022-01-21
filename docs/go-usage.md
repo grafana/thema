@@ -317,6 +317,11 @@ type Ship struct {
 	Secondfield int    `json:"secondfield`
 }
 
+// The single, canonical Thema schema version of Ship the program is currently
+// written against. Real programs should figure out how and where to keep a
+// runtime-immutable catalog of these.
+var shipVersion = thema.SV(1, 0)
+
 // JSONToShip converts a byte slice of JSON data containing a single instance of
 // ship valid against any schema
 func JSONToShip(data []byte) (*Ship, thema.TranslationLacunas, error) {
@@ -333,16 +338,11 @@ func ShipVersion() thema.SyntacticVersion {
 	return shipVersion
 }
 
-// The single, canonical version of Ship the program is currently written
-// against. Real programs should figure out how and where to keep a
-// runtime-immutable catalog of these.
-var shipVersion = thema.SV(1, 0)
-
 // Because there is no conceivable case in which ShipVersion should change at
 // runtime (the definition of the Ship type would have to change, thereby
 // requiring recompilation), keeping a kernel in package state and computing it
 // in init() is perfectly fine.
-var jshipk InputKernel
+var jshipk kernel.InputKernel
 
 func init() {
 	// Creating a one-off cue.Context for this purpose is acceptable because
@@ -357,9 +357,9 @@ func init() {
 		panic(err)
 	}
 
-	jshipk, err = NewInputKernel(InputKernelConfig{
+	jshipk, err = kernel.NewInputKernel(kernel.InputKernelConfig{
 		Lineage:     lin,
-		Loader:      NewJSONDecoder("shipinput.json"),
+		Loader:      kernel.NewJSONDecoder("shipinput.json"),
 		To:          shipVersion,
 		TypeFactory: func() interface{} { return &Ship{} },
 	})
@@ -374,7 +374,7 @@ func init() {
 
 `JSONToShip()` composes the entire Thema stack together into a single input processing function. To get there, we've made some opinionated choices that won't be appropriate for all use cases. But it's built from small, exported, composable parts, so adapting it to other use cases ought not be prohibitively difficult.
 
-### Use case: parsing config
+### Use case: Application config files
 
 TODO this one is trivial
 
