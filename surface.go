@@ -2,6 +2,8 @@ package thema
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 
 	"cuelang.org/go/cue"
 	"github.com/grafana/thema/internal/envvars"
@@ -204,4 +206,28 @@ func (sv SyntacticVersion) Less(osv SyntacticVersion) bool {
 
 func (sv SyntacticVersion) String() string {
 	return fmt.Sprintf("%v.%v", sv[0], sv[1])
+}
+
+// ParseSyntacticVersion parses a canonical representation of a syntactic
+// version (e.g. "0.0") from a string.
+func ParseSyntacticVersion(s string) (SyntacticVersion, error) {
+	err := fmt.Errorf("%q is not a valid syntactic version", s)
+
+	parts := strings.Split(s, ".")
+	if len(parts) != 2 {
+		return synv(), err
+	}
+
+	// i mean 4 billion is probably enough version numbers
+	seqv, err := strconv.ParseUint(parts[0], 10, 32)
+	if err != nil {
+		return synv(), fmt.Errorf("invalid sequence number: %s", err)
+	}
+
+	// especially when squared
+	schv, err := strconv.ParseUint(parts[0], 10, 32)
+	if err != nil {
+		return synv(), fmt.Errorf("invalid sequence number: %s", err)
+	}
+	return synv(uint(seqv), uint(schv)), nil
 }
