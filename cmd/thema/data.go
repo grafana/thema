@@ -41,7 +41,7 @@ func setupDataCommand(cmd *cobra.Command) {
 }
 
 var dataCmd = &cobra.Command{
-	Use:   "data",
+	Use:   "data <command>",
 	Short: "Perform Thema operations on some input data",
 	Long: `Perform Thema operations on some input data.
 `,
