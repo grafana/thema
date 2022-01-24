@@ -51,20 +51,20 @@ func (i *Instance) lib() Library {
 // in the lineage. A new *Instance is returned representing the transformed
 // value, along with any lacunas accumulated along the way.
 //
-// Forward translation within a sequence (e.g. [0, 0] to [0, 7]) is trivial, as
+// Forward translation within a sequence (e.g. 0.0 to 0.7) is trivial, as
 // all those schema changes are established as backwards compatible by Thema's
 // lineage invariants. In such cases, the lens is referred to as implicit, as
 // the lineage author does not write it, with translation relying on simple
 // unification. Lacunas cannot be emitted from such translations.
 //
-// Forward translation across sequences (e.g. [0, 0] to [1, 0]), and all reverse
-// translation regardless of sequence boundaries (e.g. [1, 2] to either [1, 0]
-// or [0, 0]), is nontrivial and relies on explicitly defined lenses, which
+// Forward translation across sequences (e.g. 0.0 to 1.0), and all reverse
+// translation regardless of sequence boundaries (e.g. 1.2 to either 1.0
+// or 0.0), is nontrivial and relies on explicitly defined lenses, which
 // introduce room for lacunas, author judgment, and bugs.
 //
-// Translations are non-invertible over instances in the general case. That is,
-// Thema does not guarantee that translating from [0, 0] to [1, 0] and back to
-// [0, 0] will result in the exact original input.
+// Thema translation is non-invertible over instances in the general case. That
+// is, Thema does not guarantee that translating an instance from 0.0 to 1.0,
+// then back to 0.0 will result in the exact original instance.
 //
 // NOTE reverse translation is not yet supported, and attempting it will panic.
 //
@@ -72,7 +72,7 @@ func (i *Instance) lib() Library {
 // those in terms of this.
 func (i *Instance) Translate(to SyntacticVersion) (*Instance, TranslationLacunas) {
 	if to.Less(i.Schema().Version()) {
-		panic("TODO translation from newer to older schema is not yet implemented")
+		panic(fmt.Sprintf("FIXME translation of instances from newer to older schema is not yet implemented - %s->%s was requested", i.Schema().Version(), to))
 	}
 	newsch, err := i.Schema().Lineage().Schema(to)
 	if err != nil {
