@@ -5,6 +5,7 @@ import "github.com/grafana/thema"
 narrowing: {
     description: "Lineage that narrows a sloppily-specified boolean/string-ish type to a proper boolean over a single breaking change."
     l: thema.#Lineage & {
+        name: "narrowing"
         seqs: [
             {
                 schemas: [
