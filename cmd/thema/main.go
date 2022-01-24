@@ -75,7 +75,7 @@ func main() {
 var allCmds = []*cobra.Command{rootCmd, linCmd, srvCmd, httpCmd, dataCmd, translateCmd, validateCmd, validateAnyCmd}
 
 var rootCmd = &cobra.Command{
-	Use:   "thema-cli",
+	Use:   "thema <command>",
 	Short: "A tool for putting Thema lineages to work",
 	Long: `A tool for putting Thema lineages to work.
 
@@ -90,7 +90,7 @@ This program offers several kinds of behavior for working with Thema:
 }
 
 var linCmd = &cobra.Command{
-	Use:   "lineage",
+	Use:   "lineage <command>",
 	Short: "Inspect lineages declared in .cue files",
 	Long: `Inspect lineages declared in .cue files.
 
@@ -99,7 +99,7 @@ var linCmd = &cobra.Command{
 }
 
 var srvCmd = &cobra.Command{
-	Use:   "srv",
+	Use:   "srv <command>",
 	Short: "Run a server that offers Thema operations over the network",
 	Long: `Run a server that offers Thema operations over the network.
 
