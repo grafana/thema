@@ -10,12 +10,6 @@ These capabilities make Thema a general framework for decoupling the evolution o
 
 Learn more in our [docs](https://github.com/grafana/thema/tree/main/docs), or in this [overview video](https://www.youtube.com/watch?v=PpoS_ThntEM)! (Some things have been renamed since that video, but the logic is unchanged.)
 
-## Maturity
-
-Thema is a young project. The goals are large, but bounded: we will know when the core system is complete. And it mostly is, now - though some breaking changes to how schemas are written are planned before reaching stability.
-
-It is not yet recommended to replace established, stable systems with Thema, but experimenting with doing so is reasonable (and appreciated!). For newer projects, Thema may be a good choice today; the decision is likely to come down to whether the benefit of a simpler architecture for authoring, composing and evolving schema will offset the cost of having to chase some breaking changes.
-
 ## Usage
 
 Thema defines the way schemas are written, organizing each object's history into a "lineage." Once authored, Thema also provides tools for working with lineages via a few [basic operations](https://github.com/grafana/thema/blob/main/docs/overview.md#about-thema-operations). There are a few different usage patterns, all largely equivalent in capability:
@@ -23,6 +17,18 @@ Thema defines the way schemas are written, organizing each object's history into
 * **CLI:** a CLI command that provides access to Thema's basic operations, one lineage per invocation. Use it for fast exploration and testing of schemas, or as a tool in CI.
 * **Server:** An HTTP server that provides access to Thema's basic operations for a configurable set of lineages. Run it as a stateless sidecar in your infrastructure or microservice mesh.
 * **Library:** a library, importable in your application code, that provides a convenient interface to Thema's basic operations, as well as helpers for common usage patterns. Naturally the most flexible, and the recommended approach for creating new helpers, such as code generators, API generators, or a whole Kubernetes operator framework. (Currently only for Go[^evaluator])
+
+The CLI and server modes are bundled together in the `thema` command. To install:
+
+```bash
+go install github.com/grafana/thema/cmd/thema@latest
+```
+
+## Maturity
+
+Thema is a young project. The goals are large, but bounded: we will know when the core system is complete. And it mostly is, now - though some breaking changes to how schemas are written are planned before reaching stability.
+
+It is not yet recommended to replace established, stable systems with Thema, but experimenting with doing so is reasonable (and appreciated!). For newer projects, Thema may be a good choice today; the decision is likely to come down to whether the benefit of a simpler architecture for authoring, composing and evolving schema will offset the cost of having to chase some breaking changes.
 
 [^evaluator]:
     Using Thema as a library in a language depends on a CUE evaluator for that language. Currently, the only CUE evaluator is written in Go.
