@@ -5,6 +5,7 @@ import (
 	"sort"
 
 	"cuelang.org/go/cue"
+	terrors "github.com/grafana/thema/errors"
 )
 
 // ErrValueNotExist indicates that an operation failed because a provided
@@ -39,11 +40,17 @@ func (e *ErrNoSchemaWithVersion) Error() string {
 // Thema's invariants. It is primarily intended for use by authors of lineages
 // in the creation of a LineageFactory.
 func BindLineage(raw cue.Value, lib Library, opts ...BindOption) (Lineage, error) {
+	p := raw.Path().String()
 	// The candidate lineage must exist.
 	if !raw.Exists() {
-		return nil, &ErrValueNotExist{
-			path: raw.Path().String(),
+		if p != "" {
+			return nil, fmt.Errorf("%w: path was %q", terrors.ErrValueNotExist, p)
 		}
+
+		return nil, terrors.ErrValueNotExist
+	}
+	if p == "" {
+		p = "instance root"
 	}
 
 	// The candidate lineage must be error-free.
@@ -53,12 +60,14 @@ func BindLineage(raw cue.Value, lib Library, opts ...BindOption) (Lineage, error
 
 	// The candidate lineage must be an instance of #Lineage.
 	dlin := lib.linDef()
-	if err := dlin.Subsume(raw, cue.Raw(), cue.Schema()); err != nil {
-		return nil, err
+	if err := dlin.Subsume(raw, cue.Raw(), cue.Schema(), cue.Final()); err != nil {
+		// FIXME figure out how to wrap both the sentinel and CUE error sanely
+		return nil, fmt.Errorf("%w (%s): %s", terrors.ErrValueNotALineage, p, err)
 	}
+
 	nam, err := raw.LookupPath(cue.MakePath(cue.Str("name"))).String()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w (%s): name field is not concrete", terrors.ErrInvalidLineage, p)
 	}
 
 	cfg := &bindConfig{}
@@ -287,12 +296,16 @@ type UnarySchema struct {
 // TODO should this instead be interface{} (ugh ugh wish Go had discriminated unions) like FillPath?
 func (sch *UnarySchema) Validate(data cue.Value) (*Instance, error) {
 	// TODO which approach is actually the right one, unify or subsume? ugh
-	// err := sch.raw.Subsume(data, cue.Concrete(true))
+	// err := sch.raw.Subsume(data, cue.Concrete(true), cue.Final())
+	// if err != nil {
+	// 	return nil, err
+	// }
+
 	x := sch.raw.Unify(data)
 	if err := x.Err(); err != nil {
 		return nil, err
 	}
-	if err := x.Validate(cue.Concrete(true)); err != nil {
+	if err := x.Validate(cue.Concrete(true), cue.Final()); err != nil {
 		return nil, err
 	}
 

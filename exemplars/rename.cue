@@ -5,6 +5,7 @@ import "github.com/grafana/thema"
 rename: {
     description: "A field is renamed - a breaking change, necessitating a new sequence."
     l: thema.#Lineage & {
+        name: "rename"
         seqs: [
             {
                 schemas: [

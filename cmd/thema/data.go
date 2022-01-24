@@ -11,7 +11,6 @@ import (
 	"path/filepath"
 
 	"cuelang.org/go/cue"
-	cerrors "cuelang.org/go/cue/errors"
 	"github.com/grafana/thema"
 	"github.com/grafana/thema/kernel"
 	"github.com/spf13/cobra"
@@ -32,7 +31,6 @@ func setupDataCommand(cmd *cobra.Command) {
 
 	dataCmd.AddCommand(validateAnyCmd)
 	validateAnyCmd.Flags().StringVarP((*string)(&verstr), "version", "v", "", "schema syntactic version to validate data against")
-	validateAnyCmd.MarkFlagRequired("version")
 	validateAnyCmd.Flags().StringVarP(&encoding, "encoding", "e", "", "input data encoding. Autodetected by default, but can be constrained to \"json\" or \"yaml\".")
 	validateAnyCmd.Flags().BoolVarP(&quiet, "quiet", "q", false, "emit no output, exit status only")
 
@@ -44,15 +42,15 @@ func setupDataCommand(cmd *cobra.Command) {
 
 var dataCmd = &cobra.Command{
 	Use:   "data",
-	Short: "Given a lineage, perform Thema operations on some data",
-	Long: `Given a lineage, perform Thema operations on some data.
+	Short: "Perform Thema operations on some input data",
+	Long: `Perform Thema operations on some input data.
 `,
 }
 
 var dataReuseText = `
 A filesystem path to a Thema lineage must be provided. It may be relative or
 absolute. Lineages are necessarily validated prior to validation of the input
-data.
+data. All data operations are performed in the context of the provided lineage.
 
 Data may be provided on stdin, or by passing a single path to a file as an
 argument. Stdin is ignored if a path is provided. JSON and YAML inputs are
@@ -95,7 +93,7 @@ If --version is passed, that version is checked first. If validation fails
 against all schemas in the lineage, the error against the --version schema will
 be printed.
 `,
-	PersistentPreRunE: mergeCobraefuncs(validateLineageInput, validateVersionInput, validateDataInput),
+	PersistentPreRunE: mergeCobraefuncs(validateLineageInput, validateVersionInputOptional, validateDataInput),
 	Args:              cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if !datval.Exists() {
@@ -106,13 +104,14 @@ be printed.
 		if sch != nil {
 			_, reterr = sch.Validate(datval)
 			if reterr == nil {
-				fmt.Fprintf(cmd.OutOrStdout(), "%s", sch.Version())
+				fmt.Fprintf(cmd.OutOrStdout(), "%s\n", sch.Version())
 				return nil
 			}
 		}
 		inst := lin.ValidateAny(datval)
 		if inst != nil {
-			fmt.Fprintf(cmd.OutOrStdout(), "%s", inst.Schema().Version())
+			fmt.Fprintf(cmd.OutOrStdout(), "%s\n", inst.Schema().Version())
+			return nil
 		}
 
 		if reterr != nil {
@@ -128,8 +127,9 @@ var translateCmd = &cobra.Command{
 	Short: "Translate some valid input data from one schema to another",
 	Long: `Translate some valid input data from one schema to another.
 ` + dataReuseText + `
-Success outputs the translated object instance and any emitted lacuna, and exits
-0. Failure exits 1 with an informative error.
+Success outputs the translated object instance, the version the input validated
+against, any emitted lacuna, and exits 0. Failure exits 1 with an informative
+error.
 
 Note that Thema's invariants (once finalized) guarantee that failures can only
 arise during data input decoding or validation, never during translation.
@@ -154,15 +154,15 @@ arise during data input decoding or validation, never during translation.
 
 		// TODO support non-JSON output
 		r := translationResult{
-			From:    inst.Schema().Version(),
-			To:      tinst.Schema().Version(),
+			From:    inst.Schema().Version().String(),
+			To:      tinst.Schema().Version().String(),
 			Result:  tinst.UnwrapCUE(),
 			Lacunas: lac,
 		}
 
 		byt, err := json.MarshalIndent(r, "", "  ")
 		if err != nil {
-			return fmt.Errorf("error marshaling translation result to JSON: %s", err)
+			return fmt.Errorf("error marshaling translation result to JSON: %w", err)
 		}
 		buf := bytes.NewBuffer(byt)
 		_, err = io.Copy(cmd.OutOrStdout(), buf)
@@ -172,8 +172,8 @@ arise during data input decoding or validation, never during translation.
 }
 
 type translationResult struct {
-	From    thema.SyntacticVersion   `json:"from"`
-	To      thema.SyntacticVersion   `json:"to"`
+	From    string                   `json:"from"`
+	To      string                   `json:"to,omitempty"`
 	Result  cue.Value                `json:"result"`
 	Lacunas thema.TranslationLacunas `json:"lacunas"`
 }
@@ -183,9 +183,17 @@ func validateDataInput(cmd *cobra.Command, args []string) error {
 
 	switch len(args) {
 	case 0:
+		fi, err := os.Stdin.Stat()
+		if err != nil {
+			panic(err)
+		}
+		if fi.Mode()&os.ModeNamedPipe == 0 {
+			return errors.New("no data file arguments and nothing sent to stdin")
+		}
+
 		byt, err := ioutil.ReadAll(os.Stdin)
 		if err != nil {
-			return fmt.Errorf("error reading data from stdin: %s", err)
+			return fmt.Errorf("error reading data from stdin: %w", err)
 		}
 
 		// only replace inbytes if emptiness is sane
@@ -195,7 +203,7 @@ func validateDataInput(cmd *cobra.Command, args []string) error {
 	case 1:
 		fi, err := os.Stat(args[0])
 		if err != nil {
-			return fmt.Errorf("failed to stat path %q: %s", args[0], err)
+			return fmt.Errorf("failed to stat path %q: %w", args[0], err)
 		}
 		if fi.IsDir() {
 			return fmt.Errorf("%s is a directory", args[0])
@@ -207,7 +215,7 @@ func validateDataInput(cmd *cobra.Command, args []string) error {
 		}
 		byt, err := ioutil.ReadAll(f)
 		if err != nil {
-			return fmt.Errorf("error reading from input file %q: %s", args[0], err)
+			return fmt.Errorf("error reading from input file %q: %w", args[0], err)
 		}
 		// only replace inbytes if emptiness is sane
 		if len(byt) > 0 && len(inbytes) == 0 {
@@ -283,7 +291,7 @@ func validateTranslationResult(tinst *thema.Instance, lac thema.TranslationLacun
 	}
 
 	if raw.Err() != nil {
-		return fmt.Errorf("translated value has errors, should be unreachable: %s", cerrors.Details(raw.Err(), nil))
+		return fmt.Errorf("translated value has errors, should be unreachable: %w", raw.Err())
 	}
 
 	if !raw.IsConcrete() {

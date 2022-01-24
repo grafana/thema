@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"cuelang.org/go/cue"
+	terrors "github.com/grafana/thema/errors"
 	"github.com/grafana/thema/internal/envvars"
 )
 
@@ -211,23 +212,21 @@ func (sv SyntacticVersion) String() string {
 // ParseSyntacticVersion parses a canonical representation of a syntactic
 // version (e.g. "0.0") from a string.
 func ParseSyntacticVersion(s string) (SyntacticVersion, error) {
-	err := fmt.Errorf("%q is not a valid syntactic version", s)
-
 	parts := strings.Split(s, ".")
 	if len(parts) != 2 {
-		return synv(), err
+		return synv(), fmt.Errorf("%w: %q", terrors.ErrMalformedSyntacticVersion, s)
 	}
 
 	// i mean 4 billion is probably enough version numbers
 	seqv, err := strconv.ParseUint(parts[0], 10, 32)
 	if err != nil {
-		return synv(), fmt.Errorf("invalid sequence number: %s", err)
+		return synv(), fmt.Errorf("%w: %q has invalid sequence number %q", terrors.ErrMalformedSyntacticVersion, s, parts[0])
 	}
 
 	// especially when squared
-	schv, err := strconv.ParseUint(parts[0], 10, 32)
+	schv, err := strconv.ParseUint(parts[1], 10, 32)
 	if err != nil {
-		return synv(), fmt.Errorf("invalid sequence number: %s", err)
+		return synv(), fmt.Errorf("%w: %q has invalid schema number %q", terrors.ErrMalformedSyntacticVersion, s, parts[1])
 	}
 	return synv(uint(seqv), uint(schv)), nil
 }

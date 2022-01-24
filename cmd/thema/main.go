@@ -1,12 +1,15 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"cuelang.org/go/cue"
 	"cuelang.org/go/cue/cuecontext"
 	"github.com/grafana/thema"
+	terrors "github.com/grafana/thema/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -51,6 +54,15 @@ func main() {
 
 	setupDataCommand(rootCmd)
 
+	// Stop cobra from being so "helpful"
+	for _, cmd := range allCmds {
+		cmd.DisableFlagsInUseLine = true
+		cmd.SilenceUsage = true
+		cmd.CompletionOptions = cobra.CompletionOptions{
+			HiddenDefaultCmd: true,
+		}
+	}
+
 	// srv commands
 	// TODO
 	err := rootCmd.Execute()
@@ -58,6 +70,9 @@ func main() {
 		os.Exit(1)
 	}
 }
+
+// List of all commands, for batching stuff
+var allCmds = []*cobra.Command{rootCmd, linCmd, srvCmd, httpCmd, dataCmd, translateCmd, validateCmd, validateAnyCmd}
 
 var rootCmd = &cobra.Command{
 	Use:   "thema-cli",
@@ -78,6 +93,8 @@ var linCmd = &cobra.Command{
 	Use:   "lineage",
 	Short: "Inspect lineages declared in .cue files",
 	Long: `Inspect lineages declared in .cue files.
+
+	TODO not yet implemented
 `,
 }
 
@@ -85,12 +102,15 @@ var srvCmd = &cobra.Command{
 	Use:   "srv",
 	Short: "Run a server that offers Thema operations over the network",
 	Long: `Run a server that offers Thema operations over the network.
+
+	TODO not yet implemented
 `,
 }
 
 var httpCmd = &cobra.Command{
-	Use:   "http",
-	Short: "Start an HTTP(S) server",
+	Use:    "http",
+	Hidden: true,
+	Short:  "Start an HTTP(S) server",
 	Long: `Start an HTTP(S) server.
 `,
 }
@@ -113,26 +133,41 @@ func validateLineageInput(cmd *cobra.Command, args []string) error {
 	var err error
 	lin, err = lineageFromPaths(lib, linfilepath, lincuepath)
 	if err != nil {
+		if errors.Is(err, terrors.ErrValueNotALineage) && strings.Contains(err.Error(), "instance root") {
+			return fmt.Errorf("%w\nDid you forget to pass a CUE path with -p?", err)
+		}
 		return err
 	}
 	return nil
 }
 
 func validateVersionInput(cmd *cobra.Command, args []string) error {
+	return dovinput(cmd, args, false)
+}
+
+func validateVersionInputOptional(cmd *cobra.Command, args []string) error {
+	return dovinput(cmd, args, true)
+}
+
+func dovinput(cmd *cobra.Command, args []string, opt bool) error {
 	if lin == nil {
 		err := validateLineageInput(cmd, args)
 		if err != nil {
 			return err
 		}
 	}
+	if verstr == "" {
+		if opt {
+			return nil
+		}
+		return errors.New("must pass a schema version with -v")
+	}
+
 	synv, err := verstr.synv()
 	if err != nil {
 		return err
 	}
 
-	_, err = lin.Schema(synv)
-	if err != nil {
-		return fmt.Errorf("lineage %q does not contain a schema with version %s", lin.Name(), synv)
-	}
-	return nil
+	sch, err = lin.Schema(synv)
+	return err
 }
