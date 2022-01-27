@@ -1,7 +1,6 @@
 package kernel
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
 
@@ -127,11 +126,16 @@ func (k InputKernel) Converge(data []byte) (interface{}, thema.TranslationLacuna
 		return nil, nil, err
 	}
 
-	// Validate that the data constitutes an instance of at least one of the schemas in the lineage
 	inst := k.lin.ValidateAny(v)
 	if inst == nil {
-		// TODO wrap error for use with errors.Is
-		return nil, nil, errors.New("validation failed")
+		targetSchema, err := k.lin.Schema(k.to)
+		if err != nil {
+			return nil, nil, err
+		}
+		if _, err := targetSchema.Validate(v); err != nil {
+			return nil, nil, err
+		}
+		return nil, nil, fmt.Errorf("validation failed")
 	}
 
 	transval, lac := inst.Translate(k.to)
