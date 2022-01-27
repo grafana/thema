@@ -126,14 +126,16 @@ func (k InputKernel) Converge(data []byte) (interface{}, thema.TranslationLacuna
 		return nil, nil, err
 	}
 
-	targetSchema, err := k.lin.Schema(k.to)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	inst, err := targetSchema.Validate(v)
-	if err != nil {
-		return nil, nil, err
+	inst := k.lin.ValidateAny(v)
+	if inst == nil {
+		targetSchema, err := k.lin.Schema(k.to)
+		if err != nil {
+			return nil, nil, err
+		}
+		if _, err := targetSchema.Validate(v); err != nil {
+			return nil, nil, err
+		}
+		return nil, nil, fmt.Errorf("validation failed")
 	}
 
 	transval, lac := inst.Translate(k.to)
