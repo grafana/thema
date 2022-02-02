@@ -111,17 +111,26 @@ func assignable(sch cue.Value, T interface{}) error {
 			// Optional() gives us paths that are either optional or not, which
 			// seems reasonable at least until we really formally define this
 			// relation
-			gval, exists := gmap[vp.Path.Optional().String()]
+			// gval, exists := gmap[vp.Path.Optional().String()].Value
+			gvp, exists := gmap[vp.Path.String()]
 
 			// TODO replace these one-offs with formalized error types
 			if !exists {
-				errs[p.String()] = fmt.Errorf("%s: absent from Go type", p)
+				errs[p.String()] = fmt.Errorf("%s: present in schema, absent from Go type", p)
 				continue
 			}
+
+			gval := gvp.Value
+			// Remove the paths from the map for leftover checking later
+			delete(gmap, vp.Path.String())
+			// delete(gmap, vp.Path.Optional().String())
+
 			check(gval, sval, p)
 		}
 
-		// TODO check for additional fields on Go side
+		for _, vp := range gmap {
+			errs[vp.Path.String()] = fmt.Errorf("%s: present in Go type, absent from schema", vp.Path.String())
+		}
 	}
 
 	checklist = func(gval, sval cue.Value, p cue.Path) {
@@ -224,17 +233,21 @@ type valpath struct {
 
 type structSlice []valpath
 
-func structToMap(v cue.Value) map[string]cue.Value {
-	m := make(map[string]cue.Value)
+func structToMap(v cue.Value) map[string]valpath {
+	m := make(map[string]valpath)
 	iter, err := v.Fields(cue.Optional(true))
 	if err != nil {
 		panic(err)
 	}
 
 	for iter.Next() {
+		vp := valpath{
+			Path:  cue.MakePath(iter.Selector()),
+			Value: iter.Value(),
+		}
 		// fmt.Printf("sm %v %#v\n", iter.Selector(), iter.Value())
-		m[iter.Selector().String()] = iter.Value()
-		m[iter.Selector().Optional().String()] = iter.Value()
+		m[iter.Selector().String()] = vp
+		// m[iter.Selector().Optional().String()] = vp
 	}
 
 	return m
