@@ -283,8 +283,10 @@ func TestAssignable(t *testing.T) {
 
 	var blah string
 	tt := map[string]struct {
+		// The raw CUE that will be checked for assignability to a Go type
+		cue string
+		// The Go type the raw CUE will be checked for assignability to
 		T       interface{}
-		cue     string
 		invalid bool
 	}{
 		"nonpointer": {
