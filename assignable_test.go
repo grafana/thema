@@ -21,12 +21,11 @@ func TestAssignable(t *testing.T) {
 	}{
 		"nonpointer": {
 			T: struct{}{},
-			cue: `typ: _
+			cue: `typ: {}
 			`,
-			invalid: true,
 		},
 		"nonstruct": {
-			T: &blah,
+			T: blah,
 			cue: `typ: _
 			`,
 			invalid: true,
@@ -269,7 +268,6 @@ func TestAssignable(t *testing.T) {
 						cuestr = strings.Replace(cuestr, "typ", "#typ", 1)
 						path = "#typ"
 					}
-					// fmt.Println(name, ".", path)
 					sch := ctx.CompileString(cuestr).LookupPath(cue.ParsePath(path))
 
 					err := assignable(sch, tst.T)

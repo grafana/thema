@@ -192,7 +192,8 @@ type SyntacticVersion [2]uint
 
 // SV creates a SyntacticVersion.
 //
-// A trivial helper to avoid repetitive Go-stress disorder from typing
+// A trivial helper to avoid repetitive Go-stress disorder from countless
+// instances of typing:
 //
 //   SyntacticVersion{0, 0}
 func SV(seqv, schv uint) SyntacticVersion {
