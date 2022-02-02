@@ -31,16 +31,14 @@ const scalarKinds = cue.NullKind | cue.BoolKind |
 	cue.IntKind | cue.FloatKind | cue.StringKind | cue.BytesKind
 
 func assignable(sch cue.Value, T interface{}) error {
-	pv := reflect.ValueOf(T)
+	v := reflect.ValueOf(T)
 
-	if pv.Kind() != reflect.Ptr {
-		return fmt.Errorf("must provide pointer type, got %T (%s)", T, pv.Kind())
+	if v.Kind() == reflect.Ptr {
+		v = v.Elem()
 	}
 
-	v := pv.Elem()
-
 	if v.Kind() != reflect.Struct {
-		return fmt.Errorf("must provide pointer to struct kind, got *%s", v.Kind())
+		return fmt.Errorf("must provide struct value, got *%s", v.Kind())
 	}
 
 	ctx := sch.Context()
@@ -103,7 +101,6 @@ func assignable(sch cue.Value, T interface{}) error {
 	}
 
 	checkstruct = func(ogval, osval cue.Value, p cue.Path) {
-		// Walk the sch side, as we'll allow excess fields on the go side
 		ss, gmap := structToSlice(osval), structToMap(ogval)
 
 		// The returned cue.Value appears to differ depending on whether it's
@@ -172,7 +169,6 @@ func assignable(sch cue.Value, T interface{}) error {
 				// some more universal place.
 				lerr, rerr := lastval.Subsume(los, cue.Schema()), los.Subsume(lastval, cue.Schema())
 				if lerr != nil || rerr != nil {
-					fmt.Println(lerr, rerr)
 					errs[p.String()] = fmt.Errorf("%s: schema is list of multiple types; not representable in Go", p)
 					return
 				}
