@@ -165,8 +165,6 @@ func TestInputKernelConverge(t *testing.T) {
 		output00 type00
 		output10 type10
 	}{
-		// Commented cases fail due to what appear to be the same underlying bug
-		// with having the schema declared within lists
 		"00good": {
 			jsonstr: `
 			{
