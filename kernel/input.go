@@ -123,7 +123,7 @@ func assignable(sch cue.Value, T interface{}) error {
 	}
 
 	ctx := sch.Context()
-	gval := ctx.EncodeType(v.Interface())
+	gt := ctx.EncodeType(v.Interface())
 
 	// None of the builtin functions do _quite_ what we want here. In the simple
 	// case, we'd want to check subsumption of the Go type by the CUE schema,
@@ -146,28 +146,50 @@ func assignable(sch cue.Value, T interface{}) error {
 	// except erroneous nulls. But the above considerations force us to roll our
 	// own definition of assignability, at least for now.
 
-	// First, try unification. This covers the big, egregious cases (e.g. int
-	// vs. string for a given field), though it gives us a mash of errors.
-	// if err := sch.Unify(gval).Validate(cue.All()); err != nil {
-	// 	return err
-	// }
-
 	// Errors, keyed by string
 	errs := make(assignErrs)
 
-	type walkfn func(gval, sval cue.Value, sel ...cue.Selector)
-	var walk walkfn
+	type checkfn func(gval, sval cue.Value, p cue.Path)
+	var check, checkstruct, checklist, checkscalar checkfn
 
-	walk = func(ogval, osval cue.Value, sel ...cue.Selector) {
+	check = func(gval, sval cue.Value, p cue.Path) {
+		// At least for now, we have to deal with these unhelpful *null
+		// appearing in the encoding of pointer types.
+		gval = stripLeadNull(gval)
+
+		sk, gk := sval.IncompleteKind(), gval.IncompleteKind()
+		// strict equality _might_ be too restrictive? But it's better to start there
+		if sk != gk {
+			errs[p.String()] = fmt.Errorf("%s: is kind %s in schema, but kind %s in Go type", p, sk, gk)
+			return
+		}
+
+		switch sk {
+		case cue.ListKind:
+			checklist(gval, sval, p)
+		// case cue.NumberKind, cue.FloatKind, cue.IntKind, cue.StringKind, cue.BytesKind, cue.BoolKind:
+		case cue.NumberKind, cue.FloatKind, cue.IntKind, cue.StringKind, cue.BytesKind, cue.BoolKind, cue.NullKind:
+			checkscalar(gval, sval, p)
+		case cue.StructKind:
+			checkstruct(gval, sval, p)
+		default:
+			// if sk & scalarKinds == sk {
+			// 	errs[p.String()] = fmt.Errorf("%s: schema is unrepresentable in Go, allows multiple primitive types %s", sk)
+			// 	return
+			// }
+			panic(fmt.Sprintf("unhandled kind %s", sk))
+		}
+	}
+
+	checkstruct = func(ogval, osval cue.Value, p cue.Path) {
 		// Walk the sch side, as we'll allow excess fields on the go side
 		ss, gmap := structToSlice(osval), structToMap(ogval)
 
 		// The returned cue.Value appears to differ depending on whether it's
 		// accessed through an iterator vs. LookupPath. This matters(?) in the
 		// context of doing things like comparing kinds.
-
 		for _, vp := range ss {
-			sval, p := vp.Value, cue.MakePath(append(sel, vp.Path.Selectors()...)...)
+			sval, p := vp.Value, cue.MakePath(append(p.Selectors(), vp.Path.Selectors()...)...)
 			// Optional() gives us paths that are either optional or not, which
 			// seems reasonable at least until we really formally define this
 			// relation
@@ -178,111 +200,92 @@ func assignable(sch cue.Value, T interface{}) error {
 				errs[p.String()] = fmt.Errorf("%s: absent from Go type", p)
 				continue
 			}
-			// At least for now, we have to deal with these unhelpful *null
-			// appearing in the encoding of pointer types.
-			gval = stripLeadNull(gval)
+			check(gval, sval, p)
+		}
 
-			sk, gk := sval.IncompleteKind(), gval.IncompleteKind()
-			// strict equality _might_ be too restrictive? But it's better to start there
-			if sk != gk {
-				errs[p.String()] = fmt.Errorf("%s: of kind %s in schema, but kind %s in Go type", p, sk, gk)
-				continue
+		// TODO check for additional fields on Go side
+	}
+
+	checklist = func(gval, sval cue.Value, p cue.Path) {
+		var los, log cue.Value
+		glen, slen := gval.Len(), sval.Len()
+		// Ensure alignment of list openness/closedness
+		if glen.IsConcrete() != slen.IsConcrete() {
+			if slen.IsConcrete() {
+				errs[p.String()] = fmt.Errorf("%s: list is closed in schema, Go type must be an array, not slice", p)
+			} else {
+				errs[p.String()] = fmt.Errorf("%s: list is open in schema, Go type must be a slice, not array", p)
+			}
+			return
+		}
+
+		if err := glen.Subsume(slen); err != nil {
+			// should be unreachable?
+			errs[p.String()] = fmt.Errorf("%s: incompatible list lengths in schema (%s) and Go type (%s)", p, slen, glen)
+			return
+		}
+
+		if glen.IsConcrete() {
+			if ilen, err := slen.Int64(); err != nil {
+				panic(fmt.Errorf("unreachable: %w", err))
+			} else if ilen == 0 {
+				// empty list on both sides - weird, but not illegal
+				return
+			}
+			// Go's type system guarantees that all list elements will be of the
+			// same type, so as long as all the CUE list elements are the same,
+			// then comparing should be safe.  Of course, checking "sameness" of
+			// incomplete values isn't (?) trivial. Mutual subsume...
+			iter, err := sval.List()
+			if err != nil {
+				panic(err)
 			}
 
-			switch sk {
-			case cue.ListKind:
-				glen, slen := gval.Len(), sval.Len()
-				// Ensure alignment of list openness/closedness
-				if glen.IsConcrete() != slen.IsConcrete() {
-					if slen.IsConcrete() {
-						errs[p.String()] = fmt.Errorf("%s: list is closed in schema, Go type must be an array, not slice", p)
-					} else {
-						errs[p.String()] = fmt.Errorf("%s: list is open in schema, Go type must be a slice, not array", p)
-					}
+			iter.Next()
+			lastsel, lastval := iter.Selector(), iter.Value()
+
+			for iter.Next() {
+				los = iter.Value() // it's fine to just keep updating the reference
+				// Failures indicate the CUE schema is unrepresentable in Go.
+				// That's the kind of thing we'd likely prefer to know/have in
+				// some more universal place.
+				lerr, rerr := lastval.Subsume(los, cue.Schema()), los.Subsume(lastval, cue.Schema())
+				if lerr != nil || rerr != nil {
+					fmt.Println(lerr, rerr)
+					errs[p.String()] = fmt.Errorf("%s: schema is list of multiple types; not representable in Go", p)
+					return
 				}
 
-				if err := glen.Subsume(slen); err != nil {
-					// should be unreachable?
-					errs[p.String()] = fmt.Errorf("%s: incompatible list lengths in schema (%s) and Go type (%s)", p, slen, glen)
-					continue
-				}
-
-				if glen.IsConcrete() {
-					if ilen, err := slen.Int64(); err != nil {
-						panic(fmt.Errorf("unreachable: %w", err))
-					} else if ilen == 0 {
-						// empty list on both sides - weird, but not illegal
-						continue
-					}
-					// Go's type system guarantees that all list elements will
-					// be of the same type, so as long as all the CUE list
-					// elements are the same, then comparing should be safe.  Of
-					// course, checking "sameness" of incomplete values isn't
-					// (?) trivial. Mutual subsume...
-					iter, err := sval.List()
-					if err != nil {
-						panic(err)
-					}
-
-					iter.Next()
-					lastsel, lastval := iter.Selector(), iter.Value()
-					sval = iter.Value()
-
-					for iter.Next() {
-						sval = iter.Value() // it's fine to just keep updating the reference
-						// Failures indicate the CUE schema is unrepresentable
-						// in Go. That's the kind of thing we'd likely prefer to
-						// know/have in some more universal place.
-						lerr, rerr := lastval.Subsume(sval, cue.Schema()), sval.Subsume(lastval, cue.Schema())
-						if lerr != nil || rerr != nil {
-							errs[p.String()] = fmt.Errorf("%s: schema is list of multiple types; not representable in Go", p)
-							continue
-						}
-
-						lastsel, lastval = iter.Selector(), iter.Value()
-					}
-					p = cue.MakePath(append(p.Selectors(), lastsel)...)
-
-					iter, err = gval.List()
-					if err != nil {
-						panic(err)
-					}
-					_, gval = iter.Next(), iter.Value()
-				} else {
-					sval = sval.LookupPath(cue.MakePath(cue.AnyIndex))
-					gval = gval.LookupPath(cue.MakePath(cue.AnyIndex))
-					p = cue.MakePath(append(p.Selectors(), cue.AnyIndex)...)
-				}
-
-				if jk := sval.IncompleteKind() & gval.IncompleteKind(); jk == 0 {
-					errs[p.String()] = fmt.Errorf("%s: of kind %s in schema, but kind %s in Go type", p, sval.IncompleteKind(), gval.IncompleteKind())
-					continue
-				} else if jk&scalarKinds == 0 {
-					walk(gval, sval, p.Selectors()...)
-					continue
-				}
-
-				// They're both scalars of the same incomplete kind, handle them
-				// without descending
-				fallthrough
-			case cue.NumberKind, cue.FloatKind, cue.IntKind, cue.StringKind, cue.BytesKind, cue.BoolKind:
-				// Because the CUE types can have narrower bounds, and we're
-				// really interested in whether all valid schema instances will
-				// be assignable to the Go type, we have to see if the Go type
-				// subsumes the schema, rather than the more intuitive check
-				// that the schema subsumes the Go type.
-				if err := gval.Subsume(sval, cue.Schema()); err != nil {
-					errs[p.String()] = fmt.Errorf("%s: %v not an instance of %v", p, sval, gval)
-				}
-			case cue.StructKind:
-				walk(gval, sval, p.Selectors()...)
-			default:
-				panic(fmt.Sprintf("unhandled kind %s", sk))
+				lastsel, lastval = iter.Selector(), iter.Value()
 			}
+			p = cue.MakePath(append(p.Selectors(), lastsel)...)
+
+			iter, err = gval.List()
+			if err != nil {
+				panic(err)
+			}
+			_, log = iter.Next(), iter.Value()
+		} else {
+			los = sval.LookupPath(cue.MakePath(cue.AnyIndex))
+			log = gval.LookupPath(cue.MakePath(cue.AnyIndex))
+			p = cue.MakePath(append(p.Selectors(), cue.AnyIndex)...)
+		}
+		check(log, los, p)
+	}
+
+	checkscalar = func(gval, sval cue.Value, p cue.Path) {
+		// Because the CUE types can have narrower bounds, and we're
+		// really interested in whether all valid schema instances will
+		// be assignable to the Go type, we have to see if the Go type
+		// subsumes the schema, rather than the more intuitive check
+		// that the schema subsumes the Go type.
+		if err := gval.Subsume(sval, cue.Schema()); err != nil {
+			errs[p.String()] = fmt.Errorf("%s: %v not an instance of %v", p, sval, gval)
 		}
 	}
 
-	walk(gval, sch)
+	// Walk down the whole struct tree
+	check(gt, sch, cue.MakePath())
 
 	if len(errs) > 0 {
 		return errs
