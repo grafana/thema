@@ -86,16 +86,17 @@ func assignable(sch cue.Value, T interface{}) error {
 		switch sk {
 		case cue.ListKind:
 			checklist(gval, sval, p)
-		// case cue.NumberKind, cue.FloatKind, cue.IntKind, cue.StringKind, cue.BytesKind, cue.BoolKind:
-		case cue.NumberKind, cue.FloatKind, cue.IntKind, cue.StringKind, cue.BytesKind, cue.BoolKind, cue.NullKind:
+		case cue.NumberKind, cue.FloatKind, cue.IntKind, cue.StringKind, cue.BytesKind, cue.BoolKind:
 			checkscalar(gval, sval, p)
 		case cue.StructKind:
 			checkstruct(gval, sval, p)
+		case cue.NullKind:
+			errs[p.String()] = fmt.Errorf("%s: null is not permitted in schema; express optionality with ?", p)
 		default:
-			// if sk & scalarKinds == sk {
-			// 	errs[p.String()] = fmt.Errorf("%s: schema is unrepresentable in Go, allows multiple primitive types %s", sk)
-			// 	return
-			// }
+			if sk&scalarKinds == sk {
+				errs[p.String()] = fmt.Errorf("%s: schema is unrepresentable in Go, allows multiple basic CUE types %s", p, sk)
+				return
+			}
 			panic(fmt.Sprintf("unhandled kind %s", sk))
 		}
 	}
@@ -152,25 +153,20 @@ func assignable(sch cue.Value, T interface{}) error {
 			return
 		}
 
-		if glen.IsConcrete() {
-			if ilen, err := slen.Int64(); err != nil {
-				panic(fmt.Errorf("unreachable: %w", err))
-			} else if ilen == 0 {
-				// empty list on both sides - weird, but not illegal
-				return
-			}
-			// Go's type system guarantees that all list elements will be of the
-			// same type, so as long as all the CUE list elements are the same,
-			// then comparing should be safe.  Of course, checking "sameness" of
-			// incomplete values isn't (?) trivial. Mutual subsume...
-			iter, err := sval.List()
-			if err != nil {
-				panic(err)
-			}
-
-			iter.Next()
-			lastsel, lastval := iter.Selector(), iter.Value()
-
+		// Whether the list is open or closed on the schema side, it may contain
+		// a fixed set of values. If they exist, we have to ensure those
+		// elements are the same, as Go's type system can't express type
+		// variance across an array or list. Of course, checking "sameness" of
+		// incomplete values isn't (?) trivial. Mutual subsume...
+		iter, err := sval.List()
+		if err != nil {
+			panic(err)
+		}
+		var lastsel cue.Selector
+		var lastval cue.Value
+		var nonempty bool
+		if nonempty = iter.Next(); nonempty {
+			lastsel, lastval = iter.Selector(), iter.Value()
 			for iter.Next() {
 				los = iter.Value() // it's fine to just keep updating the reference
 				// Failures indicate the CUE schema is unrepresentable in Go.
@@ -184,8 +180,20 @@ func assignable(sch cue.Value, T interface{}) error {
 
 				lastsel, lastval = iter.Selector(), iter.Value()
 			}
+		}
+
+		if glen.IsConcrete() {
+			if ilen, err := slen.Int64(); err != nil {
+				panic(fmt.Errorf("unreachable: %w", err))
+			} else if ilen == 0 {
+				// empty list on both sides - weird, but not illegal
+				return
+			}
 			p = cue.MakePath(append(p.Selectors(), lastsel)...)
 
+			// It was previously established that all the list elements elements
+			// are the same, so taking the first one is fine. Use an iter, since
+			// we don't trust LookupPath.
 			iter, err = gval.List()
 			if err != nil {
 				panic(err)
@@ -193,6 +201,14 @@ func assignable(sch cue.Value, T interface{}) error {
 			_, log = iter.Next(), iter.Value()
 		} else {
 			los = sval.LookupPath(cue.MakePath(cue.AnyIndex))
+			// If there were actual list elements, make sure the AnyIndex type is the same as them, too.
+			if nonempty {
+				lerr, rerr := lastval.Subsume(los, cue.Schema()), los.Subsume(lastval, cue.Schema())
+				if lerr != nil || rerr != nil {
+					errs[p.String()] = fmt.Errorf("%s: schema is list of multiple types; not representable in Go", p)
+					return
+				}
+			}
 			log = gval.LookupPath(cue.MakePath(cue.AnyIndex))
 			p = cue.MakePath(append(p.Selectors(), cue.AnyIndex)...)
 		}
