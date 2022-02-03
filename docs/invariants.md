@@ -40,7 +40,7 @@ Go Assignability is a case-specific definition of the more general [CUE subsumpt
 * CUE `string` kinded-values must have corresponding Go `string` types.
 * CUE `bool` kinded-values must have corresponding Go `bool` types.
 * CUE `int` kinded-values must have a corresponding Go integer type that admits all .
-    * `int32` and `uint32` are recommended for use in CUE schemas where use of Go's ergonomic, arch-dependent `int` and `uint` are desirable in the corresponding Go type.
+  * `int32` and `uint32` are recommended for use in CUE schemas where use of Go's ergonomic, arch-dependent `int` and `uint` are desirable in the corresponding Go type.
 * CUE `float` kinded-values must have corresponding Go `float64` types.
 * CUE `number` kinded-values are not permitted. (Use `int` or `float`.)
 * CUE `null` kinded-values are not permitted. (Represent optionality with `?`)
