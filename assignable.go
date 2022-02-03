@@ -117,7 +117,7 @@ func assignable(sch cue.Value, T interface{}) error {
 
 			// TODO replace these one-offs with formalized error types
 			if !exists {
-				errs[p.String()] = fmt.Errorf("%s: present in schema, absent from Go type", p)
+				errs[p.String()] = fmt.Errorf("%s: field present in schema, absent from Go type", p)
 				continue
 			}
 
@@ -130,12 +130,11 @@ func assignable(sch cue.Value, T interface{}) error {
 		}
 
 		for _, vp := range gmap {
-			errs[vp.Path.String()] = fmt.Errorf("%s: present in Go type, absent from schema", vp.Path.String())
+			errs[vp.Path.String()] = fmt.Errorf("%s: field present in Go type, absent from schema", vp.Path.String())
 		}
 	}
 
 	checklist = func(gval, sval cue.Value, p cue.Path) {
-		var los, log cue.Value
 		glen, slen := gval.Len(), sval.Len()
 		// Ensure alignment of list openness/closedness
 		if glen.IsConcrete() != slen.IsConcrete() {
@@ -153,20 +152,20 @@ func assignable(sch cue.Value, T interface{}) error {
 			return
 		}
 
+		// Vars capturing the values we'll eventually need to walk down into and check
+		var los, log cue.Value
+
 		// Whether the list is open or closed on the schema side, it may contain
 		// a fixed set of values. If they exist, we have to ensure those
 		// elements are the same, as Go's type system can't express type
 		// variance across an array or list. Of course, checking "sameness" of
 		// incomplete values isn't (?) trivial. Mutual subsume...
-		iter, err := sval.List()
-		if err != nil {
-			panic(err)
-		}
-		var lastsel cue.Selector
+		iter, _ := sval.List()
+		// Variables for retaining list iteration state
 		var lastval cue.Value
 		var nonempty bool
 		if nonempty = iter.Next(); nonempty {
-			lastsel, lastval = iter.Selector(), iter.Value()
+			lastval = iter.Value()
 			for iter.Next() {
 				los = iter.Value() // it's fine to just keep updating the reference
 				// Failures indicate the CUE schema is unrepresentable in Go.
@@ -174,31 +173,25 @@ func assignable(sch cue.Value, T interface{}) error {
 				// some more universal place.
 				lerr, rerr := lastval.Subsume(los, cue.Schema()), los.Subsume(lastval, cue.Schema())
 				if lerr != nil || rerr != nil {
-					errs[p.String()] = fmt.Errorf("%s: schema is list of multiple types; not representable in Go", p)
+					errs[p.String()] = fmt.Errorf("%s: schema is list with multiple types, not representable in Go", p)
 					return
 				}
 
-				lastsel, lastval = iter.Selector(), iter.Value()
+				lastval = iter.Value()
 			}
 		}
 
 		if glen.IsConcrete() {
-			if ilen, err := slen.Int64(); err != nil {
-				panic(fmt.Errorf("unreachable: %w", err))
-			} else if ilen == 0 {
-				// empty list on both sides - weird, but not illegal
+			// It has already been established that all the list elements are
+			// the same, so taking the first one is sufficient. Use an iter,
+			// since we don't trust LookupPath.
+			iter, _ = gval.List()
+			if !iter.Next() {
+				// Only happens if list is empty, which means list is empty on both sides.
+				// Weird, but not illegal
 				return
 			}
-			p = cue.MakePath(append(p.Selectors(), lastsel)...)
-
-			// It was previously established that all the list elements elements
-			// are the same, so taking the first one is fine. Use an iter, since
-			// we don't trust LookupPath.
-			iter, err = gval.List()
-			if err != nil {
-				panic(err)
-			}
-			_, log = iter.Next(), iter.Value()
+			log = iter.Value()
 		} else {
 			los = sval.LookupPath(cue.MakePath(cue.AnyIndex))
 			// If there were actual list elements, make sure the AnyIndex type is the same as them, too.
@@ -210,8 +203,8 @@ func assignable(sch cue.Value, T interface{}) error {
 				}
 			}
 			log = gval.LookupPath(cue.MakePath(cue.AnyIndex))
-			p = cue.MakePath(append(p.Selectors(), cue.AnyIndex)...)
 		}
+		p = cue.MakePath(append(p.Selectors(), cue.AnyIndex)...)
 		check(log, los, p)
 	}
 
@@ -222,7 +215,7 @@ func assignable(sch cue.Value, T interface{}) error {
 		// subsumes the schema, rather than the more intuitive check
 		// that the schema subsumes the Go type.
 		if err := gval.Subsume(sval, cue.Schema()); err != nil {
-			errs[p.String()] = fmt.Errorf("%s: %v not an instance of %v", p, sval, gval)
+			errs[p.String()] = fmt.Errorf("%s: schema type %v not subsumed by Go type %v", p, sval, gval)
 		}
 	}
 
