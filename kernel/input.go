@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"reflect"
 
-	"cuelang.org/go/cue"
 	"github.com/grafana/thema"
 )
 
@@ -82,14 +81,7 @@ func NewInputKernel(cfg InputKernelConfig) (InputKernel, error) {
 	// Verify that the input Go type is valid with respect to the indicated
 	// schema. Effect is that the caller cannot get an InputKernel without a
 	// valid Go type to write to.
-	tv := cfg.Lineage.UnwrapCUE().Context().EncodeType(t)
-	// Try to dodge around the *null we get back by pulling out the latter part of the expr
-	op, vals := tv.Expr()
-	if op != cue.OrOp {
-		panic("not an or")
-	}
-	realval := vals[1]
-	if err := sch.UnwrapCUE().Subsume(realval, cue.Schema(), cue.Raw()); err != nil {
+	if err := thema.AssignableTo(sch, t); err != nil {
 		return InputKernel{}, err
 	}
 
