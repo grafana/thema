@@ -21,14 +21,14 @@ Thema defines a relationship between its schemas and Go types based on the notio
 
 Go Assignability is a case-specific definition of the more general [CUE subsumption relation](https://cuelang.org/docs/references/spec/#values-1), amounting to mutual subsumption (`cue ⊑ go` and `go ⊑ cue`), with certain rules relaxed when necessitated by differences in the type systems. Whether the assignable relation holds for a given Thema schema and Go type can be checked with the [`AssignableTo()` Go function](https://pkg.go.dev/github.com/grafana/thema#AssignableTo).
 
-### Struct-kind rules
+### Struct rules
 
 * CUE struct types must correspond to Go struct types, named or unnamed.
 * Excess fields must not be present on either side. ([Closed struct semantics](https://cuelang.org/docs/references/spec/#closed-structs) are always applied.)
 * If a CUE struct field is optional (`?`), there must exist a corresponding Go type field, and it must be marked `omitempty` in its JSON struct tag.
 * If a Go field is optional (`omitempty"` JSON struct tag), it must correspond to an optional (`?`) CUE field.
 
-### List-kind rules
+### List rules
 
 * CUE closed list types must correspond to Go fixed array types.
 * CUE open list types must correspond to Go slice types.
@@ -39,7 +39,8 @@ Go Assignability is a case-specific definition of the more general [CUE subsumpt
 * CUE values having more than one basic kind (e.g. `(string|int)` are not permitted.
 * CUE `string` kinded-values must have corresponding Go `string` types.
 * CUE `bool` kinded-values must have corresponding Go `bool` types.
-* CUE `int` kinded-values must have corresponding Go `int64` types.
+* CUE `int` kinded-values must have a corresponding Go integer type that admits all .
+    * `int32` and `uint32` are recommended for use in CUE schemas where use of Go's ergonomic, arch-dependent `int` and `uint` are desirable in the corresponding Go type.
 * CUE `float` kinded-values must have corresponding Go `float64` types.
 * CUE `number` kinded-values are not permitted. (Use `int` or `float`.)
 * CUE `null` kinded-values are not permitted. (Represent optionality with `?`)
@@ -48,4 +49,4 @@ Go Assignability is a case-specific definition of the more general [CUE subsumpt
 
 * Go channel, complex, and function types are not permitted.
 
-TODO Go pointers, uints, smaller number sizes, CUE & Go embeds, CUE references, improve optionality, nullability, disjunctions
+TODO Go pointers, uints, runes, smaller number sizes, CUE & Go embeds, CUE references, improve optionality, nullability, disjunctions

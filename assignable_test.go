@@ -1,6 +1,8 @@
 package thema
 
 import (
+	"fmt"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -256,6 +258,17 @@ func TestAssignable(t *testing.T) {
 				doubleslice: [...[...string]]
 			}
 			`,
+		},
+		"integerArch": {
+			T: &struct {
+				UintField uint `json:"uintField"`
+				IntField  int  `json:"intField"`
+			}{},
+			cue: fmt.Sprintf(`typ: {
+				uintField: uint%v
+				intField: int%v
+			}
+			`, strconv.IntSize, strconv.IntSize),
 		},
 	}
 
