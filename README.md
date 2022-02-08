@@ -28,7 +28,16 @@ go install github.com/grafana/thema/cmd/thema@latest
 
 Thema is a young project. The goals are large, but bounded: we will know when the core system is complete. And it mostly is, now - though some breaking changes to how schemas are written are planned before reaching stability.
 
-It is not yet recommended to replace established, stable systems with Thema, but experimenting with doing so is reasonable (and appreciated!). For newer projects, Thema may be a good choice today; the decision is likely to come down to whether the benefit of a simpler architecture for authoring, composing and evolving schema will offset the cost of having to chase some breaking changes.
+It is not yet recommended to replace established, stable systems with Thema, but experimenting with doing so is reasonable (and appreciated!). For newer projects, Thema may be a good choice today; the decision is likely to come down to whether the long-term benefit of a simpler architecture for authoring, composing and evolving schema will offset the short-term cost of some incomplete functionality and breaking changes.
+
+## Prior/Related Art
+
+A number of systems partially overlap with Thema - for some data, rolling together a set of schema with the relations between those schema.
+
+* [Project Cambria](https://www.inkandswitch.com/cambria/) - Thema's closest analogue. Limited in verifiability by (intentionally) being without a notion of linear schema ordering and versioning, and because schema and translations are written in a Turing complete language (Typescript).
+* [Kubernetes resources and webhook conversions](https://kubernetes.io/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definition-versioning/#specify-multiple-versions) - Similar goals: multiple versions of resources (schema) and convertibility between them. Limited in verifiability by relying on convention for grouping schemas, and by expressing translation in a Turing complete language (Go).
+* [Stripe's HTTP API](https://stripe.com/docs/upgrades) - exhibits the backwards compatibility properties an API can have that arise from a schema system with translatability.
+
 
 [^evaluator]:
     Using Thema as a library in a language depends on a CUE evaluator for that language. Currently, the only CUE evaluator is written in Go.
