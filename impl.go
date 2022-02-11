@@ -318,7 +318,10 @@ func (sch *UnarySchema) Validate(data cue.Value) (*Instance, error) {
 
 // Successor returns the next schema in the lineage, or nil if it is the last schema.
 func (sch *UnarySchema) Successor() Schema {
-	return sch.successor()
+	if s := sch.successor(); s != nil {
+		return s
+	}
+	return nil
 }
 
 func (sch *UnarySchema) successor() *UnarySchema {
@@ -332,7 +335,10 @@ func (sch *UnarySchema) successor() *UnarySchema {
 
 // Predecessor returns the previous schema in the lineage, or nil if it is the first schema.
 func (sch *UnarySchema) Predecessor() Schema {
-	return sch.predecessor()
+	if s := sch.predecessor(); s != nil {
+		return s
+	}
+	return nil
 }
 
 func (sch *UnarySchema) predecessor() *UnarySchema {
