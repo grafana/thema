@@ -53,6 +53,7 @@ func main() {
 	rootCmd.PersistentFlags().StringVarP(&lincuepath, "path", "p", "", "CUE expression for path to the lineage object within file, if not root")
 
 	setupDataCommand(rootCmd)
+	setupGenCmd(rootCmd)
 
 	// Stop cobra from being so "helpful"
 	for _, cmd := range allCmds {
@@ -72,7 +73,7 @@ func main() {
 }
 
 // List of all commands, for batching stuff
-var allCmds = []*cobra.Command{rootCmd, linCmd, srvCmd, httpCmd, dataCmd, translateCmd, validateCmd, validateAnyCmd}
+var allCmds = []*cobra.Command{rootCmd, genCmd, srvCmd, httpCmd, dataCmd, translateCmd, validateCmd, validateAnyCmd}
 
 var rootCmd = &cobra.Command{
 	Use:   "thema <command>",
@@ -84,34 +85,8 @@ This program offers several kinds of behavior for working with Thema:
 * Validating and inspecting of written lineages.
 * Given a valid lineage, provides basic Thema operations (validate, translate,
   [de]hydrate) on some input data.
-* Run an HTTP server that exposes those basic Thema operations to the network.
+* Run an HTTP server that exposes those basic Thema operations to the network. (TODO)
 * Provides scaffolding for writing lineages, lenses, and schema. (TODO)
-`,
-}
-
-var linCmd = &cobra.Command{
-	Use:   "lineage <command>",
-	Short: "Inspect lineages declared in .cue files",
-	Long: `Inspect lineages declared in .cue files.
-
-	TODO not yet implemented
-`,
-}
-
-var srvCmd = &cobra.Command{
-	Use:   "srv <command>",
-	Short: "Run a server that offers Thema operations over the network",
-	Long: `Run a server that offers Thema operations over the network.
-
-	TODO not yet implemented
-`,
-}
-
-var httpCmd = &cobra.Command{
-	Use:    "http",
-	Hidden: true,
-	Short:  "Start an HTTP(S) server",
-	Long: `Start an HTTP(S) server.
 `,
 }
 
