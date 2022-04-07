@@ -20,12 +20,8 @@ type type10 struct {
 	Unchanged string `json:"unchanged"`
 }
 
-var tf00 = func() interface{} {
-	return &type00{}
-}
-var tf10 = func() interface{} {
-	return &type10{}
-}
+var tf00 = &type00{}
+var tf10 = &type10{}
 
 func TestInputKernelInputs(t *testing.T) {
 	ctx := cuecontext.New()
@@ -38,8 +34,8 @@ func TestInputKernelInputs(t *testing.T) {
 
 	t.Run("missing-lineage-panic", func(t *testing.T) {
 		cfg := InputKernelConfig{
-			Loader:      jsondl,
-			TypeFactory: tf10,
+			Loader: jsondl,
+			Typ:    tf10,
 		}
 		defer func() {
 			recover()
@@ -51,8 +47,8 @@ func TestInputKernelInputs(t *testing.T) {
 
 	t.Run("missing-loader-panic", func(t *testing.T) {
 		cfg := InputKernelConfig{
-			TypeFactory: tf10,
-			Lineage:     lin,
+			Typ:     tf10,
+			Lineage: lin,
 		}
 		defer func() {
 			recover()
@@ -78,7 +74,7 @@ func TestInputKernelInputs(t *testing.T) {
 	t.Run("err-non-pointer-tf", func(t *testing.T) {
 		cfg := InputKernelConfig{
 			Loader: jsondl,
-			TypeFactory: func() interface{} {
+			Typ: func() interface{} {
 				return type00{}
 			},
 			Lineage: lin,
@@ -92,10 +88,10 @@ func TestInputKernelInputs(t *testing.T) {
 
 	t.Run("invalid-type", func(t *testing.T) {
 		cfg := InputKernelConfig{
-			Loader:      jsondl,
-			TypeFactory: tf00,
-			Lineage:     lin,
-			To:          thema.SV(1, 0),
+			Loader:  jsondl,
+			Typ:     tf00,
+			Lineage: lin,
+			To:      thema.SV(1, 0),
 		}
 		_, err := NewInputKernel(cfg)
 		if err == nil {
@@ -103,7 +99,7 @@ func TestInputKernelInputs(t *testing.T) {
 		}
 
 		cfg.To = thema.SV(0, 0)
-		cfg.TypeFactory = tf10
+		cfg.Typ = tf10
 		_, err = NewInputKernel(cfg)
 		if err == nil {
 			t.Fatal("should fail when type incompatible with schema is emitted from type factory")
@@ -121,20 +117,20 @@ func TestInputKernelConverge(t *testing.T) {
 	}
 
 	k00, err := NewInputKernel(InputKernelConfig{
-		Loader:      jsondl,
-		TypeFactory: tf00,
-		Lineage:     lin,
-		To:          thema.SV(0, 0),
+		Loader:  jsondl,
+		Typ:     tf00,
+		Lineage: lin,
+		To:      thema.SV(0, 0),
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	k10, err := NewInputKernel(InputKernelConfig{
-		Loader:      jsondl,
-		TypeFactory: tf10,
-		Lineage:     lin,
-		To:          thema.SV(1, 0),
+		Loader:  jsondl,
+		Typ:     tf10,
+		Lineage: lin,
+		To:      thema.SV(1, 0),
 	})
 	if err != nil {
 		t.Fatal(err)

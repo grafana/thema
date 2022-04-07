@@ -9,14 +9,14 @@ import (
 
 // InputKernelConfig holds configuration options for InputKernel.
 type InputKernelConfig struct {
-	// TypeFactory determines the Go type that processed values will be loaded
+	// Typ is the Go type that processed values will be loaded
 	// into by Converge(). It must return a non-pointer Go value that is valid
 	// with respect to the `to` schema in the `lin` lineage.
 	//
-	// Attempting to create an InputKernel with a nil TypeFactory will panic.
+	// Attempting to create an InputKernel with a nil Typ will panic.
 	//
 	// TODO investigate if we can allow pointer types without things getting weird
-	TypeFactory TypeFactory
+	Typ interface{}
 
 	// Loader takes input data and converts it to a cue.Value.
 	//
@@ -40,7 +40,7 @@ type InputKernelConfig struct {
 // and emits the result in a native Go type.
 type InputKernel struct {
 	init bool
-	tf   TypeFactory
+	typ  interface{}
 	// whether or not the TypeFactory returns a pointer type
 	ptrtype bool
 	load    DataLoader
@@ -57,7 +57,7 @@ func NewInputKernel(cfg InputKernelConfig) (InputKernel, error) {
 	if cfg.Lineage == nil {
 		panic("must provide a non-nil Lineage")
 	}
-	if cfg.TypeFactory == nil {
+	if cfg.Typ == nil {
 		panic("must provide a non-nil TypeFactory")
 	}
 	if cfg.Loader == nil {
@@ -69,25 +69,24 @@ func NewInputKernel(cfg InputKernelConfig) (InputKernel, error) {
 		return InputKernel{}, err
 	}
 
-	t := cfg.TypeFactory()
 	// Ensure that the type returned from the TypeFactory is a pointer. If it's
 	// not, we can't create a pointer to it in a way that's necessary for
 	// decoding later. Downside is that having it be a pointer means it allows a
 	// null, which isn't what we want.
-	if k := reflect.ValueOf(t).Kind(); k != reflect.Ptr {
-		return InputKernel{}, fmt.Errorf("cfg.TypeFactory must return a pointer type, got %T (%s)", t, k)
+	if k := reflect.ValueOf(cfg.Typ).Kind(); k != reflect.Ptr {
+		return InputKernel{}, fmt.Errorf("cfg.TypeFactory must return a pointer type, got %T (%s)", cfg.Typ, k)
 	}
 
 	// Verify that the input Go type is valid with respect to the indicated
 	// schema. Effect is that the caller cannot get an InputKernel without a
 	// valid Go type to write to.
-	if err := thema.AssignableTo(sch, t); err != nil {
+	if err := thema.AssignableTo(sch, cfg.Typ); err != nil {
 		return InputKernel{}, err
 	}
 
 	return InputKernel{
 		init: true,
-		tf:   cfg.TypeFactory,
+		typ:  cfg.Typ,
 		load: cfg.Loader,
 		lin:  cfg.Lineage,
 		to:   cfg.To,
@@ -131,7 +130,7 @@ func (k InputKernel) Converge(data []byte) (interface{}, thema.TranslationLacuna
 	}
 
 	transval, lac := inst.Translate(k.to)
-	ret := k.tf()
+	ret := k.typ
 	transval.UnwrapCUE().Decode(ret)
 	return ret, lac, nil
 }
@@ -151,10 +150,10 @@ func (k InputKernel) Config() InputKernelConfig {
 	}
 
 	return InputKernelConfig{
-		TypeFactory: k.tf,
-		Loader:      k.load,
-		Lineage:     k.lin,
-		To:          k.to,
+		Typ:     k.typ,
+		Loader:  k.load,
+		Lineage: k.lin,
+		To:      k.to,
 	}
 }
 

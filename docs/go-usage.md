@@ -288,7 +288,7 @@ func TestKernel(t *testing.T) {
         // "What schema version are we targeting?"
 		To:          thema.SV(1, 0),
         // "What Go type do we want our data to end up in?"
-		TypeFactory: func() interface{} { return &Ship{} },
+		TypeFactory: &Ship{},
 	})
 
     val, _, _ := k.Converge([]byte(`{
