@@ -213,6 +213,8 @@ func validateDataInput(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
+		defer f.Close() // nolint: errcheck
+
 		byt, err := ioutil.ReadAll(f)
 		if err != nil {
 			return fmt.Errorf("error reading from input file %q: %w", args[0], err)
