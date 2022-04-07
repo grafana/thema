@@ -27,6 +27,7 @@ func ToOverlay(prefix string, vfs fs.FS, overlay map[string]load.Source) error {
 		if err != nil {
 			return err
 		}
+		defer f.Close() // nolint: errcheck
 
 		b, err := io.ReadAll(f)
 		if err != nil {

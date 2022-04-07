@@ -55,6 +55,8 @@ func populateMapFSFromRoot(in fs.FS, root, join string) (fstest.MapFS, error) {
 		if err != nil {
 			return err
 		}
+		defer b.Close() // nolint: errcheck
+
 		byt, err := io.ReadAll(b)
 		if err != nil {
 			return err
