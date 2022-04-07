@@ -80,6 +80,8 @@ func InstancesWithThema(modFS fs.FS, dir string) (*build.Instance, error) {
 			if err != nil {
 				return err
 			}
+			defer modf.Close() // nolint: errcheck
+
 			b, err := io.ReadAll(modf)
 			if err != nil {
 				return err
