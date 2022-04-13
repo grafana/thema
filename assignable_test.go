@@ -140,6 +140,21 @@ func TestAssignable(t *testing.T) {
 			}
 			`,
 		},
+		"nestedStructDefault": {
+			T: &struct {
+				Foo   string `json:"foo"`
+				Nest1 struct {
+					Inner string `json:"inner"`
+				} `json:"nest1"`
+			}{},
+			cue: `typ: {
+				foo: string
+				nest1: {
+					inner: string
+				} | *{ inner: "foo" }
+			}
+			`,
+		},
 		"simpleSlice": {
 			T: &struct {
 				Slice []string `json:"slice"`
