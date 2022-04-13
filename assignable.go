@@ -78,8 +78,11 @@ func assignable(sch cue.Value, T interface{}) error {
 
 		sk, gk := sval.IncompleteKind(), gval.IncompleteKind()
 		// strict equality _might_ be too restrictive? But it's better to start there
-		if sk != gk {
+		if sk != gk && gk != cue.TopKind {
 			errs[p.String()] = fmt.Errorf("%s: is kind %s in schema, but kind %s in Go type", p, sk, gk)
+			return
+		} else if gk == cue.TopKind {
+			// Escape hatch for a Go interface{}/any
 			return
 		}
 
