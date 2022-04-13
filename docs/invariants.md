@@ -4,7 +4,7 @@ TODO TODO TODO
 
 this doc will contain two tables:
 
-* One describing the invariants that define lineage validaity, and are continuously enforced by 
+* One describing the invariants that define lineage validity, and are enforced by different parts of the toolchain
 * Another describing publish-time constraints, which are largely about immutability
 
 At least the first table will indicate the maturity of the enforcement mechanism, as well as where enforcement currently resides (native, portable CUE vs. language-specific helper libs)
@@ -25,8 +25,7 @@ Go Assignability is a case-specific definition of the more general [CUE subsumpt
 
 * CUE struct types must correspond to Go struct types, named or unnamed.
 * Excess fields must not be present on either side. ([Closed struct semantics](https://cuelang.org/docs/references/spec/#closed-structs) are always applied.)
-* If a CUE struct field is optional (`?`), there must exist a corresponding Go type field, and it must be marked `omitempty` in its JSON struct tag.
-* If a Go field is optional (`omitempty"` JSON struct tag), it must correspond to an optional (`?`) CUE field.
+* If a CUE struct field is optional (`?`), there must exist a corresponding Go struct field.
 
 ### List rules
 
@@ -36,10 +35,12 @@ Go Assignability is a case-specific definition of the more general [CUE subsumpt
 
 ### Basic type rules
 
-* CUE values having more than one basic kind (e.g. `(string|int)` are not permitted.
+* Go `interface{}` or `any` (Go 1.18+) types are escape hatches, allowing any CUE type.
+* CUE values having more than one basic kind (e.g. `(string|int)` may only correspond to `interface{}`/`any`.
 * CUE `string` kinded-values must have corresponding Go `string` types.
 * CUE `bool` kinded-values must have corresponding Go `bool` types.
-* CUE `int` kinded-values must have a corresponding Go integer type that admits all .
+* CUE `int` kinded-values must have a corresponding Go integer type must allow at least all the integral values allowed by the CUE type.
+  * A CUE `int` is much larger than a Go `int`. Its corresponding Go type is `math/big.Int`.
   * `int32` and `uint32` are recommended for use in CUE schemas where use of Go's ergonomic, arch-dependent `int` and `uint` are desirable in the corresponding Go type.
 * CUE `float` kinded-values must have corresponding Go `float64` types.
 * CUE `number` kinded-values are not permitted. (Use `int` or `float`.)
