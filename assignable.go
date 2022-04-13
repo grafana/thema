@@ -89,7 +89,11 @@ func assignable(sch cue.Value, T interface{}) error {
 		switch sk {
 		case cue.ListKind:
 			checklist(gval, sval, p)
-		case cue.NumberKind, cue.FloatKind, cue.IntKind, cue.StringKind, cue.BytesKind, cue.BoolKind:
+		case cue.NumberKind:
+			errs[p.String()] = fmt.Errorf(
+				"%s: CUE number type comprises both floats and ints, may only correspond to interface{}/any", p,
+			)
+		case cue.FloatKind, cue.IntKind, cue.StringKind, cue.BytesKind, cue.BoolKind:
 			checkscalar(gval, sval, p)
 		case cue.StructKind:
 			checkstruct(gval, sval, p)
@@ -97,7 +101,9 @@ func assignable(sch cue.Value, T interface{}) error {
 			errs[p.String()] = fmt.Errorf("%s: null is not permitted in schema; express optionality with ?", p)
 		default:
 			if sk&scalarKinds == sk {
-				errs[p.String()] = fmt.Errorf("%s: schema is unrepresentable in Go, allows multiple basic CUE types %s", p, sk)
+				errs[p.String()] = fmt.Errorf(
+					"%s: allows multiple basic CUE types %s, may only correspond to interface{}/any", p, sk,
+				)
 				return
 			}
 			panic(fmt.Sprintf("unhandled kind %s", sk))
@@ -138,6 +144,21 @@ func assignable(sch cue.Value, T interface{}) error {
 	}
 
 	checklist = func(gval, sval cue.Value, p cue.Path) {
+		// If the schema is an open list with a default value, sval.Len() will produce a bottom value because it can't
+		// know which side of the disjunction to pick. There could be many branches on this disjunction, though. Only
+		// allow two, and only if one is a default.
+		if _, has := sval.Default(); has {
+			// Bewildering: calling Expr() on a list disjunction with a default value appears to
+			// just drop the marked/default value, and not indicate an OrOp at all. This is handy,
+			// but unexpected behavior, and it feels dangerous to rely on.
+			_, evals := sval.Expr()
+			if len(evals) != 1 {
+				errs[p.String()] = fmt.Errorf("%s: schema is a complex disjunction of list types, may only correspond to interface{}/any", p)
+				return
+			}
+			sval = evals[0]
+		}
+
 		glen, slen := gval.Len(), sval.Len()
 		// Ensure alignment of list openness/closedness
 		if glen.IsConcrete() != slen.IsConcrete() {
@@ -151,7 +172,9 @@ func assignable(sch cue.Value, T interface{}) error {
 
 		if err := glen.Subsume(slen); err != nil {
 			// should be unreachable?
-			errs[p.String()] = fmt.Errorf("%s: incompatible list lengths in schema (%s) and Go type (%s)", p, slen, glen)
+			errs[p.String()] = fmt.Errorf(
+				"%s: incompatible list lengths in schema (%s) and Go type (%s)", p, slen, glen,
+			)
 			return
 		}
 
@@ -257,9 +280,9 @@ func structToMap(v cue.Value) map[string]valpath {
 			Path:  cue.MakePath(iter.Selector()),
 			Value: iter.Value(),
 		}
-		// fmt.Printf("sm %v %#v\n", iter.Selector(), iter.Value())
+		//fmt.Printf("sm %v %#v\n", iter.Selector(), iter.Value())
 		m[iter.Selector().String()] = vp
-		// m[iter.Selector().Optional().String()] = vp
+		//m[iter.Selector().Optional().String()] = vp
 	}
 
 	return m

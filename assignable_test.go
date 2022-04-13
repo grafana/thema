@@ -149,6 +149,25 @@ func TestAssignable(t *testing.T) {
 			}
 			`,
 		},
+		"sliceWithDefault": {
+			T: &struct {
+				Slice []string `json:"slice"`
+			}{},
+			cue: `typ: {
+				slice: [...string] | *["foo", "bar"]
+			}
+			`,
+		},
+		"multiTypeList": {
+			T: &struct {
+				Slice []string `json:"slice"`
+			}{},
+			cue: `typ: {
+				slice: [...string] | [...int] | [...bool] | *[1, 2, 3]
+			}
+			`,
+			invalid: true,
+		},
 		"closedList": {
 			T: &struct {
 				Slice []string `json:"slice"`
@@ -244,6 +263,21 @@ func TestAssignable(t *testing.T) {
 					slice: [...{
 						listfield: string
 					}]
+				}
+			}
+			`,
+		},
+		"listInStructDefault": {
+			T: &struct {
+				Foo  string `json:"foo"`
+				Nest struct {
+					Slice []string `json:"slice"`
+				} `json:"nest"`
+			}{},
+			cue: `typ: {
+				foo: string
+				nest: {
+					slice: [...string] | *["foo", "bar"]
 				}
 			}
 			`,
