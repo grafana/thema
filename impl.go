@@ -311,17 +311,14 @@ var _ Schema = &UnarySchema{}
 // TODO should this instead be interface{} (ugh ugh wish Go had discriminated unions) like FillPath?
 func (sch *UnarySchema) Validate(data cue.Value) (*Instance, error) {
 	// TODO which approach is actually the right one, unify or subsume? ugh
-	// err := sch.raw.Subsume(data, cue.Concrete(true), cue.Final())
+	// err := sch.raw.Subsume(data, cue.Concrete(true), cue.Final(), cue.All())
 	// if err != nil {
-	// 	return nil, err
+	// 	return nil, mungeValidateErr(err, sch)
 	// }
 
-	x := sch.raw.Unify(data)
-	if err := x.Err(); err != nil {
-		return nil, err
-	}
-	if err := x.Validate(cue.Concrete(true), cue.Final()); err != nil {
-		return nil, err
+	x := sch.defraw.Unify(data)
+	if err := x.Validate(cue.Concrete(true), cue.Final(), cue.All()); err != nil {
+		return nil, mungeValidateErr(err, sch)
 	}
 
 	return &Instance{
