@@ -9,6 +9,7 @@ import (
 	"cuelang.org/go/cue/cuecontext"
 	"cuelang.org/go/encoding/json"
 	cuejson "cuelang.org/go/pkg/encoding/json"
+
 	"github.com/grafana/thema"
 )
 
