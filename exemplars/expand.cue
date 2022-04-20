@@ -8,19 +8,19 @@ expand: {
         seqs: [
             {
                 schemas: [
-                    {
+                    { // 0.0
                         init: string
                     },
-                    {
+                    { // 0.1
                         init: string
                         optional?: int
                     },
-                    {
+                    { // 0.2
                         init: string
                         optional?: int
                         withDefault?: *"foo" | "bar"
                     },
-                    {
+                    { // 0.3
                         init: string
                         optional?: int
                         withDefault?: *"foo" | "bar" | "baz"
