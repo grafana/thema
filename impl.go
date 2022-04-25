@@ -29,6 +29,10 @@ func (e *ErrNoSchemaWithVersion) Error() string {
 	return fmt.Sprintf("lineage %q does not contain a schema with version %v", e.lin.Name(), e.v)
 }
 
+func defPathFor(name string, v SyntacticVersion) cue.Path {
+	return cue.MakePath(cue.Def(fmt.Sprintf("%s%v%v", name, v[0], v[1])))
+}
+
 // BindLineage takes a raw cue.Value, checks that it is a valid lineage (that it
 // upholds the invariants which undergird Thema's translatability guarantees),
 // and returns the cue.Value wrapped in a Lineage, iff validity checks succeed.
@@ -96,10 +100,16 @@ func BindLineage(raw cue.Value, lib Library, opts ...BindOption) (Lineage, error
 			lin.allv = append(lin.allv, v)
 
 			sch := schiter.Value()
+			defpath := cue.MakePath(cue.Def(fmt.Sprintf("%s%v%v", nam, v[0], v[1])))
+			defsch := lib.UnwrapCUE().FillPath(defpath, sch).LookupPath(defpath)
+			if defsch.Err() != nil {
+				panic(defsch.Err())
+			}
 			lin.allsch = append(lin.allsch, &UnarySchema{
-				raw: sch,
-				lin: lin,
-				v:   v,
+				raw:    sch,
+				defraw: defsch,
+				lin:    lin,
+				v:      v,
 			})
 
 			// No predecessor to compare against with the very first schema
@@ -179,6 +189,8 @@ type UnaryLineage struct {
 	allv   []SyntacticVersion
 	allsch []*UnarySchema
 }
+
+var _ Lineage = &UnaryLineage{}
 
 // UnwrapCUE returns the cue.Value of the entire lineage.
 func (lin *UnaryLineage) UnwrapCUE() cue.Value {
@@ -278,10 +290,13 @@ func synvExists(a []SyntacticVersion, x SyntacticVersion) bool {
 // A UnarySchema is a Go facade over a Thema schema that does not compose any
 // schemas from any other lineages.
 type UnarySchema struct {
-	raw cue.Value
-	lin *UnaryLineage
-	v   SyntacticVersion
+	raw    cue.Value
+	defraw cue.Value
+	lin    *UnaryLineage
+	v      SyntacticVersion
 }
+
+var _ Schema = &UnarySchema{}
 
 // Validate checks that the provided data is valid with respect to the
 // schema. If valid, the data is wrapped in an Instance and returned.
@@ -296,17 +311,14 @@ type UnarySchema struct {
 // TODO should this instead be interface{} (ugh ugh wish Go had discriminated unions) like FillPath?
 func (sch *UnarySchema) Validate(data cue.Value) (*Instance, error) {
 	// TODO which approach is actually the right one, unify or subsume? ugh
-	// err := sch.raw.Subsume(data, cue.Concrete(true), cue.Final())
+	// err := sch.raw.Subsume(data, cue.Concrete(true), cue.Final(), cue.All())
 	// if err != nil {
-	// 	return nil, err
+	// 	return nil, mungeValidateErr(err, sch)
 	// }
 
-	x := sch.raw.Unify(data)
-	if err := x.Err(); err != nil {
-		return nil, err
-	}
-	if err := x.Validate(cue.Concrete(true), cue.Final()); err != nil {
-		return nil, err
+	x := sch.defraw.Unify(data)
+	if err := x.Validate(cue.Concrete(true), cue.Final(), cue.All()); err != nil {
+		return nil, mungeValidateErr(err, sch)
 	}
 
 	return &Instance{
@@ -373,6 +385,10 @@ func (sch *UnarySchema) Version() SyntacticVersion {
 // Lineage returns the lineage that contains this schema.
 func (sch *UnarySchema) Lineage() Lineage {
 	return sch.lin
+}
+
+func (sch *UnarySchema) defPathFor() cue.Path {
+	return defPathFor(sch.lin.Name(), sch.v)
 }
 
 func (sch *UnarySchema) _schema() {}

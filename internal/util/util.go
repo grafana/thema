@@ -9,12 +9,13 @@ import (
 	"cuelang.org/go/cue/load"
 )
 
+// ToOverlay converts an fs.FS into a CUE loader overlay.
 func ToOverlay(prefix string, vfs fs.FS, overlay map[string]load.Source) error {
 	// TODO why not just stick the prefix on automatically...?
 	if !filepath.IsAbs(prefix) {
 		return fmt.Errorf("must provide absolute path prefix when generating cue overlay, got %q", prefix)
 	}
-	err := fs.WalkDir(vfs, ".", (func(path string, d fs.DirEntry, err error) error {
+	err := fs.WalkDir(vfs, ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -36,7 +37,7 @@ func ToOverlay(prefix string, vfs fs.FS, overlay map[string]load.Source) error {
 
 		overlay[filepath.Join(prefix, path)] = load.FromBytes(b)
 		return nil
-	}))
+	})
 
 	if err != nil {
 		return err
