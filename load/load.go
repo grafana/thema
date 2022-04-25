@@ -10,6 +10,7 @@ import (
 	"cuelang.org/go/cue/build"
 	"cuelang.org/go/cue/cuecontext"
 	"cuelang.org/go/cue/load"
+
 	"github.com/grafana/thema"
 	"github.com/grafana/thema/internal/util"
 )
@@ -30,10 +31,10 @@ func (e *ErrFSNotACueModule) Unwrap() error {
 
 var themamodpath string = filepath.Join("cue.mod", "pkg", "github.com", "grafana", "thema")
 
-// InstancesWithThema wraps and narrows load.Instance in order to allow
+// InstancesWithThema wraps CUE's load.Instance() in order to allow
 // loading .cue files that directly `import "github.com/grafana/thema"`, as
 // lineages are expected to. This is accomplished by constructing a
-// load.Config.Overlay with the thema CUE files dynamically injected under
+// load.Config.Overlay with the Thema CUE files dynamically injected under
 // cue.mod/pkg/, where CUE searches for mod-external imports.
 //
 // This loader is opinionated, preferring simple ease-of-use and fewer degrees

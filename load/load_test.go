@@ -9,6 +9,7 @@ import (
 	"cuelang.org/go/cue/cuecontext"
 	"cuelang.org/go/encoding/json"
 	cuejson "cuelang.org/go/pkg/encoding/json"
+
 	"github.com/grafana/thema"
 )
 
@@ -33,7 +34,7 @@ func TestInstanceLoadHelper(t *testing.T) {
 		t.Fatal(val.Err())
 	}
 
-	lin, err := thema.BindLineage(val.LookupPath(cue.ParsePath("lin")), thema.NewLibrary(ctx), thema.SkipBuggyChecks())
+	lin, err := thema.BindLineage(val.LookupPath(cue.ParsePath("lin")), thema.NewLibrary(ctx))
 	if err != nil {
 		t.Fatal(err)
 	}
