@@ -113,13 +113,6 @@ func mungeValidateErr(err error, sch Schema) error {
 
 	var errs validationFailure
 	for _, ee := range errors.Errors(err) {
-		// fmt.Println("POS", ee.Position())
-		// fmt.Println("IPOS", ee.InputPositions())
-		// fmt.Println("PATH", ee.Path())
-		// fmt.Println(ee.Msg())
-		//
-		// fmt.Println("DETAILS", errors.Details(ee, nil))
-
 		schpos, datapos := splitTokens(ee.InputPositions())
 		x := coords{
 			sch:       sch,
@@ -127,7 +120,6 @@ func mungeValidateErr(err error, sch Schema) error {
 		}
 
 		msg, vals := ee.Msg()
-		fmt.Println("MSG", msg, vals)
 		switch len(vals) {
 		case 1:
 			val, ok := vals[0].(string)
