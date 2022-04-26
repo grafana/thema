@@ -17,6 +17,36 @@ type Instance struct {
 	sch Schema
 }
 
+// Hydrate returns a copy of the Instance with all default values specified by
+// the schema included.
+func (i *Instance) Hydrate() *Instance {
+	ni, err := doHydrate(i.raw, i.sch.UnwrapCUE())
+	if err != nil {
+		panic("should be unreachable")
+	}
+
+	return &Instance{
+		raw:  ni,
+		name: i.name,
+		sch:  i.sch,
+	}
+}
+
+// Dehydrate returns a copy of the Instance with all default values specified by
+// the schema removed.
+func (i *Instance) Dehydrate() *Instance {
+	ni, _, err := doDehydrate(i.raw, i.sch.UnwrapCUE())
+	if err != nil {
+		panic("should be unreachable")
+	}
+
+	return &Instance{
+		raw:  ni,
+		name: i.name,
+		sch:  i.sch,
+	}
+}
+
 // AsSuccessor translates the instance into the form specified by the successor
 // schema.
 //
