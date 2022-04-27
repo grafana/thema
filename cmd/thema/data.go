@@ -18,12 +18,11 @@ import (
 
 func setupDataCommand(cmd *cobra.Command) {
 	cmd.AddCommand(dataCmd)
-
-	dataCmd.AddCommand(validateCmd)
 	dataCmd.PersistentFlags().StringVarP(&linfilepath, "lineage", "l", ".", "path to .cue file or directory containing lineage")
 	dataCmd.MarkFlagRequired("lineage")
 	dataCmd.PersistentFlags().StringVarP(&lincuepath, "path", "p", "", "CUE expression for path to the lineage object within file, if not root")
 
+	dataCmd.AddCommand(validateCmd)
 	validateCmd.Flags().StringVarP((*string)(&verstr), "version", "v", "", "schema syntactic version to validate data against")
 	validateCmd.MarkFlagRequired("version")
 	validateCmd.Flags().StringVarP(&encoding, "encoding", "e", "", "input data encoding. Autodetected by default, but can be constrained to \"json\" or \"yaml\".")
@@ -38,6 +37,14 @@ func setupDataCommand(cmd *cobra.Command) {
 	translateCmd.Flags().StringVarP((*string)(&verstr), "to", "v", "", "schema version to translate input data to")
 	translateCmd.MarkFlagRequired("to")
 	translateCmd.Flags().StringVarP(&encoding, "encoding", "e", "", "input data encoding. Autodetected by default, but can be constrained to \"json\" or \"yaml\".")
+
+	dataCmd.AddCommand(hydrateCmd)
+	hydrateCmd.Flags().StringVarP((*string)(&verstr), "version", "v", "", "schema syntactic version to validate data against")
+	hydrateCmd.Flags().StringVarP(&encoding, "encoding", "e", "", "input data encoding. Autodetected by default, but can be constrained to \"json\" or \"yaml\".")
+
+	dataCmd.AddCommand(dehydrateCmd)
+	dehydrateCmd.Flags().StringVarP((*string)(&verstr), "version", "v", "", "schema syntactic version to validate data against")
+	dehydrateCmd.Flags().StringVarP(&encoding, "encoding", "e", "", "input data encoding. Autodetected by default, but can be constrained to \"json\" or \"yaml\".")
 }
 
 var dataCmd = &cobra.Command{
@@ -123,7 +130,7 @@ be printed.
 }
 
 var translateCmd = &cobra.Command{
-	Use:   "translate -l <lineage-fs-path> [-p <cue-path>] [--to <synver>] [-e <encoding>] [<data-fs-path>] ",
+	Use:   "translate -l <lineage-fs-path> [-p <cue-path>] [--to <synver>] [-e <encoding>] [<data-fs-path>]",
 	Short: "Translate some valid input data from one schema to another",
 	Long: `Translate some valid input data from one schema to another.
 ` + dataReuseText + `
@@ -176,6 +183,88 @@ type translationResult struct {
 	To      string                   `json:"to,omitempty"`
 	Result  cue.Value                `json:"result"`
 	Lacunas thema.TranslationLacunas `json:"lacunas"`
+}
+
+var hydrateCmd = &cobra.Command{
+	Use:   "hydrate -l <lineage-fs-path> [-p <cue-path>] [-e <encoding>] [-v <synver>] [<data-fs-path>] ",
+	Short: "Fill some valid input data with any schema-specified defaults",
+	Long: `Fill some valid input data with any schema-specified defaults.
+` + dataReuseText + `
+Success outputs the input object, but fully hydrated with schema-specified
+default values, if any. Input formatting (e.g. indent spaces) and/or object
+key ordering are not maintained.
+
+If a syntactic version is not provided (-v), the input data will be checked
+for validity against all schemas in the lineage.
+`,
+	PersistentPreRunE: mergeCobraefuncs(validateLineageInput, validateVersionInputOptional, validateDataInput),
+	Args:              cobra.MaximumNArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if !datval.Exists() {
+			panic("datval does not exist")
+		}
+
+		inst := lin.ValidateAny(datval)
+		if inst == nil {
+			return errors.New("input data is not valid for any schema in lineage")
+		}
+
+		// TODO support non-JSON output
+		byt, err := json.MarshalIndent(inst.Hydrate().UnwrapCUE(), "", "  ")
+		if err != nil {
+			fmt.Printf("%+v %#v\n", inst.Hydrate().UnwrapCUE(), inst.Hydrate().UnwrapCUE())
+			return fmt.Errorf("error marshaling hydrated object to JSON: %w", err)
+		}
+		buf := bytes.NewBuffer(byt)
+		_, err = io.Copy(cmd.OutOrStdout(), buf)
+
+		return err
+	},
+}
+
+var dehydrateCmd = &cobra.Command{
+	Use:   "dehydrate -l <lineage-fs-path> [-p <cue-path>] [-e <encoding>] [-v <synver>] [<data-fs-path>] ",
+	Short: "Remove all schema-specified defaults from some valid input data",
+	Long: `Remove all schema-specified defaults from some valid input data.
+` + dataReuseText + `
+Success outputs the input data object, but fully dehydrated, with all of its values
+that are implied by defaults specified in its validating schema removed. Input
+formatting (e.g. indent spaces) and/or object key ordering are not maintained.
+
+If a syntactic version is not provided (-v), the input data will be checked
+for validity against all schemas in the lineage.
+`,
+	PersistentPreRunE: mergeCobraefuncs(validateLineageInput, validateVersionInputOptional, validateDataInput),
+	Args:              cobra.MaximumNArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if !datval.Exists() {
+			panic("datval does not exist")
+		}
+
+		var inst *thema.Instance
+		var err error
+		if sch != nil {
+			inst, err = sch.Validate(datval)
+			if err != nil {
+				return err
+			}
+		} else {
+			inst = lin.ValidateAny(datval)
+			if inst == nil {
+				return errors.New("input data is not valid for any schema in lineage")
+			}
+		}
+
+		// TODO support non-JSON output
+		byt, err := json.MarshalIndent(inst.Dehydrate().UnwrapCUE(), "", "  ")
+		if err != nil {
+			return fmt.Errorf("error marshaling dehydrated object to JSON: %w", err)
+		}
+		buf := bytes.NewBuffer(byt)
+		_, err = io.Copy(cmd.OutOrStdout(), buf)
+
+		return err
+	},
 }
 
 func validateDataInput(cmd *cobra.Command, args []string) error {
