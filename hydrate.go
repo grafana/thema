@@ -120,6 +120,51 @@ func isCueValueEqual(inputdef cue.Value, input cue.Value) bool {
 	return false
 }
 
+// func ddoDehydrate(sch cue.Value, data cue.Value) cue.Value {
+// 	rv := sch.Context().CompileString("_", cue.Filename("dehydrated"))
+//
+// 	switch sch.IncompleteKind() {
+// 	case cue.StructKind:
+// 		for iter, _ := data.Fields(cue.Optional(true), cue.Definitions(true)); iter.Next(); {
+// 			datav, p := iter.Value(), cue.MakePath(iter.Selector())
+// 			schv := sch.LookupPath(p)
+// 			_, has := schv.Default()
+// 			// No schema [default] value means we need the data
+// 			if !has || !schv.Exists() {
+// 				rv = rv.FillPath(p, datav)
+// 			} else if dehyd := ddoDehydrate(schv, datav); dehyd.Exists() {
+// 				rv = rv.FillPath(p, datav)
+// 			}
+// 		}
+// 		return rv
+// 	case cue.ListKind:
+// 		schdef, has := sch.Default()
+// 		if !has {
+// 			return rv.FillPath(cue.Path{}, data)
+// 		}
+// 		// Just don't try if the schema default is a complex structure.
+// 		// Maybe we can improve this later.
+// 		if op, _ := schdef.Expr(); op != cue.NoOp {
+// 			return rv.FillPath(cue.Path{}, data)
+// 		}
+// 		// TODO seems like we need more here?
+// 		if !eq(schdef, data) {
+// 			return rv.FillPath(cue.Path{}, data)
+// 		}
+// 	default:
+// 		schdef, has := sch.Default()
+// 		if !has || !eq(schdef, data) {
+// 			return rv.FillPath(cue.Path{}, data)
+// 		}
+// 	}
+//
+// 	return rv
+// }
+
+// func eq(a, b cue.Value) bool {
+// 	return (a.Subsume(b) == nil) && (b.Subsume(a) == nil)
+// }
+
 // TODO clean up signature to only return cue.Value
 func doDehydrate(sch, data cue.Value) (cue.Value, bool, error) {
 	// To include all optional fields, we need to use sch for iteration,
