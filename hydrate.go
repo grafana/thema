@@ -9,7 +9,7 @@ import (
 )
 
 // TODO clean up signature to only return cue.Value
-func doHydrate(data cue.Value, sch cue.Value) (cue.Value, error) {
+func doHydrate(sch, data cue.Value) (cue.Value, error) {
 	switch sch.IncompleteKind() {
 	case cue.ListKind:
 		// if list element exist
@@ -121,7 +121,7 @@ func isCueValueEqual(inputdef cue.Value, input cue.Value) bool {
 }
 
 // TODO clean up signature to only return cue.Value
-func doDehydrate(sch cue.Value, data cue.Value) (cue.Value, bool, error) {
+func doDehydrate(sch, data cue.Value) (cue.Value, bool, error) {
 	// To include all optional fields, we need to use sch for iteration,
 	// since the lookuppath with optional field doesn't work very well
 	rv := sch.Context().CompileString("", cue.Filename("helper"))

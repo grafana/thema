@@ -19,10 +19,14 @@ type Instance struct {
 
 // Hydrate returns a copy of the Instance with all default values specified by
 // the schema included.
+//
+// NOTE hydration implementation is a WIP. If errors are encountered, the
+// original input is returned unchanged.
 func (i *Instance) Hydrate() *Instance {
-	ni, err := doHydrate(i.raw, i.sch.UnwrapCUE())
+	ni, err := doHydrate(i.sch.UnwrapCUE(), i.raw)
+	// FIXME For now, just no-op it if we error
 	if err != nil {
-		panic("should be unreachable")
+		return i
 	}
 
 	return &Instance{
@@ -34,10 +38,14 @@ func (i *Instance) Hydrate() *Instance {
 
 // Dehydrate returns a copy of the Instance with all default values specified by
 // the schema removed.
+//
+// NOTE dehydration implementation is a WIP. If errors are encountered, the
+// original input is returned unchanged.
 func (i *Instance) Dehydrate() *Instance {
-	ni, _, err := doDehydrate(i.raw, i.sch.UnwrapCUE())
+	ni, _, err := doDehydrate(i.sch.UnwrapCUE(), i.raw)
+	// FIXME For now, just no-op it if we error
 	if err != nil {
-		panic("should be unreachable")
+		return i
 	}
 
 	return &Instance{
