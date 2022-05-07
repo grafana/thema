@@ -45,9 +45,24 @@ type Lineage interface {
 	// Only the [0, 0] schema is guaranteed to exist in all valid lineages.
 	Schema(v SyntacticVersion) (Schema, error)
 
+	// Library returns the thema.Library instance with which this lineage was built.
+	Library() Library
+
 	// Lineage must be a private interface in order to restrict their creation
 	// through BindLineage().
 	_lineage()
+}
+
+// SchemaP returns the schema identified by the provided version. If no schema
+// exists in the lineage with the provided version, it panics.
+//
+// This is a simple convenience wrapper on the Lineage.Schema() method.
+func SchemaP(lin Lineage, v SyntacticVersion) Schema {
+	sch, err := lin.Schema(v)
+	if err != nil {
+		panic(err)
+	}
+	return sch
 }
 
 // LatestVersion returns the version number of the newest (largest) schema

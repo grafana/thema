@@ -142,6 +142,11 @@ func BindLineage(raw cue.Value, lib Library, opts ...BindOption) (Lineage, error
 	return lin, nil
 }
 
+// Library returns the thema.Library instance with which this lineage was built.
+func (lin *UnaryLineage) Library() Library {
+	return lin.lib
+}
+
 func isValidLineage(lin Lineage) {
 	switch tlin := lin.(type) {
 	case nil:
