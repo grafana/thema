@@ -79,6 +79,16 @@ func RandSeq(n int) string {
 // 		cue.Docs(true),
 // 	)
 //
+// ast.Walk(syn, func(n ast.Node) bool {
+// 	fmt.Printf("%T %+v\n", n, n)
+// 	return true
+// }, func(n ast.Node) {})
+//
+// return format.Node(syn,
+// format.TabIndent(true),
+// format.Simplify(),
+// )
+//
 // 	// Normalize to ast.File
 // 	var f *ast.File
 // 	switch syns := syn.(type) {

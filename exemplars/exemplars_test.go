@@ -32,10 +32,10 @@ func TestExemplarValidity(t *testing.T) {
 	}
 
 	for iter.Next() {
-		lin := iter.Value().LookupPath(cue.ParsePath("l"))
-		name, _ := lin.LookupPath(cue.ParsePath("name")).String()
+		v := iter.Value().LookupPath(cue.ParsePath("l"))
+		name, _ := v.LookupPath(cue.ParsePath("name")).String()
 		t.Run("Bind-"+name, func(t *testing.T) {
-			_, err = thema.BindLineage(lin, alllib, nameOpts[name]...)
+			_, err := thema.BindLineage(v, alllib, nameOpts[name]...)
 			if err != nil {
 				t.Fatal(err)
 			}
