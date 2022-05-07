@@ -32,7 +32,6 @@ import (
     // every schema in the sequence is backwards compatible with (subsumes) its
     // predecessors.
     // #Sequence: [...joinSchema]
-    #Sequence: [...joinSchema]
 
     // This exists because constraining with list.MinItems(1) isn't able to
     // tell the evaluator that it is always safe to reference #Sequence[0],
