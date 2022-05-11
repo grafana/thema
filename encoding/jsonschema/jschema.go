@@ -20,149 +20,25 @@ func GenerateSchema(sch thema.Schema) (*ast.File, error) {
 		return nil, err
 	}
 
-	return oapiToJSchema(f).(*ast.File), nil
+	return oapiToJSchema2(f).(*ast.File), nil
 }
 
-// FIXME This is a really sloppy first pass. parent is unused, and impl makes bad changes and misses needed changes
-type objmod struct {
-	parent     *objmod
+type schNode struct {
+	parent     *schNode
+	n          *ast.StructLit
+	typ        string
 	ensureNull bool
+	scanf      scanfunc
 }
 
-func oapiToJSchema(f ast.Node) ast.Node {
-	ast.Walk(f, func(n ast.Node) bool {
-		if isObjectSchema(n) {
-			newobjmod(nil, n)
-			return false
-		}
-		return true
-	}, nil)
+type scanfunc func(p *schNode, n *ast.StructLit) error
 
-	return f
-}
 func oapiToJSchema2(f ast.Node) ast.Node {
 	err := scan(nil, f)
 	if err != nil {
 		panic(err)
 	}
-	// var fatal error
-	// ast.Walk(f, func(n ast.Node) bool {
-	// 	if fatal != nil {
-	// 		return false
-	// 	}
-	//
-	// 	sch, err := newSchemaNode(nil, n)
-	// 	if err != nil {
-	// 		if !errors.Is(err, errNotASchema) {
-	// 			fatal = err
-	// 			return false
-	// 		}
-	// 		return true
-	// 	}
-	//
-	// 	sch.process()
-	// 	return false
-	// }, nil)
-
 	return f
-}
-
-func newobjmod(parent *objmod, n ast.Node) {
-	o := &objmod{parent: parent}
-	o.process(n)
-}
-
-func (o *objmod) process(n ast.Node) {
-	var self bool
-	ast.Walk(n, func(n ast.Node) bool {
-		if self && isObjectSchema(n) {
-			newobjmod(o, n)
-			return false
-		}
-		self = true
-
-		if isFieldWithLabel(n, "nullable") {
-			if x, is := n.(*ast.Field).Value.(*ast.BasicLit); is {
-				o.ensureNull = x.Kind == token.TRUE
-			}
-		}
-
-		return true
-	}, nil)
-
-	self = false
-	astutil.Apply(n, func(c astutil.Cursor) bool {
-		if self && isObjectSchema(c.Node()) {
-			// Skip, it's the other's responsibility
-			return false
-		}
-		self = true
-		switch x := c.Node().(type) {
-		case *ast.Field:
-			if l, is := x.Label.(*ast.BasicLit); is {
-				var lval string
-				lval = l.Value
-				if ulv, _ := strconv.Unquote(l.Value); ulv != "" {
-					lval = ulv
-				}
-
-				switch lval {
-				// None of these are allowed in JSON Schema
-				case "example", "readOnly", "writeOnly", "discriminator", "nullable", "xml":
-					c.Delete()
-					return false
-				case "type":
-					if o.ensureNull && !typeContains(x, "null") {
-						x.Value = ast.NewList(x.Value, ast.NewString("null"))
-					}
-				}
-			}
-		}
-		// fmt.Printf("%v %T %s\x", c.Index(), c.Node(), c.Node())
-		return true
-	}, nil)
-}
-
-func isObjectSchema(n ast.Node) bool {
-	var typ, prop bool
-	if x, is := n.(*ast.StructLit); is {
-		for _, el := range x.Elts {
-			if isFieldWithLabel(el, "type") {
-				typ = typeIs(el, "object")
-			}
-			if isFieldWithLabel(el, "properties") {
-				prop = true
-			}
-		}
-	}
-
-	return typ && prop
-}
-
-type processor func(c astutil.Cursor) bool
-
-// makes a processor that deletes any field with a label matching the input key cases
-func makeFieldDeleter(keys ...string) processor {
-	return func(c astutil.Cursor) bool {
-		switch x := c.Node().(type) {
-		case *ast.Field:
-			if l, is := x.Label.(*ast.BasicLit); is {
-				var lval string
-				lval = l.Value
-				if ulv, _ := strconv.Unquote(l.Value); ulv != "" {
-					lval = ulv
-				}
-
-				for _, k := range keys {
-					if lval == k {
-						c.Delete()
-						return false
-					}
-				}
-			}
-		}
-		return false
-	}
 }
 
 // Reports if the provided node is an oapi/json schema `"type": <val>` field,
@@ -341,14 +217,6 @@ func checkNull(n *ast.StructLit) bool {
 	return false
 }
 
-type schNode struct {
-	parent     *schNode
-	n          *ast.StructLit
-	typ        string
-	ensureNull bool
-	scanf      scanfunc
-}
-
 // func (s *schNode) process() error {
 func (s *schNode) process() {
 	if err := s.scanf(s, s.n); err != nil {
@@ -390,12 +258,6 @@ func (s *schNode) process() {
 	}
 }
 
-func (s *schNode) node() ast.Node {
-	return s.n
-}
-
-type scanfunc func(p *schNode, n *ast.StructLit) error
-
 func scan(p *schNode, n ast.Node) error {
 	var fatal error
 	ast.Walk(n, func(n ast.Node) bool {
@@ -423,11 +285,6 @@ func scan(p *schNode, n ast.Node) error {
 	return fatal
 }
 
-type opNode struct {
-	*schNode
-}
-
 type schemaNode interface {
 	process()
-	node() ast.Node
 }
