@@ -1,26 +1,33 @@
 package jsonschema
 
 import (
-	"fmt"
 	"testing"
 
 	"cuelang.org/go/cue/ast"
 	"cuelang.org/go/cue/cuecontext"
 	"cuelang.org/go/pkg/encoding/json"
+	"github.com/grafana/thema"
 	"github.com/xeipuuv/gojsonschema"
 )
 
-func TestJSONSchemaRewrite(t *testing.T) {
-	sl := gojsonschema.NewSchemaLoader()
+var sl = gojsonschema.NewSchemaLoader()
+var lib = thema.NewLibrary(cuecontext.New())
+
+func init() {
 	sl.Validate = true
 	sl.Draft = gojsonschema.Draft4
+}
 
+func TestJSONSchemaRewrite(t *testing.T) {
 	exp, err := json.Unmarshal([]byte(complexIn))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	mod := oapiToJSchema2(exp)
+	mod, err := oapiToJSchema(exp)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	j, err := json.Marshal(cuecontext.New().BuildFile(&ast.File{
 		Decls: []ast.Decl{mod.(ast.Expr)},
@@ -28,7 +35,6 @@ func TestJSONSchemaRewrite(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	fmt.Println(json.Indent([]byte(j), "", "  "))
 	if err = sl.AddSchemas(gojsonschema.NewStringLoader(j)); err != nil {
 		t.Fatal(err)
 	}

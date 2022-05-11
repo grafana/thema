@@ -20,7 +20,11 @@ func GenerateSchema(sch thema.Schema) (*ast.File, error) {
 		return nil, err
 	}
 
-	return oapiToJSchema2(f).(*ast.File), nil
+	of, err := oapiToJSchema(f)
+	if err != nil {
+		return nil, err
+	}
+	return of.(*ast.File), nil
 }
 
 type schNode struct {
@@ -33,12 +37,9 @@ type schNode struct {
 
 type scanfunc func(p *schNode, n *ast.StructLit) error
 
-func oapiToJSchema2(f ast.Node) ast.Node {
+func oapiToJSchema(f ast.Node) (ast.Node, error) {
 	err := scan(nil, f)
-	if err != nil {
-		panic(err)
-	}
-	return f
+	return f, err
 }
 
 // Reports if the provided node is an oapi/json schema `"type": <val>` field,
