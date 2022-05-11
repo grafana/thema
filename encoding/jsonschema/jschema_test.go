@@ -7,6 +7,7 @@ import (
 	"cuelang.org/go/cue/cuecontext"
 	"cuelang.org/go/pkg/encoding/json"
 	"github.com/grafana/thema"
+	"github.com/grafana/thema/exemplars"
 	"github.com/xeipuuv/gojsonschema"
 )
 
@@ -16,6 +17,31 @@ var lib = thema.NewLibrary(cuecontext.New())
 func init() {
 	sl.Validate = true
 	sl.Draft = gojsonschema.Draft4
+}
+
+func TestExemplarExportIsValid(t *testing.T) {
+	all := exemplars.All(lib)
+	for name, lin := range all {
+		t.Run(name, func(t *testing.T) {
+			for sch := thema.SchemaP(lin, thema.SV(0, 0)); sch != nil; sch = sch.Successor() {
+				isch := sch
+				t.Run(isch.Version().String(), func(t *testing.T) {
+					f, err := GenerateSchema(isch)
+					if err != nil {
+						t.Fatal(err)
+					}
+
+					j, err := json.Marshal(cuecontext.New().BuildFile(f))
+					if err != nil {
+						t.Fatal(err)
+					}
+					if err = sl.AddSchemas(gojsonschema.NewStringLoader(j)); err != nil {
+						t.Fatal(err)
+					}
+				})
+			}
+		})
+	}
 }
 
 func TestJSONSchemaRewrite(t *testing.T) {
