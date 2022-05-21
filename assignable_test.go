@@ -119,6 +119,15 @@ func TestAssignable(t *testing.T) {
 			}
 			`,
 		},
+		"mapPointer": {
+			T: &struct {
+				Amap *map[string]bool `json:"amap"`
+			}{},
+			cue: `typ: {
+				amap: [string]: bool
+			}
+			`,
+		},
 		"nestedStruct": {
 			T: &struct {
 				Foo   string `json:"foo"`
@@ -158,6 +167,15 @@ func TestAssignable(t *testing.T) {
 		"simpleSlice": {
 			T: &struct {
 				Slice []string `json:"slice"`
+			}{},
+			cue: `typ: {
+				slice: [...string]
+			}
+			`,
+		},
+		"slicePointer": {
+			T: &struct {
+				Slice *[]string `json:"slice"`
 			}{},
 			cue: `typ: {
 				slice: [...string]
