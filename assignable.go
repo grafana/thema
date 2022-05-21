@@ -255,8 +255,14 @@ func assignable(sch cue.Value, T interface{}) error {
 }
 
 func stripLeadNull(v cue.Value) cue.Value {
-	if op, vals := v.Expr(); op == cue.OrOp && vals[0].Null() == nil {
-		return vals[1]
+	if op, vals := v.Expr(); op == cue.OrOp {
+		// Walk over the vals, because there may be more than one null (e.g. omitempty +
+		// slice/map type)
+		for i := 0; i < len(vals); i++ {
+			if vals[i].Null() != nil {
+				return vals[i]
+			}
+		}
 	}
 	return v
 }
@@ -280,9 +286,9 @@ func structToMap(v cue.Value) map[string]valpath {
 			Path:  cue.MakePath(iter.Selector()),
 			Value: iter.Value(),
 		}
-		//fmt.Printf("sm %v %#v\n", iter.Selector(), iter.Value())
+		// fmt.Printf("sm %v %#v\n", iter.Selector(), iter.Value())
 		m[iter.Selector().String()] = vp
-		//m[iter.Selector().Optional().String()] = vp
+		// m[iter.Selector().Optional().String()] = vp
 	}
 
 	return m
