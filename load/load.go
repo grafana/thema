@@ -64,19 +64,22 @@ var themamodpath string = filepath.Join("cue.mod", "pkg", "github.com", "grafana
 func InstancesWithThema(modFS fs.FS, dir string) (*build.Instance, error) {
 	var modname string
 	err := fs.WalkDir(modFS, "cue.mod", func(path string, d fs.DirEntry, err error) error {
+		// fs.FS implementations tend to not use path separators as expected. Use a
+		// normalized one for comparisons, but retain the original for calls back into modFS.
+		normpath := filepath.FromSlash(path)
 		if err != nil {
 			return err
 		}
 
 		if d.IsDir() {
-			switch path {
+			switch normpath {
 			case filepath.Join("cue.mod", "gen"), filepath.Join("cue.mod", "usr"):
 				return fs.SkipDir
 			case themamodpath:
 				return fmt.Errorf("path %q already exists in modFS passed to InstancesWithThema, must be absent for dynamic dependency injection", themamodpath)
 			}
 			return nil
-		} else if path == filepath.Join("cue.mod", "module.cue") {
+		} else if normpath == filepath.Join("cue.mod", "module.cue") {
 			modf, err := modFS.Open(path)
 			if err != nil {
 				return err
