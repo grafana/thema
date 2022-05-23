@@ -218,7 +218,6 @@ func checkNull(n *ast.StructLit) bool {
 	return false
 }
 
-// func (s *schNode) process() error {
 func (s *schNode) process() {
 	if err := s.scanf(s, s.n); err != nil {
 		panic(err)
@@ -238,7 +237,7 @@ func (s *schNode) process() {
 
 				switch lval {
 				// None of these are allowed in JSON Schema
-				case "example", "readOnly", "writeOnly", "discriminator", "nullable", "xml":
+				case "deprecated", "discriminator", "example", "externalDocs", "nullable", "readOnly", "writeOnly", "xml":
 					c.Delete()
 				case "type":
 					if s.ensureNull && !typeContains(x, "null") {

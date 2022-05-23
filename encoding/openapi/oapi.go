@@ -32,6 +32,9 @@ func appendSchemaToLineage(b []byte, schemaPath string, lin thema.Lineage) ([]by
 
 // GenerateSchema creates an OpenAPI document that represents the provided Thema
 // Schema as an OpenAPI schema component.
+//
+// Returns the result as a CUE AST, which is suitable for direct manipulation and
+// marshaling to either JSON or YAML.
 func GenerateSchema(sch thema.Schema, cfg *openapi.Config) (*ast.File, error) {
 	// Need it to make an instance
 	rt := (*cue.Runtime)(sch.UnwrapCUE().Context())
