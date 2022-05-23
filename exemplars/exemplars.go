@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"os"
 	"path/filepath"
 	"testing/fstest"
 
@@ -14,6 +13,36 @@ import (
 	"github.com/grafana/thema/internal/util"
 	tload "github.com/grafana/thema/load"
 )
+
+// All returns all of the exemplar lineages in a map keyed by lineage name.
+func All(lib thema.Library) map[string]thema.Lineage {
+	all := make(map[string]thema.Lineage)
+	iter, err := buildAll(lib.Context()).Fields(cue.Definitions(false))
+	if err != nil {
+		panic(err)
+	}
+
+	for iter.Next() {
+		v := iter.Value().LookupPath(cue.ParsePath("l"))
+		name, _ := v.LookupPath(cue.ParsePath("name")).String()
+
+		lin, err := thema.BindLineage(v, lib, nameOpts[name]...)
+		if err != nil {
+			panic(err)
+		}
+		all[name] = lin
+	}
+
+	return all
+}
+
+var nameOpts = map[string][]thema.BindOption{
+	"defaultchange": {thema.SkipBuggyChecks()},
+	"narrowing":     {},
+	"rename":        {},
+	"expand":        {},
+	"single":        {},
+}
 
 func buildAll(ctx *cue.Context) cue.Value {
 	all, err := tload.InstancesWithThema(CueFS(), ".")
@@ -51,7 +80,7 @@ func populateMapFSFromRoot(in fs.FS, root, join string) (fstest.MapFS, error) {
 		// Ignore gosec warning G304. The input set here is necessarily
 		// constrained to files specified in embed.go
 		// nolint:gosec
-		b, err := os.Open(filepath.Join(root, join, path))
+		b, err := in.Open(filepath.Join(root, join, path))
 		if err != nil {
 			return err
 		}
@@ -115,7 +144,6 @@ func harnessForExemplar(name string, lib thema.Library) cue.Value {
 func lineageForExemplar(name string, lib thema.Library, o ...thema.BindOption) (thema.Lineage, error) {
 	switch name {
 	case "defaultchange", "narrowing", "rename":
-		// subsumption in cue v0.4.0 panics in all three of these cases
 		o = append(o, thema.SkipBuggyChecks())
 	}
 	return thema.BindLineage(harnessForExemplar(name, lib), lib, o...)

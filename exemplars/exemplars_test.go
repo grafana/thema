@@ -12,14 +12,6 @@ var allctx = cuecontext.New()
 var dirinst cue.Value
 var alllib thema.Library
 
-var nameOpts = map[string][]thema.BindOption{
-	"defaultchange": {thema.SkipBuggyChecks()},
-	"narrowing":     {},
-	"rename":        {},
-	"expand":        {},
-	"single":        {},
-}
-
 func init() {
 	dirinst = buildAll(allctx)
 	alllib = thema.NewLibrary(allctx)
