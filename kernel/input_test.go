@@ -1,6 +1,7 @@
 package kernel
 
 import (
+	"bytes"
 	"fmt"
 	"testing"
 
@@ -156,10 +157,11 @@ func TestInputKernelConverge(t *testing.T) {
 	}
 
 	validtt := map[string]struct {
-		jsonstr  string
-		from     thema.SyntacticVersion
-		output00 type00
-		output10 type10
+		jsonstr    string
+		from       thema.SyntacticVersion
+		output00   type00
+		output10   type10
+		jo00, jo10 []byte
 	}{
 		"00good": {
 			jsonstr: `
@@ -177,6 +179,8 @@ func TestInputKernelConverge(t *testing.T) {
 				After:     "renamedstr",
 				Unchanged: "unchanged str val",
 			},
+			jo00: []byte(`{"before":"renamedstr","unchanged":"unchanged str val"}`),
+			jo10: []byte(`{"after":"renamedstr","unchanged":"unchanged str val"}`),
 		},
 		"10good": {
 			jsonstr: `
@@ -194,6 +198,8 @@ func TestInputKernelConverge(t *testing.T) {
 				After:     "renamedstr",
 				Unchanged: "unchanged str val",
 			},
+			jo00: []byte(`{"before":"renamedstr","unchanged":"unchanged str val"}`),
+			jo10: []byte(`{"after":"renamedstr","unchanged":"unchanged str val"}`),
 		},
 		"00empty": {
 			jsonstr: `
@@ -211,6 +217,8 @@ func TestInputKernelConverge(t *testing.T) {
 				After:     "",
 				Unchanged: "",
 			},
+			jo00: []byte(`{"before":"","unchanged":""}`),
+			jo10: []byte(`{"after":"","unchanged":""}`),
 		},
 		"10empty": {
 			jsonstr: `
@@ -228,6 +236,8 @@ func TestInputKernelConverge(t *testing.T) {
 				After:     "",
 				Unchanged: "",
 			},
+			jo00: []byte(`{"before":"","unchanged":""}`),
+			jo10: []byte(`{"after":"","unchanged":""}`),
 		},
 	}
 
@@ -252,14 +262,23 @@ func TestInputKernelConverge(t *testing.T) {
 					if err != nil {
 						t.Fatal(err)
 					}
+					outb, _, err := k.ConvergeJSON([]byte(tab.jsonstr))
+					if err != nil {
+						t.Fatal(err)
+					}
 
 					if to00 {
 						oval := *out.(*type00)
 						if tab.output00 != oval {
 							t.Fatalf("output targeting 0.0 was not as expected:\n\tWNT:%+v\n\tGOT:%+v\n", tab.output00, oval)
 						}
+						if !bytes.Equal(outb, tab.jo00) {
+							t.Fatalf("json output targeting 0.0 was not as expected:\n\tWNT:%+v\n\tGOT:%+v\n", string(tab.jo00), string(outb))
+						}
 					} else if tab.output10 != *out.(*type10) {
 						t.Fatalf("output targeting 1.0 was not as expected:\n\tWNT:%+v\n\tGOT:%+v\n", tab.output10, *out.(*type10))
+					} else if !bytes.Equal(outb, tab.jo10) {
+						t.Fatalf("json output targeting 0.0 was not as expected:\n\tWNT:%+v\n\tGOT:%+v\n", string(tab.jo10), string(outb))
 					}
 				})
 			}
