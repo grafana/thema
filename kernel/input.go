@@ -110,6 +110,33 @@ func (k InputKernel) Converge(data []byte) (interface{}, thema.TranslationLacuna
 		panic("kernel not initialized")
 	}
 
+	transval, lac, err := k.process(data)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	ret := k.typ
+	transval.UnwrapCUE().Decode(ret)
+	return ret, lac, nil
+}
+
+// ConvergeJSON is the same as Converge, but emits the translated instance as
+// byte slice of JSON rather than unmarshalling to a Go type.
+func (k InputKernel) ConvergeJSON(data []byte) ([]byte, thema.TranslationLacunas, error) {
+	if !k.init {
+		panic("kernel not initialized")
+	}
+
+	transval, lac, err := k.process(data)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	b, err := transval.UnwrapCUE().MarshalJSON()
+	return b, lac, err
+}
+
+func (k InputKernel) process(data []byte) (*thema.Instance, thema.TranslationLacunas, error) {
 	// Decode the input data into a cue.Value
 	v, err := k.load(k.lin.UnwrapCUE().Context(), data)
 	if err != nil {
@@ -129,10 +156,8 @@ func (k InputKernel) Converge(data []byte) (interface{}, thema.TranslationLacuna
 		return nil, nil, fmt.Errorf("validation failed")
 	}
 
-	transval, lac := inst.Translate(k.to)
-	ret := k.typ
-	transval.UnwrapCUE().Decode(ret)
-	return ret, lac, nil
+	tinst, lac := inst.Translate(k.to)
+	return tinst, lac, nil
 }
 
 // IsInitialized reports whether the InputKernel has been properly initialized.
