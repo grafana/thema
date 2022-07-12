@@ -7,7 +7,6 @@ import (
 
 	"cuelang.org/go/cue"
 	"cuelang.org/go/cue/ast"
-	"cuelang.org/go/cue/format"
 	"cuelang.org/go/cue/parser"
 	"github.com/grafana/thema"
 	"github.com/grafana/thema/internal/astutil"
@@ -21,15 +20,7 @@ import (
 // string. pkgname is used as the returned file's package declaration. If
 // pkgname is empty, the resulting file will have no package declaration.
 func NewLineage(sch cue.Value, name, pkgname string) (*ast.File, error) {
-	syn := sch.Syntax(
-		cue.Definitions(true),
-		cue.Hidden(true),
-		cue.Optional(true),
-		cue.Attributes(true),
-		cue.Docs(true),
-	)
-
-	b, err := format.Node(syn)
+	b, err := astutil.FmtNode(astutil.Format(sch))
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert input schema to string: %ww", err)
 	}
@@ -46,11 +37,40 @@ func NewLineage(sch cue.Value, name, pkgname string) (*ast.File, error) {
 		return nil, fmt.Errorf("template generation failed: %w", err)
 	}
 
-	f, err := parser.ParseFile(name+".cue", buf.Bytes())
+	f, err := parser.ParseFile(name+".cue", buf.Bytes(), parser.ParseComments)
 	if err != nil {
-		return nil, fmt.Errorf("%s\nerror while parsing generated output: %w\n", buf.String(), err)
+		return nil, fmt.Errorf("%s\nerror while parsing generated output: %w", buf.String(), err)
 	}
 	return f, nil
+}
+
+// InsertSchemaNodeAs inserts the provided schema ast.Expr into the provided
+// lineage ast.Node at the position corresponding to the provided version. The
+// provided schema will either replace an existing schema, or be appended to the
+// end of an existing sequence.
+//
+// The provided lineage node is modified in place. Corresponding lenses are not
+// generated. The result is not checked for Thema validity. Behavior is
+// undefined if the provided lineage node is not well-formed.
+func InsertSchemaNodeAs(lin ast.Node, sch ast.Expr, v thema.SyntacticVersion) error {
+	seql, err := astutil.SchemaListFor(lin, v[0])
+	if err != nil {
+		return err
+	}
+
+	if v[1] > uint(len(seql.Elts)) {
+		return fmt.Errorf("cannot insert version %s, previous version does not exist in lineage", v)
+	}
+
+	if v[1] == uint(len(seql.Elts)) {
+		// append
+		seql.Elts = append(seql.Elts, sch)
+	} else {
+		// replace
+		seql.Elts[v[1]] = sch
+	}
+
+	return nil
 }
 
 type linTplVars struct {
@@ -62,8 +82,7 @@ type linTplVars struct {
 // TODO replace with collection of templates
 var emptyLineage = template.Must(template.New("newlin").Parse(`
 {{- if ne .PkgName "" }}package {{ .PkgName }}
-{{end}}
-import "github.com/grafana/thema"
+{{end}}import "github.com/grafana/thema"
 
 thema.#Lineage
 name: "{{ .Name }}"
@@ -83,8 +102,8 @@ seqs: [
 // version bump). Otherwise, a new sequence will be created with the provided
 // schema as its only element (major version bump).
 func Append(lin thema.Lineage, sch cue.Value) (ast.Node, error) {
-	linf := tonode(lin.UnwrapCUE()).(*ast.File)
-	schnode := tonode(sch).(*ast.StructLit)
+	linf := astutil.Format(lin.UnwrapCUE()).(*ast.File)
+	schnode := astutil.Format(sch).(*ast.StructLit)
 
 	lv := thema.LatestVersion(lin)
 	lsch := thema.SchemaP(lin, lv)
@@ -134,54 +153,8 @@ func versionComment(v thema.SyntacticVersion) *ast.CommentGroup {
 		Line: true,
 		List: []*ast.Comment{
 			&ast.Comment{
-				Text: fmt.Sprint("// ", v.String()),
+				Text: fmt.Sprint("// v", v.String()),
 			},
 		},
 	}
-}
-
-// Into prints a
-func Into(lin thema.Lineage, v cue.Value, p cue.Path) (ast.Node, error) {
-	panic("TODO")
-}
-
-func fmtn(n ast.Node) []byte {
-	b, err := format.Node(n)
-	if err != nil {
-		panic(fmt.Errorf("failed to convert input schema to string: %w", err))
-	}
-	b, err = format.Source(b, format.TabIndent(true), format.Simplify())
-	if err != nil {
-		panic(fmt.Errorf("could not reformat to canonical source form: %w", err))
-	}
-	return b
-}
-
-func tonode(v cue.Value) ast.Node {
-	n := v.Syntax(
-		cue.Raw(),
-		cue.Definitions(true),
-		cue.Hidden(true),
-		cue.Optional(true),
-		cue.Attributes(true),
-		cue.Docs(true),
-	)
-
-	sanitizeBottomLiteral(n)
-	return n
-}
-
-// Removes the comment that the CUE internal exporter adds on bottom literals,
-// which can cause format.Node to produce invalid CUE. This seems to only happen
-// because the CUE compiler injects these comments on a bottom when it's a
-// literal in the source
-//
-// TODO file a bug upstream, we shouldn't have to do this
-func sanitizeBottomLiteral(n ast.Node) {
-	ast.Walk(n, func(n ast.Node) bool {
-		if x, ok := n.(*ast.BottomLit); ok {
-			x.SetComments(nil)
-		}
-		return true
-	}, nil)
 }

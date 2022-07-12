@@ -18,11 +18,12 @@ bar: int
 `
 	v := ctx.CompileString(cuestr)
 
-	_, err := NewLineage(v, "somelineage", "testpkg")
+	f, err := NewLineage(v, "somelineage", "testpkg")
 	if err != nil {
 		t.Fatal(err)
 	}
-	// fmt.Println(string(fmtn(f)))
+	_ = f
+	// fmt.Println(string(astutil.FmtNode(f)))
 }
 
 func TestSimpleAppendLineage(t *testing.T) {
@@ -34,9 +35,10 @@ foo?: int
 `
 	v := ctx.CompileString(cuestr)
 
-	_, err := Append(lin, v)
+	f, err := Append(lin, v)
 	if err != nil {
 		t.Fatal(err)
 	}
-	// fmt.Println(string(fmtn(f)))
+	_ = f
+	// fmt.Println(string(astutil.FmtNodeP(f)))
 }

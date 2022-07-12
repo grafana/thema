@@ -4,15 +4,14 @@ import (
 	"fmt"
 	"strconv"
 
+	"cuelang.org/go/cue"
 	"cuelang.org/go/cue/ast"
+	"cuelang.org/go/cue/ast/astutil"
+	"cuelang.org/go/cue/format"
 	"cuelang.org/go/cue/token"
 )
 
-// Structish comprises AST types that contain a list of declarations that may be fields.
-type Structish interface {
-	*ast.File | *ast.StructLit
-}
-
+// FindSeqs finds the seqs field within what is expected to be a valid lineage ast.Node
 func FindSeqs(n ast.Node) *ast.ListLit {
 	var ret *ast.ListLit
 	ast.Walk(n, func(n ast.Node) bool {
@@ -30,15 +29,31 @@ func FindSeqs(n ast.Node) *ast.ListLit {
 	return ret
 }
 
+// LatestSchemaList finds the ListLit for the latest sequence in what is expected
+// to be a valid lineage ast.Node
 func LatestSchemaList(n ast.Node) (*ast.ListLit, error) {
 	seqlist := FindSeqs(n)
 	if seqlist == nil {
 		return nil, fmt.Errorf("could not find seqs list in input")
 	}
-	return ListForField(seqlist.Elts[len(seqlist.Elts)-1], "schemas")
+	return listForField(seqlist.Elts[len(seqlist.Elts)-1], "schemas")
 }
 
-func ListForField(n ast.Node, label string) (*ast.ListLit, error) {
+// SchemaListFor finds the ListLit for a particular major version number in what
+// is expected to be a valid lineage ast.Node
+func SchemaListFor(n ast.Node, majv uint) (*ast.ListLit, error) {
+	seqlist := FindSeqs(n)
+	if seqlist == nil {
+		return nil, fmt.Errorf("could not find seqs list in input")
+	}
+	if majv >= uint(len(seqlist.Elts)) {
+		return nil, fmt.Errorf("major version %v not present in lineage", majv)
+	}
+
+	return listForField(seqlist.Elts[majv], "schemas")
+}
+
+func listForField(n ast.Node, label string) (*ast.ListLit, error) {
 	seqs, err := GetFieldByLabel(n, label)
 	if err != nil {
 		return nil, err
@@ -98,4 +113,62 @@ func isFieldWithLabel(n ast.Node, label string) bool {
 		}
 	}
 	return false
+}
+
+// FmtNode exports a node to CUE standard-fmt'd bytes using standard Thema configuration.
+func FmtNode(n ast.Node) ([]byte, error) {
+	if x, ok := n.(*ast.File); ok {
+		err := astutil.Sanitize(x)
+		if err != nil {
+			return nil, err
+		}
+	}
+	b, err := format.Node(n)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert input schema to string: %w", err)
+	}
+	b, err = format.Source(b, format.TabIndent(true), format.Simplify())
+	if err != nil {
+		return nil, fmt.Errorf("could not reformat to canonical source form: %w", err)
+	}
+	return b, nil
+}
+
+// FmtNodeP is FmtNode but panics on error.
+func FmtNodeP(n ast.Node) []byte {
+	b, err := FmtNode(n)
+	if err != nil {
+		panic(err)
+	}
+	return b
+}
+
+// Format formats a cue.Value using a Thema-standard set of options.
+//
+// It also sanitizes out weird insertions the CUE compiler makes, as necessary.
+func Format(v cue.Value) ast.Node {
+	n := v.Syntax(
+		cue.Raw(),
+		cue.All(),
+		cue.Definitions(true),
+		cue.Docs(true),
+	)
+
+	sanitizeBottomLiteral(n)
+	return n
+}
+
+// Removes the comment that the CUE internal exporter adds on bottom literals,
+// which can cause format.Node to produce invalid CUE. This seems to only happen
+// because the CUE compiler injects these comments on a bottom when it's a
+// literal in the source
+//
+// TODO file a bug upstream, we shouldn't have to do this
+func sanitizeBottomLiteral(n ast.Node) {
+	ast.Walk(n, func(n ast.Node) bool {
+		if x, ok := n.(*ast.BottomLit); ok {
+			x.SetComments(nil)
+		}
+		return true
+	}, nil)
 }
