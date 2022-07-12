@@ -18,7 +18,7 @@ import (
 	"cuelang.org/go/encoding/yaml"
 	"github.com/grafana/thema"
 	"github.com/grafana/thema/encoding/cue"
-	"github.com/grafana/thema/internal/util"
+	tastutil "github.com/grafana/thema/internal/astutil"
 	"github.com/spf13/cobra"
 )
 
@@ -57,7 +57,7 @@ func (ic *initCommand) setup(cmd *cobra.Command) {
 	initLineageCmd.PersistentFlags().StringVarP(&ic.name, "name", "n", "", "String for the #Lineage.name field")
 	initLineageCmd.MarkFlagRequired("name")
 	initLineageCmd.PersistentFlags().StringVarP(&ic.cuepath, "cue-path", "p", "", "CUE expression for subpath at which lineage should be generated")
-	initLineageCmd.PersistentFlags().StringVar(&ic.pkgname, "package-name", "", "name of the package. Defaults to value for --name")
+	initLineageCmd.PersistentFlags().StringVar(&ic.pkgname, "package-name", "", "Name for generated package. If omitted, --name value is used")
 	initLineageCmd.PersistentFlags().BoolVar(&ic.nopkg, "no-package", false, "Generate lineage without a package directive")
 	// initLineageCmd.PersistentPreRun = ic.prep
 
@@ -123,7 +123,7 @@ func (ic *initCommand) processInput(cmd *cobra.Command, args []string) error {
 }
 
 var initLineageEmptyCmd = &cobra.Command{
-	Use:   "empty -n <str> [-p <cue-path>] [--package-name <str> | --no-package]",
+	Use:   "empty",
 	Args:  cobra.MaximumNArgs(0),
 	Short: "Initialize with an empty schema",
 	Long: `Initialize the lineage with an empty schema.
@@ -167,7 +167,7 @@ func (ic *initCommand) runEmpty(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	b, err := util.FmtNode(linf)
+	b, err := tastutil.FmtNode(linf)
 	if err != nil {
 		ic.err = err
 		return
@@ -177,13 +177,12 @@ func (ic *initCommand) runEmpty(cmd *cobra.Command, args []string) {
 }
 
 var initLineageJSONSchemaCmd = &cobra.Command{
-	Use:   "jsonschema -n <str> [--src-subpath <path>] [-p <cue-path>] [--package-name <str> | --no-package] <path> ",
+	Use:   "jsonschema <path> ",
 	Args:  cobra.MaximumNArgs(1),
 	Short: "Initialize with a JSON Schema",
 	Long: `Initialize the lineage with one schema, derived from a JSON Schema document.
 
-A JSON Schema document to be converted for the initial lineage schema must be given,
-either via a path argument or as an input to stdin.
+A JSON Schema document to be converted for the initial lineage schema must be given as an argument.
 
 The generated lineage is printed to stdout.
 `,
@@ -226,7 +225,7 @@ func (ic *initCommand) runJSONSchema(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	b, err := util.FmtNode(linf)
+	b, err := tastutil.FmtNode(linf)
 	if err != nil {
 		ic.err = err
 		return
@@ -236,13 +235,12 @@ func (ic *initCommand) runJSONSchema(cmd *cobra.Command, args []string) {
 }
 
 var initLineageOpenAPICmd = &cobra.Command{
-	Use: "openapi -n <str> [--src-subpath <path>] [-p <cue-path>] [--package-name <str> | --no-package] <path> ",
-	// Args:  cobra.MaximumNArgs(1),
+	Use:   "openapi <path> ",
+	Args:  cobra.MaximumNArgs(1),
 	Short: "Initialize with an OpenAPI v3 schema",
 	Long: `Initialize the lineage with one schema, derived from an OpenAPI v3 document.
 
-An OpenAPI document to be converted for the initial lineage schema must be given,
-either via a path argument or as an input to stdin.
+An OpenAPI document to be converted for the initial lineage schema must be given as an argument.
 
 The generated lineage is printed to stdout.
 `,
@@ -251,14 +249,14 @@ The generated lineage is printed to stdout.
 // expects something else to have already gotten the input from either a file
 // or stdin (as we do with pathOrStdin) and passed it as input param
 func inputToFile(input []byte, args []string) (*ast.File, error) {
-	arg := "-"
-	if len(args) > 0 {
-		arg = args[0]
+	if len(args) == 0 {
+		args = append(args, "-")
 	}
 
-	cfg := &load.Config{}
-	binsts := load.Instances([]string{arg}, cfg)
-	fmt.Println(binsts[0].BuildFiles[0])
+	cfg := &load.Config{
+		Stdin: bytes.NewBuffer(input),
+	}
+	binsts := load.Instances(args, cfg)
 	bf := binsts[0].OrphanedFiles[0]
 	if bf == nil {
 		return nil, fmt.Errorf("could not load input file")
@@ -289,40 +287,7 @@ func inputToFile(input []byte, args []string) (*ast.File, error) {
 
 func (ic *initCommand) runOpenAPI(cmd *cobra.Command, args []string) {
 	ctx := cuecontext.New()
-	cfg := &load.Config{
-		Stdin: bytes.NewBuffer(ic.input),
-	}
-	if len(args) == 0 {
-		args = append(args, "-")
-	}
-	binsts := load.Instances([]string{args[0]}, cfg)
-	bf := binsts[0].OrphanedFiles[0]
-	if bf == nil {
-		ic.err = fmt.Errorf("could not load input file")
-		return
-	}
-
-	var f *ast.File
-	var err error
-	switch bf.Encoding {
-	case build.YAML:
-		f, err = yaml.Extract("input", ic.input)
-	case build.JSON:
-		expr, err := json.Extract("input", ic.input)
-		if err == nil {
-			f = &ast.File{
-				Decls: []ast.Decl{expr},
-			}
-		}
-	default:
-		err = fmt.Errorf("unsupported encoding: %s", bf.Encoding)
-	}
-
-	if err != nil {
-		ic.err = err
-		return
-	}
-	// f, err := inputToFile(ic.input, args)
+	f, err := inputToFile(ic.input, args)
 	if err != nil {
 		ic.err = err
 		return
@@ -335,6 +300,10 @@ func (ic *initCommand) runOpenAPI(cmd *cobra.Command, args []string) {
 		return
 	}
 	fo, err := openapi.Extract(inst, &openapi.Config{})
+	if err != nil {
+		ic.err = err
+		return
+	}
 	// Remove info field
 	var done bool
 	astutil.Apply(fo, func(c astutil.Cursor) bool {
@@ -371,8 +340,12 @@ func (ic *initCommand) runOpenAPI(cmd *cobra.Command, args []string) {
 	}
 
 	linf, err := cue.NewLineage(sch, ic.name, ic.pkgname)
+	if err != nil {
+		ic.err = err
+		return
+	}
 
-	b, err := util.FmtNode(linf)
+	b, err := tastutil.FmtNode(linf)
 	if err != nil {
 		ic.err = err
 		return
@@ -388,29 +361,4 @@ var initLineageCmd = &cobra.Command{
 
 Each subcommand supports initializing the lineage from a different kind of input source.
 `,
-	// 	RunE: func(cmd *cobra.Command, args []string) error {
-	// 		if len(args) != 1 {
-	// 			return fmt.Errorf("must exactly one argument, the name of the lineage")
-	// 		}
-	//
-	// 		fmt.Printf(`package %s
-	//
-	// import "github.com/grafana/thema"
-	//
-	// thema.#Lineage
-	// name: "%s"
-	// seqs: [
-	//     {
-	//         schemas: [
-	// 			// v0.0
-	//             {
-	// 				// TODO First schema goes here! (delete me)
-	//             },
-	//         ]
-	//     },
-	// ]
-	// `, args[0], args[0])
-	//
-	// 		return nil
-	// 	},
 }
