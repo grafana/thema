@@ -20,8 +20,14 @@ import (
 // string. pkgname is used as the returned file's package declaration. If
 // pkgname is empty, the resulting file will have no package declaration.
 func NewLineage(sch cue.Value, name, pkgname string) (*ast.File, error) {
-	b, err := astutil.FmtNode(astutil.Format(sch))
+	x := astutil.Format(sch)
+	switch x.(type) {
+	case *ast.File, ast.Expr:
+		x = astutil.ToExpr(x)
+	}
+	b, err := astutil.FmtNode(x)
 	if err != nil {
+
 		return nil, fmt.Errorf("failed to convert input schema to string: %ww", err)
 	}
 
