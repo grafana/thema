@@ -172,3 +172,41 @@ func sanitizeBottomLiteral(n ast.Node) {
 		return true
 	}, nil)
 }
+
+// ToExpr converts a node to an expression. If it is a file, it will return it
+// as a struct. If it is an expression, it will return it as is. Otherwise it
+// panics.
+//
+// Copied from cuelang.org/go/internal
+func ToExpr(n ast.Node) ast.Expr {
+	switch x := n.(type) {
+	case nil:
+		return nil
+
+	case ast.Expr:
+		return x
+
+	case *ast.File:
+		start := 0
+	outer:
+		for i, d := range x.Decls {
+			switch d.(type) {
+			case *ast.Package, *ast.ImportDecl:
+				start = i + 1
+			case *ast.CommentGroup, *ast.Attribute:
+			default:
+				break outer
+			}
+		}
+		decls := x.Decls[start:]
+		if len(decls) == 1 {
+			if e, ok := decls[0].(*ast.EmbedDecl); ok {
+				return e.Expr
+			}
+		}
+		return &ast.StructLit{Elts: decls}
+
+	default:
+		panic(fmt.Sprintf("Unsupported node type %T", x))
+	}
+}
