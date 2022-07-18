@@ -9,7 +9,6 @@ import (
 	"cuelang.org/go/cue/ast"
 	"cuelang.org/go/cue/ast/astutil"
 	"cuelang.org/go/cue/build"
-	"cuelang.org/go/cue/cuecontext"
 	"cuelang.org/go/cue/load"
 	"cuelang.org/go/cue/parser"
 	"cuelang.org/go/encoding/json"
@@ -21,13 +20,6 @@ import (
 	tastutil "github.com/grafana/thema/internal/astutil"
 	"github.com/spf13/cobra"
 )
-
-var genCmd = &cobra.Command{
-	Use:   "gen <command>",
-	Short: "Generate code from and for Thema lineages",
-	Long: `Generate code from and for Thema lineages.
-`,
-}
 
 var linCmd = &cobra.Command{
 	Use:   "lineage <command>",
@@ -55,11 +47,12 @@ func (ic *initCommand) setup(cmd *cobra.Command) {
 
 	linCmd.AddCommand(initLineageCmd)
 	initLineageCmd.PersistentFlags().StringVarP(&ic.name, "name", "n", "", "String for the #Lineage.name field")
-	initLineageCmd.MarkFlagRequired("name")
-	initLineageCmd.PersistentFlags().StringVarP(&ic.cuepath, "cue-path", "p", "", "CUE expression for subpath at which lineage should be generated")
 	initLineageCmd.PersistentFlags().StringVar(&ic.pkgname, "package-name", "", "Name for generated package. If omitted, --name value is used")
 	initLineageCmd.PersistentFlags().BoolVar(&ic.nopkg, "no-package", false, "Generate lineage without a package directive")
-	// initLineageCmd.PersistentPreRun = ic.prep
+
+	// TODO uncomment these and fix broken toSubpath logic to support generating at a subpath
+	// initLineageCmd.MarkFlagRequired("name")
+	// initLineageCmd.PersistentFlags().StringVarP(&ic.cuepath, "cue-path", "p", "", "CUE expression for subpath at which lineage should be generated")
 
 	initLineageCmd.AddCommand(initLineageEmptyCmd)
 	initLineageEmptyCmd.Run = ic.run
@@ -76,6 +69,57 @@ func (ic *initCommand) setup(cmd *cobra.Command) {
 	initLineageJSONSchemaCmd.PreRunE = ic.processInput
 }
 
+func toSubpath(subpath string, f *ast.File) (*ast.File, error) {
+	if subpath == "" {
+		return f, nil
+	}
+
+	p := upcue.ParsePath(subpath)
+	if p.Err() != nil {
+		return nil, fmt.Errorf("invalid path provided for --cue-path: %w", p.Err())
+	}
+
+	err := astutil.Sanitize(f)
+	if err != nil {
+		return nil, fmt.Errorf("error while sanitizing generated file: %w", err)
+	}
+
+	// in := ctx.BuildFile(f)
+	// if in.Err() != nil {
+	// 	return nil, fmt.Errorf("error when building value: %w", in.Err())
+	// }
+
+	out := empt().FillPath(p, empt())
+	if out.Err() != nil {
+		return nil, fmt.Errorf("error in lineage when placed at requested --cue-path: %w", out.Err())
+	}
+
+	var nf *ast.File
+	switch x := tastutil.Format(out).(type) {
+	case *ast.File:
+		nf = x
+	case ast.Expr:
+		nf, err = astutil.ToFile(x)
+		if err != nil {
+			return nil, fmt.Errorf("error converting expr to file: %w", err)
+		}
+	}
+
+	var done bool
+	astutil.Apply(nf, func(c astutil.Cursor) bool {
+		if x, ok := c.Node().(*ast.StructLit); ok {
+			if len(x.Elts) == 0 {
+				x.Elts = f.Decls
+				done = true
+			}
+		}
+		return !done
+	}, nil)
+
+	f.Decls = nf.Decls
+	return f, nil
+}
+
 func (ic *initCommand) run(cmd *cobra.Command, args []string) {
 	switch cmd.CalledAs() {
 	case "empty":
@@ -87,6 +131,7 @@ func (ic *initCommand) run(cmd *cobra.Command, args []string) {
 	default:
 		panic(fmt.Sprint("unrecognized command ", cmd.CalledAs()))
 	}
+
 	if ic.err != nil {
 		fmt.Fprintf(cmd.ErrOrStderr(), "%s\n", ic.err)
 		os.Exit(1)
@@ -101,12 +146,14 @@ func (ic *initCommand) processPackageArgs(cmd *cobra.Command, args []string) err
 		if ic.pkgname != "" {
 			return fmt.Errorf("cannot pass both --no-package and --package-name")
 		}
-	} else if ic.pkgname == "" {
-		ic.pkgname = ic.name
-	}
+	} else {
+		if ic.pkgname == "" {
+			ic.pkgname = ic.name
+		}
 
-	if !ast.IsValidIdent(ic.pkgname) {
-		return fmt.Errorf("%q is not a valid package name", ic.pkgname)
+		if !ast.IsValidIdent(ic.pkgname) {
+			return fmt.Errorf("%q is not a valid package name", ic.pkgname)
+		}
 	}
 	return nil
 }
@@ -135,7 +182,6 @@ The generated lineage is printed to stdout.
 }
 
 func empt() upcue.Value {
-	ctx := cuecontext.New()
 	str := `
 {
 	// TODO (delete me - first schema goes here!)
@@ -146,7 +192,6 @@ func empt() upcue.Value {
 }
 
 func (ic *initCommand) runEmpty(cmd *cobra.Command, args []string) {
-	ctx := cuecontext.New()
 	str := `
 {
 	// TODO (delete me - first schema goes here!)
@@ -162,6 +207,12 @@ func (ic *initCommand) runEmpty(cmd *cobra.Command, args []string) {
 
 	// Have to re-insert because comments get lost somehow by NewLineage()
 	err = cue.InsertSchemaNodeAs(linf, expr, thema.SV(0, 0))
+	if err != nil {
+		ic.err = err
+		return
+	}
+
+	linf, err = toSubpath(ic.cuepath, linf)
 	if err != nil {
 		ic.err = err
 		return
@@ -189,7 +240,6 @@ The generated lineage is printed to stdout.
 }
 
 func (ic *initCommand) runJSONSchema(cmd *cobra.Command, args []string) {
-	ctx := cuecontext.New()
 	v := ctx.CompileBytes(ic.input)
 	if v.Err() != nil {
 		ic.err = v.Err()
@@ -220,6 +270,12 @@ func (ic *initCommand) runJSONSchema(cmd *cobra.Command, args []string) {
 	}, nil)
 
 	linf, err := cue.NewLineage(sch.Eval(), ic.name, ic.pkgname)
+	if err != nil {
+		ic.err = err
+		return
+	}
+
+	linf, err = toSubpath(ic.cuepath, linf)
 	if err != nil {
 		ic.err = err
 		return
@@ -286,7 +342,6 @@ func inputToFile(input []byte, args []string) (*ast.File, error) {
 }
 
 func (ic *initCommand) runOpenAPI(cmd *cobra.Command, args []string) {
-	ctx := cuecontext.New()
 	f, err := inputToFile(ic.input, args)
 	if err != nil {
 		ic.err = err
@@ -340,6 +395,12 @@ func (ic *initCommand) runOpenAPI(cmd *cobra.Command, args []string) {
 	}
 
 	linf, err := cue.NewLineage(sch, ic.name, ic.pkgname)
+	if err != nil {
+		ic.err = err
+		return
+	}
+
+	linf, err = toSubpath(ic.cuepath, linf)
 	if err != nil {
 		ic.err = err
 		return

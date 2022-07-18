@@ -70,7 +70,20 @@ func main() {
 }
 
 // List of all commands, for batching stuff
-var allCmds = []*cobra.Command{rootCmd, genCmd, srvCmd, httpCmd, dataCmd, translateCmd, validateCmd, validateAnyCmd}
+var allCmds = []*cobra.Command{
+	rootCmd,
+	srvCmd,
+	httpCmd,
+	dataCmd,
+	translateCmd,
+	validateCmd,
+	validateAnyCmd,
+	linCmd,
+	initLineageCmd,
+	initLineageEmptyCmd,
+	initLineageOpenAPICmd,
+	initLineageJSONSchemaCmd,
+}
 
 var rootCmd = &cobra.Command{
 	Use:   "thema <command>",
