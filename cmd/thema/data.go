@@ -267,9 +267,8 @@ for validity against all schemas in the lineage.
 	},
 }
 
-func validateDataInput(cmd *cobra.Command, args []string) error {
-	var ext string
-
+func pathOrStdin(args []string) ([]byte, error) {
+	var byt []byte
 	switch len(args) {
 	case 0:
 		fi, err := os.Stdin.Stat()
@@ -277,56 +276,64 @@ func validateDataInput(cmd *cobra.Command, args []string) error {
 			panic(err)
 		}
 		if fi.Mode()&os.ModeNamedPipe == 0 {
-			return errors.New("no data file arguments and nothing sent to stdin")
+			return nil, errors.New("no path provided and nothing on stdin")
 		}
 
-		byt, err := ioutil.ReadAll(os.Stdin)
+		byt, err = ioutil.ReadAll(os.Stdin)
 		if err != nil {
-			return fmt.Errorf("error reading data from stdin: %w", err)
+			return nil, fmt.Errorf("error reading from stdin: %w", err)
 		}
-
-		// only replace inbytes if emptiness is sane
-		if len(byt) > 0 && len(inbytes) == 0 {
-			inbytes = byt
-		}
+		return byt, nil
 	case 1:
 		fi, err := os.Stat(args[0])
 		if err != nil {
-			return fmt.Errorf("failed to stat path %q: %w", args[0], err)
+			return nil, fmt.Errorf("failed to stat path %q: %w", args[0], err)
 		}
 		if fi.IsDir() {
-			return fmt.Errorf("%s is a directory", args[0])
+			return nil, fmt.Errorf("%s is a directory", args[0])
 		}
 
 		f, err := os.Open(args[0])
 		if err != nil {
-			return err
+			return nil, fmt.Errorf("could not open provided path: %w", err)
 		}
 		defer f.Close() // nolint: errcheck
 
-		byt, err := ioutil.ReadAll(f)
+		byt, err = ioutil.ReadAll(f)
 		if err != nil {
-			return fmt.Errorf("error reading from input file %q: %w", args[0], err)
+			return nil, fmt.Errorf("error reading from input file %q: %w", args[0], err)
 		}
-		// only replace inbytes if emptiness is sane
-		if len(byt) > 0 && len(inbytes) == 0 {
-			inbytes = byt
-		}
+
+	default:
+		return nil, errors.New("too many args: either provide path to input or pass input on stdin")
+	}
+
+	return byt, nil
+}
+
+func validateDataInput(cmd *cobra.Command, args []string) error {
+	var ext string
+
+	byt, err := pathOrStdin(args)
+	if err != nil {
+		return err
+	}
+	if len(byt) > 0 && len(inbytes) == 0 {
+		inbytes = byt
+	}
+
+	if len(args) == 1 {
 		switch filepath.Ext(args[0]) {
 		case ".json", ".ldjson":
 			ext = "json"
 		case ".yaml", ".yml":
 			ext = "yaml"
 		}
-
-	default:
-		return errors.New("must provide zero or one path to input data")
 	}
 
 	jd := kernel.NewJSONDecoder("stdin")
 	yd := kernel.NewYAMLDecoder("stdin")
 
-	var err error
 	switch encoding {
 	case "":
 		// Figure it out; try JSON first
