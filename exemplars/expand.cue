@@ -2,17 +2,6 @@ package exemplars
 
 import "github.com/grafana/thema"
 
-thema.#Lineage
-seqs: [
-	{
-		schemas: [
-			{// 0.0
-				init: string
-			},
-		]
-	},
-]
-
 expand: {
 	description: "A few schema in a single sequence, illustrating some simple expansions permitted by backwards compatibility rules."
 	l:           thema.#Lineage & {
