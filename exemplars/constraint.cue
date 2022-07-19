@@ -3,19 +3,19 @@ package exemplars
 import "github.com/grafana/thema"
 
 _#Exemplar: {
-    l: thema.#Lineage
-    description: string
-    // tt: [string]: {
-    //     r: l.joinSchema
-    //     to: thema.#SearchCriteria
-    //     expect: {
-    //         to: l.joinSchema
-    //     }
-    // }
+	l:           thema.#Lineage
+	description: string
+	// tt: [string]: {
+	//     r: l.joinSchema
+	//     to: thema.#SearchCriteria
+	//     expect: {
+	//         to: l.joinSchema
+	//     }
+	// }
 }
 
 [N=string]: _#Exemplar & {
-    l: name: N
+	l: name: N
 }
 
 // Cases to create
