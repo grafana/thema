@@ -1,0 +1,13 @@
+{{- if ne .PkgName "" }}package {{ .PkgName }}
+{{end}}
+import "github.com/grafana/thema"
+
+thema.#Lineage
+name: "{{ .Name }}"
+seqs: [
+    {
+        schemas: [
+            {{ .Sch }},
+        ]
+    },
+]

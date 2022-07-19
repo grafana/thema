@@ -58,8 +58,6 @@ func typeIs(n ast.Node, t string) bool {
 	default:
 		return false
 	}
-
-	return false
 }
 
 // Reports if the provided node is an oapi/json schema `"type": <val>` field,
