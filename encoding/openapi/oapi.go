@@ -1,9 +1,6 @@
 package openapi
 
 import (
-	"fmt"
-
-	"cuelang.org/go/cue"
 	"cuelang.org/go/cue/ast"
 	"cuelang.org/go/encoding/openapi"
 	"github.com/grafana/thema"
@@ -37,37 +34,7 @@ func appendSchemaToLineage(b []byte, schemaPath string, lin thema.Lineage) ([]by
 // marshaling to either JSON or YAML.
 func GenerateSchema(sch thema.Schema, cfg *openapi.Config) (*ast.File, error) {
 	// Need it to make an instance
-	rt := (*cue.Runtime)(sch.UnwrapCUE().Context())
-
-	base := util.RandSeq(10)
-	p := cue.MakePath(cue.Str(base), cue.Def(sch.Lineage().Name()))
-	pp := cue.MakePath(cue.Str(base))
-
-	v := sch.UnwrapCUE()
-	dumpv := sch.Lineage().Library().UnwrapCUE().FillPath(p, v).LookupPath(pp)
-
-	// TODO just Eval()'ing without giving the user choices is not great
-	syn := dumpv.Eval().Syntax(
-		cue.Definitions(true),
-		cue.Hidden(true),
-		cue.Optional(true),
-		cue.Attributes(true),
-		cue.Docs(true),
-	)
-
-	// Normalize to ast.File
-	f := &ast.File{}
-	switch syns := syn.(type) {
-	case *ast.StructLit:
-		f.Filename = fmt.Sprintf("%s@v%s.cue", sch.Lineage().Name(), sch.Version())
-		f.Decls = syns.Elts
-	case *ast.File:
-		f = syns
-	default:
-		return nil, fmt.Errorf("schema cue.Value converted to unexpected ast type %T", syn)
-	}
-
-	inst, err := rt.CompileFile(f)
+	inst, err := util.ToInstanceDef(sch.UnwrapCUE(), sch.Lineage().Name(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -75,6 +42,8 @@ func GenerateSchema(sch thema.Schema, cfg *openapi.Config) (*ast.File, error) {
 	if cfg == nil {
 		cfg = &openapi.Config{}
 	}
+	// cfg.ExpandReferences = true
+	// cfg.SelfContained = true
 	if cfg.Info == nil {
 		cfg.Info = ast.NewStruct(
 			"title", ast.NewString(sch.Lineage().Name()),
