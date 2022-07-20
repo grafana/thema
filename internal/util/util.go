@@ -7,7 +7,12 @@ import (
 	"math/rand"
 	"path/filepath"
 
+	"cuelang.org/go/cue"
+	"cuelang.org/go/cue/ast"
+	"cuelang.org/go/cue/ast/astutil"
 	"cuelang.org/go/cue/load"
+	"cuelang.org/go/cue/parser"
+	tastutil "github.com/grafana/thema/internal/astutil"
 )
 
 // ToOverlay converts an fs.FS into a CUE loader overlay.
@@ -58,48 +63,70 @@ func RandSeq(n int) string {
 	return string(b)
 }
 
-// AsInstance goes the long, awkward way around deprecation of cue.Instance to
-// produce one. Export a cue.Value, then re-load and build it, and then use the
-// Value.Context() of the input to create an Instance.
-//
-// This may not work with external references, since we lack the context to
-// re-build them. Yuck. Cool, though, is that Value.Syntax() does at least generate
-// the import statements...
-// func AsInstance(v, space cue.Value, name cue.Selector) (*cue.Instance, error) {
-// 	base := RandSeq(10)
-// 	p := cue.MakePath(cue.Str(base), name)
-// 	pp := cue.MakePath(cue.Str(base))
-// 	dumpv := space.FillPath(p, v).LookupPath(pp)
-//
-// 	syn := dumpv.Syntax(
-// 		cue.Definitions(true),
-// 		cue.Hidden(true),
-// 		cue.Optional(true),
-// 		cue.Attributes(true),
-// 		cue.Docs(true),
-// 	)
-//
-// ast.Walk(syn, func(n ast.Node) bool {
-// 	fmt.Printf("%T %+v\n", n, n)
-// 	return true
-// }, func(n ast.Node) {})
-//
-// return format.Node(syn,
-// format.TabIndent(true),
-// format.Simplify(),
-// )
-//
-// 	// Normalize to ast.File
-// 	var f *ast.File
-// 	switch syns := syn.(type) {
-// 	case *ast.StructLit:
-// 		f.Decls = syns.Elts
-// 	case *ast.File:
-// 	default:
-// 		return nil, fmt.Errorf("schema cue.Value converted to unexpected ast type %T", syn)
-// 	}
-//
-// 	ctx := (*cue.Runtime)(space.Context())
-// 	inst, err := ctx.CompileFile(f)
-//
-// }
+// ToInstanceDef exports the provided cue.Value (which is expected to be a thema
+// schema) into a top-level definition within a cue.Instance, allowing some
+// older cue stdlib (like encoding/openapi) that still want a cue.Instance to
+// work with the value.
+func ToInstanceDef(v cue.Value, name string, ctx *cue.Context) (*cue.Instance, error) {
+	if ctx == nil {
+		ctx = v.Context()
+	}
+
+	expr, _ := parser.ParseExpr("empty", "{}")
+	bv := ctx.BuildExpr(expr)
+
+	base := RandSeq(10)
+	p := cue.MakePath(cue.Str(base), cue.Def(name))
+	pp := cue.MakePath(cue.Str(base))
+	dumpv := bv.FillPath(p, v).LookupPath(pp)
+
+	// TODO just Eval()'ing without giving the user choices is not great.
+	// But how else to get rid of all the (potential) joinSchema references?
+	n := tastutil.Format(dumpv.Eval())
+	var f *ast.File
+	switch x := n.(type) {
+	case *ast.StructLit:
+		// errs not possible here, structlits always convert
+		f, _ = astutil.ToFile(x) // nolint: errcheck
+	case *ast.File:
+		f = x
+	default:
+		return nil, fmt.Errorf("schema cue.Value converted to unexpected ast type %T", n)
+	}
+
+	// Quote labels that would shadow keywords/type identifiers. This is probably
+	// something that cue's format package should do itself.
+	ast.Walk(f, func(n ast.Node) bool {
+		switch x := n.(type) {
+		case *ast.Field:
+			nam, isident, err := ast.LabelName(x.Label)
+			if err == nil && isident && mustQuote(nam) {
+				x.Label = ast.NewString(nam)
+			}
+		}
+		return true
+
+	}, nil)
+
+	rt := (*cue.Runtime)(ctx)
+	return rt.CompileFile(f)
+}
+
+// TODO make a better list - rely on CUE Go API somehow? Tokens?
+func mustQuote(n string) bool {
+	quoteneed := []string{
+		"string",
+		"number",
+		"int",
+		"uint",
+		"float",
+		"byte",
+	}
+
+	for _, s := range quoteneed {
+		if n == s {
+			return true
+		}
+	}
+	return false
+}
