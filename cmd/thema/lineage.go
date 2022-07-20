@@ -42,10 +42,17 @@ type initCommand struct {
 	err error
 }
 
-func (ic *initCommand) setup(cmd *cobra.Command) {
+func setupLineageCommand(cmd *cobra.Command) {
 	cmd.AddCommand(linCmd)
+	ic := &initCommand{}
+	ic.setup(linCmd)
 
-	linCmd.AddCommand(initLineageCmd)
+	ac := &bumpCommand{}
+	ac.setup(linCmd)
+}
+
+func (ic *initCommand) setup(cmd *cobra.Command) {
+	cmd.AddCommand(initLineageCmd)
 	initLineageCmd.PersistentFlags().StringVarP(&ic.name, "name", "n", "", "String for the #Lineage.name field")
 	initLineageCmd.PersistentFlags().StringVar(&ic.pkgname, "package-name", "", "Name for generated package. If omitted, --name value is used")
 	initLineageCmd.PersistentFlags().BoolVar(&ic.nopkg, "no-package", false, "Generate lineage without a package directive")
@@ -417,9 +424,73 @@ func (ic *initCommand) runOpenAPI(cmd *cobra.Command, args []string) {
 
 var initLineageCmd = &cobra.Command{
 	Use:   "init",
-	Short: "Generate code for a new lineage",
-	Long: `Generate code for a new lineage.
+	Short: "Create a new lineage",
+	Long: `Create a new lineage.
 
 Each subcommand supports initializing the lineage from a different kind of input source.
 `,
+}
+
+var lineageBumpCmd = &cobra.Command{
+	Use:     "bump",
+	PreRunE: validateLineageInput,
+	Args:    cobra.MaximumNArgs(0),
+	Short:   "Add a new schema to an existing lineage",
+	Long: `Add a new schema to an existing lineage.
+
+Generate the necessary stubs to "bump" the latest schema version in an existing lineage by adding a new schema to it.
+`,
+}
+
+type bumpCommand struct {
+	maj      bool
+	skipfill bool
+}
+
+func (bc *bumpCommand) setup(cmd *cobra.Command) {
+	cmd.AddCommand(lineageBumpCmd)
+	addLinPathVars(lineageBumpCmd)
+
+	lineageBumpCmd.Flags().BoolVar(&bc.maj, "major", false, "Bump the major version (breaking change) instead of the minor version")
+	lineageBumpCmd.Flags().BoolVar(&bc.maj, "no-fill", false, "Do not pre-fill the new schema with the prior schema")
+	lineageBumpCmd.Run = bc.run
+}
+
+func (bc *bumpCommand) run(cmd *cobra.Command, args []string) {
+	if err := bc.do(cmd, args); err != nil {
+		fmt.Fprintf(cmd.ErrOrStderr(), "%s\n", err)
+		os.Exit(1)
+	}
+}
+
+func (bc *bumpCommand) do(cmd *cobra.Command, args []string) error {
+	lv := thema.LatestVersion(lin)
+	lsch := thema.SchemaP(lin, lv)
+	// TODO UGH EVAL
+	schlit := tastutil.Format(lsch.UnwrapCUE().Eval()).(*ast.StructLit)
+
+	var err error
+	var nlin ast.Node
+	if bc.maj {
+		nlin = lin.UnwrapCUE().Source()
+		err = cue.InsertSchemaNodeAs(nlin, schlit, thema.SV(lv[0]+1, 0))
+		if err != nil {
+			return err
+		}
+	} else {
+		nlin, err = cue.Append(lin, lsch.UnwrapCUE())
+		if err != nil {
+			return err
+		}
+	}
+
+	b, err := tastutil.FmtNode(nlin)
+	if err != nil {
+		return err
+	}
+
+	// TODO write back to subpath
+
+	fmt.Fprint(cmd.OutOrStdout(), string(b))
+	return nil
 }
