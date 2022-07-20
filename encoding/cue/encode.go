@@ -59,6 +59,16 @@ func NewLineage(sch cue.Value, name, pkgname string) (*ast.File, error) {
 // generated. The result is not checked for Thema validity. Behavior is
 // undefined if the provided lineage node is not well-formed.
 func InsertSchemaNodeAs(lin ast.Node, sch ast.Expr, v thema.SyntacticVersion) error {
+	seql := astutil.FindSeqs(lin)
+	if seql == nil {
+		return fmt.Errorf("could not find seqs list in input - invalid lineage ast?")
+	}
+	// Handle inserting new sequence path separately
+	if v[0] == uint(len(seql.Elts)) {
+		seql.Elts = append(seql.Elts, newSequenceNode(sch))
+		return nil
+	}
+
 	seql, err := astutil.SchemaListFor(lin, v[0])
 	if err != nil {
 		return err
@@ -142,7 +152,7 @@ func Append(lin thema.Lineage, sch cue.Value) (ast.Node, error) {
 	return linf, nil
 }
 
-func newSequenceNode(sch *ast.StructLit) *ast.StructLit {
+func newSequenceNode(sch ast.Expr) *ast.StructLit {
 	if sch == nil {
 		sch = ast.NewStruct() // use empty struct
 	}

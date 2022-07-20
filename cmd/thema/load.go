@@ -103,6 +103,8 @@ func loadone(lib thema.Library, binst *build.Instance, pkgpath, cuepath string) 
 			return nil, fmt.Errorf("no value at path %q in instance %q", cuepath, pkgpath)
 		}
 	}
+	// FIXME so hacky to write back to a global this way - only OK because buildInsts guarantees only one can escape
+	linbinst = binst
 
 	return thema.BindLineage(v, lib)
 }
