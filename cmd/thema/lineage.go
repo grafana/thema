@@ -467,13 +467,13 @@ func (bc *bumpCommand) do(cmd *cobra.Command, args []string) error {
 	lv := thema.LatestVersion(lin)
 	lsch := thema.SchemaP(lin, lv)
 	// TODO UGH EVAL
-	schlit := tastutil.Format(lsch.UnwrapCUE().Eval()).(*ast.StructLit)
+	schlit := tastutil.Format(lsch.UnwrapCUE().Eval())
 
 	var err error
 	var nlin ast.Node
 	if bc.maj {
 		nlin = lin.UnwrapCUE().Source()
-		err = cue.InsertSchemaNodeAs(nlin, schlit, thema.SV(lv[0]+1, 0))
+		err = cue.InsertSchemaNodeAs(nlin, tastutil.ToExpr(schlit), thema.SV(lv[0]+1, 0))
 		if err != nil {
 			return err
 		}
@@ -484,7 +484,7 @@ func (bc *bumpCommand) do(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	b, err := tastutil.FmtNode(nlin)
+	b, err := tastutil.FmtNode(tastutil.ToExpr(nlin))
 	if err != nil {
 		return err
 	}
