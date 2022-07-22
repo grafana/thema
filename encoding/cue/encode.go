@@ -59,6 +59,18 @@ func NewLineage(sch cue.Value, name, pkgname string) (*ast.File, error) {
 // generated. The result is not checked for Thema validity. Behavior is
 // undefined if the provided lineage node is not well-formed.
 func InsertSchemaNodeAs(lin ast.Node, sch ast.Expr, v thema.SyntacticVersion) error {
+	seql := astutil.FindSeqs(lin)
+	if seql == nil {
+		return fmt.Errorf("could not find seqs list in input - invalid lineage ast?")
+	}
+
+	// Handle inserting new sequence path separately
+	if v[0] == uint(len(seql.Elts)) {
+		ast.AddComment(sch, versionComment(v))
+		seql.Elts = append(seql.Elts, newSequenceNode(sch))
+		return nil
+	}
+
 	seql, err := astutil.SchemaListFor(lin, v[0])
 	if err != nil {
 		return err
@@ -68,6 +80,7 @@ func InsertSchemaNodeAs(lin ast.Node, sch ast.Expr, v thema.SyntacticVersion) er
 		return fmt.Errorf("cannot insert version %s, previous version does not exist in lineage", v)
 	}
 
+	ast.AddComment(sch, versionComment(v))
 	if v[1] == uint(len(seql.Elts)) {
 		// append
 		seql.Elts = append(seql.Elts, sch)
@@ -109,14 +122,14 @@ seqs: [
 // schema as its only element (major version bump).
 func Append(lin thema.Lineage, sch cue.Value) (ast.Node, error) {
 	linf := astutil.Format(lin.UnwrapCUE()).(*ast.File)
-	schnode := astutil.Format(sch).(*ast.StructLit)
+	schnode := astutil.ToExpr(astutil.Format(sch))
 
 	lv := thema.LatestVersion(lin)
 	lsch := thema.SchemaP(lin, lv)
 	if err := compat.ThemaCompatible(lsch.UnwrapCUE(), sch); err == nil {
 		// Is compatible, append to same sequence
 		tgtv := thema.SyntacticVersion{lv[0], lv[1] + 1}
-		schnode.AddComment(versionComment(tgtv))
+		ast.AddComment(schnode, versionComment(tgtv))
 
 		schl, err := astutil.LatestSchemaList(linf)
 		if err != nil {
@@ -128,7 +141,7 @@ func Append(lin thema.Lineage, sch cue.Value) (ast.Node, error) {
 	} else {
 		// Not compatible, start a new sequence
 		tgtv := thema.SyntacticVersion{lv[0] + 1, 0}
-		schnode.AddComment(versionComment(tgtv))
+		ast.AddComment(schnode, versionComment(tgtv))
 
 		seql := astutil.FindSeqs(linf)
 		if seql == nil {
@@ -142,7 +155,7 @@ func Append(lin thema.Lineage, sch cue.Value) (ast.Node, error) {
 	return linf, nil
 }
 
-func newSequenceNode(sch *ast.StructLit) *ast.StructLit {
+func newSequenceNode(sch ast.Expr) *ast.StructLit {
 	if sch == nil {
 		sch = ast.NewStruct() // use empty struct
 	}

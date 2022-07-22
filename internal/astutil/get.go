@@ -123,7 +123,7 @@ func FmtNode(n ast.Node) ([]byte, error) {
 			return nil, err
 		}
 	}
-	b, err := format.Node(n)
+	b, err := format.Node(n, format.TabIndent(true), format.Simplify())
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert input schema to string: %w", err)
 	}
@@ -148,7 +148,6 @@ func FmtNodeP(n ast.Node) []byte {
 // It also sanitizes out weird insertions the CUE compiler makes, as necessary.
 func Format(v cue.Value) ast.Node {
 	n := v.Syntax(
-		cue.Raw(),
 		cue.All(),
 		cue.Definitions(true),
 		cue.Docs(true),
