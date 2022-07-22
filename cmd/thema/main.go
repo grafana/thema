@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"cuelang.org/go/cue"
+	"cuelang.org/go/cue/build"
 	"cuelang.org/go/cue/cuecontext"
 	"github.com/grafana/thema"
 	terrors "github.com/grafana/thema/errors"
@@ -20,6 +21,9 @@ var lib = thema.NewLibrary(ctx)
 // the lineage
 var linfilepath string
 var lincuepath string
+
+// FIXME this is populated by monumental hack in loadone()
+var linbinst *build.Instance
 
 var lin thema.Lineage
 
@@ -49,8 +53,7 @@ var sch thema.Schema
 
 func main() {
 	setupDataCommand(rootCmd)
-	ic := &initCommand{}
-	ic.setup(rootCmd)
+	setupLineageCommand(rootCmd)
 
 	// Stop cobra from being so "helpful"
 	for _, cmd := range allCmds {
@@ -69,6 +72,12 @@ func main() {
 	}
 }
 
+func addLinPathVars(cmd *cobra.Command) {
+	cmd.PersistentFlags().StringVarP(&linfilepath, "lineage", "l", ".", "path to .cue file or directory containing lineage")
+	cmd.MarkFlagRequired("lineage")
+	cmd.PersistentFlags().StringVarP(&lincuepath, "path", "p", "", "CUE expression for path to the lineage object within file, if not root")
+}
+
 // List of all commands, for batching stuff
 var allCmds = []*cobra.Command{
 	rootCmd,
@@ -83,6 +92,7 @@ var allCmds = []*cobra.Command{
 	initLineageEmptyCmd,
 	initLineageOpenAPICmd,
 	initLineageJSONSchemaCmd,
+	lineageBumpCmd,
 }
 
 var rootCmd = &cobra.Command{

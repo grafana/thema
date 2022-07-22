@@ -18,9 +18,7 @@ import (
 
 func setupDataCommand(cmd *cobra.Command) {
 	cmd.AddCommand(dataCmd)
-	dataCmd.PersistentFlags().StringVarP(&linfilepath, "lineage", "l", ".", "path to .cue file or directory containing lineage")
-	dataCmd.MarkFlagRequired("lineage")
-	dataCmd.PersistentFlags().StringVarP(&lincuepath, "path", "p", "", "CUE expression for path to the lineage object within file, if not root")
+	addLinPathVars(dataCmd)
 
 	dataCmd.AddCommand(validateCmd)
 	validateCmd.Flags().StringVarP((*string)(&verstr), "version", "v", "", "schema syntactic version to validate data against")
