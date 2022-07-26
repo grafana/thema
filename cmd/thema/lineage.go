@@ -18,6 +18,7 @@ import (
 	"github.com/grafana/thema"
 	"github.com/grafana/thema/encoding/cue"
 	tastutil "github.com/grafana/thema/internal/astutil"
+	"github.com/grafana/thema/internal/util"
 	"github.com/spf13/cobra"
 )
 
@@ -449,7 +450,10 @@ type bumpCommand struct {
 
 func (bc *bumpCommand) setup(cmd *cobra.Command) {
 	cmd.AddCommand(lineageBumpCmd)
-	addLinPathVars(lineageBumpCmd)
+	cmd.PersistentFlags().StringVarP(&linfilepath, "lineage", "l", ".", "path to .cue file or directory containing lineage")
+	cmd.MarkFlagRequired("lineage")
+	// TODO use this once we support bumping subpaths
+	// addLinPathVars(lineageBumpCmd)
 
 	lineageBumpCmd.Flags().BoolVar(&bc.maj, "major", false, "Bump the major version (breaking change) instead of the minor version")
 	lineageBumpCmd.Flags().BoolVar(&bc.maj, "no-fill", false, "Do not pre-fill the new schema with the prior schema")
@@ -467,30 +471,43 @@ func (bc *bumpCommand) do(cmd *cobra.Command, args []string) error {
 	lv := thema.LatestVersion(lin)
 	lsch := thema.SchemaP(lin, lv)
 	// TODO UGH EVAL
-	schlit := tastutil.Format(lsch.UnwrapCUE().Eval())
+	schv := lsch.UnwrapCUE().Eval()
 
 	var err error
 	var nlin ast.Node
 	if bc.maj {
-		nlin = lin.UnwrapCUE().Source()
-		err = cue.InsertSchemaNodeAs(nlin, tastutil.ToExpr(schlit), thema.SV(lv[0]+1, 0))
+		p := "rand" + util.RandSeq(10)
+		mschv := schv.FillPath(upcue.MakePath(upcue.Str(p)), empt())
+		nlin, err = cue.Append(lin, mschv)
 		if err != nil {
 			return err
 		}
+
+		var done bool
+		astutil.Apply(nlin, func(c astutil.Cursor) bool {
+			if x, ok := c.Node().(*ast.Field); ok {
+				n, _, _ := ast.LabelName(x.Label)
+				if n == p {
+					c.Delete()
+					done = true
+				}
+			}
+
+			return !done
+		}, nil)
 	} else {
-		nlin, err = cue.Append(lin, lsch.UnwrapCUE())
+		nlin, err = cue.Append(lin, schv)
 		if err != nil {
 			return err
 		}
 	}
 
-	b, err := tastutil.FmtNode(tastutil.ToExpr(nlin))
+	b, err := tastutil.FmtNode(nlin)
 	if err != nil {
 		return err
 	}
 
-	// TODO write back to subpath
-
-	fmt.Fprint(cmd.OutOrStdout(), string(b))
-	return nil
+	// TODO support writing back to stdout, when input came from stdin
+	// FIXME don't rely on a brittle hack to write back. Also, respect perms
+	return os.WriteFile(linbinst.BuildFiles[0].Filename, b, 0644)
 }

@@ -121,7 +121,8 @@ seqs: [
 // version bump). Otherwise, a new sequence will be created with the provided
 // schema as its only element (major version bump).
 func Append(lin thema.Lineage, sch cue.Value) (ast.Node, error) {
-	linf := astutil.Format(lin.UnwrapCUE()).(*ast.File)
+	// linf := astutil.Format(lin.UnwrapCUE()).(*ast.File)
+	linf := lin.UnwrapCUE().Source()
 	schnode := astutil.ToExpr(astutil.Format(sch))
 
 	lv := thema.LatestVersion(lin)
