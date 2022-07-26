@@ -180,7 +180,7 @@ func (e *compatInvariantError) Error() string {
 		// TODO better
 		return e.detail.Error()
 	}
-	return fmt.Sprintf("schema %s must be backwards incompatible with schema %s", e.violation[0], e.violation[1])
+	return fmt.Sprintf("schema %s must be backwards incompatible with schema %s", e.violation[1], e.violation[0])
 }
 
 // A UnaryLineage is a Go facade over a valid CUE lineage that does not compose
