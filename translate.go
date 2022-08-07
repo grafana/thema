@@ -85,6 +85,30 @@ func (i *Instance) lib() Library {
 	return getLinLib(i.Schema().Lineage())
 }
 
+type TypedInstance[T ~struct{}] struct {
+	inst *Instance
+	tsch TypedSchema[T]
+}
+
+func (inst *TypedInstance[T]) TypedSchema() TypedSchema[T] {
+	return inst.tsch
+}
+
+func (inst *TypedInstance[T]) Value() (T, error) {
+	t := inst.tsch.New()
+	// TODO figure out correct pointer handling here
+	err := inst.inst.raw.Decode(&t)
+	return t, err
+}
+
+func (inst *TypedInstance[T]) ValueP() T {
+	t, err := inst.Value()
+	if err != nil {
+		panic(fmt.Errorf("error decoding value: %w", err))
+	}
+	return t
+}
+
 // Translate transforms the Instance so that it's an instance of another schema
 // in the lineage. A new *Instance is returned representing the transformed
 // value, along with any lacunas accumulated along the way.
@@ -96,13 +120,15 @@ func (i *Instance) lib() Library {
 // unification. Lacunas cannot be emitted from such translations.
 //
 // Forward translation across sequences (e.g. 0.0 to 1.0), and all reverse
-// translation regardless of sequence boundaries (e.g. 1.2 to either 1.0
+// translation regardless of sequence boundaries (e.g. 1.1 to either 1.0
 // or 0.0), is nontrivial and relies on explicitly defined lenses, which
-// introduce room for lacunas, author judgment, and bugs.
+// introduce room for lacunas and author judgment.
 //
-// Thema translation is non-invertible over instances in the general case. That
-// is, Thema does not guarantee that translating an instance from 0.0 to 1.0,
-// then back to 0.0 will result in the exact original instance.
+// Thema translation is non-invertible over instances in the general case by
+// design. That is, Thema does not guarantee that translating an instance from
+// 0.0->1.0->0.0 will result in the exact original instance. (Input state
+// preservation can be fully achieved in a wrapping layer, so we avoid introducing
+// complexity into Thema that is not essential for all use cases.)
 //
 // NOTE reverse translation is not yet supported, and attempting it will panic.
 //
@@ -135,6 +161,8 @@ func (i *Instance) Translate(to SyntacticVersion) (*Instance, TranslationLacunas
 		sch:  newsch,
 	}, lac
 }
+
+// TODO generic-typed Translation
 
 type multiTranslationLacunas []struct {
 	V   SyntacticVersion `json:"v"`

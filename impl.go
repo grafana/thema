@@ -201,9 +201,6 @@ var _ Lineage = &UnaryLineage{}
 func (lin *UnaryLineage) UnwrapCUE() cue.Value {
 	isValidLineage(lin)
 
-	if !lin.validated {
-		panic("lineage not validated")
-	}
 	return lin.raw
 }
 
@@ -295,6 +292,7 @@ func synvExists(a []SyntacticVersion, x SyntacticVersion) bool {
 // A UnarySchema is a Go facade over a Thema schema that does not compose any
 // schemas from any other lineages.
 type UnarySchema struct {
+	// TODO panic button if empty, nil
 	raw    cue.Value
 	defraw cue.Value
 	lin    *UnaryLineage
@@ -397,6 +395,76 @@ func (sch *UnarySchema) defPathFor() cue.Path {
 }
 
 func (sch *UnarySchema) _schema() {}
+
+// BindType produces a TypedSchema, given a Schema that is AssignableTo() the
+// provided struct type. An error is returned if the provided Schema is not
+// assignable to the given struct type.
+func BindType[T Assignee](sch Schema) (TypedSchema[T], error) {
+	if err := AssignableTo(sch, T{}); err != nil {
+		return nil, err
+	}
+
+	tsch := &UnaryTypedSchema[T]{
+		Schema: sch,
+		new:    T{},
+	}
+
+	sch.UnwrapCUE().Decode(&tsch.new)
+	return tsch, nil
+}
+
+// TypedSchema is a Thema schema that has been bound to a particular Go type, per
+// Thema's assignability rules.
+type TypedSchema[T Assignee] interface {
+	Schema
+	// New initializes a new T with preference given to any schema-specified
+	// defaults.
+	New() T
+	ValidateTyped(data cue.Value) (*TypedInstance[T], error)
+}
+
+// BindInstanceType produces a TypedInstance, given an Instance and a
+// TypedSchema derived from its Instance.Schema().
+//
+// The only possible error occurs if the TypedSchema is not derived from the
+// Instance.Schema().
+func BindInstanceType[T Assignee](inst *Instance, tsch TypedSchema[T]) (*TypedInstance[T], error) {
+	if !schemaIs(inst.Schema(), tsch) {
+		return nil, fmt.Errorf("typed schema is not derived from instance's schema")
+	}
+
+	return &TypedInstance[T]{
+		inst: inst,
+		tsch: tsch,
+	}, nil
+}
+
+func schemaIs(s1, s2 Schema) bool {
+	panic("TODO")
+}
+
+var _ TypedSchema[struct{}] = &UnaryTypedSchema[struct{}]{}
+
+type UnaryTypedSchema[T Assignee] struct {
+	Schema
+	new T
+}
+
+func (sch *UnaryTypedSchema[T]) New() T {
+	return sch.new
+}
+
+func (sch *UnaryTypedSchema[T]) ValidateTyped(data cue.Value) (*TypedInstance[T], error) {
+	inst, err := sch.Schema.Validate(data)
+	if err != nil {
+		return nil, err
+	}
+
+	return &TypedInstance[T]{
+		inst: inst,
+		tsch: sch,
+	}, nil
+}
 
 // Call with no args to get init v, {0, 0}
 // Call with one to get first version in a seq, {x, 0}

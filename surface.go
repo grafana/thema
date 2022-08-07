@@ -196,6 +196,31 @@ type Schema interface {
 	_schema()
 }
 
+// Assignee is a type constraint used by Thema generics for type parameters
+// where there exists a particular Schema that is AssignableTo() the type.
+//
+// This property is not representable in Go's static type system, as Thema types
+// are dynamic, and AssignableTo() is a runtime check. Thus, the only actual
+// type constraint here is ~struct{}, corresponding to Thema's universal restriction
+// that the base type of all Thema schemas must be a struct.
+//
+// Instead, Thema's implementation guarantees that it is only possible to
+// instantiate a generic type with an Assignee type parameter if the relevant
+// AssignableTo() relation has already been verified, and there is an
+// unambiguous relationship between the generic type and the relevant Schema.
+//
+// For example: for TypedSchema[T Assignee], it is the related Schema. With
+// TypedInstance[T Assignee], the related schema is returned from its
+// TypedSchema() method.
+//
+// This type constraint is functionally identical to struct{}; rather, it is
+// used as a signal to the human reader that the relation to a Schema exists,
+// and either has been verified, or the corresponding type will panic if any
+// methods are called.
+type Assignee interface {
+	~struct{}
+}
+
 // SyntacticVersion is a two-tuple of uints describing the position of a schema
 // within a lineage. Syntactic versions are Thema's canonical version numbering
 // system.
