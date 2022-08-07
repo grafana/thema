@@ -72,7 +72,7 @@ func NewValueMux[T thema.Assignee](sch thema.TypedSchema[T], dec Decoder) ValueM
 	return func(b []byte) (T, thema.TranslationLacunas, error) {
 		ti, lac, err := f(b)
 		if err != nil {
-			return nil, lac, err
+			return T{}, lac, err
 		}
 		t, err := ti.Value()
 		return t, lac, err
