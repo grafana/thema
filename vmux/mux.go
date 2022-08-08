@@ -12,9 +12,21 @@ import (
 	"github.com/grafana/thema"
 )
 
+// UntypedMux is a version multiplexer that maps a []byte containing data at any
+// schematized version to a [thema.Instance] at a particular schematized version.
 type UntypedMux func(b []byte) (*thema.Instance, thema.TranslationLacunas, error)
 
-func NewUntyped(sch thema.Schema, dec Decoder) UntypedMux {
+// NewUntypedMux creates an [UntypedMux] func from the provided [thema.Schema].
+//
+// When the returned mux func is called, it will:
+//
+//   - Decode the input []byte using the provided [Decoder], then
+//   - Pass the result to [thema.Schema.Validate], then
+//   - Call [thema.Instance.Translate] on the result, to the version of the provided [thema.Schema], then
+//   - Return the resulting [thema.Instance], [thema.TranslationLacunas], and error
+//
+// The returned error may be from any of the above steps.
+func NewUntypedMux(sch thema.Schema, dec Decoder) UntypedMux {
 	ctx := sch.Lineage().UnwrapCUE().Context()
 	// Prepare no-match error string once for reuse
 	vstring := allvstr(sch)
@@ -51,10 +63,23 @@ func NewUntyped(sch thema.Schema, dec Decoder) UntypedMux {
 	}
 }
 
+// ByteMux is a version multiplexer that maps a []byte containing data at any
+// schematized version to a []byte containing data at a particular schematized version.
 type ByteMux func(b []byte) ([]byte, thema.TranslationLacunas, error)
 
+// NewByteMux creates a [ByteMux] func from the provided [thema.Schema].
+//
+// When the returned mux func is called, it will:
+//
+//   - Decode the input []byte using the provided [Endec], then
+//   - Pass the result to [thema.Schema.Validate], then
+//   - Call [thema.Instance.Translate] on the result, to the version of the provided [thema.Schema], then
+//   - Encode the resulting [thema.Instance] to a []byte, then
+//   - Return the resulting []byte, [thema.TranslationLacunas], and error
+//
+// The returned error may be from any of the above steps.
 func NewByteMux(sch thema.Schema, end Endec) ByteMux {
-	f := NewUntyped(sch, end)
+	f := NewUntypedMux(sch, end)
 	return func(b []byte) ([]byte, thema.TranslationLacunas, error) {
 		ti, lac, err := f(b)
 		if err != nil {
@@ -65,8 +90,22 @@ func NewByteMux(sch thema.Schema, end Endec) ByteMux {
 	}
 }
 
+// ValueMux is a version multiplexer that maps a []byte containing data at any
+// schematized version to a Go var of a type that a particular schematized
+// version is [thema.AssignableTo].
 type ValueMux[T thema.Assignee] func(b []byte) (T, thema.TranslationLacunas, error)
 
+// NewValueMux creates a [ValueMux] func from the provided [thema.TypedSchema].
+//
+// When the returned mux func is called, it will:
+//
+//   - Decode the input []byte using the provided [Decoder], then
+//   - Pass the result to [thema.TypedSchema.ValidateTyped], then
+//   - Call [thema.Instance.Translate] on the result, to the version of the provided [thema.TypedSchema], then
+//   - Populate an instance of T by calling [thema.TypedInstance.Value] on the result, then
+//   - Return the resulting T, [thema.TranslationLacunas], and error
+//
+// The returned error may be from any of the above steps.
 func NewValueMux[T thema.Assignee](sch thema.TypedSchema[T], dec Decoder) ValueMux[T] {
 	f := NewTypedMux[T](sch, dec)
 	return func(b []byte) (T, thema.TranslationLacunas, error) {
@@ -79,8 +118,20 @@ func NewValueMux[T thema.Assignee](sch thema.TypedSchema[T], dec Decoder) ValueM
 	}
 }
 
+// TypedMux is a version multiplexer that maps a []byte containing data at any
+// schematized version to a [thema.TypedInstance] at a particular schematized version.
 type TypedMux[T thema.Assignee] func(b []byte) (*thema.TypedInstance[T], thema.TranslationLacunas, error)
 
+// NewTypedMux creates a [TypedMux] func from the provided [thema.TypedSchema].
+//
+// When the returned mux func is called, it will:
+//
+//   - Decode the input []byte using the provided [Decoder], then
+//   - Pass the result to [thema.TypedSchema.ValidateTyped], then
+//   - Call [thema.Instance.Translate] on the result, to the version of the provided [thema.TypedSchema], then
+//   - Return the resulting [thema.TypedInstance], [thema.TranslationLacunas], and error
+//
+// The returned error may be from any of the above steps.
 func NewTypedMux[T thema.Assignee](sch thema.TypedSchema[T], dec Decoder) TypedMux[T] {
 	ctx := sch.Lineage().UnwrapCUE().Context()
 	// Prepare no-match error string once for reuse
