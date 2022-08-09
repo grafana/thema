@@ -201,8 +201,7 @@ type Schema interface {
 //
 // This property is not representable in Go's static type system, as Thema types
 // are dynamic, and AssignableTo() is a runtime check. Thus, the only actual
-// type constraint here is ~struct{}, corresponding to Thema's universal restriction
-// that the base type of all Thema schemas must be a struct.
+// type constraint Go's type system can be made aware of is any.
 //
 // Instead, Thema's implementation guarantees that it is only possible to
 // instantiate a generic type with an Assignee type parameter if the relevant
@@ -218,7 +217,7 @@ type Schema interface {
 // and either has been verified, or the corresponding type will panic if any
 // methods are called.
 type Assignee interface {
-	~struct{}
+	any
 }
 
 // SyntacticVersion is a two-tuple of uints describing the position of a schema
