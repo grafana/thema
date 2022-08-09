@@ -112,13 +112,12 @@ func LatestVersionInSequence(lin Lineage, seqv uint) (SyntacticVersion, error) {
 // It is idiomatic to name LineageFactory funcs after the "name" field on the
 // lineage they return:
 //
-//   func <name>Lineage ...
+//	func <name>Lineage ...
 //
 // If the Go package and lineage name are the same, the name should be omitted from
 // the builder func to reduce stutter:
 //
-//   func Lineage ...
-//
+//	func Lineage ...
 type LineageFactory func(lib Library, opts ...BindOption) (Lineage, error)
 
 // A BindOption defines options that may be specified only at initial
@@ -212,13 +211,16 @@ type Schema interface {
 // TypedInstance[T Assignee], the related schema is returned from its
 // TypedSchema() method.
 //
-// This type constraint is functionally identical to struct{}; rather, it is
-// used as a signal to the human reader that the relation to a Schema exists,
-// and either has been verified, or the corresponding type will panic if any
-// methods are called.
+// As this type constraint is simply any, it exists solely as a signal to the
+// human reader that the relation to a Schema exists, and that the relation
+// has been verified in any properly instantiated type carrying this generic
+// type constraint. (Improperly instantiated generic Thema types panic upon
+// calls to any of their methods)
 type Assignee interface {
 	any
 }
+
+// type Assignee any
 
 // SyntacticVersion is a two-tuple of uints describing the position of a schema
 // within a lineage. Syntactic versions are Thema's canonical version numbering
@@ -234,7 +236,7 @@ type SyntacticVersion [2]uint
 // A trivial helper to avoid repetitive Go-stress disorder from countless
 // instances of typing:
 //
-//   SyntacticVersion{0, 0}
+//	SyntacticVersion{0, 0}
 func SV(seqv, schv uint) SyntacticVersion {
 	return SyntacticVersion([2]uint{seqv, schv})
 }

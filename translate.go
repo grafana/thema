@@ -85,7 +85,7 @@ func (i *Instance) lib() Library {
 	return getLinLib(i.Schema().Lineage())
 }
 
-type TypedInstance[T ~struct{}] struct {
+type TypedInstance[T Assignee] struct {
 	inst *Instance
 	tsch TypedSchema[T]
 }

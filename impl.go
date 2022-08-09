@@ -399,14 +399,14 @@ func (sch *UnarySchema) _schema() {}
 // BindType produces a TypedSchema, given a Schema that is AssignableTo() the
 // provided struct type. An error is returned if the provided Schema is not
 // assignable to the given struct type.
-func BindType[T Assignee](sch Schema) (TypedSchema[T], error) {
-	if err := AssignableTo(sch, T{}); err != nil {
+func BindType[T Assignee](sch Schema, t T) (TypedSchema[T], error) {
+	if err := AssignableTo(sch, t); err != nil {
 		return nil, err
 	}
 
 	tsch := &UnaryTypedSchema[T]{
 		Schema: sch,
-		new:    T{},
+		new:    t, // TODO test if this works as expected on pointers
 	}
 
 	sch.UnwrapCUE().Decode(&tsch.new)
@@ -443,7 +443,7 @@ func schemaIs(s1, s2 Schema) bool {
 	panic("TODO")
 }
 
-var _ TypedSchema[struct{}] = &UnaryTypedSchema[struct{}]{}
+var _ TypedSchema[Assignee] = &UnaryTypedSchema[Assignee]{}
 
 type UnaryTypedSchema[T Assignee] struct {
 	Schema
