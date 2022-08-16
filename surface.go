@@ -216,11 +216,7 @@ type Schema interface {
 // has been verified in any properly instantiated type carrying this generic
 // type constraint. (Improperly instantiated generic Thema types panic upon
 // calls to any of their methods)
-type Assignee interface {
-	any
-}
-
-// type Assignee any
+type Assignee any
 
 // SyntacticVersion is a two-tuple of uints describing the position of a schema
 // within a lineage. Syntactic versions are Thema's canonical version numbering
