@@ -49,19 +49,19 @@ var themamodpath string = filepath.Join("cue.mod", "pkg", "github.com", "grafana
 // there must exist cue.mod/module.cue, which must contain a top-level field
 // declaring the module name (aka import prefix/module path), e.g.:
 //
-//   module: "github.com/grafana/thema"
+//	module: "github.com/grafana/thema"
 //
 // The dir parameter must specify a directory containing .cue files with
 // lineages to be loaded, relative to the module root directory. This is similar
 // to load.Config.Dir, except:
-//   - There is no corollary to the load.Config.Packages property. Consequently,
-//     only .cue files with packages having the same name as their parent dir will be loaded.
-//       - The package name of the root dir is the final element of the module name.
+//   - The package name of the root dir is the final element of the module name,
+//     unless overridden with a [Package] option.
 //   - "." and the empty string are a special value that will load the root
 //     directory of the modFS.
 //
-// TODO decide on what, if anything, to do about passing/injecting a *build.Context
-func InstancesWithThema(modFS fs.FS, dir string) (*build.Instance, error) {
+// NOTE - this function is likely to be deprecated and removed in favor of a
+// more generic dependency overlay loader.
+func InstancesWithThema(modFS fs.FS, dir string, opts ...Option) (*build.Instance, error) {
 	var modname string
 	err := fs.WalkDir(modFS, "cue.mod", func(path string, d fs.DirEntry, err error) error {
 		// fs.FS implementations tend to not use path separators as expected. Use a
@@ -127,21 +127,25 @@ func InstancesWithThema(modFS fs.FS, dir string) (*build.Instance, error) {
 		}
 	}
 
-	if dir == "" {
-		dir = "."
-	}
-
 	cfg := &load.Config{
 		Overlay:    overlay,
 		ModuleRoot: modroot,
 		Module:     modname,
 		Dir:        filepath.Join(modroot, dir),
-		Package:    filepath.Base(dir),
 	}
-	if dir == "." {
-		cfg.Package = filepath.Base(modroot)
+	lc := &loadConfig{
+		pkgname: filepath.Base(dir),
+	}
+
+	if dir == "" || dir == "." {
+		lc.pkgname = filepath.Base(modroot)
 		cfg.Dir = modroot
 	}
+	for _, opt := range opts {
+		opt(lc)
+	}
+
+	cfg.Package = lc.pkgname
 
 	inst := load.Instances(nil, cfg)[0]
 	if inst.Err != nil {
@@ -149,6 +153,24 @@ func InstancesWithThema(modFS fs.FS, dir string) (*build.Instance, error) {
 	}
 
 	return inst, nil
+}
+
+// Option defines optional parameters that may be passed to the loader.
+type Option loadOption
+
+// Internal representation of Option.
+type loadOption func(c *loadConfig)
+
+type loadConfig struct {
+	pkgname string
+}
+
+// Package specifies a custom CUE package name use when loading CUE files.
+// See ["cuelang.org/go/cue/load".Config.Package].
+func Package(name string) Option {
+	return func(c *loadConfig) {
+		c.pkgname = name
+	}
 }
 
 // ToOverlay maps the provided fs.FS into an Overlay for use in load.Config.
