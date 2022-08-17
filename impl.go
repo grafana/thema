@@ -3,6 +3,7 @@ package thema
 import (
 	"fmt"
 	"sort"
+	"strings"
 
 	"cuelang.org/go/cue"
 	terrors "github.com/grafana/thema/errors"
@@ -100,7 +101,7 @@ func BindLineage(raw cue.Value, lib Library, opts ...BindOption) (Lineage, error
 			lin.allv = append(lin.allv, v)
 
 			sch := schiter.Value()
-			defpath := cue.MakePath(cue.Def(fmt.Sprintf("%s%v%v", nam, v[0], v[1])))
+			defpath := cue.MakePath(cue.Def(fmt.Sprintf("%s%v%v", sanitizeLabelString(nam), v[0], v[1])))
 			defsch := lib.UnwrapCUE().FillPath(defpath, sch).LookupPath(defpath)
 			if defsch.Err() != nil {
 				panic(defsch.Err())
@@ -140,6 +141,23 @@ func BindLineage(raw cue.Value, lib Library, opts ...BindOption) (Lineage, error
 	}
 
 	return lin, nil
+}
+
+func sanitizeLabelString(s string) string {
+	return strings.Map(func(r rune) rune {
+		switch {
+		case r >= 'a' && r <= 'z':
+			fallthrough
+		case r >= 'A' && r <= 'Z':
+			fallthrough
+		case r >= '0' && r <= '9':
+			fallthrough
+		case r == '_':
+			return r
+		default:
+			return -1
+		}
+	}, s)
 }
 
 // Library returns the thema.Library instance with which this lineage was built.
