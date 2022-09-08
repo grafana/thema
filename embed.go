@@ -12,11 +12,11 @@ import (
 // is exported such that other Go packages have the unfettered capability to
 // create their own thema-based systems.
 //
-//go:embed *.cue
+//go:embed *.cue crd/*.cue
 var CueFS embed.FS
 
 // CueJointFS contains the raw thema .cue files, as well as the cue.mod
 // directory.
 //
-//go:embed *.cue cue.mod
+//go:embed *.cue crd/*.cue cue.mod
 var CueJointFS embed.FS
