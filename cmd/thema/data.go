@@ -336,13 +336,13 @@ func validateDataInput(cmd *cobra.Command, args []string) error {
 	case "":
 		// Figure it out; try JSON first
 		datval, err = jd(lib.UnwrapCUE().Context(), inbytes)
-		if err != nil {
+		if err == nil {
 			encoding = "json"
 			break
 		}
 		// Nope, try yaml
 		datval, err = yd(lib.UnwrapCUE().Context(), inbytes)
-		if err != nil {
+		if err == nil {
 			encoding = "yaml"
 			break
 		}
