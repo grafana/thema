@@ -106,5 +106,9 @@ func loadone(lib thema.Library, binst *build.Instance, pkgpath, cuepath string) 
 	// FIXME so hacky to write back to a global this way - only OK because buildInsts guarantees only one can escape
 	linbinst = binst
 
-	return thema.BindLineage(v, lib)
+	var opts []thema.BindOption
+	if _, set := os.LookupEnv("THEMA_SKIP_BUGGY"); set {
+		opts = append(opts, thema.SkipBuggyChecks())
+	}
+	return thema.BindLineage(v, lib, opts...)
 }
