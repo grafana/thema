@@ -75,7 +75,7 @@ import (
             name: "\(crdspec.names.plural).\(crdspec.group)"
         }
         spec: crdspec
-        spec: versions: {
+        spec: versions: [
             for seqv, seq in lin.seqs {
                 for schv, sch in seq.schemas {
                     served: list.Contains(served, [seqv, schv])
@@ -87,7 +87,7 @@ import (
                     }
                 }
             }
-        }
+        ]
     }
 
     // The lineage, reformed in the shape of a custom resource validator.
