@@ -22,12 +22,12 @@ type Library struct {
 }
 
 // NewLibrary parses, loads and builds a full CUE instance/value representing
-// all of the logic in the thema CUE package (github.com/grafana/thema),
+// all of the logic in the Thema CUE package (github.com/grafana/thema),
 // and returns a Library instance ready for use.
 //
 // Building is performed using the provided cue.Context. Passing a nil context will panic.
 //
-// This function is the canonical way to make thema logic callable from Go code.
+// This function is the canonical way to make Thema logic callable from Go code.
 func NewLibrary(ctx *cue.Context) Library {
 	if ctx == nil {
 		panic("nil context provided")

@@ -408,19 +408,45 @@ func BindType[T Assignee](sch Schema, t T) (TypedSchema[T], error) {
 		Schema: sch,
 		new:    t, // TODO test if this works as expected on pointers
 	}
+	err := sch.UnwrapCUE().Decode(&tsch.new)
+	if err != nil {
+		return nil, err
+	}
 
-	sch.UnwrapCUE().Decode(&tsch.new)
+	tsch.tlin = &UnaryTypedLineage[T]{
+		Lineage: sch.Lineage(),
+		tsch:    tsch,
+	}
+
 	return tsch, nil
 }
 
-// TypedSchema is a Thema schema that has been bound to a particular Go type, per
-// Thema's assignability rules.
-type TypedSchema[T Assignee] interface {
-	Schema
-	// New initializes a new T with preference given to any schema-specified
-	// defaults.
-	New() T
-	ValidateTyped(data cue.Value) (*TypedInstance[T], error)
+type UnaryTypedLineage[T Assignee] struct {
+	Lineage
+	tsch TypedSchema[T]
+}
+
+func (lin *UnaryTypedLineage[T]) TypedSchema() TypedSchema[T] {
+	return lin.tsch
+}
+
+var _ TypedLineage[Assignee] = &UnaryTypedLineage[Assignee]{}
+
+func BindTypedLineage[T Assignee](lin Lineage, v SyntacticVersion, t T) (TypedLineage[T], error) {
+	sch, err := lin.Schema(v)
+	if err != nil {
+		return nil, err
+	}
+	tsch, err := BindType(sch, t)
+	if err != nil {
+		return nil, err
+	}
+
+	tlin := &UnaryTypedLineage[T]{
+		Lineage: lin,
+		tsch:    tsch,
+	}
+	return tlin, nil
 }
 
 // BindInstanceType produces a TypedInstance, given an Instance and a
@@ -447,7 +473,8 @@ var _ TypedSchema[Assignee] = &UnaryTypedSchema[Assignee]{}
 
 type UnaryTypedSchema[T Assignee] struct {
 	Schema
-	new T
+	new  T
+	tlin TypedLineage[T]
 }
 
 func (sch *UnaryTypedSchema[T]) New() T {
@@ -464,6 +491,9 @@ func (sch *UnaryTypedSchema[T]) ValidateTyped(data cue.Value) (*TypedInstance[T]
 		inst: inst,
 		tsch: sch,
 	}, nil
+}
+func (sch *UnaryTypedSchema[T]) TypedLineage() TypedLineage[T] {
+	return sch.tlin
 }
 
 // Call with no args to get init v, {0, 0}
