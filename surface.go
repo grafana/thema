@@ -45,8 +45,8 @@ type Lineage interface {
 	// Only the [0, 0] schema is guaranteed to exist in all valid lineages.
 	Schema(v SyntacticVersion) (Schema, error)
 
-	// Library returns the thema.Library instance with which this lineage was built.
-	Library() Library
+	// Runtime returns the thema.Runtime instance with which this lineage was built.
+	Runtime() *Runtime
 
 	// Lineage must be a private interface in order to restrict their creation
 	// through BindLineage().
@@ -112,14 +112,13 @@ func LatestVersionInSequence(lin Lineage, seqv uint) (SyntacticVersion, error) {
 // It is idiomatic to name LineageFactory funcs after the "name" field on the
 // lineage they return:
 //
-//   func <name>Lineage ...
+//	func <name>Lineage ...
 //
 // If the Go package and lineage name are the same, the name should be omitted from
 // the builder func to reduce stutter:
 //
-//   func Lineage ...
-//
-type LineageFactory func(lib Library, opts ...BindOption) (Lineage, error)
+//	func Lineage ...
+type LineageFactory func(*Runtime, ...BindOption) (Lineage, error)
 
 // A BindOption defines options that may be specified only at initial
 // construction of a Lineage via BindLineage.
@@ -210,9 +209,9 @@ type SyntacticVersion [2]uint
 // A trivial helper to avoid repetitive Go-stress disorder from countless
 // instances of typing:
 //
-//   SyntacticVersion{0, 0}
+//	SyntacticVersion{0, 0}
 func SV(seqv, schv uint) SyntacticVersion {
-	return SyntacticVersion([2]uint{seqv, schv})
+	return [2]uint{seqv, schv}
 }
 
 // Less reports whether the provided SyntacticVersion is less than the receiver,

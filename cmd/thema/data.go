@@ -335,13 +335,13 @@ func validateDataInput(cmd *cobra.Command, args []string) error {
 	switch encoding {
 	case "":
 		// Figure it out; try JSON first
-		datval, err = jd(lib.UnwrapCUE().Context(), inbytes)
+		datval, err = jd(rt.UnwrapCUE().Context(), inbytes)
 		if err == nil {
 			encoding = "json"
 			break
 		}
 		// Nope, try yaml
-		datval, err = yd(lib.UnwrapCUE().Context(), inbytes)
+		datval, err = yd(rt.UnwrapCUE().Context(), inbytes)
 		if err == nil {
 			encoding = "yaml"
 			break
@@ -354,7 +354,7 @@ func validateDataInput(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("JSON input encoding specified, but file extension is %s", ext)
 		}
 
-		datval, err = jd(lib.UnwrapCUE().Context(), inbytes)
+		datval, err = jd(rt.UnwrapCUE().Context(), inbytes)
 		if err != nil {
 			return err
 		}
@@ -363,7 +363,7 @@ func validateDataInput(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("YAML input encoding specified, but file extension is %s", ext)
 		}
 
-		datval, err = yd(lib.UnwrapCUE().Context(), inbytes)
+		datval, err = yd(rt.UnwrapCUE().Context(), inbytes)
 		if err != nil {
 			return err
 		}

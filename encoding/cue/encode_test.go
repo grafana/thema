@@ -9,7 +9,7 @@ import (
 )
 
 var ctx = cuecontext.New()
-var lib = thema.NewLibrary(ctx)
+var rt = thema.NewRuntime(ctx)
 
 func TestDoSimpleGenLineage(t *testing.T) {
 	cuestr := `
@@ -27,7 +27,7 @@ bar: int
 }
 
 func TestSimpleAppendLineage(t *testing.T) {
-	lin, _ := exemplars.NarrowingLineage(lib)
+	lin, _ := exemplars.NarrowingLineage(rt)
 
 	cuestr := `
 properbool: bool

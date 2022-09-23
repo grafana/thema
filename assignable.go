@@ -16,14 +16,17 @@ import (
 // The provided T must necessarily be of struct type, as it is a requirement
 // that all Thema schemas are of base type struct.
 //
-//  type MyType struct {
-//  	MyField string `json:"myfield"`
-//  }
+//	type MyType struct {
+//		MyField string `json:"myfield"`
+//	}
 //
-//  AssignableTo(sch, &MyType{})
+//	AssignableTo(sch, &MyType{})
 //
 // Assignability rules are specified here: https://github.com/grafana/thema/blob/main/docs/invariants.md#go-assignability
 func AssignableTo(sch Schema, T interface{}) error {
+	rt := sch.Lineage().Runtime()
+	rt.rl()
+	defer rt.ru()
 	return assignable(sch.UnwrapCUE(), T)
 }
 
