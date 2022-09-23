@@ -121,7 +121,7 @@ func isCueValueEqual(inputdef cue.Value, input cue.Value) bool {
 }
 
 // func ddoDehydrate(sch cue.Value, data cue.Value) cue.Value {
-// 	rv := sch.Context().CompileString("_", cue.Filename("dehydrated"))
+// 	rv := sch.Runtime().CompileString("_", cue.Filename("dehydrated"))
 //
 // 	switch sch.IncompleteKind() {
 // 	case cue.StructKind:

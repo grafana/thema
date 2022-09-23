@@ -15,9 +15,9 @@ import (
 )
 
 // All returns all of the exemplar lineages in a map keyed by lineage name.
-func All(lib thema.Library) map[string]thema.Lineage {
+func All(rt *thema.Runtime) map[string]thema.Lineage {
 	all := make(map[string]thema.Lineage)
-	iter, err := buildAll(lib.Context()).Fields(cue.Definitions(false))
+	iter, err := buildAll(rt.Context()).Fields(cue.Definitions(false))
 	if err != nil {
 		panic(err)
 	}
@@ -26,7 +26,7 @@ func All(lib thema.Library) map[string]thema.Lineage {
 		v := iter.Value().LookupPath(cue.ParsePath("l"))
 		name, _ := v.LookupPath(cue.ParsePath("name")).String()
 
-		lin, err := thema.BindLineage(v, lib, nameOpts[name]...)
+		lin, err := thema.BindLineage(v, rt, nameOpts[name]...)
 		if err != nil {
 			panic(err)
 		}
@@ -98,28 +98,28 @@ func populateMapFSFromRoot(in fs.FS, root, join string) (fstest.MapFS, error) {
 }
 
 // NarrowingLineage returns a handle for using the "narrowing" exemplar lineage.
-func NarrowingLineage(lib thema.Library, o ...thema.BindOption) (thema.Lineage, error) {
-	return lineageForExemplar("narrowing", lib, o...)
+func NarrowingLineage(rt *thema.Runtime, o ...thema.BindOption) (thema.Lineage, error) {
+	return lineageForExemplar("narrowing", rt, o...)
 }
 
 // RenameLineage returns a handle for using the "Rename" exemplar lineage.
-func RenameLineage(lib thema.Library, o ...thema.BindOption) (thema.Lineage, error) {
-	return lineageForExemplar("rename", lib, o...)
+func RenameLineage(rt *thema.Runtime, o ...thema.BindOption) (thema.Lineage, error) {
+	return lineageForExemplar("rename", rt, o...)
 }
 
 // DefaultChangeLineage returns a handle for using the "defaultchange" exemplar lineage.
-func DefaultChangeLineage(lib thema.Library, o ...thema.BindOption) (thema.Lineage, error) {
-	return lineageForExemplar("defaultchange", lib, o...)
+func DefaultChangeLineage(rt *thema.Runtime, o ...thema.BindOption) (thema.Lineage, error) {
+	return lineageForExemplar("defaultchange", rt, o...)
 }
 
 // ExpandLineage returns a handle for using the "expand" exemplar lineage.
-func ExpandLineage(lib thema.Library, o ...thema.BindOption) (thema.Lineage, error) {
-	return lineageForExemplar("expand", lib, o...)
+func ExpandLineage(rt *thema.Runtime, o ...thema.BindOption) (thema.Lineage, error) {
+	return lineageForExemplar("expand", rt, o...)
 }
 
 // SingleLineage returns a handle for using the "single" exemplar lineage.
-func SingleLineage(lib thema.Library, o ...thema.BindOption) (thema.Lineage, error) {
-	return lineageForExemplar("single", lib, o...)
+func SingleLineage(rt *thema.Runtime, o ...thema.BindOption) (thema.Lineage, error) {
+	return lineageForExemplar("single", rt, o...)
 }
 
 var _ thema.LineageFactory = NarrowingLineage
@@ -129,8 +129,8 @@ var _ thema.LineageFactory = ExpandLineage
 var _ thema.LineageFactory = SingleLineage
 
 // Build the harness containing a single exemplar lineage.
-func harnessForExemplar(name string, lib thema.Library) cue.Value {
-	all := buildExemplarsPackage(lib)
+func harnessForExemplar(name string, rt *thema.Runtime) cue.Value {
+	all := buildExemplarsPackage(rt)
 
 	lval := all.LookupPath(cue.MakePath(cue.Str(name)))
 	if !lval.Exists() {
@@ -141,16 +141,16 @@ func harnessForExemplar(name string, lib thema.Library) cue.Value {
 }
 
 // Build a Lineage representing a single exemplar.
-func lineageForExemplar(name string, lib thema.Library, o ...thema.BindOption) (thema.Lineage, error) {
+func lineageForExemplar(name string, rt *thema.Runtime, o ...thema.BindOption) (thema.Lineage, error) {
 	switch name {
 	case "defaultchange", "narrowing", "rename":
 		o = append(o, thema.SkipBuggyChecks())
 	}
-	return thema.BindLineage(harnessForExemplar(name, lib), lib, o...)
+	return thema.BindLineage(harnessForExemplar(name, rt), rt, o...)
 }
 
-func buildExemplarsPackage(lib thema.Library) cue.Value {
-	ctx := lib.UnwrapCUE().Context()
+func buildExemplarsPackage(rt *thema.Runtime) cue.Value {
+	ctx := rt.UnwrapCUE().Context()
 
 	overlay, err := exemplarOverlay()
 	if err != nil {

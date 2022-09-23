@@ -12,8 +12,8 @@ import (
 
 // TODO make a testscript-based golden file approach to this that captures all exemplar encoding
 func testGenerateSchema(t *testing.T) {
-	lib := thema.NewLibrary(cuecontext.New())
-	lin, err := exemplars.ExpandLineage(lib)
+	rt := thema.NewRuntime(cuecontext.New())
+	lin, err := exemplars.ExpandLineage(rt)
 	if err != nil {
 		t.Fatal(err)
 	}

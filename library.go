@@ -3,6 +3,7 @@ package thema
 import (
 	"fmt"
 	"path/filepath"
+	"sync"
 
 	"cuelang.org/go/cue"
 	"cuelang.org/go/cue/errors"
@@ -10,25 +11,29 @@ import (
 	"github.com/grafana/thema/internal/util"
 )
 
-// Library is a gateway to the set of CUE constructs available in the thema
-// CUE package, allowing Go code to rely on the same functionality.
+// Runtime is a gateway to the set of CUE constructs available in the Thema CUE
+// package, allowing Go code to rely on the same functionality.
 //
-// Each Library is bound to a single cue.Context (Runtime), set at the time
-// of Library creation via NewLibrary.
-type Library struct {
+// Each Thema Runtime is bound to a single cue.Context, set at the time
+// of Runtime creation via NewRuntime.
+type Runtime struct {
 	// Value corresponds to loading the whole github.com/grafana/thema:thema
 	// package.
 	val cue.Value
+
+	// Until CUE is safe for certain concurrent operations, keep a mutex to
+	// help guard...at least somewhat.
+	mut sync.RWMutex
 }
 
-// NewLibrary parses, loads and builds a full CUE instance/value representing
+// NewRuntime parses, loads and builds a full CUE instance/value representing
 // all of the logic in the thema CUE package (github.com/grafana/thema),
-// and returns a Library instance ready for use.
+// and returns a Runtime instance ready for use.
 //
 // Building is performed using the provided cue.Context. Passing a nil context will panic.
 //
 // This function is the canonical way to make thema logic callable from Go code.
-func NewLibrary(ctx *cue.Context) Library {
+func NewRuntime(ctx *cue.Context) *Runtime {
 	if ctx == nil {
 		panic("nil context provided")
 	}
@@ -38,7 +43,7 @@ func NewLibrary(ctx *cue.Context) Library {
 	overlay := make(map[string]load.Source)
 	if err := util.ToOverlay(path, CueJointFS, overlay); err != nil {
 		// It's impossible for this to fail barring temporary bugs in filesystem
-		// layout within the thema lib itself. These should be trivially
+		// layout within the thema rt itself. These should be trivially
 		// catchable during CI, so avoid forcing meaningless error handling on
 		// dependers and prefer a panic.
 		panic(err)
@@ -51,36 +56,56 @@ func NewLibrary(ctx *cue.Context) Library {
 		Dir:     path,
 	}
 
-	lib := ctx.BuildInstance(load.Instances(nil, cfg)[0])
-	if lib.Validate(cue.All()) != nil {
+	rt := ctx.BuildInstance(load.Instances(nil, cfg)[0])
+	if rt.Validate(cue.All()) != nil {
 		// As with the above, an error means that a problem exists in the
 		// literal CUE code embedded in this version of package (that should
 		// have trivially been caught with CI), so the caller can't fix anything
 		// without changing the version of the thema Go library they're
 		// depending on. It's a hard failure that should be unreachable outside
 		// thema internal testing, so just panic.
-		panic(lib.Validate(cue.All()))
+		panic(rt.Validate(cue.All()))
 	}
 
-	return Library{
-		val: lib,
+	return &Runtime{
+		val: rt,
 	}
+}
+
+func (rt *Runtime) rl() {
+	rt.mut.RLock()
+	// rt.mut.Lock()
+}
+
+func (rt *Runtime) ru() {
+	rt.mut.RUnlock()
+	// rt.mut.Unlock()
+}
+
+func (rt *Runtime) l() {
+	rt.mut.Lock()
+}
+
+func (rt *Runtime) u() {
+	rt.mut.Unlock()
 }
 
 // UnwrapCUE returns the underlying cue.Value representing the whole Thema CUE
 // library (github.com/grafana/thema).
-func (lib Library) UnwrapCUE() cue.Value {
-	return lib.val
+func (rt *Runtime) UnwrapCUE() cue.Value {
+	return rt.val
 }
 
-// Context returns the *cue.Context in which this library was built.
-func (lib Library) Context() *cue.Context {
-	return lib.val.Context()
+// Context returns the *cue.Context in which this runtime was built.
+func (rt *Runtime) Context() *cue.Context {
+	return rt.val.Context()
 }
 
 // Return the #Lineage definition (or panic)
-func (lib Library) linDef() cue.Value {
-	dlin := lib.val.LookupPath(cue.MakePath(cue.Def("#Lineage")))
+//
+// SURROUND CALLS TO THIS IN rl()/ru()
+func (rt *Runtime) linDef() cue.Value {
+	dlin := rt.val.LookupPath(cue.MakePath(cue.Def("#Lineage")))
 	if dlin.Err() != nil {
 		panic(dlin.Err())
 	}
@@ -89,14 +114,17 @@ func (lib Library) linDef() cue.Value {
 
 type cueArgs map[string]interface{}
 
-func (ca cueArgs) make(path string, lib Library) (cue.Value, error) {
+func (ca cueArgs) make(path string, rt *Runtime) (cue.Value, error) {
+	rt.l()
+	defer rt.u()
+
 	var cpath cue.Path
 	if path[0] == '_' {
 		cpath = cue.MakePath(cue.Hid(path, "github.com/grafana/thema"))
 	} else {
 		cpath = cue.ParsePath(path)
 	}
-	cfunc := lib.val.LookupPath(cpath)
+	cfunc := rt.val.LookupPath(cpath)
 	if !cfunc.Exists() {
 		panic(fmt.Sprintf("cannot call nonexistent CUE func %q", path))
 	}
@@ -131,12 +159,15 @@ func (ca cueArgs) make(path string, lib Library) (cue.Value, error) {
 	return last, nil
 }
 
-func (ca cueArgs) call(path string, lib Library) (cue.Value, error) {
-	v, err := ca.make(path, lib)
+func (ca cueArgs) call(path string, rt *Runtime) (cue.Value, error) {
+	v, err := ca.make(path, rt)
 	if err != nil {
 		return cue.Value{}, err
 	}
-	return v.LookupPath(outpath), nil
+	rt.rl()
+	rv := v.LookupPath(outpath)
+	rt.ru()
+	return rv, nil
 }
 
 type errInvalidCUEFuncArg struct {

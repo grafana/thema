@@ -10,11 +10,11 @@ import (
 
 var allctx = cuecontext.New()
 var dirinst cue.Value
-var alllib thema.Library
+var allrt *thema.Runtime
 
 func init() {
 	dirinst = buildAll(allctx)
-	alllib = thema.NewLibrary(allctx)
+	allrt = thema.NewRuntime(allctx)
 }
 
 func TestExemplarValidity(t *testing.T) {
@@ -27,7 +27,8 @@ func TestExemplarValidity(t *testing.T) {
 		v := iter.Value().LookupPath(cue.ParsePath("l"))
 		name, _ := v.LookupPath(cue.ParsePath("name")).String()
 		t.Run("Bind-"+name, func(t *testing.T) {
-			_, err := thema.BindLineage(v, alllib, nameOpts[name]...)
+			t.Parallel()
+			_, err := thema.BindLineage(v, allrt, nameOpts[name]...)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -38,7 +39,7 @@ func TestExemplarValidity(t *testing.T) {
 func BenchmarkBindLineage(b *testing.B) {
 	for name, o := range nameOpts {
 		b.Run(name, func(b *testing.B) {
-			lib := thema.NewLibrary(cuecontext.New())
+			lib := thema.NewRuntime(cuecontext.New())
 			b.ResetTimer()
 			for i := 0; i < b.N; i++ {
 				lineageForExemplar(name, lib, o...)

@@ -12,7 +12,7 @@ import (
 
 // lineageFromPaths takes a filepath and an optional CUE path expression
 // and loads the result up and bind it to a Lineage.
-func lineageFromPaths(lib thema.Library, filepath, cuepath string) (thema.Lineage, error) {
+func lineageFromPaths(rt *thema.Runtime, filepath, cuepath string) (thema.Lineage, error) {
 	if filepath == "" {
 		panic("empty filepath")
 	}
@@ -23,7 +23,7 @@ func lineageFromPaths(lib thema.Library, filepath, cuepath string) (thema.Lineag
 	}
 
 	binsts := load.Instances([]string{filepath}, &load.Config{})
-	return buildInsts(lib, binsts, func(binst *build.Instance) string {
+	return buildInsts(rt, binsts, func(binst *build.Instance) string {
 		if info.IsDir() {
 			return fmt.Sprintf("%s:%s", filepath, binst.PkgName)
 		}
@@ -31,7 +31,7 @@ func lineageFromPaths(lib thema.Library, filepath, cuepath string) (thema.Lineag
 	}, cuepath)
 }
 
-func lineageFromStdin(lib thema.Library, b []byte, cuepath string) (thema.Lineage, error) {
+func lineageFromStdin(rt *thema.Runtime, b []byte, cuepath string) (thema.Lineage, error) {
 	overlay := map[string]load.Source{
 		"stdin": load.FromBytes(b),
 	}
@@ -41,20 +41,20 @@ func lineageFromStdin(lib thema.Library, b []byte, cuepath string) (thema.Lineag
 	}
 
 	binsts := load.Instances([]string{"stdin"}, cfg)
-	return buildInsts(lib, binsts, func(binst *build.Instance) string {
+	return buildInsts(rt, binsts, func(binst *build.Instance) string {
 		return "stdin"
 	}, cuepath)
 }
 
 type ppathf func(*build.Instance) string
 
-func buildInsts(lib thema.Library, binsts []*build.Instance, ppath ppathf, cuepath string) (thema.Lineage, error) {
+func buildInsts(rt *thema.Runtime, binsts []*build.Instance, ppath ppathf, cuepath string) (thema.Lineage, error) {
 	rets := make([]struct {
 		lin thema.Lineage
 		err error
 	}, len(binsts))
 	for i, binst := range binsts {
-		rets[i].lin, rets[i].err = loadone(lib, binst, ppath(binst), cuepath)
+		rets[i].lin, rets[i].err = loadone(rt, binst, ppath(binst), cuepath)
 	}
 
 	switch len(binsts) {
@@ -83,12 +83,12 @@ func buildInsts(lib thema.Library, binsts []*build.Instance, ppath ppathf, cuepa
 	}
 }
 
-func loadone(lib thema.Library, binst *build.Instance, pkgpath, cuepath string) (thema.Lineage, error) {
+func loadone(rt *thema.Runtime, binst *build.Instance, pkgpath, cuepath string) (thema.Lineage, error) {
 	if binst.Err != nil {
 		return nil, binst.Err
 	}
 
-	v := lib.UnwrapCUE().Context().BuildInstance(binst)
+	v := rt.UnwrapCUE().Context().BuildInstance(binst)
 	if !v.Exists() {
 		return nil, fmt.Errorf("empty instance at %s", pkgpath)
 	}
@@ -110,5 +110,5 @@ func loadone(lib thema.Library, binst *build.Instance, pkgpath, cuepath string) 
 	if _, set := os.LookupEnv("THEMA_SKIP_BUGGY"); set {
 		opts = append(opts, thema.SkipBuggyChecks())
 	}
-	return thema.BindLineage(v, lib, opts...)
+	return thema.BindLineage(v, rt, opts...)
 }
