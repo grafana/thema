@@ -12,7 +12,7 @@ import (
 )
 
 var sl = gojsonschema.NewSchemaLoader()
-var lib = thema.NewLibrary(cuecontext.New())
+var rt = thema.NewRuntime(cuecontext.New())
 
 func init() {
 	sl.Validate = true
@@ -20,7 +20,7 @@ func init() {
 }
 
 func TestExemplarExportIsValid(t *testing.T) {
-	all := exemplars.All(lib)
+	all := exemplars.All(rt)
 	for name, lin := range all {
 		t.Run(name, func(t *testing.T) {
 			for sch := thema.SchemaP(lin, thema.SV(0, 0)); sch != nil; sch = sch.Successor() {

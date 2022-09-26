@@ -23,6 +23,7 @@ type Instance struct {
 // NOTE hydration implementation is a WIP. If errors are encountered, the
 // original input is returned unchanged.
 func (i *Instance) Hydrate() *Instance {
+	i.sch.Lineage().Runtime()
 	ni, err := doHydrate(i.sch.UnwrapCUE(), i.raw)
 	// FIXME For now, just no-op it if we error
 	if err != nil {
@@ -81,7 +82,7 @@ func (i *Instance) Schema() Schema {
 	return i.sch
 }
 
-func (i *Instance) lib() Library {
+func (i *Instance) rt() *Runtime {
 	return getLinLib(i.Schema().Lineage())
 }
 
@@ -132,8 +133,7 @@ func (inst *TypedInstance[T]) ValueP() T {
 //
 // NOTE reverse translation is not yet supported, and attempting it will panic.
 //
-// TODO define this in terms of Instance.AsSuccessor/AsPredecessor, rather than
-// those in terms of this.
+// TODO define this in terms of AsSuccessor and AsPredecessor, rather than those in terms of this.
 func (i *Instance) Translate(to SyntacticVersion) (*Instance, TranslationLacunas) {
 	if to.Less(i.Schema().Version()) {
 		panic(fmt.Sprintf("FIXME translation of instances from newer to older schema is not yet implemented - %s->%s was requested", i.Schema().Version(), to))
@@ -146,7 +146,7 @@ func (i *Instance) Translate(to SyntacticVersion) (*Instance, TranslationLacunas
 	out, err := cueArgs{
 		"linst": i.asLinkedInstance(),
 		"to":    to,
-	}.call("#Translate", i.lib())
+	}.call("#Translate", i.rt())
 	if err != nil {
 		// This can't happen without a name change or an invariant violation
 		panic(err)
@@ -187,7 +187,7 @@ func (i *Instance) asLinkedInstance() cue.Value {
 		"inst": i.raw,
 		"lin":  i.Schema().Lineage().UnwrapCUE(),
 		"v":    i.Schema().Version(),
-	}.make("#LinkedInstance", i.lib())
+	}.make("#LinkedInstance", i.rt())
 	if err != nil {
 		// This can't happen without a name change or an invariant violation
 		panic(err)

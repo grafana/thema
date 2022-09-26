@@ -2,6 +2,7 @@ package thema
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"reflect"
 
@@ -11,7 +12,8 @@ import (
 // AssignableTo indicates whether all valid instances of the provided Thema
 // schema can be assigned to the provided Go type.
 //
-// If the provided T is a pointer, it will be implicitly dereferenced.
+// If the provided T is a pointer, it will be dereferenced before verification.
+// Double pointers (or any n-pointer > 1)
 //
 // The provided T must necessarily be of struct type, as it is a requirement
 // that all Thema schemas are of base type struct.
@@ -24,8 +26,16 @@ import (
 //
 // Assignability rules are specified here: https://github.com/grafana/thema/blob/main/docs/invariants.md#go-assignability
 func AssignableTo(sch Schema, T any) error {
+	rt := sch.Lineage().Runtime()
+	rt.rl()
+	defer rt.ru()
 	return assignable(sch.UnwrapCUE(), T)
 }
+
+// ErrPointerDepth indicates that a Go type having pointer indirection depth > 1
+// (e.g. **struct{ Foo: string }) was provided to a Thema func that checks
+// assignability, such as [BindType].
+var ErrPointerDepth = errors.New("assignability does not support more than one level of pointer indirection")
 
 const scalarKinds = cue.NullKind | cue.BoolKind |
 	cue.IntKind | cue.FloatKind | cue.StringKind | cue.BytesKind
@@ -35,6 +45,9 @@ func assignable(sch cue.Value, T interface{}) error {
 
 	if v.Kind() == reflect.Ptr {
 		v = v.Elem()
+	}
+	if v.Kind() == reflect.Ptr {
+		return ErrPointerDepth
 	}
 
 	if v.Kind() != reflect.Struct {

@@ -15,7 +15,7 @@ import (
 )
 
 var ctx = cuecontext.New()
-var lib = thema.NewLibrary(ctx)
+var rt = thema.NewRuntime(ctx)
 
 // linfilepath is the filesystem path to the file (or directory) containing
 // the lineage
@@ -126,7 +126,7 @@ func mergeCobraefuncs(f ...cobraefunc) cobraefunc {
 
 func validateLineageInput(cmd *cobra.Command, args []string) error {
 	var err error
-	lin, err = lineageFromPaths(lib, linfilepath, lincuepath)
+	lin, err = lineageFromPaths(rt, linfilepath, lincuepath)
 	if err != nil {
 		if errors.Is(err, terrors.ErrValueNotALineage) && strings.Contains(err.Error(), "instance root") {
 			return fmt.Errorf("%w\nDid you forget to pass a CUE path with -p?", err)
