@@ -6,6 +6,22 @@ import (
 	"cuelang.org/go/cue"
 )
 
+// BindInstanceType produces a TypedInstance, given an Instance and a
+// TypedSchema derived from its Instance.Schema().
+//
+// The only possible error occurs if the TypedSchema is not derived from the
+// Instance.Schema().
+func BindInstanceType[T Assignee](inst *Instance, tsch TypedSchema[T]) (*TypedInstance[T], error) {
+	if !schemaIs(inst.Schema(), tsch) {
+		return nil, fmt.Errorf("typed schema is not derived from instance's schema")
+	}
+
+	return &TypedInstance[T]{
+		inst: inst,
+		tsch: tsch,
+	}, nil
+}
+
 // An Instance represents some data that has been validated against a
 // lineage's schema. It includes a reference to the schema.
 type Instance struct {
