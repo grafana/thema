@@ -9,19 +9,21 @@ import (
 	terrors "github.com/grafana/thema/errors"
 )
 
+var (
+	_ Lineage                     = &UnaryLineage{}
+	_ ConvergentLineage[Assignee] = &unaryConvLineage[Assignee]{}
+)
+
 // A UnaryLineage is a Go facade over a valid CUE lineage that does not compose
 // other lineage.
 type UnaryLineage struct {
 	validated bool
 	name      string
-	// schmap    sync.Map
-	raw    cue.Value
-	rt     *Runtime
-	allv   []SyntacticVersion
-	allsch []*UnarySchema
+	raw       cue.Value
+	rt        *Runtime
+	allv      []SyntacticVersion
+	allsch    []*UnarySchema
 }
-
-var _ Lineage = &UnaryLineage{}
 
 func defPathFor(name string, v SyntacticVersion) cue.Path {
 	return cue.MakePath(cue.Def(fmt.Sprintf("%s%v%v", name, v[0], v[1])))
@@ -246,27 +248,6 @@ func (lin *UnaryLineage) schema(v SyntacticVersion) *UnarySchema {
 	return lin.allsch[searchSynv(lin.allv, v)]
 }
 
-// lazy approach, uses sync.Map
-// func (lin *UnaryLineage) schemam(v SyntacticVersion) *UnarySchema {
-// 	isch, ok := lin.schmap.Load(v)
-// 	if !ok {
-// 		schval, err := cueArgs{
-// 			"v":   v,
-// 			"lin": lin.UnwrapCUE(),
-// 		}.call("#Pick", lin.rt)
-// 		if err != nil {
-// 			panic(err)
-// 		}
-// 		sch := &UnarySchema{
-// 			raw: schval,
-// 			lin: lin,
-// 			v:   v,
-// 		}
-// 		isch, _ = lin.schmap.LoadOrStore(v, sch)
-// 	}
-// 	return isch.(*UnarySchema)
-// }
-
 func (lin *UnaryLineage) _lineage() {}
 
 func searchSynv(a []SyntacticVersion, x SyntacticVersion) int {
@@ -278,30 +259,11 @@ func synvExists(a []SyntacticVersion, x SyntacticVersion) bool {
 	return i < len(a) && a[i] == x
 }
 
-type UnaryTypedLineage[T Assignee] struct {
+type unaryConvLineage[T Assignee] struct {
 	Lineage
 	tsch TypedSchema[T]
 }
 
-func (lin *UnaryTypedLineage[T]) TypedSchema() TypedSchema[T] {
+func (lin *unaryConvLineage[T]) TypedSchema() TypedSchema[T] {
 	return lin.tsch
 }
-
-var _ TypedLineage[Assignee] = &UnaryTypedLineage[Assignee]{}
-
-// func BindTypedLineage[T Assignee](lin Lineage, v SyntacticVersion, t T) (TypedLineage[T], error) {
-// 	sch, err := lin.Schema(v)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	tsch, err := BindType(sch, t)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-//
-// 	tlin := &UnaryTypedLineage[T]{
-// 		Lineage: lin,
-// 		tsch:    tsch,
-// 	}
-// 	return tlin, nil
-// }

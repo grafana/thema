@@ -2,6 +2,11 @@ package thema
 
 import "cuelang.org/go/cue"
 
+var (
+	_ Schema                = &UnarySchema{}
+	_ TypedSchema[Assignee] = &unaryTypedSchema[Assignee]{}
+)
+
 // A UnarySchema is a Go facade over a Thema schema that does not compose any
 // schemas from any other lineages.
 type UnarySchema struct {
@@ -11,8 +16,6 @@ type UnarySchema struct {
 	lin    *UnaryLineage
 	v      SyntacticVersion
 }
-
-var _ Schema = &UnarySchema{}
 
 func (sch *UnarySchema) rt() *Runtime {
 	return sch.Lineage().Runtime()
@@ -124,7 +127,7 @@ func BindType[T Assignee](sch Schema, t T) (TypedSchema[T], error) {
 		return nil, err
 	}
 
-	tsch := &UnaryTypedSchema[T]{
+	tsch := &unaryTypedSchema[T]{
 		Schema: sch,
 		new:    t, // TODO test if this works as expected on pointers
 	}
@@ -133,7 +136,7 @@ func BindType[T Assignee](sch Schema, t T) (TypedSchema[T], error) {
 		return nil, err
 	}
 
-	tsch.tlin = &UnaryTypedLineage[T]{
+	tsch.tlin = &unaryConvLineage[T]{
 		Lineage: sch.Lineage(),
 		tsch:    tsch,
 	}
@@ -145,19 +148,17 @@ func schemaIs(s1, s2 Schema) bool {
 	panic("TODO")
 }
 
-var _ TypedSchema[Assignee] = &UnaryTypedSchema[Assignee]{}
-
-type UnaryTypedSchema[T Assignee] struct {
+type unaryTypedSchema[T Assignee] struct {
 	Schema
 	new  T
-	tlin TypedLineage[T]
+	tlin ConvergentLineage[T]
 }
 
-func (sch *UnaryTypedSchema[T]) New() T {
+func (sch *unaryTypedSchema[T]) New() T {
 	return sch.new
 }
 
-func (sch *UnaryTypedSchema[T]) ValidateTyped(data cue.Value) (*TypedInstance[T], error) {
+func (sch *unaryTypedSchema[T]) ValidateTyped(data cue.Value) (*TypedInstance[T], error) {
 	inst, err := sch.Schema.Validate(data)
 	if err != nil {
 		return nil, err
@@ -168,6 +169,6 @@ func (sch *UnaryTypedSchema[T]) ValidateTyped(data cue.Value) (*TypedInstance[T]
 		tsch: sch,
 	}, nil
 }
-func (sch *UnaryTypedSchema[T]) TypedLineage() TypedLineage[T] {
+func (sch *unaryTypedSchema[T]) ConvergentLineage() ConvergentLineage[T] {
 	return sch.tlin
 }
