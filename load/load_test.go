@@ -34,7 +34,7 @@ func TestInstanceLoadHelper(t *testing.T) {
 		t.Fatal(val.Err())
 	}
 
-	lin, err := thema.BindLineage(val.LookupPath(cue.ParsePath("lin")), thema.NewLibrary(ctx))
+	lin, err := thema.BindLineage(val.LookupPath(cue.ParsePath("lin")), thema.NewRuntime(ctx))
 	if err != nil {
 		t.Fatal(err)
 	}

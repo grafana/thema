@@ -1,6 +1,7 @@
 package thema
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -22,6 +23,11 @@ func TestAssignable(t *testing.T) {
 		invalid bool
 	}{
 		"nonpointer": {
+			T: struct{}{},
+			cue: `typ: {}
+			`,
+		},
+		"doublepointer": {
 			T: struct{}{},
 			cue: `typ: {}
 			`,
@@ -367,5 +373,16 @@ func TestAssignable(t *testing.T) {
 			t.Run("normal", f(false))
 			t.Run("definition", f(true))
 		})
+	}
+}
+
+func TestNoDeepPointer(t *testing.T) {
+	typ := &struct{}{}
+	assignerr := assignable(cue.Value{}, &typ)
+	if assignerr == nil {
+		t.Fatal("expected error when passing pointer with more than one level of indirection")
+	}
+	if !errors.Is(assignerr, ErrPointerDepth) {
+		t.Fatal("unexpected error received when passing pointer with more than one level of indirection")
 	}
 }

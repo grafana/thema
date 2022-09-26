@@ -26,9 +26,9 @@ var tf10 = &type10{}
 
 func TestInputKernelInputs(t *testing.T) {
 	ctx := cuecontext.New()
-	lib := thema.NewLibrary(ctx)
+	rt := thema.NewRuntime(ctx)
 
-	lin, err := exemplars.RenameLineage(lib)
+	lin, err := exemplars.RenameLineage(rt)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -110,9 +110,9 @@ func TestInputKernelInputs(t *testing.T) {
 
 func TestInputKernelConverge(t *testing.T) {
 	ctx := cuecontext.New()
-	lib := thema.NewLibrary(ctx)
+	rt := thema.NewRuntime(ctx)
 
-	lin, err := exemplars.RenameLineage(lib)
+	lin, err := exemplars.RenameLineage(rt)
 	if err != nil {
 		t.Fatal(err)
 	}

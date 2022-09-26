@@ -3,6 +3,7 @@ package thema
 import (
 	"fmt"
 	"sort"
+	"strings"
 
 	"cuelang.org/go/cue"
 	terrors "github.com/grafana/thema/errors"
@@ -43,7 +44,11 @@ func defPathFor(name string, v SyntacticVersion) cue.Path {
 // thereby providing a practical promise that all instances of Lineage uphold
 // Thema's invariants. It is primarily intended for use by authors of lineages
 // in the creation of a LineageFactory.
-func BindLineage(raw cue.Value, lib Library, opts ...BindOption) (Lineage, error) {
+func BindLineage(raw cue.Value, rt *Runtime, opts ...BindOption) (Lineage, error) {
+	// We could be more selective than this, but this isn't supposed to be forever, soooooo
+	rt.l()
+	defer rt.u()
+
 	p := raw.Path().String()
 	// The candidate lineage must exist.
 	if !raw.Exists() {
@@ -63,8 +68,9 @@ func BindLineage(raw cue.Value, lib Library, opts ...BindOption) (Lineage, error
 	}
 
 	// The candidate lineage must be an instance of #Lineage.
-	dlin := lib.linDef()
-	if err := dlin.Subsume(raw, cue.Raw(), cue.Schema(), cue.Final()); err != nil {
+	dlin := rt.linDef()
+	err := dlin.Subsume(raw, cue.Raw(), cue.Schema(), cue.Final())
+	if err != nil {
 		// FIXME figure out how to wrap both the sentinel and CUE error sanely
 		return nil, fmt.Errorf("%w (%s): %s", terrors.ErrValueNotALineage, p, err)
 	}
@@ -82,7 +88,7 @@ func BindLineage(raw cue.Value, lib Library, opts ...BindOption) (Lineage, error
 	lin := &UnaryLineage{
 		validated: true,
 		raw:       raw,
-		lib:       lib,
+		rt:        rt,
 		name:      nam,
 	}
 
@@ -94,14 +100,15 @@ func BindLineage(raw cue.Value, lib Library, opts ...BindOption) (Lineage, error
 	for seqiter.Next() {
 		var schv uint
 		schemas := seqiter.Value().LookupPath(cue.MakePath(cue.Str("schemas")))
+
 		schiter, _ := schemas.List()
 		for schiter.Next() {
 			v := synv(seqv, schv)
 			lin.allv = append(lin.allv, v)
 
 			sch := schiter.Value()
-			defpath := cue.MakePath(cue.Def(fmt.Sprintf("%s%v%v", nam, v[0], v[1])))
-			defsch := lib.UnwrapCUE().FillPath(defpath, sch).LookupPath(defpath)
+			defpath := cue.MakePath(cue.Def(fmt.Sprintf("%s%v%v", sanitizeLabelString(nam), v[0], v[1])))
+			defsch := rt.UnwrapCUE().FillPath(defpath, sch).LookupPath(defpath)
 			if defsch.Err() != nil {
 				panic(defsch.Err())
 			}
@@ -142,9 +149,26 @@ func BindLineage(raw cue.Value, lib Library, opts ...BindOption) (Lineage, error
 	return lin, nil
 }
 
-// Library returns the thema.Library instance with which this lineage was built.
-func (lin *UnaryLineage) Library() Library {
-	return lin.lib
+func sanitizeLabelString(s string) string {
+	return strings.Map(func(r rune) rune {
+		switch {
+		case r >= 'a' && r <= 'z':
+			fallthrough
+		case r >= 'A' && r <= 'Z':
+			fallthrough
+		case r >= '0' && r <= '9':
+			fallthrough
+		case r == '_':
+			return r
+		default:
+			return -1
+		}
+	}, s)
+}
+
+// Runtime returns the thema.Runtime instance with which this lineage was built.
+func (lin *UnaryLineage) Runtime() *Runtime {
+	return lin.rt
 }
 
 func isValidLineage(lin Lineage) {
@@ -160,10 +184,10 @@ func isValidLineage(lin Lineage) {
 	}
 }
 
-func getLinLib(lin Lineage) Library {
+func getLinLib(lin Lineage) *Runtime {
 	switch tlin := lin.(type) {
 	case *UnaryLineage:
-		return tlin.lib
+		return tlin.rt
 	default:
 		panic("unreachable")
 	}
@@ -190,7 +214,7 @@ type UnaryLineage struct {
 	name      string
 	// schmap    sync.Map
 	raw    cue.Value
-	lib    Library
+	rt     *Runtime
 	allv   []SyntacticVersion
 	allsch []*UnarySchema
 }
@@ -264,7 +288,7 @@ func (lin *UnaryLineage) schema(v SyntacticVersion) *UnarySchema {
 // 		schval, err := cueArgs{
 // 			"v":   v,
 // 			"lin": lin.UnwrapCUE(),
-// 		}.call("#Pick", lin.lib)
+// 		}.call("#Pick", lin.rt)
 // 		if err != nil {
 // 			panic(err)
 // 		}
@@ -301,6 +325,10 @@ type UnarySchema struct {
 
 var _ Schema = &UnarySchema{}
 
+func (sch *UnarySchema) rt() *Runtime {
+	return sch.Lineage().Runtime()
+}
+
 // Validate checks that the provided data is valid with respect to the
 // schema. If valid, the data is wrapped in an Instance and returned.
 // Otherwise, a nil Instance is returned along with an error detailing the
@@ -313,14 +341,17 @@ var _ Schema = &UnarySchema{}
 //
 // TODO should this instead be interface{} (ugh ugh wish Go had discriminated unions) like FillPath?
 func (sch *UnarySchema) Validate(data cue.Value) (*Instance, error) {
+	sch.rt().rl()
+	defer sch.rt().ru()
 	// TODO which approach is actually the right one, unify or subsume? ugh
-	// err := sch.raw.Subsume(data, cue.Concrete(true), cue.Final(), cue.All())
+	// err := sch.raw.Subsume(data, cue.All(), cue.Raw())
 	// if err != nil {
-	// 	return nil, mungeValidateErr(err, sch)
+	// 	return nil, err
+	// 	// return nil, mungeValidateErr(err, sch)
 	// }
 
 	x := sch.defraw.Unify(data)
-	if err := x.Validate(cue.Concrete(true), cue.Final(), cue.All()); err != nil {
+	if err := x.Validate(cue.Final(), cue.All()); err != nil {
 		return nil, mungeValidateErr(err, sch)
 	}
 

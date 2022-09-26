@@ -49,5 +49,6 @@ Go Assignability is a case-specific definition of the more general [CUE subsumpt
 ### Other rules
 
 * Go channel, complex, and function types are not permitted.
+* At most one level of pointer indirection is permitted on any otherwise valid Go type.
 
 TODO Go pointers, uints, runes, smaller number sizes, CUE & Go embeds, CUE references, improve optionality, nullability, disjunctions
