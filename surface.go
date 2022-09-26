@@ -120,7 +120,13 @@ func LatestVersionInSequence(lin Lineage, seqv uint) (SyntacticVersion, error) {
 //	func Lineage ...
 type LineageFactory func(*Runtime, ...BindOption) (Lineage, error)
 
-type TypedLineageFactory[T Assignee] func(*Runtime, ...BindOption) (TypedLineage[T], error)
+// A ConvergentLineageFactory is the same as a LineageFactory, but for a
+// ConvergentLineage.
+//
+// There is no reason to provide both a ConvergentLineageFactory and a
+// LineageFactory, as the latter is always reachable from the former. As such,
+// idiomatic naming conventions are unchanged.
+type ConvergentLineageFactory[T Assignee] func(*Runtime, ...BindOption) (ConvergentLineage[T], error)
 
 // A BindOption defines options that may be specified only at initial
 // construction of a [Lineage] via [BindLineage].
@@ -197,7 +203,18 @@ type Schema interface {
 	_schema()
 }
 
-type TypedLineage[T Assignee] interface {
+// ConvergentLineage is a lineage where exactly one of its contained schemas has
+// is associated with a Go type - a TypedSchema[Assignee], as returned from
+// [BindType].
+//
+// This variant of lineage is intended to directly support the primary
+// anticipated use pattern for Thema within a Go program: accepting all
+// historical forms of an object's schema as input to the program, but writing
+// the program against just one version.
+//
+// This process is known as version multiplexing. See
+// [github.com/grafana/thema/vmux].
+type ConvergentLineage[T Assignee] interface {
 	Lineage
 
 	TypedSchema() TypedSchema[T]
@@ -216,8 +233,8 @@ type TypedSchema[T Assignee] interface {
 	// returns a TypedInstance on success.
 	ValidateTyped(data cue.Value) (*TypedInstance[T], error)
 
-	// TypedLineage returns the TypedLineage that contains this schema.
-	TypedLineage() TypedLineage[T]
+	// ConvergentLineage returns the ConvergentLineage that contains this schema.
+	ConvergentLineage() ConvergentLineage[T]
 }
 
 // Assignee is a type constraint used by Thema generics for type parameters
