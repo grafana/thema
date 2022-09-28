@@ -112,7 +112,7 @@ func (inst *TypedInstance[T]) TypedSchema() TypedSchema[T] {
 }
 
 func (inst *TypedInstance[T]) Value() (T, error) {
-	t := inst.tsch.New()
+	t := inst.tsch.NewT()
 	// TODO figure out correct pointer handling here
 	err := inst.inst.raw.Decode(&t)
 	return t, err

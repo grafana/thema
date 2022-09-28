@@ -1,6 +1,11 @@
 package thema
 
-import "cuelang.org/go/cue"
+import (
+	"strings"
+
+	"cuelang.org/go/cue"
+	"cuelang.org/go/cue/errors"
+)
 
 var (
 	_ Schema                = &UnarySchema{}
@@ -119,9 +124,12 @@ func (sch *UnarySchema) defPathFor() cue.Path {
 
 func (sch *UnarySchema) _schema() {}
 
-// BindType produces a TypedSchema, given a Schema that is AssignableTo() the
-// provided struct type. An error is returned if the provided Schema is not
-// assignable to the given struct type.
+// BindType produces a [TypedSchema], given a [Schema] that is [AssignableTo]
+// the [Assignee] type parameter T. T must be struct-kinded, and at most one
+// level of pointer indirection is allowed.
+//
+// An error is returned if the provided Schema is not assignable to the given
+// struct type.
 func BindType[T Assignee](sch Schema, t T) (TypedSchema[T], error) {
 	if err := AssignableTo(sch, t); err != nil {
 		return nil, err
@@ -129,11 +137,46 @@ func BindType[T Assignee](sch Schema, t T) (TypedSchema[T], error) {
 
 	tsch := &unaryTypedSchema[T]{
 		Schema: sch,
-		new:    t, // TODO test if this works as expected on pointers
 	}
-	err := sch.UnwrapCUE().Decode(&tsch.new)
-	if err != nil {
-		return nil, err
+
+	// Verify that there are no problematic errors emitted from decoding.
+	if err := sch.UnwrapCUE().Decode(t); err != nil {
+		// Because assignability has already been established, the only errors here
+		// _should_ be those arising from schema fields without concrete defaults. But
+		// to avoid swallowing other error types, try to filter out those from the list
+		// that aren't relevant for decoding purposes. This means we're choosing false
+		// negatives over false positives.
+		var actual errors.Error
+		for _, e := range errors.Errors(err) {
+			// TODO would love a better check, but CUE needs a better error architecture first
+			if !strings.Contains(e.Error(), "cannot convert non-concrete") {
+				actual = errors.Append(actual, e)
+			}
+		}
+
+		if len(errors.Errors(actual)) > 0 {
+			return nil, actual
+		}
+	}
+
+	// It's now established that decoding the value is error-free. Ideally, there
+	// would be some way of precomputing a trivially copyable value so that we
+	// could avoid needing to call any reflection at runtime. However, even if the
+	// T parameter is not a pointer type, it could contain a type with a pointer.
+	// And there's no way to do that without reflection. So for now, the simplest
+	// thing to do is just make a decode call newfn func itself.
+	//
+	// Given that the constraints on Thema assignable types are narrower than on
+	// general Go types CUE can decode onto, there may be some opportunity for a
+	// specialized implementation to improve performance - but we'll attempt that
+	// iff performance is actually shown to be a problem.
+	rt := getLinLib(sch.Lineage())
+	tsch.newfn = func() T {
+		nt := new(T)
+		rt.rl()
+		sch.UnwrapCUE().Decode(nt) //nolint:errcheck
+		rt.ru()
+		return *nt
 	}
 
 	tsch.tlin = &unaryConvLineage[T]{
@@ -150,12 +193,12 @@ func schemaIs(s1, s2 Schema) bool {
 
 type unaryTypedSchema[T Assignee] struct {
 	Schema
-	new  T
-	tlin ConvergentLineage[T]
+	newfn func() T
+	tlin  ConvergentLineage[T]
 }
 
 func (sch *unaryTypedSchema[T]) New() T {
-	return sch.new
+	return sch.newfn()
 }
 
 func (sch *unaryTypedSchema[T]) ValidateTyped(data cue.Value) (*TypedInstance[T], error) {

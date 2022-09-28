@@ -33,7 +33,7 @@ func AssignableTo(sch Schema, T any) error {
 }
 
 // ErrPointerDepth indicates that a Go type having pointer indirection depth > 1
-// (e.g. **struct{ Foo: string }) was provided to a Thema func that checks
+// (e.g. **struct{ V: string }) was provided to a Thema func that checks
 // assignability, such as [BindType].
 var ErrPointerDepth = errors.New("assignability does not support more than one level of pointer indirection")
 
@@ -51,7 +51,7 @@ func assignable(sch cue.Value, T interface{}) error {
 	}
 
 	if v.Kind() != reflect.Struct {
-		return fmt.Errorf("must provide struct value, got *%s", v.Kind())
+		return fmt.Errorf("must provide struct-kinded type, got *%s", v.Kind())
 	}
 
 	ctx := sch.Context()

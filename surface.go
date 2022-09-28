@@ -225,9 +225,10 @@ type ConvergentLineage[T Assignee] interface {
 type TypedSchema[T Assignee] interface {
 	Schema
 
-	// New initializes a new T with preference given to any schema-specified
-	// defaults.
-	New() T
+	// NewT returns a new instance of T, but with schema-specified defaults for its
+	// field values instead of Go zero values. Fields without a schema-specified default
+	// are populated with standard Go zero values.
+	NewT() T
 
 	// ValidateTyped performs validation identically to [Schema.Validate], but
 	// returns a TypedInstance on success.
