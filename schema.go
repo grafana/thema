@@ -1,6 +1,7 @@
 package thema
 
 import (
+	"fmt"
 	"strings"
 
 	"cuelang.org/go/cue"
@@ -188,7 +189,14 @@ func BindType[T Assignee](sch Schema, t T) (TypedSchema[T], error) {
 }
 
 func schemaIs(s1, s2 Schema) bool {
-	panic("TODO")
+	// TODO will need something smarter here if/when we have more types representing schema
+	vs1, is1 := s1.(*UnarySchema)
+	vs2, is2 := s2.(*UnarySchema)
+	if !is1 || !is2 {
+		panic(fmt.Sprintf("TODO implement schema comparison handler for types %T and %T", s1, s2))
+		return false
+	}
+	return vs1 == vs2
 }
 
 type unaryTypedSchema[T Assignee] struct {
@@ -197,8 +205,12 @@ type unaryTypedSchema[T Assignee] struct {
 	tlin  ConvergentLineage[T]
 }
 
-func (sch *unaryTypedSchema[T]) New() T {
+func (sch *unaryTypedSchema[T]) NewT() T {
 	return sch.newfn()
+}
+
+func (sch *unaryTypedSchema[T]) is(osch Schema) bool {
+	return schemaIs(sch.Schema, osch)
 }
 
 func (sch *unaryTypedSchema[T]) ValidateTyped(data cue.Value) (*TypedInstance[T], error) {
@@ -208,10 +220,11 @@ func (sch *unaryTypedSchema[T]) ValidateTyped(data cue.Value) (*TypedInstance[T]
 	}
 
 	return &TypedInstance[T]{
-		inst: inst,
-		tsch: sch,
+		Instance: inst,
+		tsch:     sch,
 	}, nil
 }
+
 func (sch *unaryTypedSchema[T]) ConvergentLineage() ConvergentLineage[T] {
 	return sch.tlin
 }

@@ -16,7 +16,7 @@ import (
 // schematized version to a [thema.Instance] at a particular schematized version.
 type UntypedMux func(b []byte) (*thema.Instance, thema.TranslationLacunas, error)
 
-// NewUntypedMux creates an [UntypedMux] func from the provided [thema.Schema].
+// NewUntypedMux creates an [UntypedMux] from the provided [thema.Schema].
 //
 // When the returned mux func is called, it will:
 //
@@ -85,7 +85,7 @@ func NewByteMux(sch thema.Schema, end Endec) ByteMux {
 		if err != nil {
 			return nil, lac, err
 		}
-		ob, err := end.Encode(ti)
+		ob, err := end.Encode(ti.UnwrapCUE())
 		return ob, lac, err
 	}
 }
@@ -186,7 +186,7 @@ func latest(lin thema.Lineage) thema.Schema {
 }
 
 // A Decoder can decode a []byte in a particular format (e.g. JSON, YAML) into a
-// cue.Value, readying it for a call to [thema.Schema].Validate().
+// [cue.Value], readying it for a call to [thema.Schema.Validate].
 type Decoder interface {
 	Decode(ctx *cue.Context, b []byte) (cue.Value, error)
 }
@@ -194,7 +194,7 @@ type Decoder interface {
 // An Encoder can encode a [thema.Instance] to a []byte in a particular format
 // (e.g. JSON, YAML).
 type Encoder interface {
-	Encode(*thema.Instance) ([]byte, error)
+	Encode(cue.Value) ([]byte, error)
 }
 
 // An Endec (encoder + decoder) can decode a []byte in a particular format (e.g.
@@ -230,8 +230,8 @@ func (e jsonEndec) Decode(ctx *cue.Context, data []byte) (cue.Value, error) {
 	return ctx.BuildExpr(expr), nil
 }
 
-func (e jsonEndec) Encode(inst *thema.Instance) ([]byte, error) {
-	return json.Marshal(inst.UnwrapCUE())
+func (e jsonEndec) Encode(v cue.Value) ([]byte, error) {
+	return json.Marshal(v)
 }
 
 type yamlEndec struct {
@@ -257,7 +257,7 @@ func (e yamlEndec) Decode(ctx *cue.Context, data []byte) (cue.Value, error) {
 	return ctx.BuildFile(expr), nil
 }
 
-func (e yamlEndec) Encode(inst *thema.Instance) ([]byte, error) {
-	s, err := pyaml.Marshal(inst.UnwrapCUE())
+func (e yamlEndec) Encode(v cue.Value) ([]byte, error) {
+	s, err := pyaml.Marshal(v)
 	return []byte(s), err
 }

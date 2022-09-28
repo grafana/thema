@@ -264,6 +264,8 @@ With our native Go type populated, our program is now ready to forget that Thema
 
 ## Input Kernel
 
+**NOTE - the kernel system has been replaced with the much-improved, generics-powered [vmux](https://pkg.go.dev/github.com/grafana/thema/vmux) package. This tutorial is the process of being rewritten.**
+
 Manually stitching together a Thema-based input processing flow can be done. Clearly - we've just done it. But all we've really made is function calls scattered across tests, rather than a nice, tight system. Ideally, there'd be an approach that miimally distracts us from the harder problem: composing Thema into larger systems. Start with a `[]byte` of input data, end with our desired Go type, all in a minimal structure made from the answer to a few high-level questions:
 
 * Which lineage are we using?
