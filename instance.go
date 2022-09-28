@@ -12,13 +12,15 @@ import (
 // The only possible error occurs if the TypedSchema is not derived from the
 // Instance.Schema().
 func BindInstanceType[T Assignee](inst *Instance, tsch TypedSchema[T]) (*TypedInstance[T], error) {
-	if !schemaIs(inst.Schema(), tsch) {
+	// if !schemaIs(inst.Schema(), tsch) {
+	// FIXME stop assuming underlying type UGH
+	if !tsch.(*unaryTypedSchema[T]).is(inst.Schema()) {
 		return nil, fmt.Errorf("typed schema is not derived from instance's schema")
 	}
 
 	return &TypedInstance[T]{
-		inst: inst,
-		tsch: tsch,
+		Instance: inst,
+		tsch:     tsch,
 	}, nil
 }
 
@@ -103,7 +105,7 @@ func (i *Instance) rt() *Runtime {
 }
 
 type TypedInstance[T Assignee] struct {
-	inst *Instance
+	*Instance
 	tsch TypedSchema[T]
 }
 
@@ -114,7 +116,7 @@ func (inst *TypedInstance[T]) TypedSchema() TypedSchema[T] {
 func (inst *TypedInstance[T]) Value() (T, error) {
 	t := inst.tsch.NewT()
 	// TODO figure out correct pointer handling here
-	err := inst.inst.raw.Decode(&t)
+	err := inst.Instance.raw.Decode(&t)
 	return t, err
 }
 
