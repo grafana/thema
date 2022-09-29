@@ -6,13 +6,12 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
 	"cuelang.org/go/cue"
 	"github.com/grafana/thema"
-	"github.com/grafana/thema/kernel"
+	"github.com/grafana/thema/vmux"
 	"github.com/spf13/cobra"
 )
 
@@ -277,7 +276,7 @@ func pathOrStdin(args []string) ([]byte, error) {
 			return nil, errors.New("no path provided and nothing on stdin")
 		}
 
-		byt, err = ioutil.ReadAll(os.Stdin)
+		byt, err = io.ReadAll(os.Stdin)
 		if err != nil {
 			return nil, fmt.Errorf("error reading from stdin: %w", err)
 		}
@@ -297,7 +296,7 @@ func pathOrStdin(args []string) ([]byte, error) {
 		}
 		defer f.Close() // nolint: errcheck
 
-		byt, err = ioutil.ReadAll(f)
+		byt, err = io.ReadAll(f)
 		if err != nil {
 			return nil, fmt.Errorf("error reading from input file %q: %w", args[0], err)
 		}
@@ -329,19 +328,19 @@ func validateDataInput(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	jd := kernel.NewJSONDecoder("stdin")
-	yd := kernel.NewYAMLDecoder("stdin")
+	jd := vmux.NewJSONEndec("stdin")
+	yd := vmux.NewYAMLEndec("stdin")
 
 	switch encoding {
 	case "":
 		// Figure it out; try JSON first
-		datval, err = jd(rt.UnwrapCUE().Context(), inbytes)
+		datval, err = jd.Decode(rt.UnwrapCUE().Context(), inbytes)
 		if err == nil {
 			encoding = "json"
 			break
 		}
 		// Nope, try yaml
-		datval, err = yd(rt.UnwrapCUE().Context(), inbytes)
+		datval, err = yd.Decode(rt.UnwrapCUE().Context(), inbytes)
 		if err == nil {
 			encoding = "yaml"
 			break
@@ -354,7 +353,7 @@ func validateDataInput(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("JSON input encoding specified, but file extension is %s", ext)
 		}
 
-		datval, err = jd(rt.UnwrapCUE().Context(), inbytes)
+		datval, err = jd.Decode(rt.UnwrapCUE().Context(), inbytes)
 		if err != nil {
 			return err
 		}
@@ -363,7 +362,7 @@ func validateDataInput(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("YAML input encoding specified, but file extension is %s", ext)
 		}
 
-		datval, err = yd(rt.UnwrapCUE().Context(), inbytes)
+		datval, err = yd.Decode(rt.UnwrapCUE().Context(), inbytes)
 		if err != nil {
 			return err
 		}
