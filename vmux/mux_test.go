@@ -37,10 +37,6 @@ type type10 struct {
 	Unchanged string `json:"unchanged"`
 }
 
-// var jendec = NewJSONEndec("test")
-
-// var tf00 = type00{}
-// var tf10 = type10{}
 type renameLins[T0, T1 any] struct {
 	first  thema.ConvergentLineage[T0]
 	second thema.ConvergentLineage[T1]
@@ -56,26 +52,8 @@ func setupRenameLins(t *testing.T, rt *thema.Runtime) renameLins[*type00, *type1
 	return renameLins[*type00, *type10]{
 		first:  errdie(t, w(thema.BindType[*type00](sch1, &tf00))).ConvergentLineage(),
 		second: errdie(t, w(thema.BindType[*type10](sch2, &tf10))).ConvergentLineage(),
-		// first:  errdie(t, w(thema.BindType[type00](sch1, type00{}))).ConvergentLineage(),
-		// second: errdie(t, w(thema.BindType[type10](sch2, type10{}))).ConvergentLineage(),
 	}
 }
-
-// func getMuxSet[T thema.Assignee](tsch thema.TypedSchema[T]) muxSet[T] {
-// 	return muxSet[T]{
-// 		muxByte:    NewByteMux(tsch, jendec),
-// 		muxUntyped: NewUntypedMux(tsch, jendec),
-// 		muxTyped:   NewTypedMux(tsch, jendec),
-// 		muxValue:   NewValueMux(tsch, jendec),
-// 	}
-// }
-//
-// type muxSet[T thema.Assignee] struct {
-// 	muxByte    ByteMux
-// 	muxUntyped UntypedMux
-// 	muxTyped   TypedMux[T]
-// 	muxValue   ValueMux[T]
-// }
 
 // some raw data, valid at some particular schema version in a particular
 // lineage, combined with the expected form that data will take after
@@ -204,7 +182,7 @@ func TestMuxers(t *testing.T) {
 }
 
 func checkSpectrumAcrossMuxers[T thema.Assignee](t *testing.T, clin thema.ConvergentLineage[T], spec spectrum) {
-	// t.Parallel()
+	t.Parallel()
 	sch := errdie(t, w(clin.Schema(thema.SV(0, 0))))
 	vmap := make(map[thema.SyntacticVersion]bool)
 	for ; sch != nil; sch = sch.Successor() {
@@ -235,27 +213,18 @@ func checkSpectrumAcrossMuxers[T thema.Assignee](t *testing.T, clin thema.Conver
 		if v == spec.in.v {
 			continue
 		}
-		//
-		// buf := new(bytes.Buffer)
-		// // TODO uncouple this from JSON encoding by reusing endec
-		// err := json.Indent(buf, []byte(spec.in.str), "", "  ")
-		// if err != nil {
-		// 	t.Fatalf("error normalizing JSON output: %s", err)
-		// }
-
 		// Normalize string form of output to avoid spurious errors
 		img.str = string(errdie(t, w(spec.endec.Encode(
 			errdie(t, w(spec.endec.Decode(concctx, []byte(img.str))))))))
 
 		t.Run(fmt.Sprintf("%v->%v", spec.in.v, v), func(t *testing.T) {
-			// t.Parallel()
+			t.Parallel()
 			if !envvars.ReverseTranslate && v.Less(spec.in.v) {
 				t.Skip("thema does not yet support reverse translation")
 			}
 
 			// Always do the untyped muxers
 			t.Run("UntypedMux", func(T *testing.T) {
-				// t.Parallel()
 				um := NewUntypedMux(thema.SchemaP(clin, v), spec.endec)
 				inst, lac, err := um([]byte(spec.in.str))
 				handleLE(t, img, lac, err)
@@ -264,7 +233,6 @@ func checkSpectrumAcrossMuxers[T thema.Assignee](t *testing.T, clin thema.Conver
 				require.Equal(t, img.str, string(final))
 			})
 			t.Run("ByteMux", func(T *testing.T) {
-				// t.Parallel()
 				um := NewByteMux(thema.SchemaP(clin, v), spec.endec)
 				final, lac, err := um([]byte(spec.in.str))
 				handleLE(t, img, lac, err)
@@ -275,7 +243,6 @@ func checkSpectrumAcrossMuxers[T thema.Assignee](t *testing.T, clin thema.Conver
 			// Do the typed muxers only if this is the convergent schema for the lineage
 			if v == tsch.Version() {
 				t.Run("TypedMux", func(t *testing.T) {
-					// t.Parallel()
 					um := NewTypedMux(tsch, spec.endec)
 					inst, lac, err := um([]byte(spec.in.str))
 					handleLE(t, img, lac, err)
@@ -290,7 +257,6 @@ func checkSpectrumAcrossMuxers[T thema.Assignee](t *testing.T, clin thema.Conver
 						t.Skipf("generic testing of TypedMux only works with the jsonEndec, got %T", spec.endec)
 					}
 
-					// t.Parallel()
 					um := NewValueMux(tsch, spec.endec)
 					inst, lac, err := um([]byte(spec.in.str))
 					handleLE(t, img, lac, err)
