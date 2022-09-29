@@ -101,7 +101,7 @@ func LatestVersionInSequence(lin Lineage, seqv uint) (SyntacticVersion, error) {
 	}
 }
 
-// A LineageFactory returns a Lineage, which is immutably bound to a single
+// A LineageFactory returns a [Lineage], which is immutably bound to a single
 // instance of #Lineage declared in CUE.
 //
 // LineageFactory funcs are intended to be the main Go entrypoint to all of the
@@ -120,8 +120,16 @@ func LatestVersionInSequence(lin Lineage, seqv uint) (SyntacticVersion, error) {
 //	func Lineage ...
 type LineageFactory func(*Runtime, ...BindOption) (Lineage, error)
 
+// A ConvergentLineageFactory is the same as a LineageFactory, but for a
+// ConvergentLineage.
+//
+// There is no reason to provide both a ConvergentLineageFactory and a
+// LineageFactory, as the latter is always reachable from the former. As such,
+// idiomatic naming conventions are unchanged.
+type ConvergentLineageFactory[T Assignee] func(*Runtime, ...BindOption) (ConvergentLineage[T], error)
+
 // A BindOption defines options that may be specified only at initial
-// construction of a Lineage via BindLineage.
+// construction of a [Lineage] via [BindLineage].
 type BindOption bindOption
 
 // Internal representation of BindOption.
@@ -132,7 +140,7 @@ type bindConfig struct {
 	skipbuggychecks bool
 }
 
-// SkipBuggyChecks indicates that BindLineage should skip validation checks
+// SkipBuggyChecks indicates that [BindLineage] should skip validation checks
 // which have known bugs (e.g. panics) for certain should-be-valid CUE inputs.
 //
 // By default, BindLineage performs these checks anyway, as otherwise the
@@ -162,7 +170,7 @@ type Schema interface {
 	CUEWrapper
 
 	// Validate checks that the provided data is valid with respect to the
-	// schema. If valid, the data is wrapped in an Instance and returned.
+	// schema. If valid, the data is wrapped in an [Instance] and returned.
 	// Otherwise, a nil Instance is returned along with an error detailing the
 	// validation failure.
 	//
@@ -195,6 +203,64 @@ type Schema interface {
 	_schema()
 }
 
+// ConvergentLineage is a lineage where exactly one of its contained schemas has
+// is associated with a Go type - a TypedSchema[Assignee], as returned from
+// [BindType].
+//
+// This variant of lineage is intended to directly support the primary
+// anticipated use pattern for Thema within a Go program: accepting all
+// historical forms of an object's schema as input to the program, but writing
+// the program against just one version.
+//
+// This process is known as version multiplexing. See
+// [github.com/grafana/thema/vmux].
+type ConvergentLineage[T Assignee] interface {
+	Lineage
+
+	TypedSchema() TypedSchema[T]
+}
+
+// TypedSchema is a Thema schema that has been bound to a particular Go type, per
+// Thema's assignability rules.
+type TypedSchema[T Assignee] interface {
+	Schema
+
+	// NewT returns a new instance of T, but with schema-specified defaults for its
+	// field values instead of Go zero values. Fields without a schema-specified default
+	// are populated with standard Go zero values.
+	NewT() T
+
+	// ValidateTyped performs validation identically to [Schema.Validate], but
+	// returns a TypedInstance on success.
+	ValidateTyped(data cue.Value) (*TypedInstance[T], error)
+
+	// ConvergentLineage returns the ConvergentLineage that contains this schema.
+	ConvergentLineage() ConvergentLineage[T]
+}
+
+// Assignee is a type constraint used by Thema generics for type parameters
+// where there exists a particular Schema that is [AssignableTo] the type.
+//
+// This property is not representable in Go's static type system, as Thema types
+// are dynamic, and AssignableTo() is a runtime check. Thus, the only actual
+// type constraint Go's type system can be made aware of is any.
+//
+// Instead, Thema's implementation guarantees that it is only possible to
+// instantiate a generic type with an Assignee type parameter if the relevant
+// AssignableTo() relation has already been verified, and there is an
+// unambiguous relationship between the generic type and the relevant [Schema].
+//
+// For example: for TypedSchema[T Assignee], it is the related Schema. With
+// TypedInstance[T Assignee], the related schema is returned from its
+// TypedSchema() method.
+//
+// As this type constraint is simply any, it exists solely as a signal to the
+// human reader that the relation to a Schema exists, and that the relation
+// has been verified in any properly instantiated type carrying this generic
+// type constraint. (Improperly instantiated generic Thema types panic upon
+// calls to any of their methods)
+type Assignee any
+
 // SyntacticVersion is a two-tuple of uints describing the position of a schema
 // within a lineage. Syntactic versions are Thema's canonical version numbering
 // system.
@@ -204,7 +270,7 @@ type Schema interface {
 // sequence.
 type SyntacticVersion [2]uint
 
-// SV creates a SyntacticVersion.
+// SV creates a [SyntacticVersion].
 //
 // A trivial helper to avoid repetitive Go-stress disorder from countless
 // instances of typing:
@@ -214,8 +280,8 @@ func SV(seqv, schv uint) SyntacticVersion {
 	return [2]uint{seqv, schv}
 }
 
-// Less reports whether the provided SyntacticVersion is less than the receiver,
-// consistent with the expectations of Go's sort package.
+// Less reports whether the receiver [SyntacticVersion] is less than the
+// provided one, consistent with the expectations of the stdlib sort package.
 func (sv SyntacticVersion) Less(osv SyntacticVersion) bool {
 	return sv[0] < osv[0] || sv[1] < osv[1]
 }
@@ -224,8 +290,8 @@ func (sv SyntacticVersion) String() string {
 	return fmt.Sprintf("%v.%v", sv[0], sv[1])
 }
 
-// ParseSyntacticVersion parses a canonical representation of a syntactic
-// version (e.g. "0.0") from a string.
+// ParseSyntacticVersion parses a canonical representation of a
+// [SyntacticVersion] (e.g. "0.0") from a string.
 func ParseSyntacticVersion(s string) (SyntacticVersion, error) {
 	parts := strings.Split(s, ".")
 	if len(parts) != 2 {
