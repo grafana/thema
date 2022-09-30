@@ -93,6 +93,12 @@ var allCmds = []*cobra.Command{
 	initLineageOpenAPICmd,
 	initLineageJSONSchemaCmd,
 	lineageBumpCmd,
+	genLineageCmd,
+	genTSTypesLineageCmd,
+	genGoBindingsLineageCmd,
+	genGoTypesLineageCmd,
+	genOapiLineageCmd,
+	genJschLineageCmd,
 }
 
 var rootCmd = &cobra.Command{
