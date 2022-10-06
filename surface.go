@@ -175,9 +175,12 @@ type Schema interface {
 	// validation failure.
 	//
 	// While Validate takes a cue.Value, this is only to avoid having to trigger
-	// the translation internally; input values must be concrete. To use
-	// incomplete CUE values with Thema schemas, prefer working directly in CUE,
-	// or if you must, rely on the UnwrapCUE().
+	// the translation internally; input values must be concrete. Behavior of
+	// this method is undefined for incomplete values.
+	//
+	// The concreteness requirement may be loosened in future versions of Thema. To
+	// use incomplete CUE values with Thema schemas, prefer working directly in CUE,
+	// or call [Schema.UnwrapCUE] to work directly with the underlying CUE API.
 	//
 	// TODO should this instead be interface{} (ugh ugh wish Go had tagged unions) like FillPath?
 	Validate(data cue.Value) (*Instance, error)
