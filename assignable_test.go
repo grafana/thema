@@ -47,6 +47,15 @@ func TestAssignable(t *testing.T) {
 			}
 			`,
 		},
+		"stringEnumNoPointer": {
+			T: struct {
+				Foo string `json:"foo"`
+			}{},
+			cue: `typ: {
+				foo: "foo" | "bar"
+			}
+			`,
+		},
 		"stringEnum": {
 			T: &struct {
 				Foo string `json:"foo"`

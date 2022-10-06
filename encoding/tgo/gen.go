@@ -1,0 +1,278 @@
+package tgo
+
+import (
+	"bytes"
+	"embed"
+	"fmt"
+	"go/ast"
+	"go/format"
+	"go/parser"
+	"go/token"
+	"path/filepath"
+	"strings"
+	"text/template"
+	"time"
+
+	"cuelang.org/go/cue"
+	"cuelang.org/go/pkg/encoding/yaml"
+	"github.com/deepmap/oapi-codegen/pkg/codegen"
+	"github.com/getkin/kin-openapi/openapi3"
+	"github.com/grafana/thema"
+	"github.com/grafana/thema/encoding/openapi"
+	"golang.org/x/tools/go/ast/astutil"
+	"golang.org/x/tools/imports"
+)
+
+// All the parsed templates in the tmpl subdirectory
+var tmpls *template.Template
+
+//go:embed *.tmpl
+var tmplFS embed.FS
+
+func init() {
+	base := template.New("gogen").Funcs(template.FuncMap{
+		"now": time.Now,
+	})
+	tmpls = template.Must(base.ParseFS(tmplFS, "*.tmpl"))
+}
+
+// GenerateTypesOpenAPI generates native Go code corresponding to the provided Schema.
+func GenerateTypesOpenAPI(sch thema.Schema) ([]byte, error) {
+	f, err := openapi.GenerateSchema(sch, nil)
+	if err != nil {
+		return nil, fmt.Errorf("thema openapi generation failed: %w", err)
+	}
+
+	str, err := yaml.Marshal(sch.Lineage().Runtime().Context().BuildFile(f))
+	if err != nil {
+		return nil, fmt.Errorf("cue-yaml marshaling failed: %w", err)
+	}
+
+	loader := openapi3.NewLoader()
+	oT, err := loader.LoadFromData([]byte(str))
+	if err != nil {
+		return nil, fmt.Errorf("loading generated openapi failed; %w", err)
+	}
+
+	gostr, err := codegen.Generate(oT, codegen.Configuration{
+		PackageName: sch.Lineage().Name(),
+		Generate: codegen.GenerateOptions{
+			Models: true,
+		},
+		OutputOptions: codegen.OutputOptions{
+			SkipFmt:   true,
+			SkipPrune: true,
+			UserTemplates: map[string]string{
+				"imports.tmpl": "package {{ .PackageName }}\n",
+			},
+		},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("openapi generation failed: %w", err)
+	}
+
+	return postprocessGoFile(genGoFile{
+		path: "type_gen.go",
+		in:   []byte(gostr),
+	})
+}
+
+// BindingConfig governs the behavior of [GenerateLineageBinding].
+type BindingConfig struct {
+	// Lineage is the Thema lineage for which bindings are to be generated.
+	Lineage thema.Lineage
+
+	// EmbedPath determines the path to use in the generated go:embed variable
+	// that is expected to contain the definition of the provided lineage.
+	//
+	// It is the responsibility of the caller to ensure that the file referenced
+	// by EmbedPath contains the definition of the provided Lineage.
+	EmbedPath string
+
+	// CUEPath is the path to the lineage within the instance referred to by EmbedPath.
+	// If non-empty, the generated binding will include a [cue.Value.LookupPath] call
+	// prior to calling [thema.BindLineage].
+	CUEPath cue.Path
+
+	// FactoryNameSuffix determines whether the [thema.LineageFactory] or
+	// [thema.ConvergentLineageFactory] implementation will be generated with
+	// a title-cased lineage.name as a suffix.
+	//
+	// For example, for a lineage with lineage.name "foo", if this
+	// property is false, the generated code will be:
+	//  func Lineage(...) {...}
+	// but if true, the following code will be generated:
+	//  func LineageFoo(...) {...}
+	FactoryNameSuffix bool
+
+	// PrivateFactory determines whether the generated lineage factory will be
+	// exported (`func Lineage` vs. `func doLineage`).
+	//
+	// A private factory may be preferable in cases where, for example, it is
+	// desirable to ensure that certain [thema.BindOption] are always passed, or to
+	// memoize the generated lineage factory function using the *thema.Runtime
+	// parameter as a key.
+	PrivateFactory bool
+
+	// Assignee is an ast.Ident that determines the generic type parameter used
+	// in the generated [thema.ConvergentLineageFactory]. If this parameter is nil,
+	// a [thema.LineageFactory] is generated instead.
+	Assignee *ast.Ident
+
+	// TargetSchemaVersion determines the schema version that will be used in a call
+	// to [thema.BindType], along with Assignee, in order to create a
+	// thema.ConvergentLineage.
+	//
+	// This value is ignored if Assignee is nil.
+	TargetSchemaVersion thema.SyntacticVersion
+
+	// Once determines whether the generated factory should wrap its calls to
+	// [thema.BindLineage] and [thema.BindType] in a sync.Once.
+	//
+	// Those functions may involve expensive computation, but they are pure, so it
+	// is often preferable to use a sync.Once as a trivial memoization cache.
+	// Once bool
+}
+
+// GenerateLineageBinding generates Go code that makes a Thema lineage defined
+// in a .cue file reliably available in Go via a [thema.LineageFactory] or
+// [thema.ConvergentLineageFactory].
+//
+// The thema CLI implements the capabilities of this function via the `thema
+// lineage gen go` subcommand. The CLI command should meet most use cases,
+// though some may require the additional flexibility earned by writing a Go
+// program that calls this function directly.
+func GenerateLineageBinding(cfg *BindingConfig) ([]byte, error) {
+	if cfg == nil || cfg.Lineage == nil || cfg.EmbedPath == "" {
+		return nil, fmt.Errorf("cfg.Lineage and cfg.EmbedPath are required")
+	}
+
+	vars := bindingVars{
+		Name:                cfg.Lineage.Name(),
+		PackageName:         strings.ToLower(cfg.Lineage.Name()),
+		EmbedPath:           cfg.EmbedPath,
+		LoadPath:            cfg.CUEPath.String(),
+		BaseFactoryFuncName: "Lineage",
+		FactoryFuncName:     "Lineage",
+		IsConvergent:        cfg.Assignee != nil,
+		TargetSchemaVersion: cfg.TargetSchemaVersion,
+	}
+
+	if cfg.FactoryNameSuffix {
+		vars.BaseFactoryFuncName += strings.Title(vars.Name)
+		vars.FactoryFuncName += strings.Title(vars.Name)
+	}
+	if vars.IsConvergent {
+		vars.BaseFactoryFuncName = "base" + vars.BaseFactoryFuncName
+		vars.Assignee = cfg.Assignee
+		if strings.HasPrefix(cfg.Assignee.String(), "*") {
+			vars.AssigneeInit = fmt.Sprintf("&%s{}", cfg.Assignee)
+		} else {
+			vars.AssigneeInit = fmt.Sprintf("%s{}", cfg.Assignee)
+		}
+
+		if cfg.PrivateFactory {
+			vars.FactoryFuncName = "do" + vars.FactoryFuncName
+		}
+	} else if cfg.PrivateFactory {
+		vars.BaseFactoryFuncName = "do" + vars.BaseFactoryFuncName
+	}
+
+	buf := new(bytes.Buffer)
+	err := tmpls.Lookup("binding.tmpl").Execute(buf, vars)
+	if err != nil {
+		return nil, fmt.Errorf("error executing binding template: %w", err)
+	}
+
+	return postprocessGoFile(genGoFile{
+		path: "binding_gen.go",
+		in:   buf.Bytes(),
+	})
+}
+
+type bindingVars struct {
+	// Name of the lineage
+	Name string
+	// name to be used for the generated package
+	PackageName string
+	// Path to use in the go:embed directive
+	EmbedPath string
+	// Path to use as dir param to load.InstancesWithThema
+	LoadPath string
+	// Path within the cue file to look up to get lineage
+	CUEPath string
+	// Name for the base factory func, which is always generated and does basic
+	// lineage binding.
+	BaseFactoryFuncName string
+
+	// Name of the factory func to generate. Must accommodate both FactoryNameSuffix
+	// and PrivateFactory
+	FactoryFuncName string
+
+	// Whether we're generating a convergent lineage
+	IsConvergent bool
+	// The ident of the generic type parameter for a convergent lineage.
+	Assignee *ast.Ident
+	// The initializer for a Assignee
+	AssigneeInit string
+
+	TargetSchemaVersion thema.SyntacticVersion
+}
+
+type genGoFile struct {
+	path   string
+	walker astutil.ApplyFunc
+	in     []byte
+}
+
+// func postprocessGoFile(cfg genGoFile) (*ast.File, error) {
+func postprocessGoFile(cfg genGoFile) ([]byte, error) {
+	fname := filepath.Base(cfg.path)
+	buf := new(bytes.Buffer)
+	fset := token.NewFileSet()
+	gf, err := parser.ParseFile(fset, fname, string(cfg.in), parser.ParseComments)
+	if err != nil {
+		return nil, fmt.Errorf("error parsing generated file: %w", err)
+	}
+
+	if cfg.walker != nil {
+		astutil.Apply(gf, cfg.walker, nil)
+
+		err = format.Node(buf, fset, gf)
+		if err != nil {
+			return nil, fmt.Errorf("error formatting Go AST: %w", err)
+		}
+	} else {
+		buf = bytes.NewBuffer(cfg.in)
+	}
+
+	byt, err := imports.Process(fname, buf.Bytes(), nil)
+	if err != nil {
+		return nil, fmt.Errorf("goimports processing failed: %w", err)
+	}
+	return byt, nil
+	// fmt.Println(string(byt))
+
+	// return parser.ParseFile(fset, fname, string(byt), parser.ParseComments)
+	// fset2 := token.NewFileSet()
+	// f, _ := parser.ParseFile(fset2, fname, string(byt), parser.ParseComments)
+	// format.Node(os.Stdout, fset2, f)
+	// return f, nil
+
+	// Compare imports before and after; warn about performance if some were added
+	// imap := make(map[string]bool)
+	// for _, im := range gf.Imports {
+	// 	imap[im.Path.Value] = true
+	// }
+	// var added []string
+	// for _, im := range gfa.Imports {
+	// 	if !imap[im.Path.Value] {
+	// 		added = append(added, im.Path.Value)
+	// 	}
+	// }
+	//
+	// if len(added) != 0 {
+	// 	// TODO improve the guidance in this error if/when we better abstract over imports to generate
+	// 	fmt.Fprintf(os.Stderr, "The following imports were added by goimports while generating %s: \n\t%s\nRelying on goimports to find imports significantly slows down code generation. Consider adding these to the relevant template.\n", cfg.path, strings.Join(added, "\n\t"))
+	// }
+}
