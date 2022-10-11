@@ -264,28 +264,4 @@ func postprocessGoFile(cfg genGoFile) ([]byte, error) {
 		return nil, fmt.Errorf("goimports processing failed: %w", err)
 	}
 	return byt, nil
-	// fmt.Println(string(byt))
-
-	// return parser.ParseFile(fset, fname, string(byt), parser.ParseComments)
-	// fset2 := token.NewFileSet()
-	// f, _ := parser.ParseFile(fset2, fname, string(byt), parser.ParseComments)
-	// format.Node(os.Stdout, fset2, f)
-	// return f, nil
-
-	// Compare imports before and after; warn about performance if some were added
-	// imap := make(map[string]bool)
-	// for _, im := range gf.Imports {
-	// 	imap[im.Path.Value] = true
-	// }
-	// var added []string
-	// for _, im := range gfa.Imports {
-	// 	if !imap[im.Path.Value] {
-	// 		added = append(added, im.Path.Value)
-	// 	}
-	// }
-	//
-	// if len(added) != 0 {
-	// 	// TODO improve the guidance in this error if/when we better abstract over imports to generate
-	// 	fmt.Fprintf(os.Stderr, "The following imports were added by goimports while generating %s: \n\t%s\nRelying on goimports to find imports significantly slows down code generation. Consider adding these to the relevant template.\n", cfg.path, strings.Join(added, "\n\t"))
-	// }
 }
