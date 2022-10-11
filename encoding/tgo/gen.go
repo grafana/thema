@@ -36,8 +36,15 @@ func init() {
 	tmpls = template.Must(base.ParseFS(tmplFS, "*.tmpl"))
 }
 
+// TypeConfigOpenAPI governs the behavior of [GenerateTypesOpenAPI].
+type TypeConfigOpenAPI struct {
+	// PackageName determines the name of the generated Go package. If empty, the
+	// lowercase version of the Lineage.Name() is used.
+	PackageName string
+}
+
 // GenerateTypesOpenAPI generates native Go code corresponding to the provided Schema.
-func GenerateTypesOpenAPI(sch thema.Schema) ([]byte, error) {
+func GenerateTypesOpenAPI(sch thema.Schema, cfg TypeConfigOpenAPI) ([]byte, error) {
 	f, err := openapi.GenerateSchema(sch, nil)
 	if err != nil {
 		return nil, fmt.Errorf("thema openapi generation failed: %w", err)
@@ -53,9 +60,12 @@ func GenerateTypesOpenAPI(sch thema.Schema) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("loading generated openapi failed; %w", err)
 	}
+	if cfg.PackageName == "" {
+		cfg.PackageName = sch.Lineage().Name()
+	}
 
-	gostr, err := codegen.Generate(oT, codegen.Configuration{
-		PackageName: sch.Lineage().Name(),
+	ccfg := codegen.Configuration{
+		PackageName: cfg.PackageName,
 		Generate: codegen.GenerateOptions{
 			Models: true,
 		},
@@ -66,7 +76,9 @@ func GenerateTypesOpenAPI(sch thema.Schema) ([]byte, error) {
 				"imports.tmpl": "package {{ .PackageName }}\n",
 			},
 		},
-	})
+	}
+
+	gostr, err := codegen.Generate(oT, ccfg)
 	if err != nil {
 		return nil, fmt.Errorf("openapi generation failed: %w", err)
 	}
@@ -126,12 +138,9 @@ type BindingConfig struct {
 	// This value is ignored if Assignee is nil.
 	TargetSchemaVersion thema.SyntacticVersion
 
-	// Once determines whether the generated factory should wrap its calls to
-	// [thema.BindLineage] and [thema.BindType] in a sync.Once.
-	//
-	// Those functions may involve expensive computation, but they are pure, so it
-	// is often preferable to use a sync.Once as a trivial memoization cache.
-	// Once bool
+	// PackageName determines the name of the generated Go package. If empty, the
+	// lowercase version of the Lineage.Name() is used.
+	PackageName string
 }
 
 // GenerateLineageBinding generates Go code that makes a Thema lineage defined
@@ -149,13 +158,17 @@ func GenerateLineageBinding(cfg *BindingConfig) ([]byte, error) {
 
 	vars := bindingVars{
 		Name:                cfg.Lineage.Name(),
-		PackageName:         strings.ToLower(cfg.Lineage.Name()),
+		PackageName:         cfg.PackageName,
 		EmbedPath:           cfg.EmbedPath,
-		LoadPath:            cfg.CUEPath.String(),
+		CUEPath:             cfg.CUEPath.String(),
 		BaseFactoryFuncName: "Lineage",
 		FactoryFuncName:     "Lineage",
 		IsConvergent:        cfg.Assignee != nil,
 		TargetSchemaVersion: cfg.TargetSchemaVersion,
+	}
+
+	if vars.PackageName == "" {
+		vars.PackageName = strings.ToLower(cfg.Lineage.Name())
 	}
 
 	if cfg.FactoryNameSuffix {
@@ -166,7 +179,7 @@ func GenerateLineageBinding(cfg *BindingConfig) ([]byte, error) {
 		vars.BaseFactoryFuncName = "base" + vars.BaseFactoryFuncName
 		vars.Assignee = cfg.Assignee
 		if strings.HasPrefix(cfg.Assignee.String(), "*") {
-			vars.AssigneeInit = fmt.Sprintf("&%s{}", cfg.Assignee)
+			vars.AssigneeInit = fmt.Sprintf("new(%s)", cfg.Assignee.String()[1:])
 		} else {
 			vars.AssigneeInit = fmt.Sprintf("%s{}", cfg.Assignee)
 		}

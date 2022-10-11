@@ -15,13 +15,12 @@ var themaFS embed.FS
 // {{ .FactoryFuncName }} returns a [thema.ConvergentLineage] for the '{{ .Name }}' lineage.
 //
 // The lineage is the canonical specification of {{ .Name }}. It contains
-// all versions of the Thema schema that have ever existed for {{ .Name }},
+// all schema versions that have ever existed for {{ .Name }},
 // and the lenses that allow valid instances of one schema in the lineage to
-// be translated to another version of schema in the lineage.
+// be translated to another schema in the lineage.
 //
-// This function will return an error if the lineage defined in
-// {{ .EmbedPath }}{{ if .CUEPath }}.{{ .CUEPath }}{{end}} does not fulfill
-// the [Thema invariants].
+// This function will return an error if the [Thema invariants] are not met by
+// the lineage defined in {{ .EmbedPath }}{{ if .CUEPath }}.{{ .CUEPath }}{{end}}.
 //
 // As a [thema.ConvergentLineage], the returned lineage has one primary schema,
 // {{ .TargetSchemaVersion }}, which is [thema.AssignableTo] the lineage's generic parameterized
@@ -46,7 +45,6 @@ func {{ .FactoryFuncName }}(rt *thema.Runtime, opts ...thema.BindOption) (thema.
     return tsch.ConvergentLineage(), nil
 }
 
-var _ thema.ConvergentLineageFactory[{{ .Assignee }}] = {{ .FactoryFuncName }}
 {{ else }}
 // {{ .BaseFactoryFuncName }} returns a [thema.Lineage] for the '{{ .Name }}' lineage.
 //
@@ -55,9 +53,8 @@ var _ thema.ConvergentLineageFactory[{{ .Assignee }}] = {{ .FactoryFuncName }}
 // and the lenses that allow valid instances of one schema in the lineage to
 // be translated to another version of schema in the lineage.
 //
-// This function will return an error if the lineage defined in
-// {{ .EmbedPath }}{{ if .CUEPath }}.{{ .CUEPath }}{{end}} does not fulfill
-// the [Thema invariants].
+// This function will return an error if the [Thema invariants] are not met by
+// the lineage defined in {{ .EmbedPath }}{{ if .CUEPath }}.{{ .CUEPath }}{{end}}.
 //
 // [Thema's general invariants]: https://github.com/grafana/thema/blob/main/docs/invariants.md
 {{- end }}
@@ -85,4 +82,6 @@ func {{ .BaseFactoryFuncName }}(rt *thema.Runtime, opts ...thema.BindOption) (th
 	return thema.BindLineage(raw, rt)
 }
 
+// type guards
+{{ if .IsConvergent }}var _ thema.ConvergentLineageFactory[{{ .Assignee }}] = {{ .FactoryFuncName }}{{ end }}
 var _ thema.LineageFactory = {{ .BaseFactoryFuncName }}
