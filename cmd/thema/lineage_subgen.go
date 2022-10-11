@@ -16,16 +16,13 @@ import (
 )
 
 type genCommand struct {
-	group bool
-	lin   thema.Lineage
-	sch   thema.Schema
-	// name  string
-	// cuepath string
-	// pkgname string
-	// srcpath string
-	// input   []byte
-
-	// err error
+	group    bool
+	suffix   bool
+	private  bool
+	lin      thema.Lineage
+	sch      thema.Schema
+	bindtype string
+	pkgname  string
 }
 
 func (gc *genCommand) setup(cmd *cobra.Command) {
@@ -35,24 +32,31 @@ func (gc *genCommand) setup(cmd *cobra.Command) {
 	genLineageCmd.PersistentFlags().BoolVar((*bool)(&gc.group), "group", false, "whether the schema is a 'group', and therefore only child items should be generated")
 
 	genLineageCmd.AddCommand(genOapiLineageCmd)
-	genOapiLineageCmd.Flags().StringVarP((*string)(&verstr), "version", "v", "", "schema syntactic version to generate. defaults to latest")
+	genOapiLineageCmd.Flags().StringVarP((*string)(&verstr), "version", "v", "", "schema syntactic version to generate. Defaults to latest")
 	genOapiLineageCmd.Flags().StringVarP(&encoding, "format", "f", "yaml", "output format. \"json\" or \"yaml\".")
 	genOapiLineageCmd.Run = gc.run
 
 	genLineageCmd.AddCommand(genJschLineageCmd)
-	genJschLineageCmd.Flags().StringVarP((*string)(&verstr), "version", "v", "", "schema syntactic version to generate. defaults to latest")
+	genJschLineageCmd.Flags().StringVarP((*string)(&verstr), "version", "v", "", "schema syntactic version to generate. Defaults to latest")
 	genJschLineageCmd.Flags().StringVarP(&encoding, "format", "f", "json", "output format. \"json\" or \"yaml\".")
 	genJschLineageCmd.Run = gc.run
 
-	genLineageCmd.AddCommand(genTSTypesLineageCmd)
-	genTSTypesLineageCmd.Flags().StringVarP((*string)(&verstr), "version", "v", "", "schema syntactic version to generate. defaults to latest")
-
 	genLineageCmd.AddCommand(genGoTypesLineageCmd)
-	genGoTypesLineageCmd.Flags().StringVarP((*string)(&verstr), "version", "v", "", "schema syntactic version to generate. defaults to latest")
+	genGoTypesLineageCmd.Flags().StringVarP((*string)(&verstr), "version", "v", "", "schema syntactic version to generate. Defaults to latest")
+	genGoTypesLineageCmd.Flags().StringVar(&gc.pkgname, "pkgname", "", "Name for generated Go package. Defaults to lowercase lineage name")
 	genGoTypesLineageCmd.Run = gc.run
 
 	genLineageCmd.AddCommand(genGoBindingsLineageCmd)
+	genGoBindingsLineageCmd.Use = "gobindings -l <path> [-p <cue-path>] [--bindtype <name>] [--suffix] [--private] [--bindversion <synver>]"
+	genGoBindingsLineageCmd.Flags().StringVar(&gc.bindtype, "bindtype", "", "Generate a ConvergentLineage that binds a lineage's schema to this Go type")
+	genGoBindingsLineageCmd.Flags().StringVarP((*string)(&verstr), "version", "v", "", "Only meaningful with --bindtype. Bind to this schema version. Defaults to latest")
+	genGoBindingsLineageCmd.Flags().StringVar(&gc.pkgname, "pkgname", "", "Name for generated Go package. Defaults to lowercase lineage name")
+	genGoBindingsLineageCmd.Flags().BoolVar(&gc.suffix, "suffix", false, "Generate the lineage factory as 'Lineage<TitleName>()' instead of 'Lineage()'")
+	genGoBindingsLineageCmd.Flags().BoolVar(&gc.private, "private", false, "Generate the lineage factory as an unexported (lowercase) func.")
 	genGoBindingsLineageCmd.Run = gc.run
+
+	genLineageCmd.AddCommand(genTSTypesLineageCmd)
+	genTSTypesLineageCmd.Flags().StringVarP((*string)(&verstr), "version", "v", "", "schema syntactic version to generate. Defaults to latest")
 }
 
 func (gc *genCommand) run(cmd *cobra.Command, args []string) {
@@ -125,7 +129,7 @@ func (gc *genCommand) runOpenAPI(cmd *cobra.Command, args []string) error {
 		b, err = rt.Context().BuildFile(f).MarshalJSON()
 		if b != nil {
 			nb := new(bytes.Buffer)
-			json.Indent(nb, b, "", "  ")
+			err = json.Indent(nb, b, "", "  ")
 			str = nb.String()
 		}
 	case "yaml", "yml":
@@ -162,7 +166,7 @@ func (gc *genCommand) runJSONSchema(cmd *cobra.Command, args []string) error {
 		b, err = rt.Context().BuildFile(f).MarshalJSON()
 		if b != nil {
 			nb := new(bytes.Buffer)
-			json.Indent(nb, b, "", "  ")
+			err = json.Indent(nb, b, "", "  ")
 			str = nb.String()
 		}
 	case "yaml", "yml":
@@ -187,7 +191,9 @@ Generate Go types that correspond to a single schema in a lineage.
 }
 
 func (gc *genCommand) runGoTypes(cmd *cobra.Command, args []string) error {
-	b, err := tgo.GenerateTypesOpenAPI(gc.sch)
+	b, err := tgo.GenerateTypesOpenAPI(gc.sch, tgo.TypeConfigOpenAPI{
+		PackageName: gc.pkgname,
+	})
 	if err != nil {
 		return err
 	}
@@ -196,7 +202,6 @@ func (gc *genCommand) runGoTypes(cmd *cobra.Command, args []string) error {
 }
 
 var genGoBindingsLineageCmd = &cobra.Command{
-	Use:   "gobindings",
 	Short: "Generate Go bindings for a lineage",
 	Long: `Generate Go bindings for a lineage.
 
@@ -204,20 +209,36 @@ Generate Go bindings to a Thema lineage. These bindings provide access to the
 key Thema operations (see "thema help data") in a running Go program, for that
 particular lineage.
 
-Go types are currently generated by first translating Thema to OpenAPI, then
-relying on OpenAPI code generators.
+If --bindtype is omitted, a basic LineageFactory is generated.
+If --bindtype is provided, a ConvergentLineageFactory is also generated, layered
+on top of the basic factory. The type itself is not generated by this command. For
+that, run "thema lineage gen gotypes".
+
+LineageFactory: https://pkg.go.dev/github.com/grafana/thema#LineageFactory
+ConvergentLineageFactory: https://pkg.go.dev/github.com/grafana/thema#ConvergentLineageFactory
 `,
 }
 
 func (gc *genCommand) runGoBindings(cmd *cobra.Command, args []string) error {
-	f, err := tgo.GenerateLineageBinding(&tgo.BindingConfig{
-		Lineage:             gc.lin,
-		EmbedPath:           linfilepath,
-		Assignee:            ast.NewIdent("Narrowing"),
-		FactoryNameSuffix:   false,
-		PrivateFactory:      false,
+	epath := linfilepath
+	if fi, err := os.Stat(linfilepath); err != nil {
+		return err
+	} else if fi.IsDir() {
+		epath += "/*.cue"
+	}
+	cfg := &tgo.BindingConfig{
+		Lineage: gc.lin,
+		// TODO figure out what to put here if a dir was provided
+		EmbedPath:           epath,
+		FactoryNameSuffix:   gc.suffix,
+		PrivateFactory:      gc.private,
 		TargetSchemaVersion: gc.sch.Version(),
-	})
+		PackageName:         gc.pkgname,
+	}
+	if gc.bindtype != "" {
+		cfg.Assignee = ast.NewIdent(gc.bindtype)
+	}
+	f, err := tgo.GenerateLineageBinding(cfg)
 	if err != nil {
 		return err
 	}
