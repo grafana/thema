@@ -126,6 +126,12 @@ type BindingConfig struct {
 	// parameter as a key.
 	PrivateFactory bool
 
+	// NoEmbed determines whether generation of an embed.FS containing the lineage's
+	// declaring CUE files should be generated. If true, the embed.FS will NOT be
+	// generated. Generated code will still reference the absent var, leaving
+	// it to the developer to manually construct the var instead.
+	NoEmbed bool
+
 	// Assignee is an ast.Ident that determines the generic type parameter used
 	// in the generated [thema.ConvergentLineageFactory]. If this parameter is nil,
 	// a [thema.LineageFactory] is generated instead.
@@ -159,6 +165,7 @@ func GenerateLineageBinding(cfg *BindingConfig) ([]byte, error) {
 	vars := bindingVars{
 		Name:                cfg.Lineage.Name(),
 		PackageName:         cfg.PackageName,
+		GenEmbed:            !cfg.NoEmbed,
 		EmbedPath:           cfg.EmbedPath,
 		CUEPath:             cfg.CUEPath.String(),
 		BaseFactoryFuncName: "Lineage",
@@ -217,6 +224,9 @@ type bindingVars struct {
 	// Name for the base factory func, which is always generated and does basic
 	// lineage binding.
 	BaseFactoryFuncName string
+
+	// generate the embedfs
+	GenEmbed bool
 
 	// Name of the factory func to generate. Must accommodate both FactoryNameSuffix
 	// and PrivateFactory

@@ -21,6 +21,8 @@ type genCommand struct {
 	suffix bool
 	// lineage factory should be private
 	private bool
+	// don't generate the embed.FS
+	noembed bool
 	lin     thema.Lineage
 	sch     thema.Schema
 	// go type to bind to
@@ -59,6 +61,7 @@ func (gc *genCommand) setup(cmd *cobra.Command) {
 	genGoBindingsLineageCmd.Flags().StringVar(&gc.pkgname, "pkgname", "", "Name for generated Go package. Defaults to lowercase lineage name")
 	genGoBindingsLineageCmd.Flags().BoolVar(&gc.suffix, "suffix", false, "Generate the lineage factory as 'Lineage<TitleName>()' instead of 'Lineage()'")
 	genGoBindingsLineageCmd.Flags().BoolVar(&gc.private, "private", false, "Generate the lineage factory as an unexported (lowercase) func.")
+	genGoBindingsLineageCmd.Flags().BoolVar(&gc.noembed, "no-embed", false, "Do not generate an embed.FS, allowing it to be handwritten")
 	genGoBindingsLineageCmd.Run = gc.run
 
 	// TODO
@@ -242,6 +245,7 @@ func (gc *genCommand) runGoBindings(cmd *cobra.Command, args []string) error {
 		Lineage: gc.lin,
 		// TODO figure out what to put here if a dir was provided
 		EmbedPath:           gc.epath,
+		NoEmbed:             gc.noembed,
 		FactoryNameSuffix:   gc.suffix,
 		PrivateFactory:      gc.private,
 		TargetSchemaVersion: gc.sch.Version(),
