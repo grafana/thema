@@ -62,7 +62,7 @@ func {{ .FactoryFuncName }}(rt *thema.Runtime, opts ...thema.BindOption) (thema.
 {{- end }}
 func {{ .BaseFactoryFuncName }}(rt *thema.Runtime, opts ...thema.BindOption) (thema.Lineage, error) {
 	// Load a build instance from the embedded fs
-	inst, err := load.InstancesWithThema(themaFS, path.Base("{{ .EmbedPath }}"))
+	inst, err := load.InstancesWithThema(themaFS, path.Dir("{{ .EmbedPath }}"))
 	if err != nil {
 		// Errors at this point indicate a problem with basic loading of .cue file bytes,
 		// which typically means the code generator was misconfigured and a path input
