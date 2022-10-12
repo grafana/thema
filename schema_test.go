@@ -30,6 +30,12 @@ type TestType struct {
 	Abool   bool    `json:"abool"`
 }
 
+type TestType2 struct {
+	Astring string `json:"astring"`
+	Anint   int64  `json:"anint"`
+	Abool   bool   `json:"abool"`
+}
+
 func testLin() Lineage {
 	rt := NewRuntime(cuecontext.New())
 	val := rt.Context().CompileString(linstr)

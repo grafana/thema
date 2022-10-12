@@ -22,11 +22,14 @@ of Thema lineages and schema in other schema languages.
 
 func setupLineageCommand(cmd *cobra.Command) {
 	cmd.AddCommand(linCmd)
-	ic := &initCommand{}
+	ic := new(initCommand)
 	ic.setup(linCmd)
 
-	ac := &bumpCommand{}
-	ac.setup(linCmd)
+	bc := new(bumpCommand)
+	bc.setup(linCmd)
+
+	gc := new(genCommand)
+	gc.setup(linCmd)
 }
 
 func toSubpath(subpath string, f *ast.File) (*ast.File, error) {
@@ -78,13 +81,4 @@ func toSubpath(subpath string, f *ast.File) (*ast.File, error) {
 
 	f.Decls = nf.Decls
 	return f, nil
-}
-
-var genLineageCmd = &cobra.Command{
-	Use:   "init",
-	Short: "Create a new lineage",
-	Long: `Create a new lineage.
-
-Each subcommand supports initializing the lineage from a different kind of input source.
-`,
 }
