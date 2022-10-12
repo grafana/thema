@@ -61,8 +61,9 @@ func (gc *genCommand) setup(cmd *cobra.Command) {
 	genGoBindingsLineageCmd.Flags().BoolVar(&gc.private, "private", false, "Generate the lineage factory as an unexported (lowercase) func.")
 	genGoBindingsLineageCmd.Run = gc.run
 
-	genLineageCmd.AddCommand(genTSTypesLineageCmd)
-	genTSTypesLineageCmd.Flags().StringVarP((*string)(&verstr), "version", "v", "", "schema syntactic version to generate. Defaults to latest")
+	// TODO
+	// genLineageCmd.AddCommand(genTSTypesLineageCmd)
+	// genTSTypesLineageCmd.Flags().StringVarP((*string)(&verstr), "version", "v", "", "schema syntactic version to generate. Defaults to latest")
 }
 
 func (gc *genCommand) run(cmd *cobra.Command, args []string) {
