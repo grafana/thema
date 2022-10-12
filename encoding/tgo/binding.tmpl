@@ -8,8 +8,10 @@ import (
 	"github.com/grafana/thema/load"
 )
 
+{{ if .GenEmbed -}}
 //go:embed {{ .EmbedPath }}
 var themaFS embed.FS
+{{- end }}
 
 {{ if .IsConvergent -}}
 // {{ .FactoryFuncName }} returns a [thema.ConvergentLineage] for the '{{ .Name }}' lineage.
