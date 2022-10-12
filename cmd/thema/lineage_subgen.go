@@ -37,7 +37,7 @@ func (gc *genCommand) setup(cmd *cobra.Command) {
 	cmd.AddCommand(genLineageCmd)
 	addLinPathVars(genLineageCmd)
 
-	genLineageCmd.PersistentFlags().BoolVar((*bool)(&gc.group), "group", false, "whether the schema is a 'group', and therefore only child items should be generated")
+	// genLineageCmd.PersistentFlags().BoolVar((*bool)(&gc.group), "group", false, "whether the schema is a 'group', and therefore only child items should be generated")
 
 	genLineageCmd.AddCommand(genOapiLineageCmd)
 	genOapiLineageCmd.Flags().StringVarP((*string)(&verstr), "version", "v", "", "schema syntactic version to generate. Defaults to latest")
@@ -171,7 +171,7 @@ Generate a JSON Schema (Draft 4) document representing a single schema in a line
 }
 
 func (gc *genCommand) runJSONSchema(cmd *cobra.Command, args []string) error {
-	f, err := jsonschema.GenerateSchema(sch)
+	f, err := jsonschema.GenerateSchema(gc.sch)
 	if err != nil {
 		return err
 	}
