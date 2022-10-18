@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	cuelang.org/go v0.4.3
-	github.com/deepmap/oapi-codegen v1.11.0
+	github.com/deepmap/oapi-codegen v1.10.1
 	github.com/getkin/kin-openapi v0.103.0
 	github.com/spf13/cobra v1.4.0
 	github.com/stretchr/testify v1.7.1
