@@ -10,7 +10,6 @@ import (
 	"cuelang.org/go/cue/build"
 	"cuelang.org/go/cue/cuecontext"
 	"cuelang.org/go/cue/load"
-
 	"github.com/grafana/thema"
 	"github.com/grafana/thema/internal/util"
 )
