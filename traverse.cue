@@ -33,7 +33,7 @@ package thema
 // the entire lineage is reached.
 #Latest: _#resolver & {
     lin: #Lineage
-    to: (_latest & { lin: lin }).out
+    to: (#LatestVersion & { lin: lin }).out
 }
 
 // LatestWithinSequence indicates that, given a starting schema version,
@@ -49,5 +49,5 @@ package thema
 _#resolver: {
     lin: #Lineage
     from?: #SyntacticVersion
-    to: #SyntacticVersion & [<=lin._latest[0], <len(lin.seqs[to[0]].schemas)]
+    to: #SyntacticVersion & [<=(#LatestVersion & { lin: lin }).out[0], <len(lin.seqs[to[0]].schemas)]
 }
