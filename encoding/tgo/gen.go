@@ -41,10 +41,18 @@ type TypeConfigOpenAPI struct {
 	// PackageName determines the name of the generated Go package. If empty, the
 	// lowercase version of the Lineage.Name() is used.
 	PackageName string
+
+	// Apply is an optional AST manipulation func that, if provided, will be run
+	// against the generated Go file prior to running it through goimports.
+	Apply astutil.ApplyFunc
 }
 
 // GenerateTypesOpenAPI generates native Go code corresponding to the provided Schema.
 func GenerateTypesOpenAPI(sch thema.Schema, cfg *TypeConfigOpenAPI) ([]byte, error) {
+	if cfg == nil {
+		cfg = new(TypeConfigOpenAPI)
+	}
+
 	f, err := openapi.GenerateSchema(sch, nil)
 	if err != nil {
 		return nil, fmt.Errorf("thema openapi generation failed: %w", err)
@@ -58,7 +66,7 @@ func GenerateTypesOpenAPI(sch thema.Schema, cfg *TypeConfigOpenAPI) ([]byte, err
 	loader := openapi3.NewLoader()
 	oT, err := loader.LoadFromData([]byte(str))
 	if err != nil {
-		return nil, fmt.Errorf("loading generated openapi failed; %w", err)
+		return nil, fmt.Errorf("loading generated openapi failed: %w", err)
 	}
 	if cfg.PackageName == "" {
 		cfg.PackageName = sch.Lineage().Name()
@@ -79,8 +87,9 @@ func GenerateTypesOpenAPI(sch thema.Schema, cfg *TypeConfigOpenAPI) ([]byte, err
 	}
 
 	return postprocessGoFile(genGoFile{
-		path: "type_gen.go",
-		in:   []byte(gostr),
+		path:  "type_gen.go",
+		apply: cfg.Apply,
+		in:    []byte(gostr),
 	})
 }
 
@@ -238,9 +247,9 @@ type bindingVars struct {
 }
 
 type genGoFile struct {
-	path   string
-	walker astutil.ApplyFunc
-	in     []byte
+	path  string
+	apply astutil.ApplyFunc
+	in    []byte
 }
 
 // func postprocessGoFile(cfg genGoFile) (*ast.File, error) {
@@ -253,8 +262,8 @@ func postprocessGoFile(cfg genGoFile) ([]byte, error) {
 		return nil, fmt.Errorf("error parsing generated file: %w", err)
 	}
 
-	if cfg.walker != nil {
-		astutil.Apply(gf, cfg.walker, nil)
+	if cfg.apply != nil {
+		astutil.Apply(gf, cfg.apply, nil)
 
 		err = format.Node(buf, fset, gf)
 		if err != nil {
