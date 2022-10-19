@@ -210,7 +210,7 @@ Generate Go types that correspond to a single schema in a lineage.
 func (gc *genCommand) runGoTypes(cmd *cobra.Command, args []string) error {
 	buf := new(bytes.Buffer)
 	fmt.Fprintf(buf, fmt.Sprintf(goheader, gc.epath))
-	b, err := tgo.GenerateTypesOpenAPI(gc.sch, tgo.TypeConfigOpenAPI{
+	b, err := tgo.GenerateTypesOpenAPI(gc.sch, &tgo.TypeConfigOpenAPI{
 		PackageName: gc.pkgname,
 	})
 	if err != nil {
