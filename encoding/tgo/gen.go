@@ -44,7 +44,7 @@ type TypeConfigOpenAPI struct {
 }
 
 // GenerateTypesOpenAPI generates native Go code corresponding to the provided Schema.
-func GenerateTypesOpenAPI(sch thema.Schema, cfg TypeConfigOpenAPI) ([]byte, error) {
+func GenerateTypesOpenAPI(sch thema.Schema, cfg *TypeConfigOpenAPI) ([]byte, error) {
 	f, err := openapi.GenerateSchema(sch, nil)
 	if err != nil {
 		return nil, fmt.Errorf("thema openapi generation failed: %w", err)
