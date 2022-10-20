@@ -45,7 +45,7 @@ seqs: [
 			// v0.0
 			{
 				firstField: string
-                		secondField: int
+                secondField: int
 			},
 		]
 	},
