@@ -119,7 +119,7 @@ func Lineage(rt *thema.Runtime, opts ...thema.BindOption) (thema.Lineage, error)
 
 var _ thema.LineageFactory = Lineage
 ```
-This sets us up where we have a single Go function, Which we can call and it will load up the `ship.cue` from disk and return a thema Lineage
+We now have a single Go function our program can call, and it will load up the `ship.cue` from disk and return a [`thema.Lineage`](https://pkg.go.dev/github.com/grafana/thema#Lineage)
 We can then use the Lineage function to validate our data against the schema of choice
 
 ## Validating data
