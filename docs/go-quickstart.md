@@ -155,7 +155,7 @@ We can then use the Lineage function to validate our data against the schema of 
 We can now define a function which takes the Lineage returned from the `Lineage` function, Select the schema which we want to validate our data against, and then validate the data
 
 ```go
-func doTing() {
+func validateInput() {
 	lin, _ := Lineage(thema.NewRuntime(cuecontext.New()))
 	sch, _ := lin.Schema(thema.SV(0,0))  //thema.SV(0,0) here represents first schema of first sequence
 	sch.Validate(...)
@@ -165,4 +165,4 @@ func doTing() {
 We can pass a value of type `cue.Value` to `sch.Validate()` to validate the data against the first schema of the first sequence
 
 ## Wrap up
-This tutorial demostarted how you can create an empty Lineage using the thema CLI, define a simple schema and use it to generate Go types and bindings, and use the bindings to validate data against a selected schema in the Lineage.
+This tutorial demostarted how you can create an empty Lineage using the thema CLI, define a simple schema and use it to generate Go types and bindings, and use the bindings to validate data against a selected schema in the Lineage.  
