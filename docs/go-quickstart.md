@@ -137,4 +137,4 @@ func validateInput() {
 We can pass a value of type `cue.Value` to `sch.Validate()` to validate the data against the first schema of the first sequence. You can also use the method `ValidateAny()` to validate the input data against any schema in our Lineage.
 
 ## Wrap up
-This tutorial demostarted how you can create an empty Lineage using the thema CLI, define a simple schema and use it to generate Go types and bindings, and use the bindings to validate data against a selected schema in the Lineage.  
+This tutorial demonstrated how you can create an empty Lineage using the thema CLI, define a simple schema and use it to generate Go types and bindings, and use the bindings to validate data against a selected schema in the Lineage. 
