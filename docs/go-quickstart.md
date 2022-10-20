@@ -104,17 +104,6 @@ import (
 //go:embed ship.cue
 var themaFS embed.FS
 
-// Lineage returns a [thema.Lineage] for the 'ship' lineage.
-//
-// The lineage is the canonical specification of ship. It contains
-// all versions of the Thema schema that have ever existed for ship,
-// and the lenses that allow valid instances of one schema in the lineage to
-// be translated to another version of schema in the lineage.
-//
-// This function will return an error if the [Thema invariants] are not met by
-// the lineage defined in ship.cue.
-//
-// [Thema's general invariants]: https://github.com/grafana/thema/blob/main/docs/invariants.md
 func Lineage(rt *thema.Runtime, opts ...thema.BindOption) (thema.Lineage, error) {
 	// Load a build instance from the embedded fs
 	inst, err := load.InstancesWithThema(themaFS, path.Dir("ship.cue"))
