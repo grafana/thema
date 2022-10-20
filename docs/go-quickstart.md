@@ -78,7 +78,7 @@ type Ship struct {
 ```
 
 
-Cue types are more expressive as compared to Go types, To use the rich information from CUE in GO programs, Users can use Bindings. Using Bindings users get access to the thema Lineage defined in `ship.cue` and can start validating their data against any of the schema.
+CUE types are more expressive than Go types. To use the rich information from CUE in Go programs, users can use bindings. Go bindings provide access to the thema Lineage defined in `ship.cue`, and validate data against schemas in the lineage.
 
 ## Generating Go Bindings
 
