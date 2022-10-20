@@ -77,7 +77,6 @@ type Ship struct {
 }
 ```
 
-If we add another schema to the sequence in `ship.cue` and again generate the Go type, Go will lose track of the first schema and will represent the second schema only.
 
 Cue types are more expressive as compared to Go types, To use the rich information from CUE in GO programs, Users can use Bindings. Using Bindings users get access to the thema Lineage defined in `ship.cue` and can start validating their data against any of the schema.
 
