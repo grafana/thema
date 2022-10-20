@@ -112,15 +112,6 @@ func Lineage(rt *thema.Runtime, opts ...thema.BindOption) (thema.Lineage, error)
 	}
 
 	raw := rt.Context().BuildInstance(inst)
-
-	// Errors here indicate that:
-	//   - The parsed path does not exist in the loaded CUE file (["github.com/grafana/thema/errors".ErrValueNotExist])
-	//   - The value at the parsed path exists, but does not appear to be a Thema
-	//     lineage (["github.com/grafana/thema/errors".ErrValueNotALineage])
-	//   - The value at the parsed path exists and is a lineage (["github.com/grafana/thema/errors".ErrInvalidLineage]),
-	//     but is invalid due to the violation of some general Thema invariant -
-	//     for example, declared schemas don't follow backwards compatibility rules,
-	//     lenses are incomplete.
 	return thema.BindLineage(raw, rt)
 }
 
