@@ -42,9 +42,17 @@ type TypeConfigOpenAPI struct {
 	// lowercase version of the Lineage.Name() is used.
 	PackageName string
 
-	// Apply is an optional AST manipulation func that, if provided, will be run
-	// against the generated Go file prior to running it through goimports.
-	Apply astutil.ApplyFunc
+	// ApplyFuncs is a slice of AST manipulation funcs that will be executedagainst
+	// the generated Go file prior to running it through goimports. For each slice
+	// element, [astutil.Apply] is called with the element as the "pre" parameter.
+	ApplyFuncs []astutil.ApplyFunc
+
+	// IgnoreDiscoveredImports causes the generator not to fail with an error in the
+	// event that goimports adds additional import statements. (The default behavior
+	// is to fail because adding imports entails a search, which can slow down
+	// codegen by multiple orders of magnitude. Succeeding silently but slowly is a bad
+	// default behavior when the fix is usually quite easy.)
+	IgnoreDiscoveredImports bool
 }
 
 // GenerateTypesOpenAPI generates native Go code corresponding to the provided Schema.
@@ -87,9 +95,10 @@ func GenerateTypesOpenAPI(sch thema.Schema, cfg *TypeConfigOpenAPI) ([]byte, err
 	}
 
 	return postprocessGoFile(genGoFile{
-		path:  "type_gen.go",
-		apply: cfg.Apply,
-		in:    []byte(gostr),
+		path:     "type_gen.go",
+		appliers: cfg.ApplyFuncs,
+		in:       []byte(gostr),
+		errifadd: !cfg.IgnoreDiscoveredImports,
 	})
 }
 
@@ -151,6 +160,18 @@ type BindingConfig struct {
 	// PackageName determines the name of the generated Go package. If empty, the
 	// lowercase version of the Lineage.Name() is used.
 	PackageName string
+
+	// ApplyFuncs is a slice of AST manipulation funcs that will be executedagainst
+	// the generated Go file prior to running it through goimports. For each slice
+	// element, [astutil.Apply] is called with the element as the "pre" parameter.
+	ApplyFuncs []astutil.ApplyFunc
+
+	// IgnoreDiscoveredImports causes the generator not to fail with an error in the
+	// event that goimports adds additional import statements. (The default behavior
+	// is to fail because adding imports entails a search, which can slow down
+	// codegen by multiple orders of magnitude. Succeeding silently but slowly is a bad
+	// default behavior when the fix is usually quite easy.)
+	IgnoreDiscoveredImports bool
 }
 
 // GenerateLineageBinding generates Go code that makes a Thema lineage defined
@@ -209,8 +230,10 @@ func GenerateLineageBinding(cfg *BindingConfig) ([]byte, error) {
 	}
 
 	return postprocessGoFile(genGoFile{
-		path: "binding_gen.go",
-		in:   buf.Bytes(),
+		path:     "binding_gen.go",
+		appliers: cfg.ApplyFuncs,
+		in:       buf.Bytes(),
+		errifadd: !cfg.IgnoreDiscoveredImports,
 	})
 }
 
@@ -247,9 +270,10 @@ type bindingVars struct {
 }
 
 type genGoFile struct {
-	path  string
-	apply astutil.ApplyFunc
-	in    []byte
+	errifadd bool
+	path     string
+	appliers []astutil.ApplyFunc
+	in       []byte
 }
 
 // func postprocessGoFile(cfg genGoFile) (*ast.File, error) {
@@ -262,20 +286,38 @@ func postprocessGoFile(cfg genGoFile) ([]byte, error) {
 		return nil, fmt.Errorf("error parsing generated file: %w", err)
 	}
 
-	if cfg.apply != nil {
-		astutil.Apply(gf, cfg.apply, nil)
+	for _, af := range cfg.appliers {
+		astutil.Apply(gf, af, nil)
+	}
 
-		err = format.Node(buf, fset, gf)
-		if err != nil {
-			return nil, fmt.Errorf("error formatting Go AST: %w", err)
-		}
-	} else {
-		buf = bytes.NewBuffer(cfg.in)
+	err = format.Node(buf, fset, gf)
+	if err != nil {
+		return nil, fmt.Errorf("error formatting generated file: %w", err)
 	}
 
 	byt, err := imports.Process(fname, buf.Bytes(), nil)
 	if err != nil {
-		return nil, fmt.Errorf("goimports processing failed: %w", err)
+		return nil, fmt.Errorf("goimports processing of generated file failed: %w", err)
+	}
+
+	if cfg.errifadd {
+		// Compare imports before and after; warn about performance if some were added
+		gfa, _ := parser.ParseFile(fset, fname, string(byt), parser.ParseComments)
+		imap := make(map[string]bool)
+		for _, im := range gf.Imports {
+			imap[im.Path.Value] = true
+		}
+		var added []string
+		for _, im := range gfa.Imports {
+			if !imap[im.Path.Value] {
+				added = append(added, im.Path.Value)
+			}
+		}
+
+		if len(added) != 0 {
+			// TODO improve the guidance in this error if/when we better abstract over imports to generate
+			return nil, fmt.Errorf("goimports added the following import statements to %s: \n\t%s\nRelying on goimports to find imports significantly slows down code generation. Either add these imports with an AST manipulation in cfg.ApplyFuncs, or set cfg.IgnoreDiscoveredImports to true", cfg.path, strings.Join(added, "\n\t"))
+		}
 	}
 	return byt, nil
 }
