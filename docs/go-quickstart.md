@@ -130,8 +130,20 @@ We now have a single Go function our program can call, and it will load up the `
 We can then use the Lineage function to validate our data against the schema of choice
 
 ## Validating data
+Using the Thema CLI, Users can validate the schema of choice defined in `ship.cue`. Use the below command to validate the schema against an invalid JSON data 
 
-We can now define a function which takes the Lineage returned from the `Lineage` function, Select the schema which we want to validate our data against, and then validate the data
+```
+curl $URL > invalid.json
+thema data validate -v 0.0 -l ship.cue test_ship.json
+```
+
+You should see an error similar to below
+```
+#ship00.masts: invalid value 9 (out of bound <8)
+```
+
+To validate the data from within a Go program, We can write a Go test for the below function. The function `validateInput` takes the input data and the schema the user wants to validate against
+
 
 ```go
 func validateInput() {
