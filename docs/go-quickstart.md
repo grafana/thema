@@ -30,7 +30,7 @@ seqs: [
 ]
 ```
 
-Let's define a simple schema as an object containing two fields named `firstField` of type `string` and `secondField` of type `int`,  
+Let's define a simple schema as an object containing two fields named `name` of type `string` and `masts` of type `uint8` along with a constraint that masts are not more than 7,  
 
 ```cue
 package ship
@@ -44,8 +44,11 @@ seqs: [
 		schemas: [
 			// v0.0
 			{
-				firstField: string
-                secondField: int
+				// name is what we call the ship, and what's written in big letters on its hull
+				name: string
+				// masts is the number of masts the ship has. No fully rigged ship
+				// has ever had more than 7: https://oceannavigator.com/the-most-masted-schooner-ever-built/
+				masts: uint8 & < 8
 			},
 		]
 	},
@@ -72,8 +75,12 @@ package ship
 
 // Ship defines model for ship.
 type Ship struct {
-	FirstField  string `json:"firstField"`
-	SecondField int    `json:"secondField"`
+	// masts is the number of masts the ship has. No fully rigged ship
+	// has ever had more than 7: https://oceannavigator.com/the-most-masted-schooner-ever-built/
+	Masts int `json:"masts"`
+
+	// name is what we call the ship, and what's written in big letters on its hull
+	Name string `json:"name"`
 }
 ```
 
