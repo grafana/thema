@@ -166,6 +166,7 @@ func validateInput(input []byte, schema thema.SV(0,0)) ((thema.Instance, error))
 
 We can write a Go Test similar to below for the `validateInput` function
 
+```go
 func validateInput(t *testingT) {    
 	var input = []byte(`{
         "name": "thema"
@@ -177,6 +178,7 @@ func validateInput(t *testingT) {
 		fmt.Prntln(err)
 	}
 }
+```
 
 ## Wrap up
 This tutorial demonstrated how you can create an empty Lineage using the thema CLI, define a simple schema and use it to generate Go types and bindings, and use the bindings to validate data against a selected schema in the Lineage. 
