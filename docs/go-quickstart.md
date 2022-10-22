@@ -130,6 +130,7 @@ We now have a single Go function our program can call, and it will load up the `
 We can then use the Lineage function to validate our data against the schema of choice
 
 ## Validating data
+
 Using the Thema CLI, Users can validate the schema of choice defined in `ship.cue`. Use the below command to validate the schema against an invalid JSON data 
 
 ```
@@ -142,18 +143,40 @@ You should see an error similar to below
 #ship00.masts: invalid value 9 (out of bound <8)
 ```
 
+The Go Program will need `cue.mod` to be present, Run the below command to generate it
+
+```
+cue mod init
+```
+
 To validate the data from within a Go program, We can write a Go test for the below function. The function `validateInput` takes the input data and the schema the user wants to validate against
 
 
 ```go
-func validateInput() {
-	lin, _ := Lineage(thema.NewRuntime(cuecontext.New()))
-	sch, _ := lin.Schema(thema.SV(0,0))  //thema.SV(0,0) here represents first schema of first sequence
-	sch.Validate(...)
+func validateInput(input []byte, schema thema.SV(0,0)) ((thema.Instance, error)) {    
+    ctx := cuecontext.New()
+    lin, _ := Lineage(thema.NewRuntime(ctx))
+    sch, _ := lin.Schema(schema)  //thema.SV(0,0) here represents first schema of first sequence
+    expr, _ := json.Extract("input", input)
+    val := ctx.BuildExpr(expr)
+
+    return sch.Validate(val)
 }
 ```
 
-We can pass a value of type `cue.Value` to `sch.Validate()` to validate the data against the first schema of the first sequence. You can also use the method `ValidateAny()` to validate the input data against any schema in our Lineage.
+We can write a Go Test similar to below for the `validateInput` function
+
+func validateInput(t *testingT) {    
+	var input = []byte(`{
+        "name": "thema"
+        masts: 9
+    }`)
+    _ , err := validateInput(input, thema.SV(0,0))
+
+	if err != nil {
+		fmt.Prntln(err)
+	}
+}
 
 ## Wrap up
 This tutorial demonstrated how you can create an empty Lineage using the thema CLI, define a simple schema and use it to generate Go types and bindings, and use the bindings to validate data against a selected schema in the Lineage. 
