@@ -9,7 +9,7 @@ The most fundamental task in thema is writing a lineage. We can use the Thema CL
 thema lineage init empty --name ship > ship.cue 
 ```
 
-This command will genearte an empty lineage named `ship` and store the output in a file named `ship.cue`. The generated lineage looks like below
+This command will generate an empty lineage named `ship` and store the output in a file named `ship.cue`. The generated lineage looks like below
 
 ```cue
 package ship
