@@ -134,7 +134,7 @@ We can then use the Lineage function to validate our data against the schema of 
 Using the Thema CLI, Users can validate the schema of choice defined in `ship.cue`. Use the below command to validate the schema against an invalid JSON data 
 
 ```
-curl $URL > invalid.json
+curl https://raw.githubusercontent.com/grafana/thema/main/docs/test_ship.json > test_ship.json
 thema data validate -v 0.0 -l ship.cue test_ship.json
 ```
 
