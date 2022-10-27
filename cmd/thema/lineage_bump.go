@@ -12,10 +12,9 @@ import (
 )
 
 var lineageBumpCmd = &cobra.Command{
-	Use:     "bump",
-	PreRunE: validateLineageInput,
-	Args:    cobra.MaximumNArgs(0),
-	Short:   "Add a new schema to an existing lineage",
+	Use:   "bump",
+	Args:  cobra.MaximumNArgs(0),
+	Short: "Add a new schema to an existing lineage",
 	Long: `Add a new schema to an existing lineage.
 
 Generate the necessary stubs to "bump" the latest schema version in an existing lineage by adding a new schema to it.
@@ -25,14 +24,18 @@ Generate the necessary stubs to "bump" the latest schema version in an existing 
 type bumpCommand struct {
 	maj      bool
 	skipfill bool
+
+	lla *lineageLoadArgs
 }
 
 func (bc *bumpCommand) setup(cmd *cobra.Command) {
 	cmd.AddCommand(lineageBumpCmd)
-	addLinPathVars(lineageBumpCmd)
+	bc.lla = new(lineageLoadArgs)
+	addLinPathVars2(lineageBumpCmd, bc.lla)
 
 	lineageBumpCmd.Flags().BoolVar(&bc.maj, "major", false, "Bump the major version (breaking change) instead of the minor version")
 	lineageBumpCmd.Flags().BoolVar(&bc.maj, "no-fill", false, "Do not pre-fill the new schema with the prior schema")
+	lineageBumpCmd.PreRunE = bc.lla.validateLineageInput
 	lineageBumpCmd.Run = bc.run
 }
 
@@ -44,21 +47,21 @@ func (bc *bumpCommand) run(cmd *cobra.Command, args []string) {
 }
 
 func (bc *bumpCommand) do(cmd *cobra.Command, args []string) error {
-	lv := thema.LatestVersion(lin)
-	lsch := thema.SchemaP(lin, lv)
+	lv := thema.LatestVersion(bc.lla.dl.lin)
+	lsch := thema.SchemaP(bc.lla.dl.lin, lv)
 	// TODO UGH EVAL
 	schlit := tastutil.Format(lsch.UnwrapCUE().Eval())
 
 	var err error
 	var nlin ast.Node
 	if bc.maj {
-		nlin = lin.UnwrapCUE().Source()
+		nlin = bc.lla.dl.lin.UnwrapCUE().Source()
 		err = cue.InsertSchemaNodeAs(nlin, tastutil.ToExpr(schlit), thema.SV(lv[0]+1, 0))
 		if err != nil {
 			return err
 		}
 	} else {
-		nlin, err = cue.Append(lin, lsch.UnwrapCUE())
+		nlin, err = cue.Append(bc.lla.dl.lin, lsch.UnwrapCUE())
 		if err != nil {
 			return err
 		}

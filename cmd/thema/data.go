@@ -15,33 +15,73 @@ import (
 	"github.com/spf13/cobra"
 )
 
+type dataCommand struct {
+	format  string
+	quiet   bool
+	inbytes []byte
+
+	datval cue.Value
+
+	lla *lineageLoadArgs
+
+	inst *thema.Instance
+
+	err error
+}
+
 func setupDataCommand(cmd *cobra.Command) {
 	cmd.AddCommand(dataCmd)
-	addLinPathVars(dataCmd)
+	dc := new(dataCommand)
+	dc.setup(dataCmd)
+}
+
+func (dc *dataCommand) setup(cmd *cobra.Command) {
+	dc.lla = new(lineageLoadArgs)
+	addLinPathVars2(cmd, dc.lla)
+	dataCmd.MarkPersistentFlagRequired("lineage")
 
 	dataCmd.AddCommand(validateCmd)
-	validateCmd.Flags().StringVarP((*string)(&verstr), "version", "v", "", "schema syntactic version to validate data against")
-	validateCmd.MarkFlagRequired("version")
-	validateCmd.Flags().StringVarP(&encoding, "encoding", "e", "", "input data encoding. Autodetected by default, but can be constrained to \"json\" or \"yaml\".")
-	validateCmd.Flags().BoolVarP(&quiet, "quiet", "q", false, "emit no output, exit status only")
+	validateCmd.Flags().StringVarP(&dc.lla.verstr, "version", "v", "", "schema syntactic version to validate data against. defaults to latest")
+	validateCmd.Flags().StringVarP(&dc.format, "format", "e", "", "input data format. Autodetected by default, but can be constrained to \"json\" or \"yaml\".")
+	validateCmd.Flags().BoolVarP(&dc.quiet, "quiet", "q", false, "emit no output, exit status only")
+	validateCmd.PersistentPreRunE = mergeCobraefuncs(dc.lla.validateLineageInput, dc.lla.validateVersionInputOptional, dc.validateDataInput)
+	validateCmd.RunE = dc.runValidate
 
 	dataCmd.AddCommand(validateAnyCmd)
-	validateAnyCmd.Flags().StringVarP((*string)(&verstr), "version", "v", "", "schema syntactic version to validate data against")
-	validateAnyCmd.Flags().StringVarP(&encoding, "encoding", "e", "", "input data encoding. Autodetected by default, but can be constrained to \"json\" or \"yaml\".")
-	validateAnyCmd.Flags().BoolVarP(&quiet, "quiet", "q", false, "emit no output, exit status only")
+	validateAnyCmd.Flags().StringVarP(&dc.lla.verstr, "version", "v", "", "schema syntactic version to validate data against")
+	validateAnyCmd.Flags().StringVarP(&dc.format, "format", "e", "", "input data format. Autodetected by default, but can be constrained to \"json\" or \"yaml\".")
+	validateAnyCmd.Flags().BoolVarP(&dc.quiet, "quiet", "q", false, "emit no output, exit status only")
+	validateAnyCmd.PersistentPreRunE = mergeCobraefuncs(dc.lla.validateLineageInput, dc.lla.validateVersionInputOptional, dc.validateDataInput)
+	validateAnyCmd.RunE = dc.runValidateAny
 
 	dataCmd.AddCommand(translateCmd)
-	translateCmd.Flags().StringVarP((*string)(&verstr), "to", "v", "", "schema version to translate input data to")
+	translateCmd.Flags().StringVarP(&dc.lla.verstr, "to", "v", "", "schema version to translate input data to")
 	translateCmd.MarkFlagRequired("to")
-	translateCmd.Flags().StringVarP(&encoding, "encoding", "e", "", "input data encoding. Autodetected by default, but can be constrained to \"json\" or \"yaml\".")
+	translateCmd.Flags().StringVarP(&dc.format, "format", "e", "", "input data format. Autodetected by default, but can be constrained to \"json\" or \"yaml\".")
+	translateCmd.PersistentPreRunE = mergeCobraefuncs(dc.lla.validateLineageInput, dc.lla.validateVersionInput, dc.validateDataInput)
+	translateCmd.RunE = dc.runTranslate
 
 	dataCmd.AddCommand(hydrateCmd)
-	hydrateCmd.Flags().StringVarP((*string)(&verstr), "version", "v", "", "schema syntactic version to validate data against")
-	hydrateCmd.Flags().StringVarP(&encoding, "encoding", "e", "", "input data encoding. Autodetected by default, but can be constrained to \"json\" or \"yaml\".")
+	hydrateCmd.Flags().StringVarP(&dc.lla.verstr, "version", "v", "", "schema syntactic version to validate data against")
+	hydrateCmd.Flags().StringVarP(&dc.format, "format", "e", "", "input data format. Autodetected by default, but can be constrained to \"json\" or \"yaml\".")
+	hydrateCmd.PersistentPreRunE = mergeCobraefuncs(dc.lla.validateLineageInput, dc.lla.validateVersionInputOptional, dc.validateDataInput)
+	hydrateCmd.RunE = dc.runHydrate
 
 	dataCmd.AddCommand(dehydrateCmd)
-	dehydrateCmd.Flags().StringVarP((*string)(&verstr), "version", "v", "", "schema syntactic version to validate data against")
-	dehydrateCmd.Flags().StringVarP(&encoding, "encoding", "e", "", "input data encoding. Autodetected by default, but can be constrained to \"json\" or \"yaml\".")
+	dehydrateCmd.Flags().StringVarP(&dc.lla.verstr, "version", "v", "", "schema syntactic version to validate data against")
+	dehydrateCmd.Flags().StringVarP(&dc.format, "format", "e", "", "input data format. Autodetected by default, but can be constrained to \"json\" or \"yaml\".")
+	dehydrateCmd.PersistentPreRunE = mergeCobraefuncs(dc.lla.validateLineageInput, dc.lla.validateVersionInputOptional, dc.validateDataInput)
+	dehydrateCmd.RunE = dc.runDehydrate
+}
+
+func (dc *dataCommand) run(cmd *cobra.Command, args []string) {
+	switch cmd.CalledAs() {
+	case "validate":
+	case "validate-any":
+	case "translate":
+	case "hydrate":
+	case "dehydrate":
+	}
 }
 
 var dataCmd = &cobra.Command{
@@ -58,35 +98,35 @@ data. All data operations are performed in the context of the provided lineage.
 
 Data may be provided on stdin, or by passing a single path to a file as an
 argument. Stdin is ignored if a path is provided. JSON and YAML inputs are
-supported; the correct encoding is inferred. Only one object instance may be
+supported; the correct format is inferred. Only one object instance may be
 validated per command invocation.
 `
 
 var validateCmd = &cobra.Command{
-	Use:   "validate -l <lineage-fs-path> -v <synver> [-p <cue-path>] [-q] [-e <encoding>] [<data-fs-path>]",
+	Use:   "validate -l <lineage-fs-path> -v <synver> [-p <cue-path>] [-q] [-e <format>] [<data-fs-path>]",
 	Short: "Validate some input data against a particular Thema schema",
 	Long: `Validate some input data against a particular Thema schema.
 ` + dataReuseText + `
 Success outputs nothing and exits 0. Failure outputs the validation problem
 (unless quieted) and exits 1.
 `,
-	Args:              cobra.MaximumNArgs(1),
-	PersistentPreRunE: mergeCobraefuncs(validateLineageInput, validateVersionInput, validateDataInput),
-	RunE: func(cmd *cobra.Command, args []string) error {
-		if !datval.Exists() {
-			panic("datval does not exist")
-		}
+	Args: cobra.MaximumNArgs(1),
+}
 
-		_, err := sch.Validate(datval)
-		if err != nil {
-			return err
-		}
-		return nil
-	},
+func (dc *dataCommand) runValidate(cmd *cobra.Command, args []string) error {
+	if !dc.datval.Exists() {
+		panic("datval does not exist")
+	}
+
+	_, err := dc.lla.dl.sch.Validate(dc.datval)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 var validateAnyCmd = &cobra.Command{
-	Use:   "validate-any -l <lineage-fs-path> [-p <cue-path>] [-v <synver>] [-q] [-e <encoding>] [<data-fs-path>]",
+	Use:   "validate-any -l <lineage-fs-path> [-p <cue-path>] [-v <synver>] [-q] [-e <format>] [<data-fs-path>]",
 	Short: "Search a lineage for a schema that validates some input data",
 	Long: `Search a lineage for a schema that validates some input data.
 ` + dataReuseText + `
@@ -97,37 +137,37 @@ If --version is passed, that version is checked first. If validation fails
 against all schemas in the lineage, the error against the --version schema will
 be printed.
 `,
-	PersistentPreRunE: mergeCobraefuncs(validateLineageInput, validateVersionInputOptional, validateDataInput),
-	Args:              cobra.MaximumNArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
-		if !datval.Exists() {
-			panic("datval does not exist")
-		}
+	Args: cobra.MaximumNArgs(1),
+}
 
-		var reterr error
-		if sch != nil {
-			_, reterr = sch.Validate(datval)
-			if reterr == nil {
-				fmt.Fprintf(cmd.OutOrStdout(), "%s\n", sch.Version())
-				return nil
-			}
-		}
-		inst := lin.ValidateAny(datval)
-		if inst != nil {
-			fmt.Fprintf(cmd.OutOrStdout(), "%s\n", inst.Schema().Version())
+func (dc *dataCommand) runValidateAny(cmd *cobra.Command, args []string) error {
+	if !dc.datval.Exists() {
+		panic("datval does not exist")
+	}
+
+	var reterr error
+	if dc.lla.dl.sch != nil {
+		_, reterr = dc.lla.dl.sch.Validate(dc.datval)
+		if reterr == nil {
+			fmt.Fprintf(cmd.OutOrStdout(), "%s\n", dc.lla.dl.sch.Version())
 			return nil
 		}
+	}
+	inst := dc.lla.dl.lin.ValidateAny(dc.datval)
+	if inst != nil {
+		fmt.Fprintf(cmd.OutOrStdout(), "%s\n", dc.inst.Schema().Version())
+		return nil
+	}
 
-		if reterr != nil {
-			return reterr
-		}
-		// Empty error should cause exit 1, but no output (or maybe just newline)
-		return errors.New("")
-	},
+	if reterr != nil {
+		return reterr
+	}
+	// Empty error should cause exit 1, but no output (or maybe just newline)
+	return errors.New("")
 }
 
 var translateCmd = &cobra.Command{
-	Use:   "translate -l <lineage-fs-path> [-p <cue-path>] [--to <synver>] [-e <encoding>] [<data-fs-path>]",
+	Use:   "translate -l <lineage-fs-path> [-p <cue-path>] [--to <synver>] [-e <format>] [<data-fs-path>]",
 	Short: "Translate some valid input data from one schema to another",
 	Long: `Translate some valid input data from one schema to another.
 ` + dataReuseText + `
@@ -138,41 +178,41 @@ error.
 Note that Thema's invariants (once finalized) guarantee that failures can only
 arise during data input decoding or validation, never during translation.
 `,
-	PersistentPreRunE: mergeCobraefuncs(validateLineageInput, validateVersionInput, validateDataInput),
-	Args:              cobra.MaximumNArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
-		if !datval.Exists() {
-			panic("datval does not exist")
-		}
+	Args: cobra.MaximumNArgs(1),
+}
 
-		inst := lin.ValidateAny(datval)
-		if inst == nil {
-			return errors.New("input data is not valid for any schema in lineage")
-		}
+func (dc *dataCommand) runTranslate(cmd *cobra.Command, args []string) error {
+	if !dc.datval.Exists() {
+		panic("datval does not exist")
+	}
 
-		// Prior validations checked that the schema version exists in the lineage
-		tinst, lac := inst.Translate(sch.Version())
-		if err := validateTranslationResult(tinst, lac); err != nil {
-			return err
-		}
+	inst := dc.lla.dl.lin.ValidateAny(dc.datval)
+	if inst == nil {
+		return errors.New("input data is not valid for any schema in lineage")
+	}
 
-		// TODO support non-JSON output
-		r := translationResult{
-			From:    inst.Schema().Version().String(),
-			To:      tinst.Schema().Version().String(),
-			Result:  tinst.UnwrapCUE(),
-			Lacunas: lac,
-		}
-
-		byt, err := json.MarshalIndent(r, "", "  ")
-		if err != nil {
-			return fmt.Errorf("error marshaling translation result to JSON: %w", err)
-		}
-		buf := bytes.NewBuffer(byt)
-		_, err = io.Copy(cmd.OutOrStdout(), buf)
-
+	// Prior validations checked that the schema version exists in the lineage
+	tinst, lac := inst.Translate(dc.lla.dl.sch.Version())
+	if err := dc.validateTranslationResult(tinst, lac); err != nil {
 		return err
-	},
+	}
+
+	// TODO support non-JSON output
+	r := translationResult{
+		From:    inst.Schema().Version().String(),
+		To:      tinst.Schema().Version().String(),
+		Result:  tinst.UnwrapCUE(),
+		Lacunas: lac,
+	}
+
+	byt, err := json.MarshalIndent(r, "", "  ")
+	if err != nil {
+		return fmt.Errorf("error marshaling translation result to JSON: %w", err)
+	}
+	buf := bytes.NewBuffer(byt)
+	_, err = io.Copy(cmd.OutOrStdout(), buf)
+
+	return err
 }
 
 type translationResult struct {
@@ -183,7 +223,7 @@ type translationResult struct {
 }
 
 var hydrateCmd = &cobra.Command{
-	Use:   "hydrate -l <lineage-fs-path> [-p <cue-path>] [-e <encoding>] [-v <synver>] [<data-fs-path>] ",
+	Use:   "hydrate -l <lineage-fs-path> [-p <cue-path>] [-e <format>] [-v <synver>] [<data-fs-path>] ",
 	Short: "Fill some valid input data with any schema-specified defaults",
 	Long: `Fill some valid input data with any schema-specified defaults.
 ` + dataReuseText + `
@@ -194,33 +234,33 @@ key ordering are not maintained.
 If a syntactic version is not provided (-v), the input data will be checked
 for validity against all schemas in the lineage.
 `,
-	PersistentPreRunE: mergeCobraefuncs(validateLineageInput, validateVersionInputOptional, validateDataInput),
-	Args:              cobra.MaximumNArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
-		if !datval.Exists() {
-			panic("datval does not exist")
-		}
+	Args: cobra.MaximumNArgs(1),
+}
 
-		inst := lin.ValidateAny(datval)
-		if inst == nil {
-			return errors.New("input data is not valid for any schema in lineage")
-		}
+func (dc *dataCommand) runHydrate(cmd *cobra.Command, args []string) error {
+	if !dc.datval.Exists() {
+		panic("datval does not exist")
+	}
 
-		// TODO support non-JSON output
-		byt, err := json.MarshalIndent(inst.Hydrate().UnwrapCUE(), "", "  ")
-		if err != nil {
-			fmt.Printf("%+v %#v\n", inst.Hydrate().UnwrapCUE(), inst.Hydrate().UnwrapCUE())
-			return fmt.Errorf("error marshaling hydrated object to JSON: %w", err)
-		}
-		buf := bytes.NewBuffer(byt)
-		_, err = io.Copy(cmd.OutOrStdout(), buf)
+	inst := dc.lla.dl.lin.ValidateAny(dc.datval)
+	if inst == nil {
+		return errors.New("input data is not valid for any schema in lineage")
+	}
 
-		return err
-	},
+	// TODO support non-JSON output
+	byt, err := json.MarshalIndent(inst.Hydrate().UnwrapCUE(), "", "  ")
+	if err != nil {
+		// fmt.Printf("%+v %#v\n", inst.Hydrate().UnwrapCUE(), inst.Hydrate().UnwrapCUE())
+		return fmt.Errorf("error marshaling hydrated object to JSON: %w", err)
+	}
+	buf := bytes.NewBuffer(byt)
+	_, err = io.Copy(cmd.OutOrStdout(), buf)
+
+	return err
 }
 
 var dehydrateCmd = &cobra.Command{
-	Use:   "dehydrate -l <lineage-fs-path> [-p <cue-path>] [-e <encoding>] [-v <synver>] [<data-fs-path>] ",
+	Use:   "dehydrate -l <lineage-fs-path> [-p <cue-path>] [-e <format>] [-v <synver>] [<data-fs-path>] ",
 	Short: "Remove all schema-specified defaults from some valid input data",
 	Long: `Remove all schema-specified defaults from some valid input data.
 ` + dataReuseText + `
@@ -231,37 +271,29 @@ formatting (e.g. indent spaces) and/or object key ordering are not maintained.
 If a syntactic version is not provided (-v), the input data will be checked
 for validity against all schemas in the lineage.
 `,
-	PersistentPreRunE: mergeCobraefuncs(validateLineageInput, validateVersionInputOptional, validateDataInput),
-	Args:              cobra.MaximumNArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
-		if !datval.Exists() {
-			panic("datval does not exist")
-		}
+	Args: cobra.MaximumNArgs(1),
+}
 
-		var inst *thema.Instance
-		var err error
-		if sch != nil {
-			inst, err = sch.Validate(datval)
-			if err != nil {
-				return err
-			}
-		} else {
-			inst = lin.ValidateAny(datval)
-			if inst == nil {
-				return errors.New("input data is not valid for any schema in lineage")
-			}
-		}
+func (dc *dataCommand) runDehydrate(cmd *cobra.Command, args []string) error {
+	if !dc.datval.Exists() {
+		panic("datval does not exist")
+	}
 
-		// TODO support non-JSON output
-		byt, err := json.MarshalIndent(inst.Dehydrate().UnwrapCUE(), "", "  ")
-		if err != nil {
-			return fmt.Errorf("error marshaling dehydrated object to JSON: %w", err)
-		}
-		buf := bytes.NewBuffer(byt)
-		_, err = io.Copy(cmd.OutOrStdout(), buf)
+	inst := dc.lla.dl.lin.ValidateAny(dc.datval)
+	if inst == nil {
+		return errors.New("input data is not valid for any schema in lineage")
+	}
 
-		return err
-	},
+	// TODO support non-JSON output
+	byt, err := json.MarshalIndent(dc.inst.Hydrate().UnwrapCUE(), "", "  ")
+	if err != nil {
+		fmt.Printf("%+v %#v\n", dc.inst.Hydrate().UnwrapCUE(), dc.inst.Hydrate().UnwrapCUE())
+		return fmt.Errorf("error marshaling hydrated object to JSON: %w", err)
+	}
+	buf := bytes.NewBuffer(byt)
+	_, err = io.Copy(cmd.OutOrStdout(), buf)
+
+	return err
 }
 
 func pathOrStdin(args []string) ([]byte, error) {
@@ -308,15 +340,15 @@ func pathOrStdin(args []string) ([]byte, error) {
 	return byt, nil
 }
 
-func validateDataInput(cmd *cobra.Command, args []string) error {
+func (dc *dataCommand) validateDataInput(cmd *cobra.Command, args []string) error {
 	var ext string
 
 	byt, err := pathOrStdin(args)
 	if err != nil {
 		return err
 	}
-	if len(byt) > 0 && len(inbytes) == 0 {
-		inbytes = byt
+	if len(byt) > 0 && len(dc.inbytes) == 0 {
+		dc.inbytes = byt
 	}
 
 	if len(args) == 1 {
@@ -331,43 +363,43 @@ func validateDataInput(cmd *cobra.Command, args []string) error {
 	jd := vmux.NewJSONEndec("stdin")
 	yd := vmux.NewYAMLEndec("stdin")
 
-	switch encoding {
+	switch dc.format {
 	case "":
 		// Figure it out; try JSON first
-		datval, err = jd.Decode(rt.UnwrapCUE().Context(), inbytes)
+		dc.datval, err = jd.Decode(rt.UnwrapCUE().Context(), dc.inbytes)
 		if err == nil {
-			encoding = "json"
+			dc.format = "json"
 			break
 		}
 		// Nope, try yaml
-		datval, err = yd.Decode(rt.UnwrapCUE().Context(), inbytes)
+		dc.datval, err = yd.Decode(rt.UnwrapCUE().Context(), dc.inbytes)
 		if err == nil {
-			encoding = "yaml"
+			dc.format = "yaml"
 			break
 		}
 		// Double nope
-		return errors.New("unrecognized encoding of input data")
+		return errors.New("unrecognized format of input data")
 
 	case "json":
 		if ext != "json" {
-			return fmt.Errorf("JSON input encoding specified, but file extension is %s", ext)
+			return fmt.Errorf("JSON input format specified, but file extension is %s", ext)
 		}
 
-		datval, err = jd.Decode(rt.UnwrapCUE().Context(), inbytes)
+		dc.datval, err = jd.Decode(rt.UnwrapCUE().Context(), dc.inbytes)
 		if err != nil {
 			return err
 		}
 	case "yaml":
 		if ext != "yaml" {
-			return fmt.Errorf("YAML input encoding specified, but file extension is %s", ext)
+			return fmt.Errorf("YAML input format specified, but file extension is %s", ext)
 		}
 
-		datval, err = yd.Decode(rt.UnwrapCUE().Context(), inbytes)
+		dc.datval, err = yd.Decode(rt.UnwrapCUE().Context(), dc.inbytes)
 		if err != nil {
 			return err
 		}
 	default:
-		return fmt.Errorf("unknown input encoding %q requested", encoding)
+		return fmt.Errorf("unknown input format %q requested", dc.format)
 	}
 
 	return nil
@@ -375,7 +407,7 @@ func validateDataInput(cmd *cobra.Command, args []string) error {
 
 // Everything here should become unnecessary once Thema's key invariants are in
 // place
-func validateTranslationResult(tinst *thema.Instance, lac thema.TranslationLacunas) error {
+func (dc *dataCommand) validateTranslationResult(tinst *thema.Instance, lac thema.TranslationLacunas) error {
 	if tinst == nil {
 		panic("unreachable, thema.Translate() should never return a nil instance")
 	}

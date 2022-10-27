@@ -23,8 +23,12 @@ type genCommand struct {
 	private bool
 	// don't generate the embed.FS
 	noembed bool
-	lin     thema.Lineage
-	sch     thema.Schema
+
+	// input file format (yaml, json, etc.)
+	format string
+
+	lin thema.Lineage
+	sch thema.Schema
 	// go type to bind to
 	bindtype string
 	// go package name to target
@@ -47,13 +51,13 @@ func (gc *genCommand) setup(cmd *cobra.Command) {
 
 	// genOapiLineageCmd.Flags().StringVarP((*string)(&verstr), "version", "v", "", "schema syntactic version to generate. Defaults to latest")
 	genOapiLineageCmd.Flags().StringVarP(&gc.lla.verstr, "version", "v", "", "schema syntactic version to generate. Defaults to latest")
-	genOapiLineageCmd.Flags().StringVarP(&encoding, "format", "f", "yaml", "output format. \"json\" or \"yaml\".")
+	genOapiLineageCmd.Flags().StringVarP(&gc.format, "format", "f", "yaml", "output format. \"json\" or \"yaml\".")
 	genOapiLineageCmd.Run = gc.run
 
 	genLineageCmd.AddCommand(genJschLineageCmd)
 	// genJschLineageCmd.Flags().StringVarP((*string)(&verstr), "version", "v", "", "schema syntactic version to generate. Defaults to latest")
 	genJschLineageCmd.Flags().StringVarP(&gc.lla.verstr, "version", "v", "", "schema syntactic version to generate. Defaults to latest")
-	genJschLineageCmd.Flags().StringVarP(&encoding, "format", "f", "json", "output format. \"json\" or \"yaml\".")
+	genJschLineageCmd.Flags().StringVarP(&gc.format, "format", "f", "json", "output format. \"json\" or \"yaml\".")
 	genJschLineageCmd.Run = gc.run
 
 	genLineageCmd.AddCommand(genGoTypesLineageCmd)
@@ -126,7 +130,7 @@ Each subcommand supports generating code for a different language target.
 
 Note that the controls offered by each subcommand are intentionally simplified.
 But, each subcommand is implemented as a thin layer atop the packages in
-github.com/grafana/thema/encoding/*. If the CLI lacks the fine-grained control
+github.com/grafana/thema/format/*. If the CLI lacks the fine-grained control
 you require, it is recommended to write your own code generator using those packages.
 `,
 }
@@ -150,7 +154,7 @@ func (gc *genCommand) runOpenAPI(cmd *cobra.Command, args []string) error {
 	}
 
 	var str string
-	switch encoding {
+	switch gc.format {
 	case "json":
 		var b []byte
 		b, err = rt.Context().BuildFile(f).MarshalJSON()
@@ -162,7 +166,7 @@ func (gc *genCommand) runOpenAPI(cmd *cobra.Command, args []string) error {
 	case "yaml", "yml":
 		str, err = yaml.Marshal(rt.Context().BuildFile(f))
 	default:
-		fmt.Fprintf(cmd.ErrOrStderr(), `unrecognized output format %q - must choose "yaml" or "json"`, encoding)
+		fmt.Fprintf(cmd.ErrOrStderr(), `unrecognized output format %q - must choose "yaml" or "json"`, gc.format)
 	}
 	if err != nil {
 		return err
@@ -187,7 +191,7 @@ func (gc *genCommand) runJSONSchema(cmd *cobra.Command, args []string) error {
 	}
 
 	var str string
-	switch encoding {
+	switch gc.format {
 	case "json":
 		var b []byte
 		b, err = rt.Context().BuildFile(f).MarshalJSON()
@@ -199,7 +203,7 @@ func (gc *genCommand) runJSONSchema(cmd *cobra.Command, args []string) error {
 	case "yaml", "yml":
 		str, err = yaml.Marshal(rt.Context().BuildFile(f))
 	default:
-		fmt.Fprintf(cmd.ErrOrStderr(), `unrecognized output format %q - must choose "yaml" or "json"`, encoding)
+		fmt.Fprintf(cmd.ErrOrStderr(), `unrecognized output format %q - must choose "yaml" or "json"`, gc.format)
 	}
 	if err != nil {
 		return err
