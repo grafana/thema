@@ -174,6 +174,12 @@ type BindingConfig struct {
 	IgnoreDiscoveredImports bool
 }
 
+// generate scenarios:
+// - output is stdout - non-optionally disable generating a cueFS embed var; generate a func instead
+// - there is no cue.mod parent, in which case we dynamically construct one (using what module path?)
+// - there is one, and it's in the output dir - include it directly in cueFS embed
+// - there is one, and it's in the parent of output dir - construct a cueFS from a call to a prefixer
+
 // GenerateLineageBinding generates Go code that makes a Thema lineage defined
 // in a .cue file reliably available in Go via a [thema.LineageFactory] or
 // [thema.ConvergentLineageFactory].

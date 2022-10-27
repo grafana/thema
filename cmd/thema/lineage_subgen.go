@@ -23,41 +23,54 @@ type genCommand struct {
 	private bool
 	// don't generate the embed.FS
 	noembed bool
-	lin     thema.Lineage
-	sch     thema.Schema
+
+	// input file format (yaml, json, etc.)
+	format string
+
+	lin thema.Lineage
+	sch thema.Schema
 	// go type to bind to
 	bindtype string
 	// go package name to target
 	pkgname string
 	// path for embedding
 	epath string
+
+	lla *lineageLoadArgs
 }
 
 func (gc *genCommand) setup(cmd *cobra.Command) {
 	cmd.AddCommand(genLineageCmd)
-	addLinPathVars(genLineageCmd)
+	gc.lla = new(lineageLoadArgs)
+	addLinPathVars2(genLineageCmd, gc.lla)
 
 	// genLineageCmd.PersistentFlags().BoolVar((*bool)(&gc.group), "group", false, "whether the schema is a 'group', and therefore only child items should be generated")
 
 	genLineageCmd.AddCommand(genOapiLineageCmd)
-	genOapiLineageCmd.Flags().StringVarP((*string)(&verstr), "version", "v", "", "schema syntactic version to generate. Defaults to latest")
-	genOapiLineageCmd.Flags().StringVarP(&encoding, "format", "f", "yaml", "output format. \"json\" or \"yaml\".")
+	genLineageCmd.PersistentPreRunE = mergeCobraefuncs(gc.lla.validateLineageInput, gc.lla.validateVersionInputOptional)
+
+	// genOapiLineageCmd.Flags().StringVarP((*string)(&verstr), "version", "v", "", "schema syntactic version to generate. Defaults to latest")
+	genOapiLineageCmd.Flags().StringVarP(&gc.lla.verstr, "version", "v", "", "schema syntactic version to generate. Defaults to latest")
+	genOapiLineageCmd.Flags().StringVarP(&gc.format, "format", "f", "yaml", "output format. \"json\" or \"yaml\".")
 	genOapiLineageCmd.Run = gc.run
 
 	genLineageCmd.AddCommand(genJschLineageCmd)
-	genJschLineageCmd.Flags().StringVarP((*string)(&verstr), "version", "v", "", "schema syntactic version to generate. Defaults to latest")
-	genJschLineageCmd.Flags().StringVarP(&encoding, "format", "f", "json", "output format. \"json\" or \"yaml\".")
+	// genJschLineageCmd.Flags().StringVarP((*string)(&verstr), "version", "v", "", "schema syntactic version to generate. Defaults to latest")
+	genJschLineageCmd.Flags().StringVarP(&gc.lla.verstr, "version", "v", "", "schema syntactic version to generate. Defaults to latest")
+	genJschLineageCmd.Flags().StringVarP(&gc.format, "format", "f", "json", "output format. \"json\" or \"yaml\".")
 	genJschLineageCmd.Run = gc.run
 
 	genLineageCmd.AddCommand(genGoTypesLineageCmd)
-	genGoTypesLineageCmd.Flags().StringVarP((*string)(&verstr), "version", "v", "", "schema syntactic version to generate. Defaults to latest")
+	// genGoTypesLineageCmd.Flags().StringVarP((*string)(&verstr), "version", "v", "", "schema syntactic version to generate. Defaults to latest")
+	genGoTypesLineageCmd.Flags().StringVarP(&gc.lla.verstr, "version", "v", "", "schema syntactic version to generate. Defaults to latest")
 	genGoTypesLineageCmd.Flags().StringVar(&gc.pkgname, "pkgname", "", "Name for generated Go package. Defaults to lowercase lineage name")
 	genGoTypesLineageCmd.Run = gc.run
 
 	genLineageCmd.AddCommand(genGoBindingsLineageCmd)
 	genGoBindingsLineageCmd.Use = "gobindings -l <path> [-p <cue-path>] [--bindtype <name>] [--suffix] [--private] [--bindversion <synver>]"
 	genGoBindingsLineageCmd.Flags().StringVar(&gc.bindtype, "bindtype", "", "Generate a ConvergentLineage that binds a lineage's schema to this Go type")
-	genGoBindingsLineageCmd.Flags().StringVarP((*string)(&verstr), "version", "v", "", "Only meaningful with --bindtype. Bind to this schema version. Defaults to latest")
+	// genGoBindingsLineageCmd.Flags().StringVarP((*string)(&verstr), "version", "v", "", "Only meaningful with --bindtype. Bind to this schema version. Defaults to latest")
+	genGoBindingsLineageCmd.Flags().StringVarP(&gc.lla.verstr, "version", "v", "", "Only meaningful with --bindtype. Bind to this schema version. Defaults to latest")
 	genGoBindingsLineageCmd.Flags().StringVar(&gc.pkgname, "pkgname", "", "Name for generated Go package. Defaults to lowercase lineage name")
 	genGoBindingsLineageCmd.Flags().BoolVar(&gc.suffix, "suffix", false, "Generate the lineage factory as 'Lineage<TitleName>()' instead of 'Lineage()'")
 	genGoBindingsLineageCmd.Flags().BoolVar(&gc.private, "private", false, "Generate the lineage factory as an unexported (lowercase) func.")
@@ -71,17 +84,19 @@ func (gc *genCommand) setup(cmd *cobra.Command) {
 
 func (gc *genCommand) run(cmd *cobra.Command, args []string) {
 	// TODO encapsulate these properly
-	gc.lin = lin
-	gc.sch = sch
-	if gc.sch == nil {
-		gc.sch = thema.SchemaP(gc.lin, thema.LatestVersion(gc.lin))
-	}
-	gc.epath = linfilepath
-	if fi, err := os.Stat(linfilepath); err != nil {
+	gc.lin = gc.lla.dl.lin
+	gc.sch = gc.lla.dl.sch
+	gc.epath = gc.lla.linfilepath
+
+	if fi, err := os.Stat(gc.lla.linfilepath); err != nil {
 		fmt.Fprintf(cmd.ErrOrStderr(), "%s\n", err)
 		os.Exit(1)
 	} else if fi.IsDir() {
-		gc.epath += "/*.cue"
+		if gc.epath == "." {
+			gc.epath = "*.cue"
+		} else {
+			gc.epath += "/*.cue"
+		}
 	}
 
 	var err error
@@ -115,10 +130,9 @@ Each subcommand supports generating code for a different language target.
 
 Note that the controls offered by each subcommand are intentionally simplified.
 But, each subcommand is implemented as a thin layer atop the packages in
-github.com/grafana/thema/encoding/*. If the CLI lacks the fine-grained control
+github.com/grafana/thema/format/*. If the CLI lacks the fine-grained control
 you require, it is recommended to write your own code generator using those packages.
 `,
-	PersistentPreRunE: mergeCobraefuncs(validateLineageInput, validateVersionInputOptional),
 }
 
 var genOapiLineageCmd = &cobra.Command{
@@ -140,7 +154,7 @@ func (gc *genCommand) runOpenAPI(cmd *cobra.Command, args []string) error {
 	}
 
 	var str string
-	switch encoding {
+	switch gc.format {
 	case "json":
 		var b []byte
 		b, err = rt.Context().BuildFile(f).MarshalJSON()
@@ -152,7 +166,7 @@ func (gc *genCommand) runOpenAPI(cmd *cobra.Command, args []string) error {
 	case "yaml", "yml":
 		str, err = yaml.Marshal(rt.Context().BuildFile(f))
 	default:
-		fmt.Fprintf(cmd.ErrOrStderr(), `unrecognized output format %q - must choose "yaml" or "json"`, encoding)
+		fmt.Fprintf(cmd.ErrOrStderr(), `unrecognized output format %q - must choose "yaml" or "json"`, gc.format)
 	}
 	if err != nil {
 		return err
@@ -177,7 +191,7 @@ func (gc *genCommand) runJSONSchema(cmd *cobra.Command, args []string) error {
 	}
 
 	var str string
-	switch encoding {
+	switch gc.format {
 	case "json":
 		var b []byte
 		b, err = rt.Context().BuildFile(f).MarshalJSON()
@@ -189,7 +203,7 @@ func (gc *genCommand) runJSONSchema(cmd *cobra.Command, args []string) error {
 	case "yaml", "yml":
 		str, err = yaml.Marshal(rt.Context().BuildFile(f))
 	default:
-		fmt.Fprintf(cmd.ErrOrStderr(), `unrecognized output format %q - must choose "yaml" or "json"`, encoding)
+		fmt.Fprintf(cmd.ErrOrStderr(), `unrecognized output format %q - must choose "yaml" or "json"`, gc.format)
 	}
 	if err != nil {
 		return err
