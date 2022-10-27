@@ -277,7 +277,7 @@ func inputToFile(input []byte, args []string) (*ast.File, error) {
 			}
 		}
 	default:
-		err = fmt.Errorf("unsupported encoding: %s", bf.Encoding)
+		err = fmt.Errorf("unsupported format: %s", bf.Encoding)
 	}
 
 	if err != nil {
