@@ -106,7 +106,7 @@ func InstancesWithThema(modFS fs.FS, dir string, opts ...Option) (*build.Instanc
 	}
 
 	if modname == "" {
-		return nil, &ErrFSNotACueModule{fserr: fmt.Errorf("cue.mod/module.cue did not exist")}
+		return nil, &ErrFSNotACueModule{fserr: fmt.Errorf("cue.mod/module.cue modname was empty")}
 	}
 
 	modroot := filepath.FromSlash(filepath.Join(util.Prefix, modname))

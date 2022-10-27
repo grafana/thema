@@ -78,6 +78,12 @@ func addLinPathVars(cmd *cobra.Command) {
 	cmd.PersistentFlags().StringVarP(&lincuepath, "path", "p", "", "CUE expression for path to the lineage object within file, if not root")
 }
 
+func addLinPathVars2(cmd *cobra.Command, lla *lineageLoadArgs) {
+	cmd.PersistentFlags().StringVarP(&lla.linfilepath, "lineage", "l", ".", "path to .cue file or directory containing lineage")
+	cmd.MarkFlagRequired("lineage")
+	cmd.PersistentFlags().StringVarP(&lla.lincuepath, "path", "p", "", "CUE expression for path to the lineage object within file, if not root")
+}
+
 // List of all commands, for batching stuff
 var allCmds = []*cobra.Command{
 	rootCmd,
