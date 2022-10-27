@@ -44,7 +44,7 @@ seqs: [
 		schemas: [
 			// v0.0
 			{
-				// name is what we call the ship, and what's written in big letters on its hull
+				// name is what we call a ship. It's written in big letters on its hull
 				name: string
 				// masts is the number of masts the ship has. No fully rigged ship
 				// has ever had more than 7: https://oceannavigator.com/the-most-masted-schooner-ever-built/
@@ -61,7 +61,7 @@ Once we have a schema defined, We can use it to generate a type in Go. Use the b
 
 
 ```
-thema lineage gen gotypes -l ship.cue > go_type.go 
+thema lineage gen gotypes -l ship.cue > ship_type_gen.go
 ```
 
 This should generate a go file has a type `ship` defined . The generated file looks like below
@@ -92,7 +92,7 @@ CUE types are more expressive than Go types. To use the rich information from CU
 Use the below command to generate a Go binding from `ship.cue`
 
 ```
-thema lineage gen gobindings -l ship.cue > go_bindings.go
+thema lineage gen gobindings -l ship.cue > ship_bindings_gen.go
 ```
 
 The generated Go bindings will look like this (generated comments have been removed):
@@ -112,7 +112,6 @@ import (
 var themaFS embed.FS
 
 func Lineage(rt *thema.Runtime, opts ...thema.BindOption) (thema.Lineage, error) {
-	// Load a build instance from the embedded fs
 	inst, err := load.InstancesWithThema(themaFS, path.Dir("ship.cue"))
 	if err != nil {
 		return nil, err
@@ -123,7 +122,6 @@ func Lineage(rt *thema.Runtime, opts ...thema.BindOption) (thema.Lineage, error)
 }
 
 // type guards
-
 var _ thema.LineageFactory = Lineage
 ```
 We now have a single Go function our program can call, and it will load up the `ship.cue` from disk and return a [`thema.Lineage`](https://pkg.go.dev/github.com/grafana/thema#Lineage)
@@ -131,7 +129,7 @@ We can then use the Lineage function to validate our data against the schema of 
 
 ## Validating data
 
-Using the Thema CLI, Users can validate the schema of choice defined in `ship.cue`. Use the below command to validate the schema against an invalid JSON data 
+Using the Thema CLI, users can validate the schema of choice defined in `ship.cue`. Use the below command to validate the schema against an invalid JSON data
 
 ```
 curl https://raw.githubusercontent.com/grafana/thema/main/docs/test_ship.json > test_ship.json
@@ -143,40 +141,36 @@ You should see an error similar to below
 #ship00.masts: invalid value 9 (out of bound <8)
 ```
 
-The Go Program will need `cue.mod` to be present, Run the below command to generate it
+The Go program will need `cue.mod` to be present, Run the below command to generate it
 
 ```
 cue mod init
 ```
 
-To validate the data from within a Go program, We can write a Go test for the below function. The function `validateInput` takes the input data and the schema the user wants to validate against
-
-
-```go
-func validateInput(input []byte, schema thema.SV(0,0)) ((thema.Instance, error)) {    
-    ctx := cuecontext.New()
-    lin, _ := Lineage(thema.NewRuntime(ctx))
-    sch, _ := lin.Schema(schema)  //thema.SV(0,0) here represents first schema of first sequence
-    expr, _ := json.Extract("input", input)
-    val := ctx.BuildExpr(expr)
-
-    return sch.Validate(val)
-}
-```
-
-We can write a Go Test similar to below for the `validateInput` function
+The same validation logic performed by `thema data validate` can be run from a Go program, using the generated bindings. The following Go test will produce the same output:
 
 ```go
-func validateInput(t *testingT) {    
-	var input = []byte(`{
-        "name": "thema"
-        masts: 9
-    }`)
-    _ , err := validateInput(input, thema.SV(0,0))
+package ship
 
-	if err != nil {
-		fmt.Prntln(err)
-	}
+import (
+	_ "embed"
+	"testing"
+
+	"cuelang.org/go/cue/cuecontext"
+	"github.com/grafana/thema"
+	"github.com/grafana/thema/vmux"
+)
+
+//go:embed test_ship.json
+var shipJSON []byte
+
+func TestValidateShip(t *testing.T) {
+	ctx := cuecontext.New()
+	lin, _ := Lineage(thema.NewRuntime(ctx))
+	sch, _ := lin.Schema(thema.SV(0, 0))
+	shipdata, _ := vmux.NewJSONEndec("test_ship.json").Decode(ctx, shipJSON)
+	_, err := sch.Validate(shipdata)
+	t.Fatal(err)
 }
 ```
 
