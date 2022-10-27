@@ -41,6 +41,10 @@ type lineageLoadArgs struct {
 }
 
 func (lla *lineageLoadArgs) dynLoad() (*dynamicLoader, error) {
+	if lla.linfilepath == "" {
+		return nil, errors.New("must provide a lineage file argument via -l")
+	}
+
 	dl := &dynamicLoader{
 		lla: lla,
 	}
@@ -120,15 +124,13 @@ func (lla *lineageLoadArgs) dynLoad() (*dynamicLoader, error) {
 			ModuleRoot: pcm.cuemodparentdir,
 			Module:     pcm.modname,
 			Overlay:    overlay,
+			Dir:        filepath.Join(pcm.cuemodparentdir, dl.reltolindir),
 			// Package:    "*",
-			// Dir:        abslfp,
-			// Dir: dl.reltolindir,
-			Dir: filepath.Join(pcm.cuemodparentdir, dl.reltolindir),
 		}
 		binsts = load.Instances(args, cfg)
 	}
 
-	dl.lin, err = buildInsts(rt, binsts, func(binst *build.Instance) string {
+	dl.lin, dl.binst, err = buildInsts(rt, binsts, func(binst *build.Instance) string {
 		if info.IsDir() {
 			return fmt.Sprintf("%s:%s", lla.linfilepath, binst.PkgName)
 		}
@@ -147,7 +149,7 @@ func (lla *lineageLoadArgs) dynLoad() (*dynamicLoader, error) {
 		if err != nil {
 			return nil, err
 		}
-		dl.sch, err = lin.Schema(synv)
+		dl.sch, err = dl.lin.Schema(synv)
 		if err != nil {
 			return nil, fmt.Errorf("schema version %v does not exist in lineage", synv)
 		}
@@ -156,21 +158,9 @@ func (lla *lineageLoadArgs) dynLoad() (*dynamicLoader, error) {
 	return dl, nil
 }
 
-var old bool
-
-// var old bool = true
-
 func (lla *lineageLoadArgs) dynLoadOnce() error {
 	lla.once.Do(func() {
-		if old {
-			var lin thema.Lineage
-			lin, lla.dlerr = lineageFromPaths(rt, lla.linfilepath, lla.lincuepath)
-			lla.dl = &dynamicLoader{
-				lin: lin,
-			}
-		} else {
-			lla.dl, lla.dlerr = lla.dynLoad()
-		}
+		lla.dl, lla.dlerr = lla.dynLoad()
 	})
 	return lla.dlerr
 }
@@ -210,8 +200,13 @@ type dynamicLoader struct {
 	// indicates whether the load happened with a virtual cue.mod dir
 	virtualmod bool
 
+	// build.Instance from which the lineage came
+	binst *build.Instance
+	// loaded lineage
 	lin thema.Lineage
 
+	// loaded schema. latest if no version was provided. it's up to the command
+	// to decide if it's acceptable to use latest - this gets loaded either way.
 	sch thema.Schema
 }
 
@@ -250,25 +245,6 @@ func findCueMod(path string) (*parentCueMod, error) {
 
 // lineageFromPaths takes a filepath and an optional CUE path expression
 // and loads the result up and bind it to a Lineage.
-func lineageFromPaths(rt *thema.Runtime, filepath, cuepath string) (thema.Lineage, error) {
-	if filepath == "" {
-		panic("empty filepath")
-	}
-
-	info, err := os.Stat(filepath)
-	if err != nil {
-		return nil, err
-	}
-
-	binsts := load.Instances([]string{filepath}, &load.Config{})
-	return buildInsts(rt, binsts, func(binst *build.Instance) string {
-		if info.IsDir() {
-			return fmt.Sprintf("%s:%s", filepath, binst.PkgName)
-		}
-		return filepath
-	}, cuepath)
-}
-
 type parentCueMod struct {
 	// the absolute path to the dir containing cue.mod directory
 	cuemodparentdir string
@@ -278,55 +254,43 @@ type parentCueMod struct {
 
 var themamodpath string = filepath.Join("cue.mod", "pkg", "github.com", "grafana", "thema")
 
-func lineageFromStdin(rt *thema.Runtime, b []byte, cuepath string) (thema.Lineage, error) {
-	overlay := map[string]load.Source{
-		"stdin": load.FromBytes(b),
-	}
-
-	cfg := &load.Config{
-		Overlay: overlay,
-	}
-
-	binsts := load.Instances([]string{"stdin"}, cfg)
-	return buildInsts(rt, binsts, func(binst *build.Instance) string {
-		return "stdin"
-	}, cuepath)
-}
-
 type ppathf func(*build.Instance) string
 
-func buildInsts(rt *thema.Runtime, binsts []*build.Instance, ppath ppathf, cuepath string) (thema.Lineage, error) {
+func buildInsts(rt *thema.Runtime, binsts []*build.Instance, ppath ppathf, cuepath string) (thema.Lineage, *build.Instance, error) {
 	rets := make([]struct {
-		lin thema.Lineage
-		err error
+		lin   thema.Lineage
+		binst *build.Instance
+		err   error
 	}, len(binsts))
 	for i, binst := range binsts {
+		rets[i].binst = binst
 		rets[i].lin, rets[i].err = loadone(rt, binst, ppath(binst), cuepath)
 	}
 
 	switch len(binsts) {
 	case 0:
 		// TODO better error - ugh i wish CUE's docs made the failure modes here clearer
-		return nil, fmt.Errorf("no loadable CUE data found")
+		return nil, nil, fmt.Errorf("no loadable CUE data found")
 	case 1:
-		return rets[0].lin, rets[0].err
+		return rets[0].lin, rets[0].binst, rets[0].err
 	default:
 		// Try all of them. Error if we end up with more than one.
 		var lin thema.Lineage
+		var binst *build.Instance
 		for _, ret := range rets {
 			if ret.lin != nil {
 				if lin != nil {
-					return nil, fmt.Errorf("valid lineages found in multiple CUE packages")
+					return nil, nil, fmt.Errorf("valid lineages found in multiple CUE packages")
 				}
-				lin = ret.lin
+				lin, binst = ret.lin, ret.binst
 			}
 		}
 
 		if lin == nil {
 			// Sloppy, but it's almost always gonna be the first one
-			return nil, rets[0].err
+			return nil, nil, rets[0].err
 		}
-		return lin, nil
+		return lin, binst, nil
 	}
 }
 
@@ -350,8 +314,6 @@ func loadone(rt *thema.Runtime, binst *build.Instance, pkgpath, cuepath string) 
 			return nil, fmt.Errorf("no value at path %q in instance %q", cuepath, pkgpath)
 		}
 	}
-	// FIXME so hacky to write back to a global this way - only OK because buildInsts guarantees only one can escape
-	linbinst = binst
 
 	var opts []thema.BindOption
 	if _, set := os.LookupEnv("THEMA_SKIP_BUGGY"); set {
