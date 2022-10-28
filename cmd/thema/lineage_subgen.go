@@ -9,9 +9,9 @@ import (
 
 	"cuelang.org/go/pkg/encoding/yaml"
 	"github.com/grafana/thema"
+	"github.com/grafana/thema/encoding/gocode"
 	"github.com/grafana/thema/encoding/jsonschema"
 	"github.com/grafana/thema/encoding/openapi"
-	"github.com/grafana/thema/encoding/tgo"
 	"github.com/spf13/cobra"
 )
 
@@ -224,7 +224,7 @@ Generate Go types that correspond to a single schema in a lineage.
 func (gc *genCommand) runGoTypes(cmd *cobra.Command, args []string) error {
 	buf := new(bytes.Buffer)
 	fmt.Fprintf(buf, fmt.Sprintf(goheader, gc.epath))
-	b, err := tgo.GenerateTypesOpenAPI(gc.sch, &tgo.TypeConfigOpenAPI{
+	b, err := gocode.GenerateTypesOpenAPI(gc.sch, &gocode.TypeConfigOpenAPI{
 		PackageName: gc.pkgname,
 	})
 	if err != nil {
@@ -255,7 +255,7 @@ ConvergentLineageFactory: https://pkg.go.dev/github.com/grafana/thema#Convergent
 }
 
 func (gc *genCommand) runGoBindings(cmd *cobra.Command, args []string) error {
-	cfg := &tgo.BindingConfig{
+	cfg := &gocode.BindingConfig{
 		Lineage: gc.lin,
 		// TODO figure out what to put here if a dir was provided
 		EmbedPath:           gc.epath,
@@ -271,7 +271,7 @@ func (gc *genCommand) runGoBindings(cmd *cobra.Command, args []string) error {
 
 	buf := new(bytes.Buffer)
 	fmt.Fprintf(buf, fmt.Sprintf(goheader, gc.epath))
-	f, err := tgo.GenerateLineageBinding(cfg)
+	f, err := gocode.GenerateLineageBinding(cfg)
 	if err != nil {
 		return err
 	}
