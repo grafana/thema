@@ -1,4 +1,4 @@
-package tgo
+package gocode
 
 import (
 	"bytes"

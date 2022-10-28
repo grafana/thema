@@ -4,4 +4,4 @@
 //
 // "tgo" is the package name rather than simply "go" because the latter is a
 // reserved keyword.
-package tgo
+package gocode
