@@ -37,7 +37,7 @@ func setupDataCommand(cmd *cobra.Command) {
 
 func (dc *dataCommand) setup(cmd *cobra.Command) {
 	dc.lla = new(lineageLoadArgs)
-	addLinPathVars2(cmd, dc.lla)
+	addLinPathVars(cmd, dc.lla)
 	dataCmd.MarkPersistentFlagRequired("lineage")
 
 	dataCmd.AddCommand(validateCmd)

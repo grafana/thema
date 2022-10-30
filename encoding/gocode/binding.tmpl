@@ -2,16 +2,13 @@ package {{ .PackageName }}
 
 import (
 	"embed"
+	"io/fs"
+	"path"
 	"path/filepath"
 
 	"github.com/grafana/thema"
 	"github.com/grafana/thema/load"
 )
-
-{{ if .GenEmbed -}}
-//go:embed {{ .EmbedPath }}
-var themaFS embed.FS
-{{- end }}
 
 {{ if .IsConvergent -}}
 // {{ .FactoryFuncName }} returns a [thema.ConvergentLineage] for the '{{ .Name }}' lineage.
@@ -87,3 +84,14 @@ func {{ .BaseFactoryFuncName }}(rt *thema.Runtime, opts ...thema.BindOption) (th
 // type guards
 {{ if .IsConvergent }}var _ thema.ConvergentLineageFactory[{{ .Assignee }}] = {{ .FactoryFuncName }}{{ end }}
 var _ thema.LineageFactory = {{ .BaseFactoryFuncName }}
+
+{{ if .GenEmbed -}}
+//go:embed {{ .EmbedPath }}
+var themaFS embed.FS
+{{- end }}
+
+{{ if .GenEmbed -}}
+func themaFSFor{{ .Name }}() fs.FS {
+// ONLY REAL OPTION IS TO DYNAMICALLY CREATE ONE
+}
+{{- end }}
