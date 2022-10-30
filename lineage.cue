@@ -44,6 +44,26 @@ import (
 	// TODO figure out how to express the constraint without blowing up our Go logic
 	#Sequence: [joinSchema, ...joinSchema]
 
+	// schemas is the ordered list of all schemas in the lineage. Each element is a
+	// #SchemaDecl, which contains the schema itself, any necessary lens definitions,
+	// optional examples,
+	schemas: [...#SchemaDecl] & list.MinItems(1)
+
+	schemas: [for i, decl in schemas {
+		if i != 0 {
+			lens: reverse: {
+				to: schemas[i-1].schema
+				from: decl.schema
+			}
+			if decl.v[1] == 0 {
+				lens: forward: {
+					to: decl.schema
+					from: schemas[i-1].schema
+				}
+			}
+		}
+	}]
+
 	#Lens: {
 		// The last schema in the previous sequence; logical predecessor
 		ancestor: joinSchema
@@ -83,17 +103,80 @@ import (
 	// the lens, respectively.
 	//
 	// FIXME figure out how to actually do this correctly
-	// if len(seqs) > 1 {
-	// seqs: [for seqv, seq in S {
-	//     if seqv == 0 { {} }
-	//     if seqv != 0 {
-	//         lens: ancestor: S[seqv-1].schemas[len(S[seqv-1].schemas)-1]
-	//         lens: descendant: seq.schemas[0]
-	//     }
-	// }]
-	// }
+	 if len(seqs) > 1 {
+	 seqs: [for seqv, seq in S {
+	     if seqv == 0 { {} }
+	     if seqv != 0 {
+	         lens: ancestor: S[seqv-1].schemas[len(S[seqv-1].schemas)-1]
+	         lens: descendant: seq.schemas[0]
+	     }
+	 }]
+	 }
 
 	// TODO check subsumption (backwards compat) of each schema with its successor natively in CUE
+}
+
+// #SchemaDecl represents a single schema declaration in Thema. In addition to
+// the schema itself, it contains optional examples, composition instructions,
+// and lenses that map to or from the schema, as required by Thema's rules.
+//
+// The structure also contains a version property, which is the schema's
+// public-facing Syntactic Version number. This property is writable by schema
+// authors, but no actual choice is involved: there is exactly one correct value
+// for any particular #SchemaDecl schema in any lineage, algorithmically
+// determined by its position in the list of schemas and the number of breaking
+// changes to schemas in its predecessors.
+//
+// Properties of the schema's version number determine which lenses are required
+// to write.
+#SchemaDecl: {
+	// version is the Syntactic Version number of the schema. While this property
+	// is settable by lineage authors, it has exactly one correct value for any
+	// particular #SchemaDecl in any lineage, algorithmically determined by its
+	// position in the list of schemas and the number of its predecessors that
+	// make breaking changes to their schemas.
+	//
+	// It is recommended to explicitly declare this field for readability.
+	version?: #SyntacticVersion
+
+	// breaking indicates whether the schema is intended to contain a breaking
+	// change vis-a-vis its predecessors.
+	breaking: bool | *false
+
+	schema: {...}
+
+	// examples is an optional set of named examples of the schema, intended
+	// for use in documentation or other non-functional contexts.
+	examples?: [string]: schema
+
+	if !(v[1] == 0 && v[0] == 0) {
+		lens: {
+			if v[1] == 0 { #MajorLens }
+			if v[1] != 0 { #MinorLens }
+		}
+	}
+}
+
+// MajorLens is a lens between schemas in different major versions - the higher-versioned schema is not compatible with
+// the lower-versioned schema.
+#MajorLens: {
+	forward: #LensTransform
+	reverse: #LensTransform
+}
+
+// MinorLens is a lens between schemas in the same major versions - the higher-versioned schema is compatible with
+// the lower-versioned schema.
+#MinorLens: {
+	reverse: #LensTransform
+}
+
+// LensTransform defines the mapping from one schema to another schema in a lineage,
+// and the lacunas that may exist for specific objects when moving between these schemas.
+#LensTransform: {
+	to: {...}
+	from: {...}
+	transform: to
+	lacunas: [...#Lacuna]
 }
 
 _#vSch: {
