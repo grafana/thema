@@ -31,8 +31,8 @@ import "list"
 	let inlin = linst.lin
 	let inlinst = linst
 
-	_transl: {
-		schemarange: [..._#vSch]
+    _transl: {
+        schemarange: [...#SchemaDecl]
 
 		_#step: {
 			inst: inlinst.lin.joinSchema
@@ -79,21 +79,21 @@ import "list"
 		}
 	}
 
-	let cmp = (_cmpSV & {l: VF, r: VT}).out
-	schrange: {
-		if cmp == 0 {
-			[]
-		}
-		if cmp == -1 {
-			let lo = (_flatidx & {lin: inlin, v: VF}).out
-			let hi = (_flatidx & {lin: inlin, v: VT}).out
-			list.Slice((_all & {lin: inlin}).out, lo+1, hi+1)
-		}
-		if cmp == 1 {
-			// FIXME For now, we don't support backwards translation. This must change.
-			_|_
-		}
-	}
+	let cmp = (_cmpSV & { l: VF, r: VT }).out
+    schrange: {
+        if cmp == 0 {
+            []
+        }
+        if cmp == -1 {
+            let lo = (_flatidx & { lin: inlin, v: VF }).out
+            let hi = (_flatidx & { lin: inlin, v: VT }).out
+            list.Slice(inlin._all, lo+1, hi+1)
+        }
+        if cmp == 1 {
+            // FIXME For now, we don't support backwards translation. This must change.
+            _|_
+        }
+    }
 
 	out: (_transl & {schemarange: schrange}).out
 }
