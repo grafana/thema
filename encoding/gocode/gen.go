@@ -107,11 +107,14 @@ type BindingConfig struct {
 	// Lineage is the Thema lineage for which bindings are to be generated.
 	Lineage thema.Lineage
 
-	// EmbedPath determines the path to use in the generated go:embed variable
+	// EmbedPath is the path that will appear in the generated go:embed variable
 	// that is expected to contain the definition of the provided lineage.
 	//
 	// It is the responsibility of the caller to ensure that the file referenced
 	// by EmbedPath contains the definition of the provided Lineage.
+	//
+	// If empty, no embed will be generated, and therefore NoThemaFSImpl will be forced
+	// to true.
 	EmbedPath string
 
 	// CUEPath is the path to the lineage within the instance referred to by EmbedPath.
@@ -139,11 +142,10 @@ type BindingConfig struct {
 	// parameter as a key.
 	PrivateFactory bool
 
-	// NoEmbed determines whether generation of an embed.FS containing the lineage's
-	// declaring CUE files should be generated. If true, the embed.FS will NOT be
-	// generated. Generated code will still reference the absent var, leaving
-	// it to the developer to manually construct the var instead.
-	NoEmbed bool
+	// NoThemaFSImpl means that no implementation of the call to themaFSFor() within
+	// the generated factory will be generated. The expectation is that Go's compiler
+	// will then force the caller to write their own implementation.
+	NoThemaFSImpl bool
 
 	// Assignee is an ast.Ident that determines the generic type parameter used
 	// in the generated [thema.ConvergentLineageFactory]. If this parameter is nil,
@@ -161,7 +163,7 @@ type BindingConfig struct {
 	// lowercase version of the Lineage.Name() is used.
 	PackageName string
 
-	// ApplyFuncs is a slice of AST manipulation funcs that will be executedagainst
+	// ApplyFuncs is a slice of AST manipulation funcs that will be executed against
 	// the generated Go file prior to running it through goimports. For each slice
 	// element, [astutil.Apply] is called with the element as the "pre" parameter.
 	ApplyFuncs []astutil.ApplyFunc
@@ -196,7 +198,8 @@ func GenerateLineageBinding(cfg *BindingConfig) ([]byte, error) {
 	vars := bindingVars{
 		Name:                cfg.Lineage.Name(),
 		PackageName:         cfg.PackageName,
-		GenEmbed:            !cfg.NoEmbed,
+		GenEmbed:            cfg.EmbedPath != "",
+		GenFSFunc:           !cfg.NoThemaFSImpl,
 		EmbedPath:           cfg.EmbedPath,
 		CUEPath:             cfg.CUEPath.String(),
 		BaseFactoryFuncName: "Lineage",
@@ -260,6 +263,8 @@ type bindingVars struct {
 
 	// generate the embedfs
 	GenEmbed bool
+	// generate the fs func impl
+	GenFSFunc bool
 
 	// Name of the factory func to generate. Must accommodate both FactoryNameSuffix
 	// and PrivateFactory
