@@ -42,9 +42,16 @@ type TypeConfig struct {
 	Group bool
 
 	// RootName specifies the name to use for the type representing the root of the
-	// schema. If empty, this defaults to titlecasing of the lineage name. No effect
-	// if schema is being rendered as a group.
+	// schema. If empty, this defaults to titlecasing of the lineage name.
+	//
+	// No-op if Group is true.
 	RootName string
+
+	// RootAsType controls whether the root schema is generated as a TypeScript
+	// interface type (false) or alias type (true).
+	//
+	// No-op if Group is true.
+	RootAsType bool
 }
 
 // GenerateTypes generates native TypeScript types and defaults corresponding to
@@ -68,7 +75,11 @@ func GenerateTypes(sch thema.Schema, cfg *TypeConfig) (*ast.File, error) {
 	}
 
 	if !cfg.Group {
-		top, err := cuetsy.GenerateSingleAST(cfg.RootName, sch.UnwrapCUE(), cuetsy.TypeInterface)
+		as := cuetsy.TypeInterface
+		if cfg.RootAsType {
+			as = cuetsy.TypeAlias
+		}
+		top, err := cuetsy.GenerateSingleAST(cfg.RootName, sch.UnwrapCUE(), as)
 		if err != nil {
 			return nil, fmt.Errorf("generating TS for schema root failed: %w", err)
 		}
