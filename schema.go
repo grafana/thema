@@ -35,7 +35,7 @@ func (sch *UnarySchema) rt() *Runtime {
 // While Validate takes a cue.Value, this is only to avoid having to trigger
 // the translation internally; input values must be concrete. To use
 // incomplete CUE values with Thema schemas, prefer working directly in CUE,
-// or if you must, rely on UnwrapCUE().
+// or if you must, rely on Underlying().
 //
 // TODO should this instead be interface{} (ugh ugh wish Go had discriminated unions) like FillPath?
 func (sch *UnarySchema) Validate(data cue.Value) (*Instance, error) {
@@ -104,8 +104,8 @@ func (sch *UnarySchema) LatestVersionInSequence() SyntacticVersion {
 	return sv
 }
 
-// UnwrapCUE returns the cue.Value that represents the underlying CUE schema.
-func (sch *UnarySchema) UnwrapCUE() cue.Value {
+// Underlying returns the cue.Value that represents the underlying CUE schema.
+func (sch *UnarySchema) Underlying() cue.Value {
 	return sch.raw
 }
 
@@ -141,7 +141,7 @@ func BindType[T Assignee](sch Schema, t T) (TypedSchema[T], error) {
 	}
 
 	// Verify that there are no problematic errors emitted from decoding.
-	if err := sch.UnwrapCUE().Decode(t); err != nil {
+	if err := sch.Underlying().Decode(t); err != nil {
 		// Because assignability has already been established, the only errors here
 		// _should_ be those arising from schema fields without concrete defaults. But
 		// to avoid swallowing other error types, try to filter out those from the list
@@ -175,7 +175,7 @@ func BindType[T Assignee](sch Schema, t T) (TypedSchema[T], error) {
 	tsch.newfn = func() T {
 		nt := new(T)
 		rt.rl()
-		sch.UnwrapCUE().Decode(nt) //nolint:errcheck
+		sch.Underlying().Decode(nt) //nolint:errcheck
 		rt.ru()
 		return *nt
 	}

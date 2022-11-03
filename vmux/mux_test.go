@@ -229,7 +229,7 @@ func checkSpectrumAcrossMuxers[T thema.Assignee](t *testing.T, clin thema.Conver
 				inst, lac, err := um([]byte(spec.in.str))
 				handleLE(t, img, lac, err)
 
-				final := errdie(t, w(spec.endec.Encode(inst.UnwrapCUE())))
+				final := errdie(t, w(spec.endec.Encode(inst.Underlying())))
 				require.Equal(t, img.str, string(final))
 			})
 			t.Run("ByteMux", func(T *testing.T) {
@@ -247,7 +247,7 @@ func checkSpectrumAcrossMuxers[T thema.Assignee](t *testing.T, clin thema.Conver
 					inst, lac, err := um([]byte(spec.in.str))
 					handleLE(t, img, lac, err)
 
-					final := errdie(t, w(spec.endec.Encode(inst.UnwrapCUE())))
+					final := errdie(t, w(spec.endec.Encode(inst.Underlying())))
 					require.Equal(t, img.str, string(final))
 				})
 				t.Run("TypedMux", func(t *testing.T) {

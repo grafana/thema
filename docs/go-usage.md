@@ -189,8 +189,8 @@ func TestSearchByValid(t *testing.T) {
 
     inst10, lacunas := inst.Translate(targetVersion)
 	byt, _ := json.MarshalIndent(map[string]interface{}{
-		"inst0.0": inst00.UnwrapCUE(),
-		"inst1.0": inst10.UnwrapCUE(),
+		"inst0.0": inst00.Underlying(),
+		"inst1.0": inst10.Underlying(),
 		"lacunas": lacunas.AsList(),
 	}, "", "    ")
 	fmt.Println(string(byt))
@@ -253,7 +253,7 @@ func TestSearchByValid(t *testing.T) {
     inst10, _ := inst.Translate(targetVersion)
 
     var ship Ship
-    inst10.UnwrapCUE().Decode(&ship)
+    inst10.Underlying().Decode(&ship)
     fmt.Printf("%+v\n", ship) // "{Firstfield:foo Secondfield:-1}"
 }
 ```

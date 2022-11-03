@@ -12,8 +12,8 @@ import (
 
 // A CUEWrapper wraps a cue.Value, and can return that value for inspection.
 type CUEWrapper interface {
-	// UnwrapCUE returns the underlying cue.Value wrapped by the object.
-	UnwrapCUE() cue.Value
+	// Underlying returns the underlying cue.Value wrapped by the object.
+	Underlying() cue.Value
 }
 
 // A Lineage is the top-level container in thema, holding the complete
@@ -35,7 +35,7 @@ type Lineage interface {
 	// While this method takes a cue.Value, this is only to avoid having to trigger
 	// the translation internally; input values must be concrete. To use
 	// incomplete CUE values with Thema schemas, prefer working directly in CUE,
-	// or if you must, rely on UnwrapCUE().
+	// or if you must, rely on Underlying().
 	//
 	// TODO should this instead be interface{} (ugh ugh wish Go had tagged unions) like FillPath?
 	ValidateAny(data cue.Value) *Instance
@@ -180,7 +180,7 @@ type Schema interface {
 	//
 	// The concreteness requirement may be loosened in future versions of Thema. To
 	// use incomplete CUE values with Thema schemas, prefer working directly in CUE,
-	// or call [Schema.UnwrapCUE] to work directly with the underlying CUE API.
+	// or call [Schema.Underlying] to work directly with the underlying CUE API.
 	//
 	// TODO should this instead be interface{} (ugh ugh wish Go had tagged unions) like FillPath?
 	Validate(data cue.Value) (*Instance, error)

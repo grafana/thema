@@ -29,7 +29,7 @@ func AssignableTo(sch Schema, T any) error {
 	rt := sch.Lineage().Runtime()
 	rt.rl()
 	defer rt.ru()
-	return assignable(sch.UnwrapCUE(), T)
+	return assignable(sch.Underlying(), T)
 }
 
 // ErrPointerDepth indicates that a Go type having pointer indirection depth > 1

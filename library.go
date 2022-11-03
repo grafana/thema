@@ -90,9 +90,9 @@ func (rt *Runtime) u() {
 	rt.mut.Unlock()
 }
 
-// UnwrapCUE returns the underlying cue.Value representing the whole Thema CUE
+// Underlying returns the underlying cue.Value representing the whole Thema CUE
 // library (github.com/grafana/thema).
-func (rt *Runtime) UnwrapCUE() cue.Value {
+func (rt *Runtime) Underlying() cue.Value {
 	return rt.val
 }
 
