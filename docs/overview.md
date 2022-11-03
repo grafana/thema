@@ -35,7 +35,7 @@ The remaining two concepts - instance and lacuna - are most easily understood in
 
 Thema operations allow programs to combine data with a lineage and its schema. Because lineages are collections of schema, programs must first decide which schema to use. Two key operations assist with selecting an individual schema out of the lineage:
 
-* **`Schema()`:** given a version number of the format major.minor, get a particular schema from a lineage.
+* **`Schema()`:** given a version number of the format `major.minor`, get a particular schema from a lineage.
 * **`ValidateAny()`:** given some data, search the lineage for a schema that the data validates against.
 
 In the Go library, these are the methods on the `Lineage` [interface](https://pkg.go.dev/github.com/grafana/thema#Lineage).
