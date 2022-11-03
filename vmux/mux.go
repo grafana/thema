@@ -27,7 +27,7 @@ type UntypedMux func(b []byte) (*thema.Instance, thema.TranslationLacunas, error
 //
 // The returned error may be from any of the above steps.
 func NewUntypedMux(sch thema.Schema, dec Decoder) UntypedMux {
-	ctx := sch.Lineage().UnwrapCUE().Context()
+	ctx := sch.Lineage().Underlying().Context()
 	// Prepare no-match error string once for reuse
 	vstring := allvstr(sch)
 
@@ -85,7 +85,7 @@ func NewByteMux(sch thema.Schema, end Endec) ByteMux {
 		if err != nil {
 			return nil, lac, err
 		}
-		ob, err := end.Encode(ti.UnwrapCUE())
+		ob, err := end.Encode(ti.Underlying())
 		return ob, lac, err
 	}
 }
@@ -133,7 +133,7 @@ type TypedMux[T thema.Assignee] func(b []byte) (*thema.TypedInstance[T], thema.T
 //
 // The returned error may be from any of the above steps.
 func NewTypedMux[T thema.Assignee](sch thema.TypedSchema[T], dec Decoder) TypedMux[T] {
-	ctx := sch.Lineage().UnwrapCUE().Context()
+	ctx := sch.Lineage().Underlying().Context()
 	// Prepare no-match error string once for reuse
 	vstring := allvstr(sch)
 

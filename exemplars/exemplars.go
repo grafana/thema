@@ -150,7 +150,7 @@ func lineageForExemplar(name string, rt *thema.Runtime, o ...thema.BindOption) (
 }
 
 func buildExemplarsPackage(rt *thema.Runtime) cue.Value {
-	ctx := rt.UnwrapCUE().Context()
+	ctx := rt.Underlying().Context()
 
 	overlay, err := exemplarOverlay()
 	if err != nil {
