@@ -127,12 +127,12 @@ func isCueValueEqual(inputdef cue.Value, input cue.Value) bool {
 // 	case cue.StructKind:
 // 		for iter, _ := data.Fields(cue.Optional(true), cue.Definitions(true)); iter.Next(); {
 // 			datav, p := iter.Value(), cue.MakePath(iter.Selector())
-// 			schv := sch.LookupPath(p)
-// 			_, has := schv.Default()
+// 			minv := sch.LookupPath(p)
+// 			_, has := minv.Default()
 // 			// No schema [default] value means we need the data
-// 			if !has || !schv.Exists() {
+// 			if !has || !minv.Exists() {
 // 				rv = rv.FillPath(p, datav)
-// 			} else if dehyd := ddoDehydrate(schv, datav); dehyd.Exists() {
+// 			} else if dehyd := ddoDehydrate(minv, datav); dehyd.Exists() {
 // 				rv = rv.FillPath(p, datav)
 // 			}
 // 		}

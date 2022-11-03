@@ -84,10 +84,10 @@ import (
 	//
 	// FIXME figure out how to actually do this correctly
 	// if len(seqs) > 1 {
-	// seqs: [for seqv, seq in S {
-	//     if seqv == 0 { {} }
-	//     if seqv != 0 {
-	//         lens: ancestor: S[seqv-1].schemas[len(S[seqv-1].schemas)-1]
+	// seqs: [for majv, seq in S {
+	//     if majv == 0 { {} }
+	//     if majv != 0 {
+	//         lens: ancestor: S[majv-1].schemas[len(S[majv-1].schemas)-1]
 	//         lens: descendant: seq.schemas[0]
 	//     }
 	// }]
@@ -125,9 +125,9 @@ _#vSch: {
 // TODO functionize
 _all: {
 	lin: #Lineage
-	out: [..._#vSch] & list.FlattenN([ for seqv, seq in lin.seqs {
-		[ for schv, seqsch in seq.schemas {
-			v: [seqv, schv]
+	out: [..._#vSch] & list.FlattenN([ for majv, seq in lin.seqs {
+		[ for minv, seqsch in seq.schemas {
+			v: [majv, minv]
 			sch: seqsch
 		}]
 	}], 1)
@@ -138,8 +138,8 @@ _all: {
 _allv: {
 	lin: #Lineage
 	out: [...#SyntacticVersion] & list.FlattenN(
-		[ for seqv, seq in lin.seqs {
-			[ for schv, _ in seq.schemas {[seqv, schv]}]
+		[ for majv, seq in lin.seqs {
+			[ for minv, _ in seq.schemas {[majv, minv]}]
 		}], 1)
 }
 

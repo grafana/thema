@@ -76,11 +76,11 @@ import (
         }
         spec: crdspec
         spec: versions: [
-            for seqv, seq in lin.seqs {
-                for schv, sch in seq.schemas {
-                    served: list.Contains(served, [seqv, schv])
-                    storage: [seqv, schv] == storage
-                    name: "v\(seqv).\(schv)" // Not sure if the dot is allowed
+            for majv, seq in lin.seqs {
+                for minv, sch in seq.schemas {
+                    served: list.Contains(served, [majv, minv])
+                    storage: [majv, minv] == storage
+                    name: "v\(majv).\(minv)" // Not sure if the dot is allowed
                     schema: {
                         openAPIV3Schema: {...} // This is what needs to be filled in by the encoder
                         cueSchema: sch

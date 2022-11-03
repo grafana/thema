@@ -89,16 +89,16 @@ func BindLineage(raw cue.Value, rt *Runtime, opts ...BindOption) (Lineage, error
 
 	// Populate the version list and enforce compat/subsumption invariants
 	seqiter, _ := raw.LookupPath(cue.MakePath(cue.Str("seqs"))).List()
-	var seqv uint
+	var majv uint
 	var predecessor cue.Value
 	var predsv SyntacticVersion
 	for seqiter.Next() {
-		var schv uint
+		var minv uint
 		schemas := seqiter.Value().LookupPath(cue.MakePath(cue.Str("schemas")))
 
 		schiter, _ := schemas.List()
 		for schiter.Next() {
-			v := synv(seqv, schv)
+			v := synv(majv, minv)
 			lin.allv = append(lin.allv, v)
 
 			sch := schiter.Value()
@@ -115,7 +115,7 @@ func BindLineage(raw cue.Value, rt *Runtime, opts ...BindOption) (Lineage, error
 			})
 
 			// No predecessor to compare against with the very first schema
-			if !(schv == 0 && seqv == 0) {
+			if !(minv == 0 && majv == 0) {
 				// TODO Marked as buggy until we figure out how to both _not_ require
 				// schema to be closed in the .cue file, _and_ how to detect default changes
 				if !cfg.skipbuggychecks {
@@ -124,7 +124,7 @@ func BindLineage(raw cue.Value, rt *Runtime, opts ...BindOption) (Lineage, error
 					// TODO Subsumption may not be what we actually want to check here,
 					// as it does not allow the addition of required fields with defaults
 					bcompat := sch.Subsume(predecessor, cue.Raw(), cue.Schema(), cue.Definitions(true), cue.All(), cue.Final())
-					if (schv == 0 && bcompat == nil) || (schv != 0 && bcompat != nil) {
+					if (minv == 0 && bcompat == nil) || (minv != 0 && bcompat != nil) {
 						return nil, &compatInvariantError{
 							rawlin:    raw,
 							violation: [2]SyntacticVersion{predsv, v},
@@ -136,9 +136,9 @@ func BindLineage(raw cue.Value, rt *Runtime, opts ...BindOption) (Lineage, error
 
 			predecessor = sch
 			predsv = v
-			schv++
+			minv++
 		}
-		seqv++
+		majv++
 	}
 
 	return lin, nil

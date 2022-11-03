@@ -82,19 +82,19 @@ func LatestVersion(lin Lineage) SyntacticVersion {
 // version in the provided sequence number.
 //
 // An error indicates the number of the provided sequence does not exist.
-func LatestVersionInSequence(lin Lineage, seqv uint) (SyntacticVersion, error) {
+func LatestVersionInSequence(lin Lineage, majv uint) (SyntacticVersion, error) {
 	isValidLineage(lin)
 
 	switch tlin := lin.(type) {
 	case *UnaryLineage:
 		latest := tlin.allv[len(tlin.allv)-1]
 		switch {
-		case latest[0] < seqv:
-			return synv(), fmt.Errorf("lineage does not contain a sequence with number %v", seqv)
-		case latest[0] == seqv:
+		case latest[0] < majv:
+			return synv(), fmt.Errorf("lineage does not contain a sequence with number %v", majv)
+		case latest[0] == majv:
 			return latest, nil
 		default:
-			return tlin.allv[searchSynv(tlin.allv, SyntacticVersion{seqv + 1, 0})], nil
+			return tlin.allv[searchSynv(tlin.allv, SyntacticVersion{majv + 1, 0})], nil
 		}
 	default:
 		panic("unreachable")
@@ -279,8 +279,8 @@ type SyntacticVersion [2]uint
 // instances of typing:
 //
 //	SyntacticVersion{0, 0}
-func SV(seqv, schv uint) SyntacticVersion {
-	return [2]uint{seqv, schv}
+func SV(majv, minv uint) SyntacticVersion {
+	return [2]uint{majv, minv}
 }
 
 // Less reports whether the receiver [SyntacticVersion] is less than the
@@ -302,15 +302,15 @@ func ParseSyntacticVersion(s string) (SyntacticVersion, error) {
 	}
 
 	// i mean 4 billion is probably enough version numbers
-	seqv, err := strconv.ParseUint(parts[0], 10, 32)
+	majv, err := strconv.ParseUint(parts[0], 10, 32)
 	if err != nil {
 		return synv(), fmt.Errorf("%w: %q has invalid sequence number %q", terrors.ErrMalformedSyntacticVersion, s, parts[0])
 	}
 
 	// especially when squared
-	schv, err := strconv.ParseUint(parts[1], 10, 32)
+	minv, err := strconv.ParseUint(parts[1], 10, 32)
 	if err != nil {
 		return synv(), fmt.Errorf("%w: %q has invalid schema number %q", terrors.ErrMalformedSyntacticVersion, s, parts[1])
 	}
-	return synv(uint(seqv), uint(schv)), nil
+	return synv(uint(majv), uint(minv)), nil
 }
