@@ -35,7 +35,7 @@ The remaining two concepts - instance and lacuna - are most easily understood in
 
 Thema operations allow programs to combine data with a lineage and its schema. Because lineages are collections of schema, programs must first decide which schema to use. Two key operations assist with selecting an individual schema out of the lineage:
 
-* **`Schema()`:** given a version number, get a particular schema from a lineage.
+* **`Schema()`:** given a version number of the format major.minor, get a particular schema from a lineage.
 * **`ValidateAny()`:** given some data, search the lineage for a schema that the data validates against.
 
 In the Go library, these are the methods on the `Lineage` [interface](https://pkg.go.dev/github.com/grafana/thema#Lineage).
@@ -52,19 +52,19 @@ In Thema's Go library, successful validation of some data returns an [`Instance`
 
 There are some common usage patterns for integrating Thema into programs. Where possible, we codify these patterns into language library helpers, called "kernels".
 
-The most common pattern (codified as [`InputKernel`](https://pkg.go.dev/github.com/grafana/thema/kernel#InputKernel) in Go) is to accept input data from any schema, then converge onto a single version. This allows your program to accept all schema versions for your object, but to be written against only one form.
+The most common pattern (codified as [`InputKernel`](https://pkg.go.dev/github.com/grafana/thema/kernel#InputKernel) in Go) is to accept input data from any schema, then converge onto a single version of the schema. This allows your program to accept all versions of the schema for your object, but to be written against only one form.
 
 This pattern begins with a three-step process, typically executed at the program boundary when input is first received:
 
-1. Receive some input data and `ValidateAny()` to confirm it is an instance, and of what schema version
-2. `Translate()` the instance to the schema version the program is currently designed to work with
+1. Receive some input data and `ValidateAny()` to confirm it is an instance, and of what syntactic version of the schema
+2. `Translate()` the instance to the syntactic version of the schema the program is currently designed to work with
 3. Decide what to do with any lacunas emitted from translation - for example: ignore, log, error out, mutate the translated instance
 
 This animation illustrates a program performing these first two steps across varying numbers of the schemas from the example above:
 
 ![Validate and Translate](validate-and-translate.gif) TODO fixup the graffle, make the gif
 
-Once this process is complete, the program can continue (or terminate based on observed lacunas) to perform useful behavior based on the input, now known to be both a) valid and b) represented in the form of the schema version against which the program has been written. Versioning and translation has been encapsulated at the program boundary, and the rest of the program can safely pretend that only the one version of the schema exists.
+Once this process is complete, the program can continue (or terminate based on observed lacunas) to perform useful behavior based on the input, now known to be both a) valid and b) represented in the form of the syntactic version of the schema against which the program has been written. Versioning and translation has been encapsulated at the program boundary, and the rest of the program can safely pretend that only the one version of the schema exists.
 
 Deeper exploration and concrete examples are available in the [tutorial on using Thema from Go](go-usage.md).
 

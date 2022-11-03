@@ -83,7 +83,7 @@ Thema's Go library presents three types for its core operations:
 
 These directly represent three of the [core concepts](overview.md). All of these types are closed in order to ensure that a non-nil variable of the type is constructed in a manner that is ready for use, and confers Thema's [guarantees](invariants.md).
 
-These types are connected through methods that represent their well-defined relations. You can look up a particular `Schema` from a `Lineage` by version number, or go from a `Schema` to its `Lineage`. An `Instance` can return its `Schema`, but that's a one-way trip - `Schema` do not keep an internal index of validated `Instance`s. The graph of connected objects is always limited to those associated with a single lineage.
+These types are connected through methods that represent their well-defined relations. You can look up a particular `Schema` from a `Lineage` by its syntactic version number of the format `major.minor`, or go from a `Schema` to its `Lineage`. An `Instance` can return its `Schema`, but that's a one-way trip - `Schema` do not keep an internal index of validated `Instance`s. The graph of connected objects is always limited to those associated with a single lineage.
 
 ### Hand-pick and validate
 
@@ -110,8 +110,8 @@ func init() {
 }
 
 func TestHandpickValidation(t *testing.T) {
-    // Ask the lineage for the schema with version 0.0. An error can only happen
-    // if you request a schema version that doesn't exist.
+    // Ask the lineage for the schema with syntactic version number 0.0. An error can only happen
+    // if you request a version that doesn't exist.
     sch, _ := shiplin.Schema(thema.SV(0, 0))
     _, err := sch00.Validate(dataAsValue(lib))
     // Our input is valid according to schema 0.0, so there should be no error
@@ -121,7 +121,7 @@ func TestHandpickValidation(t *testing.T) {
 }
 ```
 
-Here, we've hand-picked the schema version we want to validate against - `0.0`, which every lineage is guaranteed to contain. The [`LatestVersion()`](https://pkg.go.dev/github.com/grafana/thema#LatestVersion) and [`LatestVersionInSequence()`](https://pkg.go.dev/github.com/grafana/thema#LatestVersionInSequence) functions provide fuzzier version selection logic. But allowing only one schema version as input somewhat defeats the purpose of using Thema in the first place. Ideally, we'd have something more dynamic.
+Here, we've hand-picked the syntactic version of the schema we want to validate against - `0.0`, which every lineage is guaranteed to contain. The [`LatestVersion()`](https://pkg.go.dev/github.com/grafana/thema#LatestVersion) and [`LatestVersionInSequence()`](https://pkg.go.dev/github.com/grafana/thema#LatestVersionInSequence) functions provide fuzzier version selection logic. But allowing only one syntactic version of a schema from the Lineage of theas input somewhat defeats the purpose of using Thema in the first place. Ideally, we'd have something more dynamic.
 
 ### Search by validity
 
@@ -164,19 +164,19 @@ func TestSearchByValid(t *testing.T) {
     if inst == nil {
         t.Fatal("expected input data to validate against schema 0.0")
     }
-    // Figure out which schema version validated by getting the schema of the
-    // instance, then asking the schema for its version.
+    // Figure out which version of the schema from the Lineage validated by getting the schema of the
+    // instance, then asking the schema for its syntactic version.
     fmt.Println(inst.Schema().Version()) // 0.0
 }
 ```
 
-OK, now we know what version we validated against. But relying on search means we just fanned out to accept every possible schema as input. That's the opposite of the outcome we want - writing our programs against a single version of schema - so we need to fan back in.
+OK, now we know what version of the schema we validated against. But relying on search means we just fanned out to accept every possible schema as input. That's the opposite of the outcome we want - writing our programs against a single version of schema - so we need to fan back in.
 
 ### Translate
 
 Fanning in to a single version of our schema means putting Thema's system of lenses and translation to work. Given an instance of `Ship`, regardless of what version it starts at, we want to translate to one known, fixed version throughout our program. (This is analogous to pinning a dependency's version with a traditional package manager.) For now, let's put it in a package variable called `targetVersion`, and pick `1.0`.
 
-Calling `Translate()` on an instance will produce two values: a new instance valid with respect to the schema version that was specified, and any lacunas that the translation process produced. And our `Ship` lineage [does emit one](https://github.com/grafana/thema/blob/main/docs/authoring.md#emitting-a-lacuna), because we had to put that placeholder `-1` value in for `secondfield`.
+Calling `Translate()` on an instance will produce two values: a new instance valid with respect to the version of the schema that was specified, and any lacunas that the translation process produced. And our `Ship` lineage [does emit one](https://github.com/grafana/thema/blob/main/docs/authoring.md#emitting-a-lacuna), because we had to put that placeholder `-1` value in for `secondfield`.
 
 ```go
 var targetVersion = thema.SV(1, 0)
@@ -287,7 +287,7 @@ func TestKernel(t *testing.T) {
 		Lineage:     lin,
         // "What data format are we expecting as input?"
 		Loader:      kernel.NewJSONDecoder("shipinput.json"),
-        // "What schema version are we targeting?"
+        // "What version of teh schema are we targeting?"
 		To:          thema.SV(1, 0),
         // "What Go type do we want our data to end up in?"
 		TypeFactory: &Ship{},
@@ -384,7 +384,7 @@ TODO this one is trivial
 
 TODO trickier than config because reusable middleware requires generics, and even then it's not simple `http.Handler`, so applying `JSONToShip()` probably has to happen at the tail end of `http.Handler`
 
-TODO mention how HTTP Request headers can be used to decide which version to translate the `Ship` back to on egress
+TODO mention how HTTP Request headers can be used to decide which version of the schema to translate the `Ship` back to on egress
 
 ## Wrap-up
 

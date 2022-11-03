@@ -74,7 +74,7 @@ For this tutorial, we'll sidestep the issue by assuming that publication has hap
 
 Let's add one more field, `secondfield`, which must be an `int`.
 
-**Note:** in thema, schema version is determined by its position within the two-dimensional array structure of `seqs`, rather than through arbitrary choice by the author. These structurally-determined version numbers are indicated as comments.
+**Note:** in thema, The syntactic version is determined by its position within the two-dimensional array structure of `seqs`, rather than through arbitrary choice by the author. These structurally-determined version numbers where the first number represents the `major` version and the second the `minor` version are indicated as comments.
 
 ```cue
 import "github.com/grafana/thema"
@@ -170,7 +170,7 @@ Other considerations:
 
 The third option for making our lineage valid is to rely on thema's foundational feature: making breaking changes safely. We choose this path over the others for some reason that's important to the semantics of a newer version of our program - the field is indeed required for all future correct behavior, and relies on information - say, some user input - that simply wasn't a part of the initial schema. Requirements evolve, and programs naturally evolve them. 
 
-In this approach, rather than adding `secondfield` to a schema in the same sequence, we place our schema in a new sequence, thereby granting the new schema the version number `1.0`.
+In this approach, rather than adding `secondfield` to a schema in the same sequence, we place our schema in a new sequence, thereby granting the new schema with the major version and minor version as `1.0`
 
 ```cue
 import "github.com/grafana/thema"
@@ -261,7 +261,7 @@ lin: seqs: [
 ]
 ```
 
-Applied to some concrete JSON (with a `version` field implicitly added to the schema), this lens would produce the following:
+Applied to some concrete JSON (with a syntactic `version` field implicitly added to the schema), this lens would produce the following:
 
 ```json
 {
