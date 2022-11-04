@@ -121,7 +121,7 @@ func TestHandpickValidation(t *testing.T) {
 }
 ```
 
-Here, we've hand-picked the syntactic version of the schema we want to validate against - `0.0`, which every lineage is guaranteed to contain. The [`LatestVersion()`](https://pkg.go.dev/github.com/grafana/thema#LatestVersion) and [`LatestVersionInSequence()`](https://pkg.go.dev/github.com/grafana/thema#LatestVersionInSequence) functions provide fuzzier version selection logic. But allowing only one syntactic version of a schema from the Lineage of theas input somewhat defeats the purpose of using Thema in the first place. Ideally, we'd have something more dynamic.
+Here, we've hand-picked the syntactic version of the schema we want to validate against - `0.0`, which every lineage is guaranteed to contain. The [`LatestVersion()`](https://pkg.go.dev/github.com/grafana/thema#LatestVersion) and [`LatestVersionInSequence()`](https://pkg.go.dev/github.com/grafana/thema#LatestVersionInSequence) functions provide fuzzier version selection logic. But allowing only one syntactic version as input somewhat defeats the purpose of using Thema in the first place. Ideally, we'd have something more dynamic.
 
 ### Search by validity
 
