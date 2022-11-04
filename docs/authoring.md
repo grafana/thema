@@ -74,7 +74,7 @@ For this tutorial, we'll sidestep the issue by assuming that publication has hap
 
 Let's add one more field, `secondfield`, which must be an `int`.
 
-**Note:** in thema, the syntactic version is determined by its position within the two-dimensional array structure of `seqs`, rather than through arbitrary choice by the author. These structurally-determined version numbers where the first number represents the `major` version and the second the `minor` version are indicated as comments.
+**Note:** in thema, the syntactic version of the scehma is of the format major.minor and is determined by its position within the two-dimensional array structure of `seqs`, rather than through arbitrary choice by the author. These versions are indicated as comments.
 
 ```cue
 import "github.com/grafana/thema"
@@ -261,7 +261,7 @@ lin: seqs: [
 ]
 ```
 
-Applied to some concrete JSON (with a syntactic `version` field implicitly added to the schema), this lens would produce the following:
+Applied to some concrete JSON (with a `version` field implicitly added to the schema), this lens would produce the following:
 
 ```json
 {

@@ -56,15 +56,15 @@ The most common pattern (codified as [`InputKernel`](https://pkg.go.dev/github.c
 
 This pattern begins with a three-step process, typically executed at the program boundary when input is first received:
 
-1. Receive some input data and `ValidateAny()` to confirm it is an instance, and of what syntactic version of the schema
-2. `Translate()` the instance to the syntactic version of the schema the program is currently designed to work with
+1. Receive some input data and `ValidateAny()` to confirm it is an instance, and of what version of the schema
+2. `Translate()` the instance to the version of the schema the program is currently designed to work with
 3. Decide what to do with any lacunas emitted from translation - for example: ignore, log, error out, mutate the translated instance
 
 This animation illustrates a program performing these first two steps across varying numbers of the schemas from the example above:
 
 ![Validate and Translate](validate-and-translate.gif) TODO fixup the graffle, make the gif
 
-Once this process is complete, the program can continue (or terminate based on observed lacunas) to perform useful behavior based on the input, now known to be both a) valid and b) represented in the form of the syntactic version of the schema against which the program has been written. Versioning and translation has been encapsulated at the program boundary, and the rest of the program can safely pretend that only the one version of the schema exists.
+Once this process is complete, the program can continue (or terminate based on observed lacunas) to perform useful behavior based on the input, now known to be both a) valid and b) represented in the form of the version of the schema against which the program has been written. Versioning and translation has been encapsulated at the program boundary, and the rest of the program can safely pretend that only the one version of the schema exists.
 
 Deeper exploration and concrete examples are available in the [tutorial on using Thema from Go](go-usage.md).
 

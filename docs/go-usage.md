@@ -110,7 +110,7 @@ func init() {
 }
 
 func TestHandpickValidation(t *testing.T) {
-    // Ask the lineage for the schema with syntactic version number 0.0. An error can only happen
+    // Ask the lineage for the schema with version number 0.0. An error can only happen
     // if you request a version that doesn't exist.
     sch, _ := shiplin.Schema(thema.SV(0, 0))
     _, err := sch00.Validate(dataAsValue(lib))
@@ -121,7 +121,7 @@ func TestHandpickValidation(t *testing.T) {
 }
 ```
 
-Here, we've hand-picked the syntactic version of the schema we want to validate against - `0.0`, which every lineage is guaranteed to contain. The [`LatestVersion()`](https://pkg.go.dev/github.com/grafana/thema#LatestVersion) and [`LatestVersionInSequence()`](https://pkg.go.dev/github.com/grafana/thema#LatestVersionInSequence) functions provide fuzzier version selection logic. But allowing only one syntactic version as input somewhat defeats the purpose of using Thema in the first place. Ideally, we'd have something more dynamic.
+Here, we've hand-picked the version of the schema we want to validate against - `0.0`, which every lineage is guaranteed to contain. The [`LatestVersion()`](https://pkg.go.dev/github.com/grafana/thema#LatestVersion) and [`LatestVersionInSequence()`](https://pkg.go.dev/github.com/grafana/thema#LatestVersionInSequence) functions provide fuzzier version selection logic. But allowing only one version number as input somewhat defeats the purpose of using Thema in the first place. Ideally, we'd have something more dynamic.
 
 ### Search by validity
 
@@ -165,7 +165,7 @@ func TestSearchByValid(t *testing.T) {
         t.Fatal("expected input data to validate against schema 0.0")
     }
     // Figure out which version of the schema from the Lineage validated by getting the schema of the
-    // instance, then asking the schema for its syntactic version.
+    // instance, then asking the schema for its version.
     fmt.Println(inst.Schema().Version()) // 0.0
 }
 ```
