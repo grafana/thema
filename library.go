@@ -64,7 +64,7 @@ func NewRuntime(ctx *cue.Context) *Runtime {
 		// without changing the version of the thema Go library they're
 		// depending on. It's a hard failure that should be unreachable outside
 		// thema internal testing, so just panic.
-		panic(rt.Validate(cue.All()))
+		panic(errors.Details(rt.Validate(cue.All()), nil))
 	}
 
 	return &Runtime{
