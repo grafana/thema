@@ -103,13 +103,13 @@ func LatestVersion(lin Lineage) SyntacticVersion {
 //
 // An error indicates the number of the provided sequence does not exist.
 //
-// DEPRECATED: call Schema.LatestVersionInSequence after loading a schema in the desired major version.
+// DEPRECATED: call Schema.LatestInMajor().Version() after loading a schema in the desired major version.
 func LatestVersionInSequence(lin Lineage, seqv uint) (SyntacticVersion, error) {
 	sch, err := lin.Schema(SV(seqv, 0))
 	if err != nil {
 		return SyntacticVersion{}, err
 	}
-	return sch.LatestVersionInSequence(), nil
+	return sch.LatestInMajor().Version(), nil
 }
 
 // A LineageFactory returns a [Lineage], which is immutably bound to a single
@@ -201,10 +201,6 @@ type Schema interface {
 
 	// Predecessor returns the previous schema in the lineage, or nil if it is the first schema.
 	Predecessor() Schema
-
-	// LatestVersionInSequence returns the version number of the newest (largest) schema
-	// in this schema's sequence.
-	LatestVersionInSequence() SyntacticVersion
 
 	// LatestInMajor returns the Schema with the newest (largest) minor version
 	// within this Schema's major version. If the receiver Schema is the latest, it
