@@ -45,6 +45,31 @@ type Lineage interface {
 	// Only the [0, 0] schema is guaranteed to exist in all valid lineages.
 	Schema(v SyntacticVersion) (Schema, error)
 
+	// First returns the first Schema in the lineage (v0.0). Thema requires that all
+	// valid lineages contain at least one schema, so this is guaranteed to exist.
+	First() Schema
+
+	// Latest returns the newest Schema in the lineage - largest minor version
+	// within the largest major version.
+	//
+	// Thema requires that all valid lineages contain at least one schema, so schema
+	// is is guaranteed to exist, even if it's the 0.0 version.
+	//
+	// EXERCISE CAUTION WITH THIS METHOD. Relying on Latest is appropriate and
+	// necessary for some use cases, such as keeping Thema declarations and
+	// generated code in sync within a single repository. But use in the wrong
+	// context - usually cross repository, loosely coupled, dependency
+	// management-like contexts - can completely undermine Thema's translatability
+	// invariants.
+	//
+	// If you're not sure, ask yourself: when a breaking change to this lineage is
+	// published, what would that break downstream, and will the users who experience
+	// that breakage be expecting it to happen?
+	//
+	// If the user would be expecting the breakage, using Latest is probably appropriate.
+	// Otherwise, it is probably preferable to pick an explicit version number.
+	Latest() Schema
+
 	// Runtime returns the thema.Runtime instance with which this lineage was built.
 	Runtime() *Runtime
 
@@ -67,38 +92,24 @@ func SchemaP(lin Lineage, v SyntacticVersion) Schema {
 
 // LatestVersion returns the version number of the newest (largest) schema
 // version in the provided lineage.
+//
+// DEPRECATED: call Lineage.Latest().Version().
 func LatestVersion(lin Lineage) SyntacticVersion {
-	isValidLineage(lin)
-
-	switch tlin := lin.(type) {
-	case *UnaryLineage:
-		return tlin.allv[len(tlin.allv)-1]
-	default:
-		panic("unreachable")
-	}
+	return lin.Latest().Version()
 }
 
 // LatestVersionInSequence returns the version number of the newest (largest) schema
 // version in the provided sequence number.
 //
 // An error indicates the number of the provided sequence does not exist.
+//
+// DEPRECATED: call Schema.LatestVersionInSequence after loading a schema in the desired major version.
 func LatestVersionInSequence(lin Lineage, seqv uint) (SyntacticVersion, error) {
-	isValidLineage(lin)
-
-	switch tlin := lin.(type) {
-	case *UnaryLineage:
-		latest := tlin.allv[len(tlin.allv)-1]
-		switch {
-		case latest[0] < seqv:
-			return synv(), fmt.Errorf("lineage does not contain a sequence with number %v", seqv)
-		case latest[0] == seqv:
-			return latest, nil
-		default:
-			return tlin.allv[searchSynv(tlin.allv, SyntacticVersion{seqv + 1, 0})], nil
-		}
-	default:
-		panic("unreachable")
+	sch, err := lin.Schema(SV(seqv, 0))
+	if err != nil {
+		return SyntacticVersion{}, err
 	}
+	return sch.LatestVersionInSequence(), nil
 }
 
 // A LineageFactory returns a [Lineage], which is immutably bound to a single
@@ -195,6 +206,11 @@ type Schema interface {
 	// in this schema's sequence.
 	LatestVersionInSequence() SyntacticVersion
 
+	// LatestInMajor returns the Schema with the newest (largest) minor version
+	// within this Schema's major version. If the receiver Schema is the latest, it
+	// will return itself.
+	LatestInMajor() Schema
+
 	// Version returns the schema's version number.
 	Version() SyntacticVersion
 
@@ -206,7 +222,7 @@ type Schema interface {
 	_schema()
 }
 
-// ConvergentLineage is a lineage where exactly one of its contained schemas has
+// ConvergentLineage is a lineage where exactly one of its contained schemas
 // is associated with a Go type - a TypedSchema[Assignee], as returned from
 // [BindType].
 //
