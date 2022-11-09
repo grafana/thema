@@ -103,7 +103,7 @@ func BindLineage(raw cue.Value, rt *Runtime, opts ...BindOption) (Lineage, error
 
 			sch := schiter.Value()
 			defpath := cue.MakePath(cue.Def(fmt.Sprintf("%s%v%v", sanitizeLabelString(nam), v[0], v[1])))
-			defsch := rt.UnwrapCUE().FillPath(defpath, sch).LookupPath(defpath)
+			defsch := rt.Underlying().FillPath(defpath, sch).LookupPath(defpath)
 			if defsch.Validate() != nil {
 				panic(defsch.Validate())
 			}
