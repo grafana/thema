@@ -103,9 +103,9 @@ func BindLineage(raw cue.Value, rt *Runtime, opts ...BindOption) (Lineage, error
 
 			sch := schiter.Value()
 			defpath := cue.MakePath(cue.Def(fmt.Sprintf("%s%v%v", sanitizeLabelString(nam), v[0], v[1])))
-			defsch := rt.Underlying().FillPath(defpath, sch).LookupPath(defpath)
-			if defsch.Err() != nil {
-				panic(defsch.Err())
+			defsch := rt.UnwrapCUE().FillPath(defpath, sch).LookupPath(defpath)
+			if defsch.Validate() != nil {
+				panic(defsch.Validate())
 			}
 			lin.allsch = append(lin.allsch, &UnarySchema{
 				raw:    sch,
@@ -164,6 +164,18 @@ func sanitizeLabelString(s string) string {
 // Runtime returns the thema.Runtime instance with which this lineage was built.
 func (lin *UnaryLineage) Runtime() *Runtime {
 	return lin.rt
+}
+
+// Latest returns the newest Schema in the lineage - largest minor version
+// within the largest major version.
+func (lin *UnaryLineage) Latest() Schema {
+	return lin.allsch[len(lin.allsch)-1]
+}
+
+// First returns the first Schema in the lineage (v0.0). Thema requires that all
+// valid lineages contain at least one schema, so this is guaranteed to exist.
+func (lin *UnaryLineage) First() Schema {
+	return lin.allsch[0]
 }
 
 func isValidLineage(lin Lineage) {

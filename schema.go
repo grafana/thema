@@ -94,14 +94,11 @@ func (sch *UnarySchema) predecessor() *UnarySchema {
 	return sch.lin.schema(predv)
 }
 
-// LatestVersionInSequence returns the version number of the newest (largest) schema
-// version in the provided sequence number.
-//
-// An error indicates the number of the provided sequence does not exist.
-func (sch *UnarySchema) LatestVersionInSequence() SyntacticVersion {
-	// Lineage invariants preclude an error
-	sv, _ := LatestVersionInSequence(sch.lin, sch.v[0])
-	return sv
+// LatestInMajor returns the Schema with the newest (largest) minor version
+// within this Schema's major version. If the receiver Schema is the latest, it
+// will return itself.
+func (sch *UnarySchema) LatestInMajor() Schema {
+	return sch.lin.allsch[searchSynv(sch.lin.allv, SyntacticVersion{sch.v[0] + 1, 0})]
 }
 
 // Underlying returns the cue.Value that represents the underlying CUE schema.
