@@ -299,7 +299,7 @@ func loadone(rt *thema.Runtime, binst *build.Instance, pkgpath, cuepath string) 
 		return nil, binst.Err
 	}
 
-	v := rt.UnwrapCUE().Context().BuildInstance(binst)
+	v := rt.Underlying().Context().BuildInstance(binst)
 	if !v.Exists() {
 		return nil, fmt.Errorf("empty instance at %s", pkgpath)
 	}
