@@ -103,7 +103,7 @@ func BindLineage(raw cue.Value, rt *Runtime, opts ...BindOption) (Lineage, error
 
 			sch := schiter.Value()
 			defpath := cue.MakePath(cue.Def(fmt.Sprintf("%s%v%v", sanitizeLabelString(nam), v[0], v[1])))
-			defsch := rt.UnwrapCUE().FillPath(defpath, sch).LookupPath(defpath)
+			defsch := rt.Underlying().FillPath(defpath, sch).LookupPath(defpath)
 			if defsch.Validate() != nil {
 				panic(defsch.Validate())
 			}
@@ -200,8 +200,8 @@ func getLinLib(lin Lineage) *Runtime {
 	}
 }
 
-// UnwrapCUE returns the cue.Value of the entire lineage.
-func (lin *UnaryLineage) UnwrapCUE() cue.Value {
+// Underlying returns the cue.Value of the entire lineage.
+func (lin *UnaryLineage) Underlying() cue.Value {
 	isValidLineage(lin)
 
 	return lin.raw
@@ -226,7 +226,7 @@ func (lin *UnaryLineage) Name() string {
 // While this method takes a cue.Value, this is only to avoid having to trigger
 // the translation internally; input values must be concrete. To use
 // incomplete CUE values with Thema schemas, prefer working directly in CUE,
-// or if you must, rely on UnwrapCUE().
+// or if you must, rely on Underlying().
 //
 // TODO should this instead be interface{} (ugh ugh wish Go had tagged unions) like FillPath?
 func (lin *UnaryLineage) ValidateAny(data cue.Value) *Instance {

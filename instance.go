@@ -42,7 +42,7 @@ type Instance struct {
 // original input is returned unchanged.
 func (i *Instance) Hydrate() *Instance {
 	i.sch.Lineage().Runtime()
-	ni, err := doHydrate(i.sch.UnwrapCUE(), i.raw)
+	ni, err := doHydrate(i.sch.Underlying(), i.raw)
 	// FIXME For now, just no-op it if we error
 	if err != nil {
 		return i
@@ -61,7 +61,7 @@ func (i *Instance) Hydrate() *Instance {
 // NOTE dehydration implementation is a WIP. If errors are encountered, the
 // original input is returned unchanged.
 func (i *Instance) Dehydrate() *Instance {
-	ni, _, err := doDehydrate(i.sch.UnwrapCUE(), i.raw)
+	ni, _, err := doDehydrate(i.sch.Underlying(), i.raw)
 	// FIXME For now, just no-op it if we error
 	if err != nil {
 		return i
@@ -90,8 +90,8 @@ func (i *Instance) AsPredecessor() (*Instance, TranslationLacunas) {
 	panic("TODO translation from newer to older schema is not yet implemented")
 }
 
-// UnwrapCUE returns the cue.Value representing the instance's underlying data.
-func (i *Instance) UnwrapCUE() cue.Value {
+// Underlying returns the cue.Value representing the instance's underlying data.
+func (i *Instance) Underlying() cue.Value {
 	return i.raw
 }
 
@@ -203,7 +203,7 @@ func (lac multiTranslationLacunas) AsList() []Lacuna {
 func (i *Instance) asLinkedInstance() cue.Value {
 	li, err := cueArgs{
 		"inst": i.raw,
-		"lin":  i.Schema().Lineage().UnwrapCUE(),
+		"lin":  i.Schema().Lineage().Underlying(),
 		"v":    i.Schema().Version(),
 	}.make("#LinkedInstance", i.rt())
 	if err != nil {
