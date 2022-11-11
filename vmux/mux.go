@@ -71,21 +71,21 @@ type ByteMux func(b []byte) ([]byte, thema.TranslationLacunas, error)
 //
 // When the returned mux func is called, it will:
 //
-//   - Decode the input []byte using the provided [Endec], then
+//   - Decode the input []byte using the provided [Codec], then
 //   - Pass the result to [thema.Schema.Validate], then
 //   - Call [thema.Instance.Translate] on the result, to the version of the provided [thema.Schema], then
 //   - Encode the resulting [thema.Instance] to a []byte, then
 //   - Return the resulting []byte, [thema.TranslationLacunas], and error
 //
 // The returned error may be from any of the above steps.
-func NewByteMux(sch thema.Schema, end Endec) ByteMux {
-	f := NewUntypedMux(sch, end)
+func NewByteMux(sch thema.Schema, codec Codec) ByteMux {
+	f := NewUntypedMux(sch, codec)
 	return func(b []byte) ([]byte, thema.TranslationLacunas, error) {
 		ti, lac, err := f(b)
 		if err != nil {
 			return nil, lac, err
 		}
-		ob, err := end.Encode(ti.Underlying())
+		ob, err := codec.Encode(ti.Underlying())
 		return ob, lac, err
 	}
 }
@@ -197,12 +197,12 @@ type Encoder interface {
 	Encode(cue.Value) ([]byte, error)
 }
 
-// An Endec (encoder + decoder) can decode a []byte in a particular format (e.g.
-// JSON, YAML) into CUE, and decode from a [thema.Instance] back into a []byte.
+// A Codec can decode a []byte in a particular format (e.g. JSON, YAML) into
+// CUE, and decode from a [thema.Instance] back into a []byte.
 //
-// It is customary, but not necessary, that an Endec's input and output formats
+// It is customary, but not necessary, that a Codec's input and output formats
 // are the same.
-type Endec interface {
+type Codec interface {
 	Decoder
 	Encoder
 }
@@ -211,12 +211,12 @@ type jsonEndec struct {
 	path string
 }
 
-// NewJSONEndec creates an [Endec] that decodes from and encodes to a JSON []byte.
+// NewJSONEndec creates a [Codec] that decodes from and encodes to a JSON []byte.
 //
 // The provided path is used as the CUE source path for each []byte input
 // passed through the decoder. These paths do not affect behavior, but show up
 // in error output (e.g. validation).
-func NewJSONEndec(path string) Endec {
+func NewJSONEndec(path string) Codec {
 	return jsonEndec{
 		path: path,
 	}
@@ -238,12 +238,12 @@ type yamlEndec struct {
 	path string
 }
 
-// NewYAMLEndec creates an Endec that decodes from and encodes to a YAML []byte.
+// NewYAMLEndec creates a [Codec] that decodes from and encodes to a YAML []byte.
 //
 // The provided path is used as the CUE source path for each []byte input
 // passed through the decoder. These paths do not affect behavior, but show up
 // in error output (e.g. validation).
-func NewYAMLEndec(path string) Endec {
+func NewYAMLEndec(path string) Codec {
 	return yamlEndec{
 		path: path,
 	}
