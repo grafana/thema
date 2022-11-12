@@ -174,7 +174,7 @@ func (lla *lineageLoadArgs) dynLoad() (*dynamicLoader, error) {
 	// Now attach the schema - other validators can decide if what we loaded here
 	// was OK (i.e. if command required explicit input)
 	if lla.verstr == "" {
-		dl.sch = thema.SchemaP(dl.lin, thema.LatestVersion(dl.lin))
+		dl.sch = dl.lin.Latest()
 	} else {
 		synv, err := thema.ParseSyntacticVersion(lla.verstr)
 		if err != nil {
