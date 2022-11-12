@@ -92,7 +92,7 @@ func {{ .BaseFactoryFuncName }}(rt *thema.Runtime, opts ...thema.BindOption) (th
 }
 
 // type guards
-{{- if .IsConvergent }}var _ thema.ConvergentLineageFactory[{{ .Assignee }}] = {{ .FactoryFuncName }}{{ end }}
+{{ if .IsConvergent }}var _ thema.ConvergentLineageFactory[{{ .Assignee }}] = {{ .FactoryFuncName }}{{ end }}
 var _ thema.LineageFactory = {{ .BaseFactoryFuncName }}
 
 {{ if .GenEmbed -}}
