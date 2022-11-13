@@ -360,8 +360,8 @@ func (dc *dataCommand) validateDataInput(cmd *cobra.Command, args []string) erro
 		}
 	}
 
-	jd := vmux.NewJSONEndec("stdin")
-	yd := vmux.NewYAMLEndec("stdin")
+	jd := vmux.NewJSONCodec("stdin")
+	yd := vmux.NewYAMLCodec("stdin")
 
 	switch dc.format {
 	case "":

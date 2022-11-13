@@ -158,7 +158,7 @@ func TestMuxers(t *testing.T) {
 	}
 
 	for n, spec := range table {
-		spec.codec = NewJSONEndec("test")
+		spec.codec = NewJSONCodec("test")
 		table[n] = spec
 	}
 
