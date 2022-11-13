@@ -149,6 +149,10 @@ type BindingConfig struct {
 	// If empty, the func will not be generated.
 	CueModName string
 
+	// TitleName is the title-case name of the lineage. If empty, this will default
+	// to the result of [strings.Title] called on lineage.name.
+	TitleName string
+
 	// CuePath is the path to the lineage within the instance referred to by EmbedPath.
 	// If non-empty, the generated binding will include a [cue.Value.LookupPath] call
 	// prior to calling [thema.BindLineage].
@@ -245,8 +249,13 @@ func GenerateLineageBinding(lin thema.Lineage, cfg *BindingConfig) ([]byte, erro
 	}
 
 	if cfg.FactoryNameSuffix {
-		vars.BaseFactoryFuncName += strings.Title(vars.Name)
-		vars.FactoryFuncName += strings.Title(vars.Name)
+		if cfg.TitleName == "" {
+			vars.BaseFactoryFuncName += strings.Title(vars.Name)
+			vars.FactoryFuncName += strings.Title(vars.Name)
+		} else {
+			vars.BaseFactoryFuncName += cfg.TitleName
+			vars.FactoryFuncName += cfg.TitleName
+		}
 	}
 	if vars.IsConvergent {
 		vars.BaseFactoryFuncName = "base" + vars.BaseFactoryFuncName
