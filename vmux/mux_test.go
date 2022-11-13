@@ -253,8 +253,8 @@ func checkSpectrumAcrossMuxers[T thema.Assignee](t *testing.T, clin thema.Conver
 				t.Run("TypedMux", func(t *testing.T) {
 					// No easy way to go from a pure Go type back to CUE, so
 					// just hardcode to the builtin JSON codec and skip otherwise
-					if _, is := spec.codec.(jsonEndec); !is {
-						t.Skipf("generic testing of TypedMux only works with the jsonEndec, got %T", spec.codec)
+					if _, is := spec.codec.(jsonCodec); !is {
+						t.Skipf("generic testing of TypedMux only works with the jsonCodec, got %T", spec.codec)
 					}
 
 					um := NewValueMux(tsch, spec.codec)
