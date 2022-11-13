@@ -95,29 +95,68 @@ func GenerateTypesOpenAPI(sch thema.Schema, cfg *TypeConfigOpenAPI) ([]byte, err
 	}
 
 	return postprocessGoFile(genGoFile{
-		path:     "type_gen.go",
+		path:     fmt.Sprintf("%s_type_gen.go", sch.Lineage().Name()),
 		appliers: cfg.ApplyFuncs,
 		in:       []byte(gostr),
 		errifadd: !cfg.IgnoreDiscoveredImports,
 	})
 }
 
+// options
+// - next to file, no cue.mod parent, therefore need one --- create one dynamically, load with dir "."
+//   - embed - create it, *.cue
+//   - fsfunc - yes, and wrapfs
+//   - loaderfunc - yes, load with ""
+//   - INPUTS: embed path, module name
+// - next to file, cue.mod exists also next to file --- call func, load with dir "."
+//   - embed - create it, *.cue +cue.mod
+//   - fsfunc - yes, and wrapfs
+//   - loaderfunc - yes, load with "."
+//   - INPUTS: embed path, module name
+// - next to file, cue.mod exists in parent dir --- call func, load with dir <specified>
+//   - embed - yes, file.cue
+//   - fsfunc - skip
+//   - loaderfunc - yes, load with specified dir
+//   - INPUTS: embed path, dir
+// - not next to file (stdout) --- NFI, just call the func, load with dir <specified>
+//   - embed - skip
+//   - fsfunc - skip
+//   - loaderfunc - skip
+
 // BindingConfig governs the behavior of [GenerateLineageBinding].
 type BindingConfig struct {
-	// Lineage is the Thema lineage for which bindings are to be generated.
-	Lineage thema.Lineage
-
-	// EmbedPath determines the path to use in the generated go:embed variable
+	// EmbedPath is the path that will appear in the generated go:embed variable
 	// that is expected to contain the definition of the provided lineage.
 	//
 	// It is the responsibility of the caller to ensure that the file referenced
 	// by EmbedPath contains the definition of the provided Lineage.
+	//
+	// If empty, no embed will be generated.
+	//
+	// EmbedPath is passed unmodified to the binding template, so multiple paths may be
+	// provided, separated by spaces, per the //go:embed spec.
 	EmbedPath string
 
-	// CUEPath is the path to the lineage within the instance referred to by EmbedPath.
+	// LoadDir is the path that will be passed to when calling
+	// [load.InstanceWithThema] within the generated loadInstanceFor$NAME func.
+	//
+	// If empty, the func will not be generated.
+	LoadDir string
+
+	// CueModName is the name of the CUE module that will be used when calling
+	// [load.AsModFS] within the generated themaFSFor$NAME func.
+	//
+	// If empty, the func will not be generated.
+	CueModName string
+
+	// TitleName is the title-case name of the lineage. If empty, this will default
+	// to the result of [strings.Title] called on lineage.name.
+	TitleName string
+
+	// CuePath is the path to the lineage within the instance referred to by EmbedPath.
 	// If non-empty, the generated binding will include a [cue.Value.LookupPath] call
 	// prior to calling [thema.BindLineage].
-	CUEPath cue.Path
+	CuePath cue.Path
 
 	// FactoryNameSuffix determines whether the [thema.LineageFactory] or
 	// [thema.ConvergentLineageFactory] implementation will be generated with
@@ -139,12 +178,6 @@ type BindingConfig struct {
 	// parameter as a key.
 	PrivateFactory bool
 
-	// NoEmbed determines whether generation of an embed.FS containing the lineage's
-	// declaring CUE files should be generated. If true, the embed.FS will NOT be
-	// generated. Generated code will still reference the absent var, leaving
-	// it to the developer to manually construct the var instead.
-	NoEmbed bool
-
 	// Assignee is an ast.Ident that determines the generic type parameter used
 	// in the generated [thema.ConvergentLineageFactory]. If this parameter is nil,
 	// a [thema.LineageFactory] is generated instead.
@@ -161,7 +194,7 @@ type BindingConfig struct {
 	// lowercase version of the Lineage.Name() is used.
 	PackageName string
 
-	// ApplyFuncs is a slice of AST manipulation funcs that will be executedagainst
+	// ApplyFuncs is a slice of AST manipulation funcs that will be executed against
 	// the generated Go file prior to running it through goimports. For each slice
 	// element, [astutil.Apply] is called with the element as the "pre" parameter.
 	ApplyFuncs []astutil.ApplyFunc
@@ -188,17 +221,23 @@ type BindingConfig struct {
 // lineage gen go` subcommand. The CLI command should meet most use cases,
 // though some may require the additional flexibility earned by writing a Go
 // program that calls this function directly.
-func GenerateLineageBinding(cfg *BindingConfig) ([]byte, error) {
-	if cfg == nil || cfg.Lineage == nil || cfg.EmbedPath == "" {
-		return nil, fmt.Errorf("cfg.Lineage and cfg.EmbedPath are required")
+func GenerateLineageBinding(lin thema.Lineage, cfg *BindingConfig) ([]byte, error) {
+	if cfg == nil {
+		cfg = new(BindingConfig)
 	}
 
 	vars := bindingVars{
-		Name:                cfg.Lineage.Name(),
-		PackageName:         cfg.PackageName,
-		GenEmbed:            !cfg.NoEmbed,
+		Name:        lin.Name(),
+		PackageName: cfg.PackageName,
+		// certain optional generated elements are generated contingent on
+		// config input strings being non-empty
+		GenEmbed:            cfg.EmbedPath != "",
+		GenFSFunc:           cfg.CueModName != "",
+		GenLoaderFunc:       cfg.LoadDir != "",
+		CueModName:          cfg.CueModName,
+		LoadDir:             cfg.LoadDir,
 		EmbedPath:           cfg.EmbedPath,
-		CUEPath:             cfg.CUEPath.String(),
+		CUEPath:             cfg.CuePath.String(),
 		BaseFactoryFuncName: "Lineage",
 		FactoryFuncName:     "Lineage",
 		IsConvergent:        cfg.Assignee != nil,
@@ -206,12 +245,17 @@ func GenerateLineageBinding(cfg *BindingConfig) ([]byte, error) {
 	}
 
 	if vars.PackageName == "" {
-		vars.PackageName = strings.ToLower(cfg.Lineage.Name())
+		vars.PackageName = strings.ToLower(lin.Name())
 	}
 
 	if cfg.FactoryNameSuffix {
-		vars.BaseFactoryFuncName += strings.Title(vars.Name)
-		vars.FactoryFuncName += strings.Title(vars.Name)
+		if cfg.TitleName == "" {
+			vars.BaseFactoryFuncName += strings.Title(vars.Name)
+			vars.FactoryFuncName += strings.Title(vars.Name)
+		} else {
+			vars.BaseFactoryFuncName += cfg.TitleName
+			vars.FactoryFuncName += cfg.TitleName
+		}
 	}
 	if vars.IsConvergent {
 		vars.BaseFactoryFuncName = "base" + vars.BaseFactoryFuncName
@@ -236,7 +280,7 @@ func GenerateLineageBinding(cfg *BindingConfig) ([]byte, error) {
 	}
 
 	return postprocessGoFile(genGoFile{
-		path:     "binding_gen.go",
+		path:     fmt.Sprintf("%s_binding_gen.go", strings.ToLower(lin.Name())),
 		appliers: cfg.ApplyFuncs,
 		in:       buf.Bytes(),
 		errifadd: !cfg.IgnoreDiscoveredImports,
@@ -251,15 +295,23 @@ type bindingVars struct {
 	// Path to use in the go:embed directive
 	EmbedPath string
 	// Path to use as dir param to load.InstancesWithThema
-	LoadPath string
+	LoadDir string
 	// Path within the cue file to look up to get lineage
 	CUEPath string
+
+	// name of the CUE module, used in generated call to load.AsModFS
+	CueModName string
+
 	// Name for the base factory func, which is always generated and does basic
 	// lineage binding.
 	BaseFactoryFuncName string
 
 	// generate the embedfs
 	GenEmbed bool
+	// generate the fs func impl
+	GenFSFunc bool
+	// generate the build loader func impl
+	GenLoaderFunc bool
 
 	// Name of the factory func to generate. Must accommodate both FactoryNameSuffix
 	// and PrivateFactory
@@ -282,7 +334,6 @@ type genGoFile struct {
 	in       []byte
 }
 
-// func postprocessGoFile(cfg genGoFile) (*ast.File, error) {
 func postprocessGoFile(cfg genGoFile) ([]byte, error) {
 	fname := filepath.Base(cfg.path)
 	buf := new(bytes.Buffer)

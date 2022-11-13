@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"os"
 	"path/filepath"
+	"testing/fstest"
 
 	"cuelang.org/go/cue"
 	"cuelang.org/go/cue/build"
@@ -12,6 +14,7 @@ import (
 	"cuelang.org/go/cue/load"
 	"github.com/grafana/thema"
 	"github.com/grafana/thema/internal/util"
+	"github.com/yalue/merged_fs"
 )
 
 // ErrFSNotACueModule is a general error that wraps a particular error that explains
@@ -28,9 +31,25 @@ func (e *ErrFSNotACueModule) Unwrap() error {
 	return e.fserr
 }
 
-var themamodpath string = filepath.Join("cue.mod", "pkg", "github.com", "grafana", "thema")
+// AsModFS injects a cue.mod/module.cue file into the provided in fs.FS at its root,
+// preparing it for use by
+//
+// If a cue.mod already exists in the provided fs.FS, this func is a no-op.
+func AsModFS(in fs.FS, modname string) fs.FS {
+	_, err := fs.Stat(in, filepath.Join("cue.mod", "module.cue"))
+	if os.IsNotExist(err) {
+		m := fstest.MapFS{
+			// in general, Go virtual FS work only with slash separators internally
+			"cue.mod/module.cue": &fstest.MapFile{Data: []byte(fmt.Sprintf(`module: "%s"`, modname))},
+		}
+		return merged_fs.NewMergedFS(m, in)
+	}
+	return in
+}
 
-// InstancesWithThema wraps CUE's load.Instance() in order to allow
+var themamodpath = filepath.Join("cue.mod", "pkg", "github.com", "grafana", "thema")
+
+// InstanceWithThema wraps CUE's [load.Instance] in order to allow
 // loading .cue files that directly `import "github.com/grafana/thema"`, as
 // lineages are expected to. This is accomplished by constructing a
 // load.Config.Overlay with the Thema CUE files dynamically injected under
@@ -60,7 +79,7 @@ var themamodpath string = filepath.Join("cue.mod", "pkg", "github.com", "grafana
 //
 // NOTE - this function is likely to be deprecated and removed in favor of a
 // more generic dependency overlay loader.
-func InstancesWithThema(modFS fs.FS, dir string, opts ...Option) (*build.Instance, error) {
+func InstanceWithThema(modFS fs.FS, dir string, opts ...Option) (*build.Instance, error) {
 	var modname string
 	err := fs.WalkDir(modFS, "cue.mod", func(path string, d fs.DirEntry, err error) error {
 		// fs.FS implementations tend to not use path separators as expected. Use a
@@ -152,6 +171,12 @@ func InstancesWithThema(modFS fs.FS, dir string, opts ...Option) (*build.Instanc
 	}
 
 	return inst, nil
+}
+
+// InstancesWithThema passes through to [InstanceWithThema].
+// DEPRECATED: use InstanceWithThema.
+func InstancesWithThema(modFS fs.FS, dir string, opts ...Option) (*build.Instance, error) {
+	return InstanceWithThema(modFS, dir, opts...)
 }
 
 // Option defines optional parameters that may be passed to the loader.

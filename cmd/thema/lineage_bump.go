@@ -31,7 +31,7 @@ type bumpCommand struct {
 func (bc *bumpCommand) setup(cmd *cobra.Command) {
 	cmd.AddCommand(lineageBumpCmd)
 	bc.lla = new(lineageLoadArgs)
-	addLinPathVars2(lineageBumpCmd, bc.lla)
+	addLinPathVars(lineageBumpCmd, bc.lla)
 
 	lineageBumpCmd.Flags().BoolVar(&bc.maj, "major", false, "Bump the major version (breaking change) instead of the minor version")
 	lineageBumpCmd.Flags().BoolVar(&bc.maj, "no-fill", false, "Do not pre-fill the new schema with the prior schema")
