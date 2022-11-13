@@ -2,31 +2,28 @@ package {{ .PackageName }}
 
 import (
 	"embed"
+	"io/fs"
 	"path/filepath"
 
+    "cuelang.org/go/cue/build"
 	"github.com/grafana/thema"
 	"github.com/grafana/thema/load"
 )
 
-{{ if .GenEmbed -}}
-//go:embed {{ .EmbedPath }}
-var themaFS embed.FS
-{{- end }}
-
 {{ if .IsConvergent -}}
-// {{ .FactoryFuncName }} returns a [thema.ConvergentLineage] for the '{{ .Name }}' lineage.
+// {{ .FactoryFuncName }} returns a [thema.ConvergentLineage] for the '{{ .Name }}' Thema lineage.
 //
-// The lineage is the canonical specification of {{ .Name }}. It contains
-// all schema versions that have ever existed for {{ .Name }},
-// and the lenses that allow valid instances of one schema in the lineage to
-// be translated to another schema in the lineage.
+// The lineage is the canonical specification of {{ .Name }}. It contains all
+// schema versions that have ever existed for {{ .Name }}, and the lenses that
+// allow valid instances of one schema in the lineage to be translated to
+// another schema in the lineage.
+//
+// As a [thema.ConvergentLineage], the returned lineage has one primary schema, {{ .TargetSchemaVersion }},
+// which is [thema.AssignableTo] [{{ .Assignee }}], the lineage's parameterized type.
 //
 // This function will return an error if the [Thema invariants] are not met by
-// the lineage defined in {{ .EmbedPath }}{{ if .CUEPath }}.{{ .CUEPath }}{{end}}.
-//
-// As a [thema.ConvergentLineage], the returned lineage has one primary schema,
-// {{ .TargetSchemaVersion }}, which is [thema.AssignableTo] the lineage's generic parameterized
-// type, [{{ .Assignee }}].
+// the underlying lineage declaration in CUE, or if [{{ .Assignee }}] is not
+// [thema.AssignableTo] the {{ .TargetSchemaVersion }} schema.
 //
 // [Thema's general invariants]: https://github.com/grafana/thema/blob/main/docs/invariants.md
 func {{ .FactoryFuncName }}(rt *thema.Runtime, opts ...thema.BindOption) (thema.ConvergentLineage[{{ .Assignee }}], error) {
@@ -56,13 +53,28 @@ func {{ .FactoryFuncName }}(rt *thema.Runtime, opts ...thema.BindOption) (thema.
 // be translated to another version of schema in the lineage.
 //
 // This function will return an error if the [Thema invariants] are not met by
-// the lineage defined in {{ .EmbedPath }}{{ if .CUEPath }}.{{ .CUEPath }}{{end}}.
+// the lineage.
 //
 // [Thema's general invariants]: https://github.com/grafana/thema/blob/main/docs/invariants.md
 {{- end }}
 func {{ .BaseFactoryFuncName }}(rt *thema.Runtime, opts ...thema.BindOption) (thema.Lineage, error) {
-	// Load a build instance from the embedded fs
-	inst, err := load.InstancesWithThema(themaFS, path.Dir("{{ .EmbedPath }}"))
+    // First, we must get the bytes of the .cue file(s) in which the "{{ .Name }}" lineage
+    // is declared, and load them into a
+    // "cuelang.org/go/cue/build".Instance.
+    //
+    // For most Thema-based development workflows, these bytes should come from an embed.FS.
+    // This ensures Go is always compiled with the current state of the .cue files.
+	var inst *build.Instance
+	var err error
+
+{{ if not .GenLoaderFunc -}}
+    // loadInstanceFor{{ .Name }} must be manually implemented in another file in this
+    // Go package.
+{{- else -}}
+	// This prepares the .cue file in which the {{ .Name }} lineage is declared for
+	// runtime use by the CUE evaluator.
+{{- end }}
+	inst, err = loadInstanceFor{{ .Name }}()
 	if err != nil {
 		// Errors at this point indicate a problem with basic loading of .cue file bytes,
 		// which typically means the code generator was misconfigured and a path input
@@ -73,7 +85,7 @@ func {{ .BaseFactoryFuncName }}(rt *thema.Runtime, opts ...thema.BindOption) (th
 	raw := rt.Context().BuildInstance(inst)
 	{{ if .CUEPath }}raw = raw.LookupPath(cue.ParsePath({{ .CUEPath }})){{ end }}
 
-	// Errors here indicate that:
+	// An error returned from thema.BindLineage indicates one of the following:
 	//   - The parsed path does not exist in the loaded CUE file (["github.com/grafana/thema/errors".ErrValueNotExist])
 	//   - The value at the parsed path exists, but does not appear to be a Thema
 	//     lineage (["github.com/grafana/thema/errors".ErrValueNotALineage])
@@ -87,3 +99,19 @@ func {{ .BaseFactoryFuncName }}(rt *thema.Runtime, opts ...thema.BindOption) (th
 // type guards
 {{ if .IsConvergent }}var _ thema.ConvergentLineageFactory[{{ .Assignee }}] = {{ .FactoryFuncName }}{{ end }}
 var _ thema.LineageFactory = {{ .BaseFactoryFuncName }}
+
+{{ if .GenEmbed -}}
+//go:embed {{ .EmbedPath }}
+var themaFSFor{{ .Name }} embed.FS
+
+{{ if .GenFSFunc -}}
+func getThemaFSFor{{ .Name }}() fs.FS {
+    return load.AsModFS(themaFSFor{{ .Name }}, "{{ .CueModName }}")
+}
+{{- end }}{{ end }}
+
+{{ if .GenLoaderFunc -}}
+func loadInstanceFor{{ .Name }}() (*build.Instance, error) {
+    return load.InstanceWithThema(getThemaFSFor{{ .Name }}(), "{{ .LoadDir }}")
+}
+{{- end }}
