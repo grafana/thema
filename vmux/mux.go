@@ -207,22 +207,22 @@ type Codec interface {
 	Encoder
 }
 
-type jsonEndec struct {
+type jsonCodec struct {
 	path string
 }
 
-// NewJSONEndec creates a [Codec] that decodes from and encodes to a JSON []byte.
+// NewJSONCodec creates a [Codec] that decodes from and encodes to a JSON []byte.
 //
 // The provided path is used as the CUE source path for each []byte input
 // passed through the decoder. These paths do not affect behavior, but show up
 // in error output (e.g. validation).
-func NewJSONEndec(path string) Codec {
-	return jsonEndec{
+func NewJSONCodec(path string) Codec {
+	return jsonCodec{
 		path: path,
 	}
 }
 
-func (e jsonEndec) Decode(ctx *cue.Context, data []byte) (cue.Value, error) {
+func (e jsonCodec) Decode(ctx *cue.Context, data []byte) (cue.Value, error) {
 	expr, err := cjson.Extract(e.path, data)
 	if err != nil {
 		return cue.Value{}, err
@@ -230,26 +230,26 @@ func (e jsonEndec) Decode(ctx *cue.Context, data []byte) (cue.Value, error) {
 	return ctx.BuildExpr(expr), nil
 }
 
-func (e jsonEndec) Encode(v cue.Value) ([]byte, error) {
+func (e jsonCodec) Encode(v cue.Value) ([]byte, error) {
 	return json.Marshal(v)
 }
 
-type yamlEndec struct {
+type yamlCodec struct {
 	path string
 }
 
-// NewYAMLEndec creates a [Codec] that decodes from and encodes to a YAML []byte.
+// NewYAMLCodec creates a [Codec] that decodes from and encodes to a YAML []byte.
 //
 // The provided path is used as the CUE source path for each []byte input
 // passed through the decoder. These paths do not affect behavior, but show up
 // in error output (e.g. validation).
-func NewYAMLEndec(path string) Codec {
-	return yamlEndec{
+func NewYAMLCodec(path string) Codec {
+	return yamlCodec{
 		path: path,
 	}
 }
 
-func (e yamlEndec) Decode(ctx *cue.Context, data []byte) (cue.Value, error) {
+func (e yamlCodec) Decode(ctx *cue.Context, data []byte) (cue.Value, error) {
 	expr, err := yaml.Extract(e.path, data)
 	if err != nil {
 		return cue.Value{}, err
@@ -257,7 +257,7 @@ func (e yamlEndec) Decode(ctx *cue.Context, data []byte) (cue.Value, error) {
 	return ctx.BuildFile(expr), nil
 }
 
-func (e yamlEndec) Encode(v cue.Value) ([]byte, error) {
+func (e yamlCodec) Encode(v cue.Value) ([]byte, error) {
 	s, err := pyaml.Marshal(v)
 	return []byte(s), err
 }
