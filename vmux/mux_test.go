@@ -13,19 +13,31 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func w[R any](r R, err error) func() (R, error) {
-	return func() (R, error) {
-		return r, err
-	}
+type Else[R any] struct {
+	r   R
+	err error
 }
 
-func errdie[R any](t *testing.T, f func() (R, error)) R {
+func (e Else[R]) Fatalf(t *testing.T, format string, args ...any) R {
 	t.Helper()
-	r, err := f()
-	if err != nil {
-		t.Fatal(err)
+	if e.err != nil {
+		t.Fatalf(format, append(args, e.err)...)
 	}
-	return r
+	return e.r
+}
+func (e Else[R]) Err(t *testing.T) R {
+	t.Helper()
+	if e.err != nil {
+		t.Fatal(e.err)
+	}
+	return e.r
+}
+
+func e[R any](r R, err error) Else[R] {
+	return Else[R]{
+		r:   r,
+		err: err,
+	}
 }
 
 type type00 struct {
@@ -43,15 +55,15 @@ type renameLins[T0, T1 any] struct {
 }
 
 func setupRenameLins(t *testing.T, rt *thema.Runtime) renameLins[*type00, *type10] {
-	lin := errdie(t, w(exemplars.RenameLineage(rt)))
-	sch1 := errdie(t, w(lin.Schema(thema.SV(0, 0))))
-	sch2 := errdie(t, w(lin.Schema(thema.SV(1, 0))))
+	lin := e(exemplars.RenameLineage(rt)).Err(t)
+	sch1 := e(lin.Schema(thema.SV(0, 0))).Err(t)
+	sch2 := e(lin.Schema(thema.SV(1, 0))).Err(t)
 
 	var tf00 = type00{}
 	var tf10 = type10{}
 	return renameLins[*type00, *type10]{
-		first:  errdie(t, w(thema.BindType[*type00](sch1, &tf00))).ConvergentLineage(),
-		second: errdie(t, w(thema.BindType[*type10](sch2, &tf10))).ConvergentLineage(),
+		first:  e(thema.BindType[*type00](sch1, &tf00)).Err(t).ConvergentLineage(),
+		second: e(thema.BindType[*type10](sch2, &tf10)).Err(t).ConvergentLineage(),
 	}
 }
 
@@ -183,7 +195,7 @@ func TestMuxers(t *testing.T) {
 
 func checkSpectrumAcrossMuxers[T thema.Assignee](t *testing.T, clin thema.ConvergentLineage[T], spec spectrum) {
 	t.Parallel()
-	sch := errdie(t, w(clin.Schema(thema.SV(0, 0))))
+	sch := clin.First()
 	vmap := make(map[thema.SyntacticVersion]bool)
 	for ; sch != nil; sch = sch.Successor() {
 		vmap[sch.Version()] = false
@@ -214,8 +226,11 @@ func checkSpectrumAcrossMuxers[T thema.Assignee](t *testing.T, clin thema.Conver
 			continue
 		}
 		// Normalize string form of output to avoid spurious errors
-		img.str = string(errdie(t, w(spec.codec.Encode(
-			errdie(t, w(spec.codec.Decode(concctx, []byte(img.str))))))))
+		normal := e(spec.codec.Decode(concctx, []byte(img.str))).
+			Fatalf(t, "could not decode bytes in image for normalization")
+
+		img.str = string(e(spec.codec.Encode(normal)).
+			Fatalf(t, "could no re-encode bytes in image"))
 
 		t.Run(fmt.Sprintf("%v->%v", spec.in.v, v), func(t *testing.T) {
 			t.Parallel()
@@ -229,7 +244,8 @@ func checkSpectrumAcrossMuxers[T thema.Assignee](t *testing.T, clin thema.Conver
 				inst, lac, err := um([]byte(spec.in.str))
 				handleLE(t, img, lac, err)
 
-				final := errdie(t, w(spec.codec.Encode(inst.Underlying())))
+				final := e(spec.codec.Encode(inst.Underlying())).
+					Fatalf(t, "foo")
 				require.Equal(t, img.str, string(final))
 			})
 			t.Run("ByteMux", func(T *testing.T) {
@@ -247,7 +263,7 @@ func checkSpectrumAcrossMuxers[T thema.Assignee](t *testing.T, clin thema.Conver
 					inst, lac, err := um([]byte(spec.in.str))
 					handleLE(t, img, lac, err)
 
-					final := errdie(t, w(spec.codec.Encode(inst.Underlying())))
+					final := e(spec.codec.Encode(inst.Underlying())).Err(t)
 					require.Equal(t, img.str, string(final))
 				})
 				t.Run("TypedMux", func(t *testing.T) {
@@ -261,7 +277,7 @@ func checkSpectrumAcrossMuxers[T thema.Assignee](t *testing.T, clin thema.Conver
 					inst, lac, err := um([]byte(spec.in.str))
 					handleLE(t, img, lac, err)
 
-					final := errdie(t, w(gjson.Marshal(inst)))
+					final := e(gjson.Marshal(inst)).Err(t)
 					require.Equal(t, img.str, string(final))
 				})
 			}
