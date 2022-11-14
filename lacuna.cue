@@ -16,81 +16,81 @@ package thema
 // created; the production of a lacuna object as the output of a specific
 // translation indicates the lacuna applies to that specific translation.
 #Lacuna: {
-    // A reference to a field and its value in a schema/instance.
-    #FieldRef: {
-        // TODO would be great to be able to constrain that value should always be a reference,
-        // and path is (a modified version of) the string representation of the reference
-        value: _
-        path: string
-    }
+	// A reference to a field and its value in a schema/instance.
+	#FieldRef: {
+		// TODO would be great to be able to constrain that value should always be a reference,
+		// and path is (a modified version of) the string representation of the reference
+		value: _
+		path:  string
+	}
 
-    // The field path(s) and their value(s) in the pre-translation instance
-    // that are relevant to the lacuna.
-    sourceFields: [...#FieldRef]
+	// The field path(s) and their value(s) in the pre-translation instance
+	// that are relevant to the lacuna.
+	sourceFields: [...#FieldRef]
 
-    // The field path(s) and their value(s) in the post-translation instance
-    // that are relevant to the lacuna.
-    targetFields: [...#FieldRef]
+	// The field path(s) and their value(s) in the post-translation instance
+	// that are relevant to the lacuna.
+	targetFields: [...#FieldRef]
 
-    // At least one of sourceFields or targetFields must be non-empty.
-    // TODO(must) https://github.com/cue-lang/cue/issues/943
-    // must(len(sourceFields) > 0 || len(targetFields) > 0, "at least one of sourceFields or targetFields must be non-empty")
-    // _mustlen: >0 & (len(sourceFields) + len(targetFields))
+	// At least one of sourceFields or targetFields must be non-empty.
+	// TODO(must) https://github.com/cue-lang/cue/issues/943
+	// must(len(sourceFields) > 0 || len(targetFields) > 0, "at least one of sourceFields or targetFields must be non-empty")
+	// _mustlen: >0 & (len(sourceFields) + len(targetFields))
 
-    // A human-readable message describing the gap in translation.
-    message: string
+	// A human-readable message describing the gap in translation.
+	message: string
 
-    type: or([for t in #LacunaTypes {t}])
+	type: or([ for t in #LacunaTypes {t}])
 }
 
-#LacunaTypes: [N=string]: #LacunaType & { name: N }
+#LacunaTypes: [N=string]: #LacunaType & {name: N}
 #LacunaTypes: {
-    // Placeholder lacunas indicate that a field in the target instance has
-    // been filled with a placeholder value.
-    //
-    // Use Placeholder when introducing a new required field that lacks a default,
-    // and it is necessary to fill the field with some value to meet lens
-    // validity requirements.
-    //
-    // A placeholder is NOT a schema-defined default. It is expressly the
-    // opposite: a lens-defined value that exists solely to be replaced by the
-    // calling program.
-    Placeholder: {
-        id: 1
-    }
+	// Placeholder lacunas indicate that a field in the target instance has
+	// been filled with a placeholder value.
+	//
+	// Use Placeholder when introducing a new required field that lacks a default,
+	// and it is necessary to fill the field with some value to meet lens
+	// validity requirements.
+	//
+	// A placeholder is NOT a schema-defined default. It is expressly the
+	// opposite: a lens-defined value that exists solely to be replaced by the
+	// calling program.
+	Placeholder: {
+		id: 1
+	}
 
-    // DroppedField lacunas indicate that field(s) in the source instance were
-    // dropped in a manner that potentially lost some of their contained semantics.
-    //
-    // When a lens drops multiple fields, prefer to create one DroppedField
-    // lacuna per distinct cause. For example, if multiple instance fields are
-    // dropped from a single open struct because they were absent from the
-    // schema, all of those fields should be included in a single DroppedField.
-    DroppedField: {
-        id: 2
-    }
+	// DroppedField lacunas indicate that field(s) in the source instance were
+	// dropped in a manner that potentially lost some of their contained semantics.
+	//
+	// When a lens drops multiple fields, prefer to create one DroppedField
+	// lacuna per distinct cause. For example, if multiple instance fields are
+	// dropped from a single open struct because they were absent from the
+	// schema, all of those fields should be included in a single DroppedField.
+	DroppedField: {
+		id: 2
+	}
 
-    // LossyFieldMapping lacunas indicate that no clear mapping existed from the
-    // source field value to the intended semantics of any valid target field
-    // value. 
-    // 
-    // Only use this lacuna type when there exists at least one valid source
-    // value with a clear, lossless mapping to the target value.
-    LossyFieldMapping: {
-        id: 3
-    }
+	// LossyFieldMapping lacunas indicate that no clear mapping existed from the
+	// source field value to the intended semantics of any valid target field
+	// value. 
+	// 
+	// Only use this lacuna type when there exists at least one valid source
+	// value with a clear, lossless mapping to the target value.
+	LossyFieldMapping: {
+		id: 3
+	}
 
-    // ChangedDefault lacunas indicate that the source field value was the
-    // schema-specified default, and the default changed in the target field,
-    // and the value in the instance was changed as well.
-    //
-    // NOTE the semantics of field presence/absence in the instance are subtle here, and this may need refinement
-    ChangedDefault: {
-        id: 4
-    }
+	// ChangedDefault lacunas indicate that the source field value was the
+	// schema-specified default, and the default changed in the target field,
+	// and the value in the instance was changed as well.
+	//
+	// NOTE the semantics of field presence/absence in the instance are subtle here, and this may need refinement
+	ChangedDefault: {
+		id: 4
+	}
 }
 
 #LacunaType: {
-    name: string
-    id: int // FIXME this is a dumb way of trying to express identity
+	name: string
+	id:   int // FIXME this is a dumb way of trying to express identity
 }

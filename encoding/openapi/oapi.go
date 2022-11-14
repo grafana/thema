@@ -34,7 +34,7 @@ func appendSchemaToLineage(b []byte, schemaPath string, lin thema.Lineage) ([]by
 // marshaling to either JSON or YAML.
 func GenerateSchema(sch thema.Schema, cfg *openapi.Config) (*ast.File, error) {
 	// Need it to make an instance
-	inst, err := util.ToInstanceDef(sch.UnwrapCUE(), sch.Lineage().Name(), nil)
+	inst, err := util.ToInstanceDef(sch.Underlying(), sch.Lineage().Name(), nil)
 	if err != nil {
 		return nil, err
 	}

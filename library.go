@@ -64,7 +64,7 @@ func NewRuntime(ctx *cue.Context) *Runtime {
 		// without changing the version of the thema Go library they're
 		// depending on. It's a hard failure that should be unreachable outside
 		// thema internal testing, so just panic.
-		panic(rt.Validate(cue.All()))
+		panic(errors.Details(rt.Validate(cue.All()), nil))
 	}
 
 	return &Runtime{
@@ -90,9 +90,9 @@ func (rt *Runtime) u() {
 	rt.mut.Unlock()
 }
 
-// UnwrapCUE returns the underlying cue.Value representing the whole Thema CUE
+// Underlying returns the underlying cue.Value representing the whole Thema CUE
 // library (github.com/grafana/thema).
-func (rt *Runtime) UnwrapCUE() cue.Value {
+func (rt *Runtime) Underlying() cue.Value {
 	return rt.val
 }
 

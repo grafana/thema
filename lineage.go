@@ -103,9 +103,9 @@ func BindLineage(raw cue.Value, rt *Runtime, opts ...BindOption) (Lineage, error
 
 			sch := schiter.Value()
 			defpath := cue.MakePath(cue.Def(fmt.Sprintf("%s%v%v", sanitizeLabelString(nam), v[0], v[1])))
-			defsch := rt.UnwrapCUE().FillPath(defpath, sch).LookupPath(defpath)
-			if defsch.Err() != nil {
-				panic(defsch.Err())
+			defsch := rt.Underlying().FillPath(defpath, sch).LookupPath(defpath)
+			if defsch.Validate() != nil {
+				panic(defsch.Validate())
 			}
 			lin.allsch = append(lin.allsch, &UnarySchema{
 				raw:    sch,
@@ -166,6 +166,18 @@ func (lin *UnaryLineage) Runtime() *Runtime {
 	return lin.rt
 }
 
+// Latest returns the newest Schema in the lineage - largest minor version
+// within the largest major version.
+func (lin *UnaryLineage) Latest() Schema {
+	return lin.allsch[len(lin.allsch)-1]
+}
+
+// First returns the first Schema in the lineage (v0.0). Thema requires that all
+// valid lineages contain at least one schema, so this is guaranteed to exist.
+func (lin *UnaryLineage) First() Schema {
+	return lin.allsch[0]
+}
+
 func isValidLineage(lin Lineage) {
 	switch tlin := lin.(type) {
 	case nil:
@@ -188,8 +200,8 @@ func getLinLib(lin Lineage) *Runtime {
 	}
 }
 
-// UnwrapCUE returns the cue.Value of the entire lineage.
-func (lin *UnaryLineage) UnwrapCUE() cue.Value {
+// Underlying returns the cue.Value of the entire lineage.
+func (lin *UnaryLineage) Underlying() cue.Value {
 	isValidLineage(lin)
 
 	return lin.raw
@@ -214,7 +226,7 @@ func (lin *UnaryLineage) Name() string {
 // While this method takes a cue.Value, this is only to avoid having to trigger
 // the translation internally; input values must be concrete. To use
 // incomplete CUE values with Thema schemas, prefer working directly in CUE,
-// or if you must, rely on UnwrapCUE().
+// or if you must, rely on Underlying().
 //
 // TODO should this instead be interface{} (ugh ugh wish Go had tagged unions) like FillPath?
 func (lin *UnaryLineage) ValidateAny(data cue.Value) *Instance {

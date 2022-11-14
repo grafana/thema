@@ -23,7 +23,14 @@ import (
 type lineageLoadArgs struct {
 	// fs path to the lineage to load. may be absolute or relative, and point to a
 	// file or dir. Also may be "-" for stdin
-	linfilepath string
+	inputLinFilePath string
+
+	// Absolute path version of inputLinFilePath
+	absInput string
+
+	// indicates whether inputLinFilePath points to a directory. Populated in
+	// dynLoad
+	pathIsDir bool
 
 	// cue path to the lineage to work on (default root)
 	lincuepath string
@@ -40,14 +47,39 @@ type lineageLoadArgs struct {
 	dlerr error
 }
 
+type dynamicLoader struct {
+	// if a real cue.mod existed on disk, this is non-nil
+	cm *parentCueMod
+	// relative path from the cue mod to the dir containing the loaded lineage, if there was a cue.mod
+	relToLinDir string
+	// filename of the lineage, if a single specific filename was provided
+	linFilename string
+
+	// build.Instance from which the lineage came
+	binst *build.Instance
+	// loaded lineage
+	lin thema.Lineage
+
+	// loaded schema. latest if no version was provided. it's up to the command
+	// to decide if it's acceptable to use latest - this gets loaded either way.
+	sch thema.Schema
+}
+
+// lineageFromPaths takes a filepath and an optional CUE path expression
+// and loads the result up and bind it to a Lineage.
+type parentCueMod struct {
+	// the absolute path to the dir containing cue.mod directory
+	cuemodparentdir string
+	// name of module according to cue.mod/module.cue file
+	modname string
+}
+
 func (lla *lineageLoadArgs) dynLoad() (*dynamicLoader, error) {
-	if lla.linfilepath == "" {
+	if lla.inputLinFilePath == "" {
 		return nil, errors.New("must provide a lineage file argument via -l")
 	}
 
-	dl := &dynamicLoader{
-		lla: lla,
-	}
+	dl := &dynamicLoader{}
 	// scenarios
 	// - lineage load path has no cue.mod parent (dynamically create cueFS in load dir)
 	// - lineage load path has a cue.mod in some parent (dynamically make a cueFS that includes it; record rel)
@@ -56,9 +88,10 @@ func (lla *lineageLoadArgs) dynLoad() (*dynamicLoader, error) {
 	//
 	// loadpath is absolute vs. relative (CUE load.Instances() seems to choke on absolute paths)
 
-	abslfp, err := filepath.Abs(lla.linfilepath)
+	var err error
+	lla.absInput, err = filepath.Abs(lla.inputLinFilePath)
 	if err != nil {
-		fmt.Errorf("error getting absolute filepath for %s: %w", lla.linfilepath, err)
+		fmt.Errorf("error getting absolute filepath for %s: %w", lla.inputLinFilePath, err)
 	}
 
 	var binsts []*build.Instance
@@ -69,17 +102,17 @@ func (lla *lineageLoadArgs) dynLoad() (*dynamicLoader, error) {
 	// cfg.Module is the name of the module, real or virtual
 	// cfg.Dir is the RELATIVE path, from module root to what we actually want to load, less filename
 
-	info, _ := os.Stat(abslfp)
-	pcm, err := findCueMod(abslfp)
-	dl.virtualmod = err != nil
+	info, _ := os.Stat(lla.absInput)
+	lla.pathIsDir = info.IsDir()
+	dl.cm, err = findCueMod(lla.absInput)
 	if err != nil {
 		if !errors.Is(err, os.ErrNotExist) {
-			return nil, fmt.Errorf("error while searching for cue.mod at or above %s: %w", lla.linfilepath, err)
+			return nil, fmt.Errorf("error while searching for cue.mod at or above %s: %w", lla.inputLinFilePath, err)
 		}
 
-		dyndir := abslfp
+		dyndir := lla.absInput
 		var args []string
-		if !info.IsDir() {
+		if !lla.pathIsDir {
 			args = append(args, filepath.Base(dyndir))
 			dyndir = filepath.Dir(dyndir)
 		}
@@ -99,42 +132,40 @@ func (lla *lineageLoadArgs) dynLoad() (*dynamicLoader, error) {
 
 		binsts = load.Instances(args, cfg)
 	} else {
-		dl.cm = pcm
-
 		overlay := map[string]load.Source{}
 		// do no muckery if in thema mod dir
-		if pcm.modname != "github.com/grafana/thema" {
-			if err := util.ToOverlay(filepath.Join(pcm.cuemodparentdir, themamodpath), thema.CueFS, overlay); err != nil {
+		if dl.cm.modname != "github.com/grafana/thema" {
+			if err := util.ToOverlay(filepath.Join(dl.cm.cuemodparentdir, themamodpath), thema.CueFS, overlay); err != nil {
 				panic(fmt.Sprintf("unreachable - %s", err))
 			}
 		}
 
-		dl.reltolindir, err = filepath.Rel(pcm.cuemodparentdir, abslfp)
+		dl.relToLinDir, err = filepath.Rel(dl.cm.cuemodparentdir, lla.absInput)
 		if err != nil {
-			return nil, fmt.Errorf("should be unreachable - cue.mod 'parent' path of %s is not rel to lin filepath of %s", pcm.cuemodparentdir, lla.linfilepath)
+			return nil, fmt.Errorf("should be unreachable - cue.mod 'parent' path of %s is not rel to lin filepath of %s", dl.cm.cuemodparentdir, lla.inputLinFilePath)
 		}
 		var args []string
-		if !info.IsDir() {
-			dl.linfilename = filepath.Base(dl.reltolindir)
-			dl.reltolindir = filepath.Dir(dl.reltolindir)
-			args = append(args, dl.linfilename)
+		if !lla.pathIsDir {
+			dl.linFilename = filepath.Base(dl.relToLinDir)
+			dl.relToLinDir = filepath.Dir(dl.relToLinDir)
+			args = append(args, dl.linFilename)
 		}
 
 		cfg = &load.Config{
-			ModuleRoot: pcm.cuemodparentdir,
-			Module:     pcm.modname,
+			ModuleRoot: dl.cm.cuemodparentdir,
+			Module:     dl.cm.modname,
 			Overlay:    overlay,
-			Dir:        filepath.Join(pcm.cuemodparentdir, dl.reltolindir),
+			Dir:        filepath.Join(dl.cm.cuemodparentdir, dl.relToLinDir),
 			// Package:    "*",
 		}
 		binsts = load.Instances(args, cfg)
 	}
 
 	dl.lin, dl.binst, err = buildInsts(rt, binsts, func(binst *build.Instance) string {
-		if info.IsDir() {
-			return fmt.Sprintf("%s:%s", lla.linfilepath, binst.PkgName)
+		if lla.pathIsDir {
+			return fmt.Sprintf("%s:%s", lla.inputLinFilePath, binst.PkgName)
 		}
-		return lla.linfilepath
+		return lla.inputLinFilePath
 	}, lla.lincuepath)
 	if err != nil {
 		return nil, err
@@ -143,7 +174,7 @@ func (lla *lineageLoadArgs) dynLoad() (*dynamicLoader, error) {
 	// Now attach the schema - other validators can decide if what we loaded here
 	// was OK (i.e. if command required explicit input)
 	if lla.verstr == "" {
-		dl.sch = thema.SchemaP(dl.lin, thema.LatestVersion(dl.lin))
+		dl.sch = dl.lin.Latest()
 	} else {
 		synv, err := thema.ParseSyntacticVersion(lla.verstr)
 		if err != nil {
@@ -189,27 +220,6 @@ func (lla *lineageLoadArgs) validateVersionInputOptional(cmd *cobra.Command, arg
 	return lla.dynLoadOnce()
 }
 
-type dynamicLoader struct {
-	lla *lineageLoadArgs
-	cm  *parentCueMod
-	// relative path from the cue mod to the dir containing the loaded lineage, if there was a cue.mod
-	reltolindir string
-	// filename of the lineage, if a single specific filename was provided
-	linfilename string
-
-	// indicates whether the load happened with a virtual cue.mod dir
-	virtualmod bool
-
-	// build.Instance from which the lineage came
-	binst *build.Instance
-	// loaded lineage
-	lin thema.Lineage
-
-	// loaded schema. latest if no version was provided. it's up to the command
-	// to decide if it's acceptable to use latest - this gets loaded either way.
-	sch thema.Schema
-}
-
 // findCueMod recursively searches the given path and its parent directories
 // until one is found containing a cue.mod/module.cue. An error is returned on
 // file read errors, or if no cue.mod was found.
@@ -241,15 +251,6 @@ func findCueMod(path string) (*parentCueMod, error) {
 		}
 	}
 	return nil, os.ErrNotExist
-}
-
-// lineageFromPaths takes a filepath and an optional CUE path expression
-// and loads the result up and bind it to a Lineage.
-type parentCueMod struct {
-	// the absolute path to the dir containing cue.mod directory
-	cuemodparentdir string
-	// name of module according to cue.mod/module.cue file
-	modname string
 }
 
 var themamodpath string = filepath.Join("cue.mod", "pkg", "github.com", "grafana", "thema")
@@ -299,7 +300,7 @@ func loadone(rt *thema.Runtime, binst *build.Instance, pkgpath, cuepath string) 
 		return nil, binst.Err
 	}
 
-	v := rt.UnwrapCUE().Context().BuildInstance(binst)
+	v := rt.Underlying().Context().BuildInstance(binst)
 	if !v.Exists() {
 		return nil, fmt.Errorf("empty instance at %s", pkgpath)
 	}

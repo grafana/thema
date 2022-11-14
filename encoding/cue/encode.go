@@ -121,12 +121,12 @@ seqs: [
 // version bump). Otherwise, a new sequence will be created with the provided
 // schema as its only element (major version bump).
 func Append(lin thema.Lineage, sch cue.Value) (ast.Node, error) {
-	linf := astutil.Format(lin.UnwrapCUE()).(*ast.File)
+	linf := astutil.Format(lin.Underlying()).(*ast.File)
 	schnode := astutil.ToExpr(astutil.Format(sch))
 
 	lv := thema.LatestVersion(lin)
 	lsch := thema.SchemaP(lin, lv)
-	if err := compat.ThemaCompatible(lsch.UnwrapCUE(), sch); err == nil {
+	if err := compat.ThemaCompatible(lsch.Underlying(), sch); err == nil {
 		// Is compatible, append to same sequence
 		tgtv := thema.SyntacticVersion{lv[0], lv[1] + 1}
 		ast.AddComment(schnode, versionComment(tgtv))

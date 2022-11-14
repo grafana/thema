@@ -64,8 +64,8 @@ type spectrum struct {
 	// outputs of translation
 	out codomain
 
-	// Endec used to decode inputs and re-encode outputs
-	endec Endec
+	// Codec used to decode inputs and re-encode outputs
+	codec Codec
 }
 
 // the input of a spectrum
@@ -158,7 +158,7 @@ func TestMuxers(t *testing.T) {
 	}
 
 	for n, spec := range table {
-		spec.endec = NewJSONEndec("test")
+		spec.codec = NewJSONCodec("test")
 		table[n] = spec
 	}
 
@@ -214,8 +214,8 @@ func checkSpectrumAcrossMuxers[T thema.Assignee](t *testing.T, clin thema.Conver
 			continue
 		}
 		// Normalize string form of output to avoid spurious errors
-		img.str = string(errdie(t, w(spec.endec.Encode(
-			errdie(t, w(spec.endec.Decode(concctx, []byte(img.str))))))))
+		img.str = string(errdie(t, w(spec.codec.Encode(
+			errdie(t, w(spec.codec.Decode(concctx, []byte(img.str))))))))
 
 		t.Run(fmt.Sprintf("%v->%v", spec.in.v, v), func(t *testing.T) {
 			t.Parallel()
@@ -225,15 +225,15 @@ func checkSpectrumAcrossMuxers[T thema.Assignee](t *testing.T, clin thema.Conver
 
 			// Always do the untyped muxers
 			t.Run("UntypedMux", func(T *testing.T) {
-				um := NewUntypedMux(thema.SchemaP(clin, v), spec.endec)
+				um := NewUntypedMux(thema.SchemaP(clin, v), spec.codec)
 				inst, lac, err := um([]byte(spec.in.str))
 				handleLE(t, img, lac, err)
 
-				final := errdie(t, w(spec.endec.Encode(inst.UnwrapCUE())))
+				final := errdie(t, w(spec.codec.Encode(inst.Underlying())))
 				require.Equal(t, img.str, string(final))
 			})
 			t.Run("ByteMux", func(T *testing.T) {
-				um := NewByteMux(thema.SchemaP(clin, v), spec.endec)
+				um := NewByteMux(thema.SchemaP(clin, v), spec.codec)
 				final, lac, err := um([]byte(spec.in.str))
 				handleLE(t, img, lac, err)
 
@@ -243,21 +243,21 @@ func checkSpectrumAcrossMuxers[T thema.Assignee](t *testing.T, clin thema.Conver
 			// Do the typed muxers only if this is the convergent schema for the lineage
 			if v == tsch.Version() {
 				t.Run("TypedMux", func(t *testing.T) {
-					um := NewTypedMux(tsch, spec.endec)
+					um := NewTypedMux(tsch, spec.codec)
 					inst, lac, err := um([]byte(spec.in.str))
 					handleLE(t, img, lac, err)
 
-					final := errdie(t, w(spec.endec.Encode(inst.UnwrapCUE())))
+					final := errdie(t, w(spec.codec.Encode(inst.Underlying())))
 					require.Equal(t, img.str, string(final))
 				})
 				t.Run("TypedMux", func(t *testing.T) {
 					// No easy way to go from a pure Go type back to CUE, so
-					// just hardcode to the builtin JSON endec and skip otherwise
-					if _, is := spec.endec.(jsonEndec); !is {
-						t.Skipf("generic testing of TypedMux only works with the jsonEndec, got %T", spec.endec)
+					// just hardcode to the builtin JSON codec and skip otherwise
+					if _, is := spec.codec.(jsonCodec); !is {
+						t.Skipf("generic testing of TypedMux only works with the jsonCodec, got %T", spec.codec)
 					}
 
-					um := NewValueMux(tsch, spec.endec)
+					um := NewValueMux(tsch, spec.codec)
 					inst, lac, err := um([]byte(spec.in.str))
 					handleLE(t, img, lac, err)
 

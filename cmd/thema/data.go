@@ -37,7 +37,7 @@ func setupDataCommand(cmd *cobra.Command) {
 
 func (dc *dataCommand) setup(cmd *cobra.Command) {
 	dc.lla = new(lineageLoadArgs)
-	addLinPathVars2(cmd, dc.lla)
+	addLinPathVars(cmd, dc.lla)
 	dataCmd.MarkPersistentFlagRequired("lineage")
 
 	dataCmd.AddCommand(validateCmd)
@@ -201,7 +201,7 @@ func (dc *dataCommand) runTranslate(cmd *cobra.Command, args []string) error {
 	r := translationResult{
 		From:    inst.Schema().Version().String(),
 		To:      tinst.Schema().Version().String(),
-		Result:  tinst.UnwrapCUE(),
+		Result:  tinst.Underlying(),
 		Lacunas: lac,
 	}
 
@@ -248,9 +248,9 @@ func (dc *dataCommand) runHydrate(cmd *cobra.Command, args []string) error {
 	}
 
 	// TODO support non-JSON output
-	byt, err := json.MarshalIndent(inst.Hydrate().UnwrapCUE(), "", "  ")
+	byt, err := json.MarshalIndent(inst.Hydrate().Underlying(), "", "  ")
 	if err != nil {
-		// fmt.Printf("%+v %#v\n", inst.Hydrate().UnwrapCUE(), inst.Hydrate().UnwrapCUE())
+		// fmt.Printf("%+v %#v\n", inst.Hydrate().Underlying(), inst.Hydrate().Underlying())
 		return fmt.Errorf("error marshaling hydrated object to JSON: %w", err)
 	}
 	buf := bytes.NewBuffer(byt)
@@ -285,9 +285,9 @@ func (dc *dataCommand) runDehydrate(cmd *cobra.Command, args []string) error {
 	}
 
 	// TODO support non-JSON output
-	byt, err := json.MarshalIndent(dc.inst.Hydrate().UnwrapCUE(), "", "  ")
+	byt, err := json.MarshalIndent(dc.inst.Hydrate().Underlying(), "", "  ")
 	if err != nil {
-		fmt.Printf("%+v %#v\n", dc.inst.Hydrate().UnwrapCUE(), dc.inst.Hydrate().UnwrapCUE())
+		fmt.Printf("%+v %#v\n", dc.inst.Hydrate().Underlying(), dc.inst.Hydrate().Underlying())
 		return fmt.Errorf("error marshaling hydrated object to JSON: %w", err)
 	}
 	buf := bytes.NewBuffer(byt)
@@ -360,19 +360,19 @@ func (dc *dataCommand) validateDataInput(cmd *cobra.Command, args []string) erro
 		}
 	}
 
-	jd := vmux.NewJSONEndec("stdin")
-	yd := vmux.NewYAMLEndec("stdin")
+	jd := vmux.NewJSONCodec("stdin")
+	yd := vmux.NewYAMLCodec("stdin")
 
 	switch dc.format {
 	case "":
 		// Figure it out; try JSON first
-		dc.datval, err = jd.Decode(rt.UnwrapCUE().Context(), dc.inbytes)
+		dc.datval, err = jd.Decode(rt.Underlying().Context(), dc.inbytes)
 		if err == nil {
 			dc.format = "json"
 			break
 		}
 		// Nope, try yaml
-		dc.datval, err = yd.Decode(rt.UnwrapCUE().Context(), dc.inbytes)
+		dc.datval, err = yd.Decode(rt.Underlying().Context(), dc.inbytes)
 		if err == nil {
 			dc.format = "yaml"
 			break
@@ -385,7 +385,7 @@ func (dc *dataCommand) validateDataInput(cmd *cobra.Command, args []string) erro
 			return fmt.Errorf("JSON input format specified, but file extension is %s", ext)
 		}
 
-		dc.datval, err = jd.Decode(rt.UnwrapCUE().Context(), dc.inbytes)
+		dc.datval, err = jd.Decode(rt.Underlying().Context(), dc.inbytes)
 		if err != nil {
 			return err
 		}
@@ -394,7 +394,7 @@ func (dc *dataCommand) validateDataInput(cmd *cobra.Command, args []string) erro
 			return fmt.Errorf("YAML input format specified, but file extension is %s", ext)
 		}
 
-		dc.datval, err = yd.Decode(rt.UnwrapCUE().Context(), dc.inbytes)
+		dc.datval, err = yd.Decode(rt.Underlying().Context(), dc.inbytes)
 		if err != nil {
 			return err
 		}
@@ -412,7 +412,7 @@ func (dc *dataCommand) validateTranslationResult(tinst *thema.Instance, lac them
 		panic("unreachable, thema.Translate() should never return a nil instance")
 	}
 
-	raw := tinst.UnwrapCUE()
+	raw := tinst.Underlying()
 	if !raw.Exists() {
 		return errors.New("should be unreachable - result should at least always exist")
 	}

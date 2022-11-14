@@ -27,7 +27,7 @@ type UntypedMux func(b []byte) (*thema.Instance, thema.TranslationLacunas, error
 //
 // The returned error may be from any of the above steps.
 func NewUntypedMux(sch thema.Schema, dec Decoder) UntypedMux {
-	ctx := sch.Lineage().UnwrapCUE().Context()
+	ctx := sch.Lineage().Underlying().Context()
 	// Prepare no-match error string once for reuse
 	vstring := allvstr(sch)
 
@@ -71,21 +71,21 @@ type ByteMux func(b []byte) ([]byte, thema.TranslationLacunas, error)
 //
 // When the returned mux func is called, it will:
 //
-//   - Decode the input []byte using the provided [Endec], then
+//   - Decode the input []byte using the provided [Codec], then
 //   - Pass the result to [thema.Schema.Validate], then
 //   - Call [thema.Instance.Translate] on the result, to the version of the provided [thema.Schema], then
 //   - Encode the resulting [thema.Instance] to a []byte, then
 //   - Return the resulting []byte, [thema.TranslationLacunas], and error
 //
 // The returned error may be from any of the above steps.
-func NewByteMux(sch thema.Schema, end Endec) ByteMux {
-	f := NewUntypedMux(sch, end)
+func NewByteMux(sch thema.Schema, codec Codec) ByteMux {
+	f := NewUntypedMux(sch, codec)
 	return func(b []byte) ([]byte, thema.TranslationLacunas, error) {
 		ti, lac, err := f(b)
 		if err != nil {
 			return nil, lac, err
 		}
-		ob, err := end.Encode(ti.UnwrapCUE())
+		ob, err := codec.Encode(ti.Underlying())
 		return ob, lac, err
 	}
 }
@@ -133,7 +133,7 @@ type TypedMux[T thema.Assignee] func(b []byte) (*thema.TypedInstance[T], thema.T
 //
 // The returned error may be from any of the above steps.
 func NewTypedMux[T thema.Assignee](sch thema.TypedSchema[T], dec Decoder) TypedMux[T] {
-	ctx := sch.Lineage().UnwrapCUE().Context()
+	ctx := sch.Lineage().Underlying().Context()
 	// Prepare no-match error string once for reuse
 	vstring := allvstr(sch)
 
@@ -197,32 +197,32 @@ type Encoder interface {
 	Encode(cue.Value) ([]byte, error)
 }
 
-// An Endec (encoder + decoder) can decode a []byte in a particular format (e.g.
-// JSON, YAML) into CUE, and decode from a [thema.Instance] back into a []byte.
+// A Codec can decode a []byte in a particular format (e.g. JSON, YAML) into
+// CUE, and decode from a [thema.Instance] back into a []byte.
 //
-// It is customary, but not necessary, that an Endec's input and output formats
+// It is customary, but not necessary, that a Codec's input and output formats
 // are the same.
-type Endec interface {
+type Codec interface {
 	Decoder
 	Encoder
 }
 
-type jsonEndec struct {
+type jsonCodec struct {
 	path string
 }
 
-// NewJSONEndec creates an [Endec] that decodes from and encodes to a JSON []byte.
+// NewJSONCodec creates a [Codec] that decodes from and encodes to a JSON []byte.
 //
 // The provided path is used as the CUE source path for each []byte input
 // passed through the decoder. These paths do not affect behavior, but show up
 // in error output (e.g. validation).
-func NewJSONEndec(path string) Endec {
-	return jsonEndec{
+func NewJSONCodec(path string) Codec {
+	return jsonCodec{
 		path: path,
 	}
 }
 
-func (e jsonEndec) Decode(ctx *cue.Context, data []byte) (cue.Value, error) {
+func (e jsonCodec) Decode(ctx *cue.Context, data []byte) (cue.Value, error) {
 	expr, err := cjson.Extract(e.path, data)
 	if err != nil {
 		return cue.Value{}, err
@@ -230,26 +230,26 @@ func (e jsonEndec) Decode(ctx *cue.Context, data []byte) (cue.Value, error) {
 	return ctx.BuildExpr(expr), nil
 }
 
-func (e jsonEndec) Encode(v cue.Value) ([]byte, error) {
+func (e jsonCodec) Encode(v cue.Value) ([]byte, error) {
 	return json.Marshal(v)
 }
 
-type yamlEndec struct {
+type yamlCodec struct {
 	path string
 }
 
-// NewYAMLEndec creates an Endec that decodes from and encodes to a YAML []byte.
+// NewYAMLCodec creates a [Codec] that decodes from and encodes to a YAML []byte.
 //
 // The provided path is used as the CUE source path for each []byte input
 // passed through the decoder. These paths do not affect behavior, but show up
 // in error output (e.g. validation).
-func NewYAMLEndec(path string) Endec {
-	return yamlEndec{
+func NewYAMLCodec(path string) Codec {
+	return yamlCodec{
 		path: path,
 	}
 }
 
-func (e yamlEndec) Decode(ctx *cue.Context, data []byte) (cue.Value, error) {
+func (e yamlCodec) Decode(ctx *cue.Context, data []byte) (cue.Value, error) {
 	expr, err := yaml.Extract(e.path, data)
 	if err != nil {
 		return cue.Value{}, err
@@ -257,7 +257,7 @@ func (e yamlEndec) Decode(ctx *cue.Context, data []byte) (cue.Value, error) {
 	return ctx.BuildFile(expr), nil
 }
 
-func (e yamlEndec) Encode(v cue.Value) ([]byte, error) {
+func (e yamlCodec) Encode(v cue.Value) ([]byte, error) {
 	s, err := pyaml.Marshal(v)
 	return []byte(s), err
 }
