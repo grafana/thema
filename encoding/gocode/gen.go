@@ -85,7 +85,7 @@ func GenerateTypesOpenAPI(sch thema.Schema, cfg *TypeConfigOpenAPI) ([]byte, err
 		SkipFmt:       true,
 		SkipPrune:     true,
 		UserTemplates: map[string]string{
-			"imports.tmpl": "package {{ .PackageName }}\n",
+			"imports.tmpl": importstmpl,
 		},
 	}
 
@@ -101,6 +101,27 @@ func GenerateTypesOpenAPI(sch thema.Schema, cfg *TypeConfigOpenAPI) ([]byte, err
 		errifadd: !cfg.IgnoreDiscoveredImports,
 	})
 }
+
+var importstmpl = `package {{ .PackageName }}
+
+import (
+	"bytes"
+	"compress/gzip"
+	"context"
+	"encoding/base64"
+	"encoding/json"
+	"encoding/xml"
+	"errors"
+	"fmt"
+	"io"
+	"io/ioutil"
+	"net/http"
+	"net/url"
+	"path"
+	"strings"
+	"time"
+)
+`
 
 // options
 // - next to file, no cue.mod parent, therefore need one --- create one dynamically, load with dir "."
