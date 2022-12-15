@@ -1,0 +1,40 @@
+-- in.cue --
+package generate
+
+import "github.com/grafana/thema"
+
+thema.#Lineage
+name: "basic"
+seqs: [
+    {
+        schemas: [
+            {
+                foo: string
+            }
+        ]
+    }
+]
+-- out/generate/base.json --
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "basic",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "basic": {
+        "type": "object",
+        "required": [
+          "foo"
+        ],
+        "properties": {
+          "foo": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
