@@ -1,0 +1,61 @@
+-- out/generate/0.0/base.json --
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "narrowing",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "narrowing": {
+        "type": "object",
+        "required": [
+          "boolish"
+        ],
+        "properties": {
+          "boolish": {
+            "oneOf": [
+              {
+                "enum": [
+                  "true",
+                  "false"
+                ]
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}
+-- out/generate/1.0/base.json --
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "narrowing",
+    "version": "1.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "narrowing": {
+        "type": "object",
+        "required": [
+          "properbool"
+        ],
+        "properties": {
+          "properbool": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  }
+}

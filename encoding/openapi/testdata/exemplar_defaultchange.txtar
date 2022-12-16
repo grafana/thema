@@ -1,0 +1,60 @@
+-- out/generate/0.0/base.json --
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "defaultchange",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "defaultchange": {
+        "type": "object",
+        "required": [
+          "aunion"
+        ],
+        "properties": {
+          "aunion": {
+            "type": "string",
+            "enum": [
+              "foo",
+              "bar",
+              "baz"
+            ],
+            "default": "foo"
+          }
+        }
+      }
+    }
+  }
+}
+-- out/generate/1.0/base.json --
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "defaultchange",
+    "version": "1.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "defaultchange": {
+        "type": "object",
+        "required": [
+          "aunion"
+        ],
+        "properties": {
+          "aunion": {
+            "type": "string",
+            "enum": [
+              "bar",
+              "foo",
+              "baz"
+            ],
+            "default": "bar"
+          }
+        }
+      }
+    }
+  }
+}

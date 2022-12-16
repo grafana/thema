@@ -1,0 +1,56 @@
+-- out/generate/0.0/base.json --
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "rename",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "rename": {
+        "type": "object",
+        "required": [
+          "before",
+          "unchanged"
+        ],
+        "properties": {
+          "before": {
+            "type": "string"
+          },
+          "unchanged": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
+-- out/generate/1.0/base.json --
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "rename",
+    "version": "1.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "rename": {
+        "type": "object",
+        "required": [
+          "after",
+          "unchanged"
+        ],
+        "properties": {
+          "after": {
+            "type": "string"
+          },
+          "unchanged": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
