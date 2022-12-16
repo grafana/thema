@@ -193,8 +193,13 @@ func (t *Test) WriteErrors(err errors.Error) {
 //
 // where name is the base name of f.Filename.
 func (t *Test) WriteFile(f *ast.File) {
-	// fmt.Fprintln(t, "==", filepath.Base(f.Filename))
-	// _, _ = t.Write(formatNode(t.T, f))
+	fmt.Fprintln(t, "==", filepath.Base(f.Filename))
+	_, _ = t.Write(formatNode(t.T, f))
+}
+
+// WriteNamedFile formats f and writes it to an output corresponding
+// to the f.Filename, honoring any active prefixes.
+func (t *Test) WriteNamedFile(f *ast.File) {
 	fmt.Fprintln(t.Writer(f.Filename), string(formatNode(t.T, f)))
 }
 
@@ -311,7 +316,7 @@ func (t *Test) Instances(args ...string) []*build.Instance {
 // RawInstances returns the instances represented by this .txtar file. The
 // returned instances are not checked for errors.
 func (t *Test) RawInstances(args ...string) []*build.Instance {
-	binsts, err := Load(t.Archive, t.Dir, args...)
+	binsts, err := Load(t.Archive, t.Name(), args...)
 	if err != nil {
 		t.Fatal(err)
 	}
