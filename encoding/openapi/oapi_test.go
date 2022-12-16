@@ -12,6 +12,7 @@ func TestGenerate(t *testing.T) {
 	test := cuetxtar.CueTest{
 		Root: "./testdata",
 		Name: "generate",
+		IncludeExemplars: true,
 	}
 
 	test.Run(t, func(t *cuetxtar.Test) {
