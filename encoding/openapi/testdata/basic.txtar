@@ -14,7 +14,7 @@ seqs: [
         ]
     }
 ]
--- out/generate/base.json --
+-- out/generate/0.0/base.json --
 {
   "openapi": "3.0.0",
   "info": {
