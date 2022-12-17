@@ -15,7 +15,7 @@ func init() {
 }
 
 // Context returns the central context used by default for testing.
-func Context() *cue.Context{
+func Context() *cue.Context {
 	return _ctx
 }
 

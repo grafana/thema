@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -77,7 +76,7 @@ type CueTest struct {
 // A Test embeds *[testing.T] and should be used to report errors.
 //
 // Entries within the txtar file define CUE files (available via the
-// [Test.Instance] method) and expected output (or "golden") files (names
+// [Test.instance] method) and expected output (or "golden") files (names
 // starting with "out/\(testname)"). The "main" golden file is "out/\(testname)"
 // itself, used when [Test] is used directly as an [io.Writer] and with
 // [Test.WriteFile].
@@ -198,10 +197,11 @@ func (t *Test) Rel(filename string) string {
 	return filepath.ToSlash(rel)
 }
 
-// WriteErrors writes the full list of errors in err to the test output.
-func (t *Test) WriteErrors(err errors.Error) {
+// WriteErrors writes the full list of errors in err to the output with
+// the given name, joined to any active prefixes.
+func (t *Test) WriteErrors(err error, name string) {
 	if err != nil {
-		errors.Print(t, err, &errors.Config{
+		errors.Print(t.Writer(path.Join(name, "err")), err, &errors.Config{
 			Cwd:     t.Dir,
 			ToSlash: true,
 		})
@@ -214,15 +214,28 @@ func (t *Test) WriteErrors(err errors.Error) {
 //	== name
 //
 // where name is the base name of f.Filename.
-func (t *Test) WriteFile(f *ast.File) {
-	fmt.Fprintln(t, "==", filepath.Base(f.Filename))
-	_, _ = t.Write(formatNode(t.T, f))
+// func (t *Test) WriteFile(f *ast.File) {
+// 	fmt.Fprintln(t, "==", filepath.Base(f.Filename))
+// 	_, _ = t.Write(formatNode(t.T, f))
+// }
+
+// WriteFile formats f and writes it to an output with the provided name,
+// joined to any active prefixes.
+func (t *Test) WriteFile(f *ast.File, name string) {
+	fmt.Fprintln(t.Writer(name), string(formatNode(t.T, f)))
 }
 
-// WriteNamedFile formats f and writes it to an output corresponding
-// to the f.Filename, honoring any active prefixes.
-func (t *Test) WriteNamedFile(f *ast.File) {
-	fmt.Fprintln(t.Writer(f.Filename), string(formatNode(t.T, f)))
+// WriteFileOrErr creates a function that will write either a file or an error
+// to the provided provided output name, joined onto any active prefixes on the
+// Test.
+func (t *Test) WriteFileOrErr(name string) func(*ast.File, error) {
+	return func(f *ast.File, err error) {
+		if err != nil {
+			t.WriteErrors(err, name)
+		} else {
+			t.WriteFile(f, name)
+		}
+	}
 }
 
 // Writer returns a Writer with the given name. Data written will
@@ -296,7 +309,7 @@ func (t *Test) BindLineage(rt *thema.Runtime) thema.Lineage {
 		return getExemplars(rt)[t.exemplar]
 	}
 
-	inst := t.Instance()
+	inst := t.instance()
 	val := ctx.BuildInstance(inst)
 	if p, ok := t.Value("lineagePath"); ok {
 		pp := cue.ParsePath(p)
@@ -316,18 +329,18 @@ func (t *Test) BindLineage(rt *thema.Runtime) thema.Lineage {
 	return lin
 }
 
-// Instance returns the single instance representing the
+// instance returns the single instance representing the
 // root directory in the txtar file.
-func (t *Test) Instance() *build.Instance {
-	return t.Instances()[0]
+func (t *Test) instance() *build.Instance {
+	return t.instances()[0]
 }
 
-// Instances returns the valid instances for this .txtar file or skips the
+// instances returns the valid instances for this .txtar file or skips the
 // test if there is an error loading the instances.
-func (t *Test) Instances(args ...string) []*build.Instance {
+func (t *Test) instances(args ...string) []*build.Instance {
 	t.Helper()
 
-	a := t.RawInstances(args...)
+	a := t.rawInstances(args...)
 	for _, i := range a {
 		if i.Err != nil {
 			if t.hasGold {
@@ -339,9 +352,9 @@ func (t *Test) Instances(args ...string) []*build.Instance {
 	return a
 }
 
-// RawInstances returns the instances represented by this .txtar file. The
+// rawInstances returns the instances represented by this .txtar file. The
 // returned instances are not checked for errors.
-func (t *Test) RawInstances(args ...string) []*build.Instance {
+func (t *Test) rawInstances(args ...string) []*build.Instance {
 	binsts, err := Load(t.Archive, t.Name(), args...)
 	if err != nil {
 		t.Fatal(err)
@@ -403,8 +416,7 @@ func (x *CueTest) Run(t *testing.T, f func(tc *Test)) {
 				t.Fail()
 				t.Logf("%s: test files with prefix exemplar_ are reserved for exemplar testing with CueTest.IncludeExemplars=true", name)
 			} else {
-				name = name[9:len(name)-6]
-				fmt.Println(name)
+				name = name[9 : len(name)-6]
 				if _, has := all[name]; has {
 					delete(all, name)
 				} else {
@@ -444,9 +456,9 @@ func (x *CueTest) Run(t *testing.T, f func(tc *Test)) {
 			}
 
 			tc := &Test{
-				T:       t,
-				Archive: a,
-				Dir:     filepath.Dir(filepath.Join(dir, fullpath)),
+				T:        t,
+				Archive:  a,
+				Dir:      filepath.Dir(filepath.Join(dir, fullpath)),
 				exemplar: exemplarNameFromPath(fullpath),
 
 				prefix: path.Join("out", x.Name),
@@ -490,6 +502,18 @@ func (x *CueTest) Run(t *testing.T, f func(tc *Test)) {
 
 			f(tc)
 
+			// Dedupe files. Some weird bug here that causes some files to double up.
+			// This defensively...gets around it?
+			seen := make(map[string]bool)
+			flist := make([]txtar.File, 0, len(a.Files))
+			for i := len(a.Files) - 1; i >= 0; i-- {
+				if !seen[a.Files[i].Name] {
+					flist = append(flist, a.Files[i])
+				}
+				seen[a.Files[i].Name] = true
+			}
+			a.Files = flist
+
 			// Construct index of files in general, and set of files associated
 			// with this test by prefix
 			index := make(map[string]int, len(a.Files))
@@ -510,8 +534,18 @@ func (x *CueTest) Run(t *testing.T, f func(tc *Test)) {
 					break
 				}
 			}
-
 			files := a.Files[:k:k]
+
+			// fmt.Println(tc.prefix, "K", k)
+			// for _, f := range tc.outFiles {
+			// 	fmt.Println("OUT:", f.name)
+			// }
+			// for _, f := range a.Files {
+			// 	fmt.Println("ARCHIVE:", f.Name)
+			// }
+			// for _, f := range files {
+			// 	fmt.Println("SLICE:", f.Name)
+			// }
 
 			// Walk all files created during this test, comparing them against
 			// archive contents
@@ -531,7 +565,11 @@ func (x *CueTest) Run(t *testing.T, f func(tc *Test)) {
 					}
 				} else if !tc.AllowFilesetDivergence && !envvars.UpdateGoldenFiles {
 					t.Fail()
-					t.Logf("result %s does not exist (rerun with %s=1 to fix)", sub.name, envvars.VarUpdateGolden)
+					if strings.HasSuffix(sub.name, "/err") {
+						t.Logf("error for result %s:\n%s", strings.TrimSuffix(sub.name, "/err"), string(result))
+					} else {
+						t.Logf("result %s does not exist (rerun with %s=1 to fix)", sub.name, envvars.VarUpdateGolden)
+					}
 					continue
 				}
 
@@ -564,12 +602,16 @@ func (x *CueTest) Run(t *testing.T, f func(tc *Test)) {
 					t.Errorf("output not generated by test (rerun with %s=1 to fix):\n\t%s\n", envvars.VarUpdateGolden, strings.Join(extra, "\n\t"))
 				} else {
 					update = true
-					// Remove files no longer generated by test
+					seen := make(map[string]bool)
+					// Remove duplicates and files no longer generated by test
 					filtered := make([]txtar.File, 0, len(a.Files)-len(indexthis))
-					for _, f := range a.Files {
-						if !indexthis[f.Name] {
+					// In case duplicates appeared, walk backwards to ensure keeping latest one
+					for i := len(a.Files) - 1; i >= 0; i-- {
+						f := a.Files[i]
+						if !strings.HasPrefix(f.Name, tc.prefix) || (!indexthis[f.Name] && !seen[f.Name]) {
 							filtered = append(filtered, f)
 						}
+						seen[f.Name] = true
 					}
 					a.Files = filtered
 				}
@@ -579,7 +621,11 @@ func (x *CueTest) Run(t *testing.T, f func(tc *Test)) {
 				sort.Slice(a.Files, func(i, j int) bool {
 					return a.Files[i].Name < a.Files[j].Name
 				})
-				err = ioutil.WriteFile(fullpath, txtar.Format(a), 0644)
+
+				// for _, f := range a.Files {
+				// 	fmt.Println("FINALARCHIVE:", f.Name)
+				// }
+				err = os.WriteFile(fullpath, txtar.Format(a), 0644)
 				if err != nil {
 					t.Fatal(err)
 				}
