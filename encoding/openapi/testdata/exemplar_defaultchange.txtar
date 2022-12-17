@@ -100,6 +100,12 @@
 	}
 }
 
+-- out/generate/0.0/subpath/err --
+#someField: openapi: #someField: field not found: someField
+-- out/generate/0.0/subpath/err --
+#someField: openapi: #someField: field not found: someField
+-- out/generate/0.0/subpathroot/err --
+#overriddenName: openapi: #overriddenName: field not found: someField
 -- out/generate/1.0/expandrefs --
 "openapi": "3.0.0"
 "info": {
@@ -153,8 +159,7 @@
 	"components": {
 		"schemas": {
 			"aunion": {
-				"type": "string"
-				"enum": ["bar", "foo", "baz"]
+				"type": "string", "enum": ["bar", "foo", "baz"]
 				"default": "bar"
 			}
 		}
@@ -263,3 +268,9 @@
 	}
 }
 
+-- out/generate/1.0/subpath/err --
+#someField: openapi: #someField: field not found: someField
+-- out/generate/1.0/subpath/err --
+#someField: openapi: #someField: field not found: someField
+-- out/generate/1.0/subpathroot/err --
+#overriddenName: openapi: #overriddenName: field not found: someField

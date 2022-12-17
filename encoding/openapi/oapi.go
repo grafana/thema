@@ -17,9 +17,10 @@ import (
 type Config struct {
 	*openapi.Config
 
-	// Group indicates that the type is a grouped lineage - the root schema itself
-	// does not represent an object that is ever expected to exist independently,
-	// but each of its top-level fields do, including definitions and optional fields.
+	// Group indicates that the [thema.Schema] is from a grouped lineage - the root
+	// schema itself does not represent an object that is ever expected to exist
+	// independently, but each of its top-level fields do, including definitions and
+	// optional fields.
 	//
 	// NOTE - https://github.com/grafana/thema/issues/62 is the issue for formalizing
 	// the group concept. Fixing that issue will obviate this field. Once fixed,
@@ -29,8 +30,14 @@ type Config struct {
 	// RootName specifies the name to use for the type representing the root of the
 	// schema. If empty, this defaults to titlecasing of the lineage name.
 	//
-	// No-op if Group is true.
+	// No-op if [Group] is true.
 	RootName string
+
+	// Subpath specifies a path within the provided [thema.Schema] that should be
+	// translated, rather than the root schema.
+	//
+	// No-op if [Group] is true.
+	Subpath cue.Path
 }
 
 // GenerateSchema creates an OpenAPI document that represents the provided Thema
@@ -47,7 +54,12 @@ func GenerateSchema(sch thema.Schema, cfg *Config) (*ast.File, error) {
 	}
 
 	ctx := sch.Underlying().Context()
-	bpath := sch.Underlying().Path()
+	under := sch.Underlying()
+	hasSubpath := len(cfg.Subpath.Selectors()) > 0
+	if !cfg.Group && hasSubpath {
+		under = under.LookupPath(cfg.Subpath)
+	}
+	bpath := under.Path()
 
 	onf := cfg.NameFunc
 	nf := func(val cue.Value, path, defpath cue.Path, name string) string {
@@ -68,12 +80,15 @@ func GenerateSchema(sch thema.Schema, cfg *Config) (*ast.File, error) {
 	if !cfg.Group {
 		name := util.SanitizeLabelString(sch.Lineage().Name())
 		if cfg.RootName != "" {
-			name = util.SanitizeLabelString(sch.Lineage().Name())
+			name = cfg.RootName
+		} else if hasSubpath {
+			sel := cfg.Subpath.Selectors()
+			name = sel[len(sel)-1].String()
 		}
 
 		v := ctx.CompileString(fmt.Sprintf("#%s: _", name))
 		defpath := cue.MakePath(cue.Def(name))
-		defsch := v.FillPath(defpath, sch.Underlying())
+		defsch := v.FillPath(defpath, under)
 
 		cfg.NameFunc = func(val cue.Value, path cue.Path) string {
 			return nf(val, path, defpath, name)
