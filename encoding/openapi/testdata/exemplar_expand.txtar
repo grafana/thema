@@ -1,122 +1,388 @@
--- out/generate/0.0/base.json --
-{
-  "openapi": "3.0.0",
-  "info": {
-    "title": "expand",
-    "version": "0.0"
-  },
-  "paths": {},
-  "components": {
-    "schemas": {
-      "expand": {
-        "type": "object",
-        "required": [
-          "init"
-        ],
-        "properties": {
-          "init": {
-            "type": "string"
-          }
-        }
-      }
-    }
-  }
+-- out/generate/0.0/expandrefs --
+"openapi": "3.0.0"
+"info": {
+	"title":   "expand"
+	"version": "0.0"
 }
--- out/generate/0.1/base.json --
-{
-  "openapi": "3.0.0",
-  "info": {
-    "title": "expand",
-    "version": "0.1"
-  },
-  "paths": {},
-  "components": {
-    "schemas": {
-      "expand": {
-        "type": "object",
-        "required": [
-          "init"
-        ],
-        "properties": {
-          "init": {
-            "type": "string"
-          },
-          "optional": {
-            "type": "integer"
-          }
-        }
-      }
-    }
-  }
+"paths": {}
+"components": {
+	"schemas": {
+		"expand": {
+			"type": "object", "required": ["init"]
+			"properties": {
+				"init": {
+					"type": "string"
+				}
+			}
+		}
+	}
 }
--- out/generate/0.2/base.json --
+
+-- out/generate/0.0/group --
 {
-  "openapi": "3.0.0",
-  "info": {
-    "title": "expand",
-    "version": "0.2"
-  },
-  "paths": {},
-  "components": {
-    "schemas": {
-      "expand": {
-        "type": "object",
-        "required": [
-          "init"
-        ],
-        "properties": {
-          "init": {
-            "type": "string"
-          },
-          "optional": {
-            "type": "integer"
-          },
-          "withDefault": {
-            "type": "string",
-            "enum": [
-              "foo",
-              "bar"
-            ],
-            "default": "foo"
-          }
-        }
-      }
-    }
-  }
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "expand"
+		"version": "0.0"
+	}
+	"path": {}
+	"components": {
+		"schemas": {
+			"init": {
+				"type": "string"
+			}
+		}
+	}
 }
--- out/generate/0.3/base.json --
+
+-- out/generate/0.0/nil --
+"openapi": "3.0.0"
+"info": {
+	"title":   "expand"
+	"version": "0.0"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"expand": {
+			"type": "object", "required": ["init"]
+			"properties": {
+				"init": {
+					"type": "string"
+				}
+			}
+		}
+	}
+}
+
+-- out/generate/0.0/selfcontained --
+"openapi": "3.0.0"
+"info": {
+	"title":   "expand"
+	"version": "0.0"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"expand": {
+			"type": "object", "required": ["init"]
+			"properties": {
+				"init": {
+					"type": "string"
+				}
+			}
+		}
+	}
+}
+
+-- out/generate/0.1/expandrefs --
+"openapi": "3.0.0"
+"info": {
+	"title":   "expand"
+	"version": "0.1"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"expand": {
+			"type": "object", "required": ["init"]
+			"properties": {
+				"init": {
+					"type": "string"
+				}
+				"optional": {
+					"type": "integer"
+				}
+			}
+		}
+	}
+}
+
+-- out/generate/0.1/group --
 {
-  "openapi": "3.0.0",
-  "info": {
-    "title": "expand",
-    "version": "0.3"
-  },
-  "paths": {},
-  "components": {
-    "schemas": {
-      "expand": {
-        "type": "object",
-        "required": [
-          "init"
-        ],
-        "properties": {
-          "init": {
-            "type": "string"
-          },
-          "optional": {
-            "type": "integer"
-          },
-          "withDefault": {
-            "type": "string",
-            "enum": [
-              "foo",
-              "bar",
-              "baz"
-            ],
-            "default": "foo"
-          }
-        }
-      }
-    }
-  }
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "expand"
+		"version": "0.1"
+	}
+	"path": {}
+	"components": {
+		"schemas": {
+			"init": {
+				"type": "string"
+			}
+		}
+		"schemas": {
+			"optional": {
+				"type": "integer"
+			}
+		}
+	}
 }
+
+-- out/generate/0.1/nil --
+"openapi": "3.0.0"
+"info": {
+	"title":   "expand"
+	"version": "0.1"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"expand": {
+			"type": "object", "required": ["init"]
+			"properties": {
+				"init": {
+					"type": "string"
+				}
+				"optional": {
+					"type": "integer"
+				}
+			}
+		}
+	}
+}
+
+-- out/generate/0.1/selfcontained --
+"openapi": "3.0.0"
+"info": {
+	"title":   "expand"
+	"version": "0.1"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"expand": {
+			"type": "object", "required": ["init"]
+			"properties": {
+				"init": {
+					"type": "string"
+				}
+				"optional": {
+					"type": "integer"
+				}
+			}
+		}
+	}
+}
+
+-- out/generate/0.2/expandrefs --
+"openapi": "3.0.0"
+"info": {
+	"title":   "expand"
+	"version": "0.2"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"expand": {
+			"type": "object", "required": ["init"]
+			"properties": {
+				"init": {
+					"type": "string"
+				}
+				"optional": {
+					"type": "integer"
+				}
+				"withDefault": {
+					"type": "string", "enum": ["foo", "bar"]
+					"default": "foo"
+				}
+			}
+		}
+	}
+}
+
+-- out/generate/0.2/group --
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "expand"
+		"version": "0.2"
+	}
+	"path": {}
+	"components": {
+		"schemas": {
+			"init": {
+				"type": "string"
+			}
+		}
+		"schemas": {
+			"optional": {
+				"type": "integer"
+			}
+		}
+		"schemas": {
+			"withDefault": {
+				"type": "string"
+				"enum": ["foo", "bar"]
+				"default": "foo"
+			}
+		}
+	}
+}
+
+-- out/generate/0.2/nil --
+"openapi": "3.0.0"
+"info": {
+	"title":   "expand"
+	"version": "0.2"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"expand": {
+			"type": "object", "required": ["init"]
+			"properties": {
+				"init": {
+					"type": "string"
+				}
+				"optional": {
+					"type": "integer"
+				}
+				"withDefault": {
+					"type": "string", "enum": ["foo", "bar"]
+					"default": "foo"
+				}
+			}
+		}
+	}
+}
+
+-- out/generate/0.2/selfcontained --
+"openapi": "3.0.0"
+"info": {
+	"title":   "expand"
+	"version": "0.2"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"expand": {
+			"type": "object", "required": ["init"]
+			"properties": {
+				"init": {
+					"type": "string"
+				}
+				"optional": {
+					"type": "integer"
+				}
+				"withDefault": {
+					"type": "string", "enum": ["foo", "bar"]
+					"default": "foo"
+				}
+			}
+		}
+	}
+}
+
+-- out/generate/0.3/expandrefs --
+"openapi": "3.0.0"
+"info": {
+	"title":   "expand"
+	"version": "0.3"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"expand": {
+			"type": "object", "required": ["init"]
+			"properties": {
+				"init": {
+					"type": "string"
+				}
+				"optional": {
+					"type": "integer"
+				}
+				"withDefault": {
+					"type": "string", "enum": ["foo", "bar", "baz"]
+					"default": "foo"
+				}
+			}
+		}
+	}
+}
+
+-- out/generate/0.3/group --
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "expand"
+		"version": "0.3"
+	}
+	"path": {}
+	"components": {
+		"schemas": {
+			"init": {
+				"type": "string"
+			}
+		}
+		"schemas": {
+			"optional": {
+				"type": "integer"
+			}
+		}
+		"schemas": {
+			"withDefault": {
+				"type": "string"
+				"enum": ["foo", "bar", "baz"]
+				"default": "foo"
+			}
+		}
+	}
+}
+
+-- out/generate/0.3/nil --
+"openapi": "3.0.0"
+"info": {
+	"title":   "expand"
+	"version": "0.3"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"expand": {
+			"type": "object", "required": ["init"]
+			"properties": {
+				"init": {
+					"type": "string"
+				}
+				"optional": {
+					"type": "integer"
+				}
+				"withDefault": {
+					"type": "string", "enum": ["foo", "bar", "baz"]
+					"default": "foo"
+				}
+			}
+		}
+	}
+}
+
+-- out/generate/0.3/selfcontained --
+"openapi": "3.0.0"
+"info": {
+	"title":   "expand"
+	"version": "0.3"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"expand": {
+			"type": "object", "required": ["init"]
+			"properties": {
+				"init": {
+					"type": "string"
+				}
+				"optional": {
+					"type": "integer"
+				}
+				"withDefault": {
+					"type": "string", "enum": ["foo", "bar", "baz"]
+					"default": "foo"
+				}
+			}
+		}
+	}
+}
+

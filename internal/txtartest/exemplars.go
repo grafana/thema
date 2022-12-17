@@ -28,8 +28,8 @@ func getExemplars(rt *thema.Runtime) map[string]thema.Lineage {
 
 func exemplarNameFromPath(path string) string {
 	name := filepath.Base(path)
-	if name == "" || filepath.Ext(name) != ".txtar" || !strings.HasPrefix(name, "exemplar_"){
+	if name == "" || filepath.Ext(name) != ".txtar" || !strings.HasPrefix(name, "exemplar_") {
 		return ""
 	}
-	return name[9:len(name)-6]
+	return name[9 : len(name)-6]
 }
