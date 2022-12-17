@@ -1,34 +1,4 @@
--- out/generate/0.0/subpathroot/err --
-#overriddenName: openapi: #overriddenName: field not found: someField
--- out/generate/0.0/subpath/err --
-#someField: openapi: #someField: field not found: someField
--- out/generate/0.0/selfcontained --
-"openapi": "3.0.0"
-"info": {
-	"title":   "single"
-	"version": "0.0"
-}
-"paths": {}
-"components": {
-	"schemas": {
-		"single": {
-			"type": "object", "required": ["astring", "anint", "abool"]
-			"properties": {
-				"astring": {
-					"type": "string"
-				}
-				"anint": {
-					"type": "integer"
-				}
-				"abool": {
-					"type": "boolean"
-				}
-			}
-		}
-	}
-}
-
--- out/generate/0.0/nil --
+-- out/generate/0.0/expandrefs --
 "openapi": "3.0.0"
 "info": {
 	"title":   "single"
@@ -77,7 +47,7 @@
 	}
 }
 
--- out/generate/0.0/expandrefs --
+-- out/generate/0.0/nil --
 "openapi": "3.0.0"
 "info": {
 	"title":   "single"
@@ -103,3 +73,33 @@
 	}
 }
 
+-- out/generate/0.0/selfcontained --
+"openapi": "3.0.0"
+"info": {
+	"title":   "single"
+	"version": "0.0"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"single": {
+			"type": "object", "required": ["astring", "anint", "abool"]
+			"properties": {
+				"astring": {
+					"type": "string"
+				}
+				"anint": {
+					"type": "integer"
+				}
+				"abool": {
+					"type": "boolean"
+				}
+			}
+		}
+	}
+}
+
+-- out/generate/0.0/subpath/err --
+#someField: openapi: #someField: field not found: someField
+-- out/generate/0.0/subpathroot/err --
+#overriddenName: openapi: #overriddenName: field not found: someField

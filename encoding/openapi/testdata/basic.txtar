@@ -1,96 +1,25 @@
--- out/generate/0.0/subpathroot --
-"openapi": "3.0.0"
-"info": {
-	"title":   "overriddenName"
-	"version": "0.0"
-}
-"paths": {}
-"components": {
-	"schemas": {
-		"overriddenName": {
-			"type": "object", "required": ["run", "tell", "dat"]
-			"properties": {
-				"run": {
-					"type": "integer", "format": "int32"
-				}
-				"tell": {
-					"type": "string", "format": "binary"
-				}
-				"dat": {
-					"type": "array", "items": {
-						"type": "string"
-					}
-				}
-			}
-		}
-	}
-}
+-- in.cue --
+package generate
 
--- out/generate/0.0/subpath --
-"openapi": "3.0.0"
-"info": {
-	"title":   "someField"
-	"version": "0.0"
-}
-"paths": {}
-"components": {
-	"schemas": {
-		"someField": {
-			"type": "object", "required": ["run", "tell", "dat"]
-			"properties": {
-				"run": {
-					"type": "integer", "format": "int32"
-				}
-				"tell": {
-					"type": "string", "format": "binary"
-				}
-				"dat": {
-					"type": "array", "items": {
-						"type": "string"
-					}
-				}
-			}
-		}
-	}
-}
+import "github.com/grafana/thema"
 
--- out/generate/0.0/selfcontained --
-"openapi": "3.0.0"
-"info": {
-	"title":   "basic"
-	"version": "0.0"
-}
-"paths": {}
-"components": {
-	"schemas": {
-		"basic": {
-			"type": "object", "required": ["foo", "someField"]
-			"properties": {
-				"foo": {
-					"type": "string"
-				}
-				"someField": {
-					"type": "object", "required": ["run", "tell", "dat"]
-					"properties": {
-						"run": {
-							"type": "integer", "format": "int32"
-						}
-						"tell": {
-							"type": "string", "format": "binary"
-						}
-						"dat": {
-							"type": "array", "items": {
-								"type": "string"
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-}
-
--- out/generate/0.0/nil --
+thema.#Lineage
+name: "basic"
+seqs: [
+    {
+        schemas: [
+            {
+                foo: string
+                someField: {
+                    run: int32
+                    tell: bytes
+                    dat: [...string]
+                }
+            }
+        ]
+    }
+]
+-- out/generate/0.0/expandrefs --
 "openapi": "3.0.0"
 "info": {
 	"title":   "basic"
@@ -159,7 +88,7 @@
 	}
 }
 
--- out/generate/0.0/expandrefs --
+-- out/generate/0.0/nil --
 "openapi": "3.0.0"
 "info": {
 	"title":   "basic"
@@ -195,24 +124,95 @@
 	}
 }
 
--- in.cue --
-package generate
+-- out/generate/0.0/selfcontained --
+"openapi": "3.0.0"
+"info": {
+	"title":   "basic"
+	"version": "0.0"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"basic": {
+			"type": "object", "required": ["foo", "someField"]
+			"properties": {
+				"foo": {
+					"type": "string"
+				}
+				"someField": {
+					"type": "object", "required": ["run", "tell", "dat"]
+					"properties": {
+						"run": {
+							"type": "integer", "format": "int32"
+						}
+						"tell": {
+							"type": "string", "format": "binary"
+						}
+						"dat": {
+							"type": "array", "items": {
+								"type": "string"
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
 
-import "github.com/grafana/thema"
+-- out/generate/0.0/subpath --
+"openapi": "3.0.0"
+"info": {
+	"title":   "someField"
+	"version": "0.0"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"someField": {
+			"type": "object", "required": ["run", "tell", "dat"]
+			"properties": {
+				"run": {
+					"type": "integer", "format": "int32"
+				}
+				"tell": {
+					"type": "string", "format": "binary"
+				}
+				"dat": {
+					"type": "array", "items": {
+						"type": "string"
+					}
+				}
+			}
+		}
+	}
+}
 
-thema.#Lineage
-name: "basic"
-seqs: [
-    {
-        schemas: [
-            {
-                foo: string
-                someField: {
-                    run: int32
-                    tell: bytes
-                    dat: [...string]
-                }
-            }
-        ]
-    }
-]
+-- out/generate/0.0/subpathroot --
+"openapi": "3.0.0"
+"info": {
+	"title":   "overriddenName"
+	"version": "0.0"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"overriddenName": {
+			"type": "object", "required": ["run", "tell", "dat"]
+			"properties": {
+				"run": {
+					"type": "integer", "format": "int32"
+				}
+				"tell": {
+					"type": "string", "format": "binary"
+				}
+				"dat": {
+					"type": "array", "items": {
+						"type": "string"
+					}
+				}
+			}
+		}
+	}
+}
+

@@ -1,12 +1,78 @@
--- out/generate/0.1/subpathroot/err --
-#overriddenName: openapi: #overriddenName: field not found: someField
--- out/generate/0.1/subpath/err --
-#someField: openapi: #someField: field not found: someField
--- out/generate/0.1/selfcontained --
+-- out/generate/0.0/expandrefs --
 "openapi": "3.0.0"
 "info": {
 	"title":   "disjunct"
-	"version": "0.1"
+	"version": "0.0"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"disjunct": {
+			"type": "object", "required": ["rootfield"]
+			"properties": {
+				"rootfield": {
+					"type": "object", "properties": {
+						"branch": {}
+						"branchone": {
+							"type": "string"
+						}
+						"branchtwo": {
+							"type": "string"
+						}
+					}
+					"oneOf": [{
+						"required": ["branch", "branchone"]
+					}, {
+						"required": ["branch", "branchtwo"]
+					}]
+				}
+			}
+		}
+	}
+}
+
+-- out/generate/0.0/group --
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "disjunct"
+		"version": "0.0"
+	}
+	"path": {}
+	"components": {
+		"schemas": {
+			"rootfield": {
+				"type": "object", "oneOf": [{
+					"required": ["branch", "branchone"]
+					"properties": {
+						"branch": {
+							"type": "integer", "enum": [1]
+						}
+						"branchone": {
+							"type": "string"
+						}
+					}
+				}, {
+					"required": ["branch", "branchtwo"]
+					"properties": {
+						"branch": {
+							"type": "integer", "enum": [2]
+						}
+						"branchtwo": {
+							"type": "string"
+						}
+					}
+				}]
+			}
+		}
+	}
+}
+
+-- out/generate/0.0/nil --
+"openapi": "3.0.0"
+"info": {
+	"title":   "disjunct"
+	"version": "0.0"
 }
 "paths": {}
 "components": {
@@ -33,30 +99,6 @@
 							}
 							"branchtwo": {
 								"type": "string"
-							}
-						}
-					}, {
-						"required": ["branch", "branchthree"]
-						"properties": {
-							"branch": {
-								"type": "integer", "enum": [3]
-							}
-							"branchthree": {
-								"type": "object", "oneOf": [{
-									"required": ["branchthreeinner"]
-									"properties": {
-										"branchthreeinner": {
-											"type": "integer"
-										}
-									}
-								}, {
-									"required": ["branchthreeinner"]
-									"properties": {
-										"branchthreeinner": {
-											"type": "string"
-										}
-									}
-								}]
 							}
 						}
 					}]
@@ -66,11 +108,11 @@
 	}
 }
 
--- out/generate/0.1/nil --
+-- out/generate/0.0/selfcontained --
 "openapi": "3.0.0"
 "info": {
 	"title":   "disjunct"
-	"version": "0.1"
+	"version": "0.0"
 }
 "paths": {}
 "components": {
@@ -99,27 +141,56 @@
 								"type": "string"
 							}
 						}
+					}]
+				}
+			}
+		}
+	}
+}
+
+-- out/generate/0.0/subpath/err --
+#someField: openapi: #someField: field not found: someField
+-- out/generate/0.0/subpathroot/err --
+#overriddenName: openapi: #overriddenName: field not found: someField
+-- out/generate/0.1/expandrefs --
+"openapi": "3.0.0"
+"info": {
+	"title":   "disjunct"
+	"version": "0.1"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"disjunct": {
+			"type": "object", "required": ["rootfield"]
+			"properties": {
+				"rootfield": {
+					"type": "object", "properties": {
+						"branch": {}
+						"branchone": {
+							"type": "string"
+						}
+						"branchtwo": {
+							"type": "string"
+						}
+						"branchthree": {
+							"type": "object", "properties": {
+								"branchthreeinner": {}
+							}
+						}
+					}
+					"oneOf": [{
+						"required": ["branch", "branchone"]
+					}, {
+						"required": ["branch", "branchtwo"]
 					}, {
 						"required": ["branch", "branchthree"]
 						"properties": {
-							"branch": {
-								"type": "integer", "enum": [3]
-							}
 							"branchthree": {
-								"type": "object", "oneOf": [{
+								"oneOf": [{
 									"required": ["branchthreeinner"]
-									"properties": {
-										"branchthreeinner": {
-											"type": "integer"
-										}
-									}
 								}, {
 									"required": ["branchthreeinner"]
-									"properties": {
-										"branchthreeinner": {
-											"type": "string"
-										}
-									}
 								}]
 							}
 						}
@@ -191,7 +262,7 @@
 	}
 }
 
--- out/generate/0.1/expandrefs --
+-- out/generate/0.1/nil --
 "openapi": "3.0.0"
 "info": {
 	"title":   "disjunct"
@@ -204,32 +275,47 @@
 			"type": "object", "required": ["rootfield"]
 			"properties": {
 				"rootfield": {
-					"type": "object", "properties": {
-						"branch": {}
-						"branchone": {
-							"type": "string"
-						}
-						"branchtwo": {
-							"type": "string"
-						}
-						"branchthree": {
-							"type": "object", "properties": {
-								"branchthreeinner": {}
+					"type": "object", "oneOf": [{
+						"required": ["branch", "branchone"]
+						"properties": {
+							"branch": {
+								"type": "integer", "enum": [1]
+							}
+							"branchone": {
+								"type": "string"
 							}
 						}
-					}
-					"oneOf": [{
-						"required": ["branch", "branchone"]
 					}, {
 						"required": ["branch", "branchtwo"]
+						"properties": {
+							"branch": {
+								"type": "integer", "enum": [2]
+							}
+							"branchtwo": {
+								"type": "string"
+							}
+						}
 					}, {
 						"required": ["branch", "branchthree"]
 						"properties": {
+							"branch": {
+								"type": "integer", "enum": [3]
+							}
 							"branchthree": {
-								"oneOf": [{
+								"type": "object", "oneOf": [{
 									"required": ["branchthreeinner"]
+									"properties": {
+										"branchthreeinner": {
+											"type": "integer"
+										}
+									}
 								}, {
 									"required": ["branchthreeinner"]
+									"properties": {
+										"branchthreeinner": {
+											"type": "string"
+										}
+									}
 								}]
 							}
 						}
@@ -240,157 +326,71 @@
 	}
 }
 
--- out/generate/0.0/subpathroot/err --
-#overriddenName: openapi: #overriddenName: field not found: someField
--- out/generate/0.0/subpath/err --
+-- out/generate/0.1/selfcontained --
+"openapi": "3.0.0"
+"info": {
+	"title":   "disjunct"
+	"version": "0.1"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"disjunct": {
+			"type": "object", "required": ["rootfield"]
+			"properties": {
+				"rootfield": {
+					"type": "object", "oneOf": [{
+						"required": ["branch", "branchone"]
+						"properties": {
+							"branch": {
+								"type": "integer", "enum": [1]
+							}
+							"branchone": {
+								"type": "string"
+							}
+						}
+					}, {
+						"required": ["branch", "branchtwo"]
+						"properties": {
+							"branch": {
+								"type": "integer", "enum": [2]
+							}
+							"branchtwo": {
+								"type": "string"
+							}
+						}
+					}, {
+						"required": ["branch", "branchthree"]
+						"properties": {
+							"branch": {
+								"type": "integer", "enum": [3]
+							}
+							"branchthree": {
+								"type": "object", "oneOf": [{
+									"required": ["branchthreeinner"]
+									"properties": {
+										"branchthreeinner": {
+											"type": "integer"
+										}
+									}
+								}, {
+									"required": ["branchthreeinner"]
+									"properties": {
+										"branchthreeinner": {
+											"type": "string"
+										}
+									}
+								}]
+							}
+						}
+					}]
+				}
+			}
+		}
+	}
+}
+
+-- out/generate/0.1/subpath/err --
 #someField: openapi: #someField: field not found: someField
--- out/generate/0.0/selfcontained --
-"openapi": "3.0.0"
-"info": {
-	"title":   "disjunct"
-	"version": "0.0"
-}
-"paths": {}
-"components": {
-	"schemas": {
-		"disjunct": {
-			"type": "object", "required": ["rootfield"]
-			"properties": {
-				"rootfield": {
-					"type": "object", "oneOf": [{
-						"required": ["branch", "branchone"]
-						"properties": {
-							"branch": {
-								"type": "integer", "enum": [1]
-							}
-							"branchone": {
-								"type": "string"
-							}
-						}
-					}, {
-						"required": ["branch", "branchtwo"]
-						"properties": {
-							"branch": {
-								"type": "integer", "enum": [2]
-							}
-							"branchtwo": {
-								"type": "string"
-							}
-						}
-					}]
-				}
-			}
-		}
-	}
-}
-
--- out/generate/0.0/nil --
-"openapi": "3.0.0"
-"info": {
-	"title":   "disjunct"
-	"version": "0.0"
-}
-"paths": {}
-"components": {
-	"schemas": {
-		"disjunct": {
-			"type": "object", "required": ["rootfield"]
-			"properties": {
-				"rootfield": {
-					"type": "object", "oneOf": [{
-						"required": ["branch", "branchone"]
-						"properties": {
-							"branch": {
-								"type": "integer", "enum": [1]
-							}
-							"branchone": {
-								"type": "string"
-							}
-						}
-					}, {
-						"required": ["branch", "branchtwo"]
-						"properties": {
-							"branch": {
-								"type": "integer", "enum": [2]
-							}
-							"branchtwo": {
-								"type": "string"
-							}
-						}
-					}]
-				}
-			}
-		}
-	}
-}
-
--- out/generate/0.0/group --
-{
-	"openapi": "3.0.0"
-	"info": {
-		"title":   "disjunct"
-		"version": "0.0"
-	}
-	"path": {}
-	"components": {
-		"schemas": {
-			"rootfield": {
-				"type": "object", "oneOf": [{
-					"required": ["branch", "branchone"]
-					"properties": {
-						"branch": {
-							"type": "integer", "enum": [1]
-						}
-						"branchone": {
-							"type": "string"
-						}
-					}
-				}, {
-					"required": ["branch", "branchtwo"]
-					"properties": {
-						"branch": {
-							"type": "integer", "enum": [2]
-						}
-						"branchtwo": {
-							"type": "string"
-						}
-					}
-				}]
-			}
-		}
-	}
-}
-
--- out/generate/0.0/expandrefs --
-"openapi": "3.0.0"
-"info": {
-	"title":   "disjunct"
-	"version": "0.0"
-}
-"paths": {}
-"components": {
-	"schemas": {
-		"disjunct": {
-			"type": "object", "required": ["rootfield"]
-			"properties": {
-				"rootfield": {
-					"type": "object", "properties": {
-						"branch": {}
-						"branchone": {
-							"type": "string"
-						}
-						"branchtwo": {
-							"type": "string"
-						}
-					}
-					"oneOf": [{
-						"required": ["branch", "branchone"]
-					}, {
-						"required": ["branch", "branchtwo"]
-					}]
-				}
-			}
-		}
-	}
-}
-
+-- out/generate/0.1/subpathroot/err --
+#overriddenName: openapi: #overriddenName: field not found: someField
