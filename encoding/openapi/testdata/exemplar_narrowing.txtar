@@ -1,4 +1,89 @@
--- out/generate/0.0/expandrefs --
+-- out/generate/1.0/subpathroot/err --
+#overriddenName: openapi: #overriddenName: field not found: someField
+-- out/generate/1.0/subpath/err --
+#someField: openapi: #someField: field not found: someField
+-- out/generate/1.0/selfcontained --
+"openapi": "3.0.0"
+"info": {
+	"title":   "narrowing"
+	"version": "1.0"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"narrowing": {
+			"type": "object", "required": ["properbool"]
+			"properties": {
+				"properbool": {
+					"type": "boolean"
+				}
+			}
+		}
+	}
+}
+
+-- out/generate/1.0/nil --
+"openapi": "3.0.0"
+"info": {
+	"title":   "narrowing"
+	"version": "1.0"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"narrowing": {
+			"type": "object", "required": ["properbool"]
+			"properties": {
+				"properbool": {
+					"type": "boolean"
+				}
+			}
+		}
+	}
+}
+
+-- out/generate/1.0/group --
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "narrowing"
+		"version": "1.0"
+	}
+	"path": {}
+	"components": {
+		"schemas": {
+			"properbool": {
+				"type": "boolean"
+			}
+		}
+	}
+}
+
+-- out/generate/1.0/expandrefs --
+"openapi": "3.0.0"
+"info": {
+	"title":   "narrowing"
+	"version": "1.0"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"narrowing": {
+			"type": "object", "required": ["properbool"]
+			"properties": {
+				"properbool": {
+					"type": "boolean"
+				}
+			}
+		}
+	}
+}
+
+-- out/generate/0.0/subpathroot/err --
+#overriddenName: openapi: #overriddenName: field not found: someField
+-- out/generate/0.0/subpath/err --
+#someField: openapi: #someField: field not found: someField
+-- out/generate/0.0/selfcontained --
 "openapi": "3.0.0"
 "info": {
 	"title":   "narrowing"
@@ -13,31 +98,12 @@
 				"boolish": {
 					"oneOf": [{
 						"enum": ["true", "false"]
-					}, {}, {}]
+					}, {
+						"type": "boolean"
+					}, {
+						"type": "string"
+					}]
 				}
-			}
-		}
-	}
-}
-
--- out/generate/0.0/group --
-{
-	"openapi": "3.0.0"
-	"info": {
-		"title":   "narrowing"
-		"version": "0.0"
-	}
-	"path": {}
-	"components": {
-		"schemas": {
-			"boolish": {
-				"oneOf": [{
-					"enum": ["true", "false"]
-				}, {
-					"type": "boolean"
-				}, {
-					"type": "string"
-				}]
 			}
 		}
 	}
@@ -69,7 +135,30 @@
 	}
 }
 
--- out/generate/0.0/selfcontained --
+-- out/generate/0.0/group --
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "narrowing"
+		"version": "0.0"
+	}
+	"path": {}
+	"components": {
+		"schemas": {
+			"boolish": {
+				"oneOf": [{
+					"enum": ["true", "false"]
+				}, {
+					"type": "boolean"
+				}, {
+					"type": "string"
+				}]
+			}
+		}
+	}
+}
+
+-- out/generate/0.0/expandrefs --
 "openapi": "3.0.0"
 "info": {
 	"title":   "narrowing"
@@ -84,206 +173,10 @@
 				"boolish": {
 					"oneOf": [{
 						"enum": ["true", "false"]
-					}, {
-						"type": "boolean"
-					}, {
-						"type": "string"
-					}]
+					}, {}, {}]
 				}
 			}
 		}
 	}
 }
 
--- out/generate/0.0/selfcontained --
-"openapi": "3.0.0"
-"info": {
-	"title":   "narrowing"
-	"version": "0.0"
-}
-"paths": {}
-"components": {
-	"schemas": {
-		"narrowing": {
-			"type": "object", "required": ["boolish"]
-			"properties": {
-				"boolish": {
-					"oneOf": [{
-						"enum": ["true", "false"]
-					}, {
-						"type": "boolean"
-					}, {
-						"type": "string"
-					}]
-				}
-			}
-		}
-	}
-}
-
--- out/generate/0.0/subpath/err --
-#someField: openapi: #someField: field not found: someField
--- out/generate/0.0/subpath/err --
-#someField: openapi: #someField: field not found: someField
--- out/generate/0.0/subpathroot/err --
-#overriddenName: openapi: #overriddenName: field not found: someField
--- out/generate/1.0/expandrefs --
-"openapi": "3.0.0"
-"info": {
-	"title":   "narrowing"
-	"version": "1.0"
-}
-"paths": {}
-"components": {
-	"schemas": {
-		"narrowing": {
-			"type": "object", "required": ["properbool"]
-			"properties": {
-				"properbool": {
-					"type": "boolean"
-				}
-			}
-		}
-	}
-}
-
--- out/generate/1.0/expandrefs --
-"openapi": "3.0.0"
-"info": {
-	"title":   "narrowing"
-	"version": "1.0"
-}
-"paths": {}
-"components": {
-	"schemas": {
-		"narrowing": {
-			"type": "object", "required": ["properbool"]
-			"properties": {
-				"properbool": {
-					"type": "boolean"
-				}
-			}
-		}
-	}
-}
-
--- out/generate/1.0/group --
-{
-	"openapi": "3.0.0"
-	"info": {
-		"title":   "narrowing"
-		"version": "1.0"
-	}
-	"path": {}
-	"components": {
-		"schemas": {
-			"properbool": {
-				"type": "boolean"
-			}
-		}
-	}
-}
-
--- out/generate/1.0/group --
-{
-	"openapi": "3.0.0"
-	"info": {
-		"title":   "narrowing"
-		"version": "1.0"
-	}
-	"path": {}
-	"components": {
-		"schemas": {
-			"properbool": {
-				"type": "boolean"
-			}
-		}
-	}
-}
-
--- out/generate/1.0/nil --
-"openapi": "3.0.0"
-"info": {
-	"title":   "narrowing"
-	"version": "1.0"
-}
-"paths": {}
-"components": {
-	"schemas": {
-		"narrowing": {
-			"type": "object", "required": ["properbool"]
-			"properties": {
-				"properbool": {
-					"type": "boolean"
-				}
-			}
-		}
-	}
-}
-
--- out/generate/1.0/nil --
-"openapi": "3.0.0"
-"info": {
-	"title":   "narrowing"
-	"version": "1.0"
-}
-"paths": {}
-"components": {
-	"schemas": {
-		"narrowing": {
-			"type": "object", "required": ["properbool"]
-			"properties": {
-				"properbool": {
-					"type": "boolean"
-				}
-			}
-		}
-	}
-}
-
--- out/generate/1.0/selfcontained --
-"openapi": "3.0.0"
-"info": {
-	"title":   "narrowing"
-	"version": "1.0"
-}
-"paths": {}
-"components": {
-	"schemas": {
-		"narrowing": {
-			"type": "object", "required": ["properbool"]
-			"properties": {
-				"properbool": {
-					"type": "boolean"
-				}
-			}
-		}
-	}
-}
-
--- out/generate/1.0/selfcontained --
-"openapi": "3.0.0"
-"info": {
-	"title":   "narrowing"
-	"version": "1.0"
-}
-"paths": {}
-"components": {
-	"schemas": {
-		"narrowing": {
-			"type": "object", "required": ["properbool"]
-			"properties": {
-				"properbool": {
-					"type": "boolean"
-				}
-			}
-		}
-	}
-}
-
--- out/generate/1.0/subpath/err --
-#someField: openapi: #someField: field not found: someField
--- out/generate/1.0/subpath/err --
-#someField: openapi: #someField: field not found: someField
--- out/generate/1.0/subpathroot/err --
-#overriddenName: openapi: #overriddenName: field not found: someField

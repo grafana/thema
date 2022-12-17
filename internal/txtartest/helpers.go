@@ -11,7 +11,7 @@ import (
 // ForEachSchema iterates over the provided lineage's schemas, calling the
 // provided test func for each one. The call is made from within a new
 // Go subtest, named by the schema version.
-func ForEachSchema(t *Test, lin thema.Lineage, f func(*Test, thema.Schema)) {
+func ForEachSchema(t *LineageTest, lin thema.Lineage, f func(*LineageTest, thema.Schema)) {
 	t.Helper()
 	var mu sync.Mutex
 	for sch := lin.First(); sch != nil; sch = sch.Successor() {
