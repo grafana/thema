@@ -53,6 +53,15 @@ type TypeConfigOpenAPI struct {
 	// codegen by multiple orders of magnitude. Succeeding silently but slowly is a bad
 	// default behavior when the fix is usually quite easy.)
 	IgnoreDiscoveredImports bool
+
+	// Group indicates that the type is a grouped lineage - the root schema itself
+	// does not represent an object that is ever expected to exist independently,
+	// but each of its top-level fields do.
+	//
+	// NOTE - https://github.com/grafana/thema/issues/62 is the issue for formalizing
+	// the group concept. Fixing that issue will obviate this field. Once fixed,
+	// this field will be ignored, deprecated, and eventually removed.
+	Group bool
 }
 
 // GenerateTypesOpenAPI generates native Go code corresponding to the provided Schema.
@@ -61,7 +70,11 @@ func GenerateTypesOpenAPI(sch thema.Schema, cfg *TypeConfigOpenAPI) ([]byte, err
 		cfg = new(TypeConfigOpenAPI)
 	}
 
-	f, err := openapi.GenerateSchema(sch, nil)
+	ocfg := &openapi.Config{
+		Group: cfg.Group,
+	}
+
+	f, err := openapi.GenerateSchema(sch, ocfg)
 	if err != nil {
 		return nil, fmt.Errorf("thema openapi generation failed: %w", err)
 	}
