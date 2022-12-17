@@ -10,7 +10,7 @@ import (
 )
 
 func TestGenerate(t *testing.T) {
-	test := cuetxtar.CueTest{
+	test := cuetxtar.LineageSuite{
 		Root:             "./testdata",
 		Name:             "generate",
 		IncludeExemplars: true,
@@ -58,16 +58,16 @@ func TestGenerate(t *testing.T) {
 		{
 			name: "subpathroot",
 			cfg: &Config{
-				Subpath: cue.ParsePath("someField"),
+				Subpath:  cue.ParsePath("someField"),
 				RootName: "overriddenName",
 			},
 		},
 	}
 
-	test.Run(t, func(t *cuetxtar.Test) {
+	test.Run(t, func(t *cuetxtar.LineageTest) {
 		lin := t.BindLineage(nil)
 
-		cuetxtar.ForEachSchema(t, lin, func(t *cuetxtar.Test, sch thema.Schema) {
+		cuetxtar.ForEachSchema(t, lin, func(t *cuetxtar.LineageTest, sch thema.Schema) {
 			for _, tc := range vars {
 				itest := tc
 				t.T.Run(itest.name, func(gt *testing.T) {
