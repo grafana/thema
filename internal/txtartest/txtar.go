@@ -619,6 +619,10 @@ func (x *CueTest) Run(t *testing.T, f func(tc *Test)) {
 
 			if update {
 				sort.Slice(a.Files, func(i, j int) bool {
+					isout := func(s string) bool { return strings.HasPrefix(s, "out/")}
+					if isout(a.Files[i].Name) != isout(a.Files[j].Name) {
+						return isout(a.Files[j].Name)
+					}
 					return a.Files[i].Name < a.Files[j].Name
 				})
 

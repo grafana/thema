@@ -86,47 +86,34 @@ seqs: [
 			"foo": {
 				"type": "string"
 			}
-		}
-		"schemas": {
 			"Bar": {
-				"type":   "integer"
-				"format": "int32"
+				"type": "integer", "format": "int32"
 			}
-		}
-		"schemas": {
 			"baz": {
-				"type": "object"
-				"required": ["run", "tell", "dat"]
+				"type": "object", "required": ["run", "tell", "dat"]
 				"properties": {
 					"run": {
 						"type": "string"
 					}
 					"tell": {
-						"type":   "string"
-						"format": "binary"
+						"type": "string", "format": "binary"
 					}
 					"dat": {
-						"type":   "integer"
-						"format": "int32"
+						"type": "integer", "format": "int32"
 					}
 				}
 			}
-		}
-		"schemas": {
 			"Baz": {
-				"type": "object"
-				"required": ["run", "tell", "dat"]
+				"type": "object", "required": ["run", "tell", "dat"]
 				"properties": {
 					"run": {
 						"type": "string"
 					}
 					"tell": {
-						"type":   "string"
-						"format": "binary"
+						"type": "string", "format": "binary"
 					}
 					"dat": {
-						"type":   "integer"
-						"format": "int32"
+						"type": "integer", "format": "int32"
 					}
 				}
 			}
@@ -135,6 +122,46 @@ seqs: [
 }
 
 -- out/generate/0.0/nil --
+"openapi": "3.0.0"
+"info": {
+	"title":   "oneref"
+	"version": "0.0"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"Baz": {
+			"type": "object", "required": ["run", "tell", "dat"]
+			"properties": {
+				"run": {
+					"type": "string"
+				}
+				"tell": {
+					"type": "string", "format": "binary"
+				}
+				"dat": {
+					"type": "integer", "format": "int32"
+				}
+			}
+		}
+		"oneref": {
+			"type": "object", "required": ["foo", "Bar", "baz"]
+			"properties": {
+				"foo": {
+					"type": "string"
+				}
+				"Bar": {
+					"type": "integer", "format": "int32"
+				}
+				"baz": {
+					"$ref": "#/components/schemas/Baz"
+				}
+			}
+		}
+	}
+}
+
+-- out/generate/0.0/selfcontained --
 "openapi": "3.0.0"
 "info": {
 	"title":   "oneref"

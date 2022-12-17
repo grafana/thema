@@ -30,8 +30,7 @@
 	"components": {
 		"schemas": {
 			"aunion": {
-				"type": "string"
-				"enum": ["foo", "bar", "baz"]
+				"type": "string", "enum": ["foo", "bar", "baz"]
 				"default": "foo"
 			}
 		}
@@ -39,6 +38,27 @@
 }
 
 -- out/generate/0.0/nil --
+"openapi": "3.0.0"
+"info": {
+	"title":   "defaultchange"
+	"version": "0.0"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"defaultchange": {
+			"type": "object", "required": ["aunion"]
+			"properties": {
+				"aunion": {
+					"type": "string", "enum": ["foo", "bar", "baz"]
+					"default": "foo"
+				}
+			}
+		}
+	}
+}
+
+-- out/generate/0.0/selfcontained --
 "openapi": "3.0.0"
 "info": {
 	"title":   "defaultchange"
@@ -101,6 +121,27 @@
 	}
 }
 
+-- out/generate/1.0/expandrefs --
+"openapi": "3.0.0"
+"info": {
+	"title":   "defaultchange"
+	"version": "1.0"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"defaultchange": {
+			"type": "object", "required": ["aunion"]
+			"properties": {
+				"aunion": {
+					"type": "string", "enum": ["bar", "foo", "baz"]
+					"default": "bar"
+				}
+			}
+		}
+	}
+}
+
 -- out/generate/1.0/group --
 {
 	"openapi": "3.0.0"
@@ -120,7 +161,67 @@
 	}
 }
 
+-- out/generate/1.0/group --
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "defaultchange"
+		"version": "1.0"
+	}
+	"path": {}
+	"components": {
+		"schemas": {
+			"aunion": {
+				"type": "string", "enum": ["bar", "foo", "baz"]
+				"default": "bar"
+			}
+		}
+	}
+}
+
 -- out/generate/1.0/nil --
+"openapi": "3.0.0"
+"info": {
+	"title":   "defaultchange"
+	"version": "1.0"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"defaultchange": {
+			"type": "object", "required": ["aunion"]
+			"properties": {
+				"aunion": {
+					"type": "string", "enum": ["bar", "foo", "baz"]
+					"default": "bar"
+				}
+			}
+		}
+	}
+}
+
+-- out/generate/1.0/nil --
+"openapi": "3.0.0"
+"info": {
+	"title":   "defaultchange"
+	"version": "1.0"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"defaultchange": {
+			"type": "object", "required": ["aunion"]
+			"properties": {
+				"aunion": {
+					"type": "string", "enum": ["bar", "foo", "baz"]
+					"default": "bar"
+				}
+			}
+		}
+	}
+}
+
+-- out/generate/1.0/selfcontained --
 "openapi": "3.0.0"
 "info": {
 	"title":   "defaultchange"

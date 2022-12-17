@@ -42,13 +42,11 @@
 	"components": {
 		"schemas": {
 			"rootfield": {
-				"type": "object"
-				"oneOf": [{
+				"type": "object", "oneOf": [{
 					"required": ["branch", "branchone"]
 					"properties": {
 						"branch": {
-							"type": "integer"
-							"enum": [1]
+							"type": "integer", "enum": [1]
 						}
 						"branchone": {
 							"type": "string"
@@ -58,8 +56,7 @@
 					"required": ["branch", "branchtwo"]
 					"properties": {
 						"branch": {
-							"type": "integer"
-							"enum": [2]
+							"type": "integer", "enum": [2]
 						}
 						"branchtwo": {
 							"type": "string"
@@ -72,6 +69,46 @@
 }
 
 -- out/generate/0.0/nil --
+"openapi": "3.0.0"
+"info": {
+	"title":   "disjunct"
+	"version": "0.0"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"disjunct": {
+			"type": "object", "required": ["rootfield"]
+			"properties": {
+				"rootfield": {
+					"type": "object", "oneOf": [{
+						"required": ["branch", "branchone"]
+						"properties": {
+							"branch": {
+								"type": "integer", "enum": [1]
+							}
+							"branchone": {
+								"type": "string"
+							}
+						}
+					}, {
+						"required": ["branch", "branchtwo"]
+						"properties": {
+							"branch": {
+								"type": "integer", "enum": [2]
+							}
+							"branchtwo": {
+								"type": "string"
+							}
+						}
+					}]
+				}
+			}
+		}
+	}
+}
+
+-- out/generate/0.0/selfcontained --
 "openapi": "3.0.0"
 "info": {
 	"title":   "disjunct"
@@ -200,6 +237,55 @@
 	}
 }
 
+-- out/generate/0.1/expandrefs --
+"openapi": "3.0.0"
+"info": {
+	"title":   "disjunct"
+	"version": "0.1"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"disjunct": {
+			"type": "object", "required": ["rootfield"]
+			"properties": {
+				"rootfield": {
+					"type": "object", "properties": {
+						"branch": {}
+						"branchone": {
+							"type": "string"
+						}
+						"branchtwo": {
+							"type": "string"
+						}
+						"branchthree": {
+							"type": "object", "properties": {
+								"branchthreeinner": {}
+							}
+						}
+					}
+					"oneOf": [{
+						"required": ["branch", "branchone"]
+					}, {
+						"required": ["branch", "branchtwo"]
+					}, {
+						"required": ["branch", "branchthree"]
+						"properties": {
+							"branchthree": {
+								"oneOf": [{
+									"required": ["branchthreeinner"]
+								}, {
+									"required": ["branchthreeinner"]
+								}]
+							}
+						}
+					}]
+				}
+			}
+		}
+	}
+}
+
 -- out/generate/0.1/group --
 {
 	"openapi": "3.0.0"
@@ -266,7 +352,196 @@
 	}
 }
 
+-- out/generate/0.1/group --
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "disjunct"
+		"version": "0.1"
+	}
+	"path": {}
+	"components": {
+		"schemas": {
+			"rootfield": {
+				"type": "object", "oneOf": [{
+					"required": ["branch", "branchone"]
+					"properties": {
+						"branch": {
+							"type": "integer", "enum": [1]
+						}
+						"branchone": {
+							"type": "string"
+						}
+					}
+				}, {
+					"required": ["branch", "branchtwo"]
+					"properties": {
+						"branch": {
+							"type": "integer", "enum": [2]
+						}
+						"branchtwo": {
+							"type": "string"
+						}
+					}
+				}, {
+					"required": ["branch", "branchthree"]
+					"properties": {
+						"branch": {
+							"type": "integer", "enum": [3]
+						}
+						"branchthree": {
+							"type": "object", "oneOf": [{
+								"required": ["branchthreeinner"]
+								"properties": {
+									"branchthreeinner": {
+										"type": "integer"
+									}
+								}
+							}, {
+								"required": ["branchthreeinner"]
+								"properties": {
+									"branchthreeinner": {
+										"type": "string"
+									}
+								}
+							}]
+						}
+					}
+				}]
+			}
+		}
+	}
+}
+
 -- out/generate/0.1/nil --
+"openapi": "3.0.0"
+"info": {
+	"title":   "disjunct"
+	"version": "0.1"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"disjunct": {
+			"type": "object", "required": ["rootfield"]
+			"properties": {
+				"rootfield": {
+					"type": "object", "oneOf": [{
+						"required": ["branch", "branchone"]
+						"properties": {
+							"branch": {
+								"type": "integer", "enum": [1]
+							}
+							"branchone": {
+								"type": "string"
+							}
+						}
+					}, {
+						"required": ["branch", "branchtwo"]
+						"properties": {
+							"branch": {
+								"type": "integer", "enum": [2]
+							}
+							"branchtwo": {
+								"type": "string"
+							}
+						}
+					}, {
+						"required": ["branch", "branchthree"]
+						"properties": {
+							"branch": {
+								"type": "integer", "enum": [3]
+							}
+							"branchthree": {
+								"type": "object", "oneOf": [{
+									"required": ["branchthreeinner"]
+									"properties": {
+										"branchthreeinner": {
+											"type": "integer"
+										}
+									}
+								}, {
+									"required": ["branchthreeinner"]
+									"properties": {
+										"branchthreeinner": {
+											"type": "string"
+										}
+									}
+								}]
+							}
+						}
+					}]
+				}
+			}
+		}
+	}
+}
+
+-- out/generate/0.1/nil --
+"openapi": "3.0.0"
+"info": {
+	"title":   "disjunct"
+	"version": "0.1"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"disjunct": {
+			"type": "object", "required": ["rootfield"]
+			"properties": {
+				"rootfield": {
+					"type": "object", "oneOf": [{
+						"required": ["branch", "branchone"]
+						"properties": {
+							"branch": {
+								"type": "integer", "enum": [1]
+							}
+							"branchone": {
+								"type": "string"
+							}
+						}
+					}, {
+						"required": ["branch", "branchtwo"]
+						"properties": {
+							"branch": {
+								"type": "integer", "enum": [2]
+							}
+							"branchtwo": {
+								"type": "string"
+							}
+						}
+					}, {
+						"required": ["branch", "branchthree"]
+						"properties": {
+							"branch": {
+								"type": "integer", "enum": [3]
+							}
+							"branchthree": {
+								"type": "object", "oneOf": [{
+									"required": ["branchthreeinner"]
+									"properties": {
+										"branchthreeinner": {
+											"type": "integer"
+										}
+									}
+								}, {
+									"required": ["branchthreeinner"]
+									"properties": {
+										"branchthreeinner": {
+											"type": "string"
+										}
+									}
+								}]
+							}
+						}
+					}]
+				}
+			}
+		}
+	}
+}
+
+-- out/generate/0.1/selfcontained --
 "openapi": "3.0.0"
 "info": {
 	"title":   "disjunct"
