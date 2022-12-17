@@ -1,0 +1,360 @@
+-- in.cue --
+package generate
+
+import "github.com/grafana/thema"
+import "thema.test/generate/subdir"
+
+thema.#Lineage
+name: "import"
+seqs: [
+    {
+        schemas: [
+            {
+                subdir.Embedder
+
+                foo: string
+                bar: int32
+                baz: #Baz
+                quux: subdir.Aliasish
+                quark: #AsRef
+
+                #Baz: subdir.#DefFun
+                #AsRef: subdir.Aliasish
+            }
+        ]
+    }
+]
+-- subdir/importable.cue --
+package subdir
+
+Aliasish: {
+    fieldInAlias: bytes
+}
+
+#DefFun: {
+    fieldInDef: int32 | string
+}
+
+Embedder: {
+    run: int32
+    tell: bytes
+    dat: [...string]
+}
+-- out/generate/0.0/expandrefs/err --
+#import.baz: unsupported op . for object type ({
+	fieldInDef: int32 | string
+}):
+    ../../../../../../../thema.test/generate/in.cue:20:17
+-- out/generate/0.0/group --
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "import"
+		"version": "0.0"
+	}
+	"path": {}
+	"components": {
+		"schemas": {
+			"foo": {
+				"type": "string"
+			}
+			"bar": {
+				"type": "integer", "format": "int32"
+			}
+			"baz": {
+				"type": "object", "required": ["fieldInDef"]
+				"properties": {
+					"fieldInDef": {
+						"oneOf": [{
+							"type": "number", "minimum": -2147483648, "maximum": 2147483647
+						}, {
+							"type": "string"
+						}]
+					}
+				}
+			}
+			"quux": {
+				"type": "object", "required": ["fieldInAlias"]
+				"properties": {
+					"fieldInAlias": {
+						"type": "string", "format": "binary"
+					}
+				}
+			}
+			"quark": {
+				"type": "object", "required": ["fieldInAlias"]
+				"properties": {
+					"fieldInAlias": {
+						"type": "string", "format": "binary"
+					}
+				}
+			}
+			"Baz": {
+				"type": "object", "required": ["fieldInDef"]
+				"properties": {
+					"fieldInDef": {
+						"oneOf": [{
+							"type": "number", "minimum": -2147483648, "maximum": 2147483647
+						}, {
+							"type": "string"
+						}]
+					}
+				}
+			}
+			"run": {
+				"type": "integer", "format": "int32"
+			}
+			"tell": {
+				"type": "string", "format": "binary"
+			}
+			"AsRef": {
+				"type": "object", "required": ["fieldInAlias"]
+				"properties": {
+					"fieldInAlias": {
+						"type": "string", "format": "binary"
+					}
+				}
+			}
+			"dat": {
+				"type": "array", "items": {
+					"type": "string"
+				}
+			}
+		}
+	}
+}
+
+-- out/generate/0.0/nil --
+"openapi": "3.0.0"
+"info": {
+	"title":   "import"
+	"version": "0.0"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"Aliasish": {
+			"type": "object", "required": ["fieldInAlias"]
+			"properties": {
+				"fieldInAlias": {
+					"type": "string", "format": "binary"
+				}
+			}
+		}
+		"AsRef": {
+			"$ref": "#/components/schemas/Aliasish"
+		}
+		"Baz": {
+			"$ref": "#/components/schemas/DefFun"
+		}
+		"DefFun": {
+			"type": "object", "required": ["fieldInDef"]
+			"properties": {
+				"fieldInDef": {
+					"oneOf": [{
+						"type": "number", "minimum": -2147483648, "maximum": 2147483647
+					}, {
+						"type": "string"
+					}]
+				}
+			}
+		}
+		"Embedder": {
+			"type": "object", "required": ["run", "tell", "dat"]
+			"properties": {
+				"run": {
+					"type": "integer", "format": "int32"
+				}
+				"tell": {
+					"type": "string", "format": "binary"
+				}
+				"dat": {
+					"type": "array", "items": {
+						"type": "string"
+					}
+				}
+			}
+		}
+		"import": {
+			"type": "object", "properties": {
+				"foo": {
+					"type": "string"
+				}
+				"bar": {
+					"type": "integer", "format": "int32"
+				}
+				"baz": {
+					"$ref": "#/components/schemas/Baz"
+				}
+				"quux": {
+					"$ref": "#/components/schemas/Aliasish"
+				}
+				"quark": {
+					"$ref": "#/components/schemas/AsRef"
+				}
+			}
+			"allOf": [{
+				"$ref": "#/components/schemas/Embedder"
+			}, {
+				"required": ["foo", "bar", "baz", "quux", "quark"]
+			}]
+		}
+	}
+}
+
+-- out/generate/0.0/selfcontained --
+"openapi": "3.0.0"
+"info": {
+	"title":   "import"
+	"version": "0.0"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"Aliasish": {
+			"type": "object", "required": ["fieldInAlias"]
+			"properties": {
+				"fieldInAlias": {
+					"type": "string", "format": "binary"
+				}
+			}
+		}
+		"AsRef": {
+			"$ref": "#/components/schemas/Aliasish"
+		}
+		"Baz": {
+			"$ref": "#/components/schemas/DefFun"
+		}
+		"DefFun": {
+			"type": "object", "required": ["fieldInDef"]
+			"properties": {
+				"fieldInDef": {
+					"oneOf": [{
+						"type": "number", "minimum": -2147483648, "maximum": 2147483647
+					}, {
+						"type": "string"
+					}]
+				}
+			}
+		}
+		"Embedder": {
+			"type": "object", "required": ["run", "tell", "dat"]
+			"properties": {
+				"run": {
+					"type": "integer", "format": "int32"
+				}
+				"tell": {
+					"type": "string", "format": "binary"
+				}
+				"dat": {
+					"type": "array", "items": {
+						"type": "string"
+					}
+				}
+			}
+		}
+		"import": {
+			"type": "object", "properties": {
+				"foo": {
+					"type": "string"
+				}
+				"bar": {
+					"type": "integer", "format": "int32"
+				}
+				"baz": {
+					"$ref": "#/components/schemas/Baz"
+				}
+				"quux": {
+					"$ref": "#/components/schemas/Aliasish"
+				}
+				"quark": {
+					"$ref": "#/components/schemas/AsRef"
+				}
+			}
+			"allOf": [{
+				"$ref": "#/components/schemas/Embedder"
+			}, {
+				"required": ["foo", "bar", "baz", "quux", "quark"]
+			}]
+		}
+	}
+}
+
+-- out/generate/0.0/selfcontained --
+"openapi": "3.0.0"
+"info": {
+	"title":   "import"
+	"version": "0.0"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"Aliasish": {
+			"type": "object", "required": ["fieldInAlias"]
+			"properties": {
+				"fieldInAlias": {
+					"type": "string", "format": "binary"
+				}
+			}
+		}
+		"AsRef": {
+			"$ref": "#/components/schemas/Aliasish"
+		}
+		"Baz": {
+			"$ref": "#/components/schemas/DefFun"
+		}
+		"DefFun": {
+			"type": "object", "required": ["fieldInDef"]
+			"properties": {
+				"fieldInDef": {
+					"oneOf": [{
+						"type": "number", "minimum": -2147483648, "maximum": 2147483647
+					}, {
+						"type": "string"
+					}]
+				}
+			}
+		}
+		"Embedder": {
+			"type": "object", "required": ["run", "tell", "dat"]
+			"properties": {
+				"run": {
+					"type": "integer", "format": "int32"
+				}
+				"tell": {
+					"type": "string", "format": "binary"
+				}
+				"dat": {
+					"type": "array", "items": {
+						"type": "string"
+					}
+				}
+			}
+		}
+		"import": {
+			"type": "object", "properties": {
+				"foo": {
+					"type": "string"
+				}
+				"bar": {
+					"type": "integer", "format": "int32"
+				}
+				"baz": {
+					"$ref": "#/components/schemas/Baz"
+				}
+				"quux": {
+					"$ref": "#/components/schemas/Aliasish"
+				}
+				"quark": {
+					"$ref": "#/components/schemas/AsRef"
+				}
+			}
+			"allOf": [{
+				"$ref": "#/components/schemas/Embedder"
+			}, {
+				"required": ["foo", "bar", "baz", "quux", "quark"]
+			}]
+		}
+	}
+}
+

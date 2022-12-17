@@ -37,13 +37,9 @@
 			"astring": {
 				"type": "string"
 			}
-		}
-		"schemas": {
 			"anint": {
 				"type": "integer"
 			}
-		}
-		"schemas": {
 			"abool": {
 				"type": "boolean"
 			}
@@ -52,6 +48,32 @@
 }
 
 -- out/generate/0.0/nil --
+"openapi": "3.0.0"
+"info": {
+	"title":   "single"
+	"version": "0.0"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"single": {
+			"type": "object", "required": ["astring", "anint", "abool"]
+			"properties": {
+				"astring": {
+					"type": "string"
+				}
+				"anint": {
+					"type": "integer"
+				}
+				"abool": {
+					"type": "boolean"
+				}
+			}
+		}
+	}
+}
+
+-- out/generate/0.0/selfcontained --
 "openapi": "3.0.0"
 "info": {
 	"title":   "single"

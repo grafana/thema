@@ -108,10 +108,11 @@ func GenerateSchema(sch thema.Schema, cfg *Config) (*ast.File, error) {
 			return nil, fmt.Errorf("failed generation for grouped field %s: %w", sel, err)
 		}
 
-		elem := orp(astutil.GetFieldByLabel(orp(astutil.GetFieldByLabel(part, "components")).
-			Value, "schemas"))
 
-		decls = append(decls, elem)
+		elems := orp(astutil.GetFieldByLabel(
+			orp(astutil.GetFieldByLabel(part, "components")).Value, "schemas")).
+				Value.(*ast.StructLit).Elts
+		decls = append(decls, elems...)
 	}
 
 	return &ast.File{
@@ -123,12 +124,9 @@ func GenerateSchema(sch thema.Schema, cfg *Config) (*ast.File, error) {
 					"version", ast.NewString(sch.Version().String()),
 				),
 				"path", ast.NewStruct(),
-				&ast.Field{
-					Label: ast.NewString("components"),
-					Value: &ast.StructLit{
-						Elts: decls,
-					},
-				},
+				"components", ast.NewStruct(
+				"schemas", &ast.StructLit{ Elts: decls },
+				),
 			),
 		},
 	}, nil
