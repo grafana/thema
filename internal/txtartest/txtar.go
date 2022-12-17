@@ -464,7 +464,7 @@ func (x *LineageSuite) Run(t *testing.T, f func(tc *LineageTest)) {
 				exemplar: exemplarNameFromPath(fullpath),
 
 				prefix: path.Join("out", x.Name),
-				suite: x,
+				suite:  x,
 			}
 
 			if tc.HasTag("skip") {
@@ -609,6 +609,7 @@ func (x *LineageSuite) Run(t *testing.T, f func(tc *LineageTest)) {
 			}
 
 			if update {
+				dedupe(a)
 				sort.Slice(a.Files, func(i, j int) bool {
 					isout := func(s string) bool { return strings.HasPrefix(s, "out/") }
 					if isout(a.Files[i].Name) != isout(a.Files[j].Name) {
@@ -616,7 +617,6 @@ func (x *LineageSuite) Run(t *testing.T, f func(tc *LineageTest)) {
 					}
 					return a.Files[i].Name < a.Files[j].Name
 				})
-				dedupe(a)
 
 				err = os.WriteFile(fullpath, txtar.Format(a), 0644)
 				if err != nil {

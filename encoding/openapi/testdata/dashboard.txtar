@@ -1,1471 +1,472 @@
--- out/generate/0.0/subpathroot/err --
-#overriddenName: openapi: #overriddenName: field not found: someField
--- out/generate/0.0/subpath/err --
-#someField: openapi: #someField: field not found: someField
--- out/generate/0.0/selfcontained --
-"openapi": "3.0.0"
-"info": {
-	"title":   "dashboard"
-	"version": "0.0"
-}
-"paths": {}
-"components": {
-	"schemas": {
-		"AnnotationQuery": {
-			"description": "TODO docs\nFROM: AnnotationQuery in grafana-data/src/types/annotations.ts", "type": "object", "required": ["datasource", "enable", "builtIn", "type", "showIn"]
-			"properties": {
-				"datasource": {
-					"description": "Datasource to use for annotation.", "type": "object", "properties": {
-							"type": {
-								"type": "string"
-							}
-						"uid": {
-							"type": "string"
-						}
-					}
-				}
-				"enable": {
-					"description": "Whether annotation is enabled.", "type": "boolean", "default": true
-				}
-				"name": {
-					"description": "Name of annotation.", "type": "string"
-				}
-				"builtIn": {
-					"type": "integer", "minimum": 0, "maximum": 255, "default": 0
-				}
-				"hide": {
-					"description": "Whether to hide annotation.", "type": "boolean", "default": false
-				}
-				"iconColor": {
-					"description": "Annotation icon color.", "type": "string"
-				}
-				"type": {
-					"type": "string", "default": "dashboard"
-				}
-				"rawQuery": {
-					"description": "Query for annotation data.", "type": "string"
-				}
-				"showIn": {
-					"type": "integer", "minimum": 0, "maximum": 255, "default": 0
-				}
-				"target": {
-					"$ref": "#/components/schemas/AnnotationTarget"
-				}
-			}
-		}
-		"AnnotationTarget": {
-			"description": "TODO docs", "type": "object", "required": ["limit", "matchAny", "tags", "type"]
-			"properties": {
-				"limit": {
-					"type": "integer", "format": "int64"
-				}
-				"matchAny": {
-					"type": "boolean"
-				}
-				"tags": {
-					"type": "array", "items": {
-						"type": "string"
-					}
-				}
-				"type": {
-					"type": "string"
-				}
-			}
-		}
-		"BaseValueMapping": {
-			"description": "TODO docs", "type": "object", "required": ["type", "options"]
-			"properties": {
-				"type": {
-					"$ref": "#/components/schemas/MappingType"
-				}
-				"options": {}
-			}
-		}
-		"DashboardCursorSync": {
-			"description": "0 for no shared crosshair or tooltip (default).\n1 for shared crosshair.\n2 for shared crosshair AND shared tooltip.", "type": "integer", "enum": [0, 1, 2]
-			"default": 0
-		}
-		"DashboardLink": {
-			"description": "FROM public/app/features/dashboard/state/DashboardModels.ts - ish\nTODO docs", "type": "object", "required": ["title", "type", "tags", "asDropdown", "targetBlank", "includeVars", "keepTime"]
-			"properties": {
-				"title": {
-					"type": "string"
-				}
-				"type": {
-					"$ref": "#/components/schemas/DashboardLinkType"
-				}
-				"icon": {
-					"type": "string"
-				}
-				"tooltip": {
-					"type": "string"
-				}
-				"url": {
-					"type": "string"
-				}
-				"tags": {
-					"type": "array", "items": {
-						"type": "string"
-					}
-				}
-				"asDropdown": {
-					"type": "boolean", "default": false
-				}
-				"targetBlank": {
-					"type": "boolean", "default": false
-				}
-				"includeVars": {
-					"type": "boolean", "default": false
-				}
-				"keepTime": {
-					"type": "boolean", "default": false
-				}
-			}
-		}
-		"DashboardLinkType": {
-			"description": "TODO docs", "type": "string", "enum": ["link", "dashboards"]
-		}
-		"DynamicConfigValue": {
-			"type": "object", "required": ["id"]
-			"properties": {
-				"id": {
-					"type": "string", "default": ""
-				}
-				"value": {}
-			}
-		}
-		"FieldColor": {
-			"description": "TODO docs", "type": "object", "required": ["mode"]
-			"properties": {
-				"mode": {
-					"description": "The main color scheme mode", "type": "string", "oneOf": [{
-							"enum": ["thresholds", "palette-classic", "palette-saturated", "continuous-GrYlRd", "fixed"]
-					}, {}]
-				}
-				"fixedColor": {
-					"description": "Stores the fixed color value if mode is fixed", "type": "string"
-				}
-				"seriesBy": {
-					"$ref": "#/components/schemas/FieldColorSeriesByMode"
-				}
-			}
-		}
-		"FieldColorModeId": {
-			"description": "TODO docs", "type": "string", "enum": ["thresholds", "palette-classic", "palette-saturated", "continuous-GrYlRd", "fixed"]
-		}
-		"FieldColorSeriesByMode": {
-			"description": "TODO docs", "type": "string", "enum": ["min", "max", "last"]
-		}
-		"FieldConfig": {
-			"type": "object", "properties": {
-				"displayName": {
-					"description": "The display value for this field.  This supports template variables blank is auto", "type": "string"
-				}
-				"displayNameFromDS": {
-					"description": "This can be used by data sources that return and explicit naming structure for values and labels\nWhen this property is configured, this value is used rather than the default naming strategy.", "type": "string"
-				}
-				"description": {
-					"description": "Human readable field metadata", "type": "string"
-				}
-				"path": {
-					"description": "An explicit path to the field in the datasource.  When the frame meta includes a path,\nThis will default to `${frame.meta.path}/${field.name}\n\nWhen defined, this value can be used as an identifier within the datasource scope, and\nmay be used to update the results", "type": "string"
-				}
-				"writeable": {
-					"description": "True if data source can write a value to the path.  Auth/authz are supported separately", "type": "boolean"
-				}
-				"filterable": {
-					"description": "True if data source field supports ad-hoc filters", "type": "boolean"
-				}
-				"unit": {
-					"description": "Numeric Options", "type": "string"
-				}
-				"decimals": {
-					"description": "Significant digits (for display)", "type": "number"
-				}
-				"min": {
-					"type": "number"
-				}
-				"max": {
-					"type": "number"
-				}
-				"mappings": {
-					"description": "Convert input values into a display string", "type": "array", "items": {
-							"$ref":                                               "#/components/schemas/ValueMapping"
-					}
-				}
-				"thresholds": {
-					"$ref": "#/components/schemas/ThresholdsConfig"
-				}
-				"color": {
-					"$ref": "#/components/schemas/FieldColor"
-				}
-				"links": {
-					"description": "The behavior when clicking on a result", "type": "array", "items": {}
-				}
-				"noValue": {
-					"description": "Alternative to empty string", "type": "string"
-				}
-				"custom": {
-					"description": "custom is specified by the PanelFieldConfig field\nin panel plugin schemas.", "type": "object"
-				}
-			}
-		}
-		"FieldConfigSource": {
-			"type": "object", "required": ["defaults", "overrides"]
-			"properties": {
-				"defaults": {
-					"$ref": "#/components/schemas/FieldConfig"
-				}
-				"overrides": {
-					"type": "array", "items": {
-						"type": "object", "required": ["matcher", "properties"]
-						"properties": {
-							"matcher": {
-								"$ref": "#/components/schemas/MatcherConfig"
-							}
-							"properties": {
-								"type": "array", "items": {
-									"$ref": "#/components/schemas/DynamicConfigValue"
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-		"GraphPanel": {
-			"description": "Support for legacy graph and heatmap panels.", "type": "object", "required": ["type"]
-			"properties": {
-				"type": {
-					"type": "string", "enum": ["graph"]
-				}
-			}
-		}
-		"GridPos": {
-			"type": "object", "required": ["h", "w", "x", "y"]
-			"properties": {
-				"h": {
-					"description": "Panel", "type": "integer", "minimum": 0, "exclusiveMinimum": true, "maximum": 4294967295, "default": 9
-				}
-				"w": {
-					"description": "Panel", "type": "integer", "minimum": 0, "exclusiveMinimum": true, "maximum": 24, "default": 12
-				}
-				"x": {
-					"description": "Panel x", "type": "integer", "minimum": 0, "maximum": 24, "exclusiveMaximum": true, "default": 0
-				}
-				"y": {
-					"description": "Panel y", "type": "integer", "minimum": 0, "maximum": 4294967295, "default": 0
-				}
-				"static": {
-					"description": "true if fixed", "type": "boolean"
-				}
-			}
-		}
-		"HeatmapPanel": {
-			"type": "object", "required": ["type"]
-			"properties": {
-				"type": {
-					"type": "string", "enum": ["heatmap"]
-				}
-			}
-		}
-		"MappingType": {
-			"description": "TODO docs", "type": "string", "enum": ["value", "range", "regex", "special"]
-		}
-		"MatcherConfig": {
-			"type": "object", "required": ["id"]
-			"properties": {
-				"id": {
-					"type": "string", "default": ""
-				}
-				"options": {}
-			}
-		}
-		"Panel": {
-			"description": "Dashboard panels. Panels are canonically defined inline\nbecause they share a version timeline with the dashboard\nschema; they do not evolve independently.", "type": "object", "required": ["type", "transparent", "repeatDirection", "transformations", "options", "fieldConfig"]
-			"properties": {
-				"type": {
-					"description": "The panel plugin type id. May not be empty.", "type": "string", "minLength": 1
-				}
-				"id": {
-					"description": "TODO docs", "type": "integer", "minimum": 0, "maximum": 4294967295
-				}
-				"pluginVersion": {
-					"description": "FIXME this almost certainly has to be changed in favor of scuemata versions", "type": "string"
-				}
-				"tags": {
-					"description": "TODO docs", "type": "array", "items": {
-							"type":              "string"
-					}
-				}
-				"targets": {
-					"description": "TODO docs", "type": "array", "items": {
-							"$ref":              "#/components/schemas/Target"
-					}
-				}
-				"title": {
-					"description": "Panel title.", "type": "string"
-				}
-				"description": {
-					"description": "Description.", "type": "string"
-				}
-				"transparent": {
-					"description": "Whether to display the panel without a background.", "type": "boolean", "default": false
-				}
-				"datasource": {
-					"description": "The datasource used in all targets.", "type": "object", "properties": {
-							"type": {
-								"type": "string"
-							}
-						"uid": {
-							"type": "string"
-						}
-					}
-				}
-				"gridPos": {
-					"$ref": "#/components/schemas/GridPos"
-				}
-				"links": {
-					"description": "Panel links.\nTODO fill this out - seems there are a couple variants?", "type": "array", "items": {
-							"$ref":                                                                          "#/components/schemas/DashboardLink"
-					}
-				}
-				"repeat": {
-					"description": "Name of template variable to repeat for.", "type": "string"
-				}
-				"repeatDirection": {
-					"description": "Direction to repeat in if 'repeat' is set.\n\"h\" for horizontal, \"v\" for vertical.", "type": "string", "enum": ["h", "v"]
-					"default": "h"
-				}
-				"maxDataPoints": {
-					"description": "TODO docs", "type": "number"
-				}
-				"thresholds": {
-					"description": "TODO docs - seems to be an old field from old dashboard alerts?", "type": "array", "items": {}
-				}
-				"timeRegions": {
-					"description": "TODO docs", "type": "array", "items": {}
-				}
-				"transformations": {
-					"type": "array", "items": {
-						"$ref": "#/components/schemas/Transformation"
-					}
-				}
-				"interval": {
-					"description": "TODO docs\nTODO tighter constraint", "type": "string"
-				}
-				"timeFrom": {
-					"description": "TODO docs\nTODO tighter constraint", "type": "string"
-				}
-				"timeShift": {
-					"description": "TODO docs\nTODO tighter constraint", "type": "string"
-				}
-				"options": {
-					"description": "options is specified by the PanelOptions field in panel\nplugin schemas.", "type": "object"
-				}
-				"fieldConfig": {
-					"$ref": "#/components/schemas/FieldConfigSource"
-				}
-			}
-		}
-		"RangeMap": {
-			"description": "TODO docs", "type": "object", "properties": {
-					"type": {
-						"type": "string", "enum": ["range"]
-				}
-				"options": {
-					"type": "object", "required": ["from", "to", "result"]
-					"properties": {
-						"from": {
-							"description": "to and from are `number | null` in current ts, really not sure what to do", "type": "number", "format": "double"
-						}
-						"to": {
-							"type": "number", "format": "double"
-						}
-						"result": {
-							"$ref": "#/components/schemas/ValueMappingResult"
-						}
-					}
-				}
-			}
-			"allOf": [{
-				"$ref": "#/components/schemas/BaseValueMapping"
-			}, {
-				"required": ["type", "options"]
-			}]
-		}
-		"RegexMap": {
-			"description": "TODO docs", "type": "object", "properties": {
-					"type": {
-						"type": "string", "enum": ["regex"]
-				}
-				"options": {
-					"type": "object", "required": ["pattern", "result"]
-					"properties": {
-						"pattern": {
-							"type": "string"
-						}
-						"result": {
-							"$ref": "#/components/schemas/ValueMappingResult"
-						}
-					}
-				}
-			}
-			"allOf": [{
-				"$ref": "#/components/schemas/BaseValueMapping"
-			}, {
-				"required": ["type", "options"]
-			}]
-		}
-		"RowPanel": {
-			"description": "Row panel", "type": "object", "required": ["type", "collapsed", "id", "panels"]
-			"properties": {
-				"type": {
-					"type": "string", "enum": ["row"]
-				}
-				"collapsed": {
-					"type": "boolean", "default": false
-				}
-				"title": {
-					"type": "string"
-				}
-				"datasource": {
-					"description": "Name of default datasource.", "type": "object", "properties": {
-							"type": {
-								"type": "string"
-							}
-						"uid": {
-							"type": "string"
-						}
-					}
-				}
-				"gridPos": {
-					"$ref": "#/components/schemas/GridPos"
-				}
-				"id": {
-					"type": "integer", "minimum": 0, "maximum": 4294967295
-				}
-				"panels": {
-					"type": "array", "items": {
-						"type": "object", "oneOf": [{
-							"$ref": "#/components/schemas/Panel"
-						}, {
-							"$ref": "#/components/schemas/GraphPanel"
-						}, {
-							"$ref": "#/components/schemas/HeatmapPanel"
-						}]
-					}
-				}
-				"repeat": {
-					"description": "Name of template variable to repeat for.", "type": "string"
-				}
-			}
-		}
-		"SpecialValueMap": {
-			"description": "TODO docs", "type": "object", "properties": {
-					"type": {
-						"type": "string", "enum": ["special"]
-				}
-				"options": {
-					"type": "object", "required": ["match", "pattern", "result"]
-					"properties": {
-						"match": {
-							"type": "string", "enum": ["true", "false"]
-						}
-						"pattern": {
-							"type": "string"
-						}
-						"result": {
-							"$ref": "#/components/schemas/ValueMappingResult"
-						}
-					}
-				}
-			}
-			"allOf": [{
-				"$ref": "#/components/schemas/BaseValueMapping"
-			}, {
-				"required": ["type", "options"]
-			}]
-		}
-		"SpecialValueMatch": {
-			"description": "TODO docs", "type": "string", "enum": ["true", "false", "null", "nan", "null+nan", "empty"]
-		}
-		"Target": {
-			"description": "Schema for panel targets is specified by datasource\nplugins. We use a placeholder definition, which the Go\nschema loader either left open/as-is with the Base\nvariant of the Dashboard and Panel families, or filled\nwith types derived from plugins in the Instance variant.\nWhen working directly from CUE, importers can extend this\ntype directly to achieve the same effect.", "type": "object"
-		}
-		"Threshold": {
-			"description": "TODO docs", "type": "object", "required": ["color"]
-			"properties": {
-				"value": {
-					"description": "TODO docs\nFIXME the corresponding typescript field is required/non-optional, but nulls currently appear here when serializing -Infinity to JSON", "type": "number"
-				}
-				"color": {
-					"description": "TODO docs", "type": "string"
-				}
-				"state": {
-					"description": "TODO docs\nTODO are the values here enumerable into a disjunction?\nSome seem to be listed in typescript comment", "type": "string"
-				}
-			}
-		}
-		"ThresholdsConfig": {
-			"type": "object", "required": ["mode", "steps"]
-			"properties": {
-				"mode": {
-					"$ref": "#/components/schemas/ThresholdsMode"
-				}
-				"steps": {
-					"description": "Must be sorted by 'value', first value is always -Infinity", "type": "array", "items": {
-							"$ref":                                                               "#/components/schemas/Threshold"
-					}
-				}
-			}
-		}
-		"ThresholdsMode": {
-			"type": "string", "enum": ["absolute", "percentage"]
-		}
-		"Transformation": {
-			"description": "TODO docs\nFIXME this is extremely underspecfied; wasn't obvious which typescript types corresponded to it", "type": "object", "required": ["id", "options"]
-			"properties": {
-				"id": {
-					"type": "string"
-				}
-				"options": {
-					"type": "object"
-				}
-			}
-		}
-		"ValueMap": {
-			"description": "TODO docs", "type": "object", "properties": {
-					"type": {
-						"type": "string", "enum": ["value"]
-				}
-				"options": {
-					"type": "object", "additionalProperties": {
-						"$ref": "#/components/schemas/ValueMappingResult"
-					}
-				}
-			}
-			"allOf": [{
-				"$ref": "#/components/schemas/BaseValueMapping"
-			}, {
-				"required": ["type", "options"]
-			}]
-		}
-		"ValueMapping": {
-			"description": "TODO docs", "type": "object", "oneOf": [{
-					"$ref":              "#/components/schemas/ValueMap"
-			}, {
-				"$ref": "#/components/schemas/RangeMap"
-			}, {
-				"$ref": "#/components/schemas/RegexMap"
-			}, {
-				"$ref": "#/components/schemas/SpecialValueMap"
-			}]
-		}
-		"ValueMappingResult": {
-			"description": "TODO docs", "type": "object", "properties": {
-					"text": {
-						"type": "string"
-					}
-				"color": {
-					"type": "string"
-				}
-				"icon": {
-					"type": "string"
-				}
-				"index": {
-					"type": "integer", "format": "int32"
-				}
-			}
-		}
-		"VariableModel": {
-			"description": "FROM: packages/grafana-data/src/types/templateVars.ts\nTODO docs\nTODO what about what's in public/app/features/types.ts?\nTODO there appear to be a lot of different kinds of [template] vars here? if so need a disjunction", "type": "object", "required": ["type", "name"]
-			"properties": {
-				"type": {
-					"$ref": "#/components/schemas/VariableType"
-				}
-				"name": {
-					"type": "string"
-				}
-				"label": {
-					"type": "string"
-				}
-			}
-		}
-		"VariableType": {
-			"description": "FROM: packages/grafana-data/src/types/templateVars.ts\nTODO docs\nTODO this implies some wider pattern/discriminated union, probably?", "type": "string", "enum": ["query", "adhoc", "constant", "datasource", "interval", "textbox", "custom", "system"]
-		}
-		"dashboard": {
-			"type": "object", "required": ["style", "editable", "graphTooltip", "schemaVersion"]
-			"properties": {
-				"id": {
-					"description": "Unique numeric identifier for the dashboard.\nTODO must isolate or remove identifiers local to a Grafana instance...?", "type": "integer", "format": "int64"
-				}
-				"uid": {
-					"description": "Unique dashboard identifier that can be generated by anyone. string (8-40)", "type": "string"
-				}
-				"title": {
-					"description": "Title of dashboard.", "type": "string"
-				}
-				"description": {
-					"description": "Description of dashboard.", "type": "string"
-				}
-				"gnetId": {
-					"type": "string"
-				}
-				"tags": {
-					"description": "Tags associated with dashboard.", "type": "array", "items": {
-							"type":                                    "string"
-					}
-				}
-				"style": {
-					"description": "Theme of dashboard.", "type": "string", "enum": ["dark", "light"]
-					"default": "dark"
-				}
-				"timezone": {
-					"description": "Timezone of dashboard,", "type": "string", "enum": ["browser", "utc", ""]
-					"default": "browser"
-				}
-				"editable": {
-					"description": "Whether a dashboard is editable or not.", "type": "boolean", "default": true
-				}
-				"graphTooltip": {
-					"$ref": "#/components/schemas/DashboardCursorSync"
-				}
-				"time": {
-					"description": "Time range for dashboard, e.g. last 6 hours, last 7 days, etc", "type": "object", "required": ["from", "to"]
-					"properties": {
-						"from": {
-							"type": "string", "default": "now-6h"
-						}
-						"to": {
-							"type": "string", "default": "now"
-						}
-					}
-				}
-				"timepicker": {
-					"description": "TODO docs\nTODO this appears to be spread all over in the frontend. Concepts will likely need tidying in tandem with schema changes", "type": "object", "required": ["collapse", "enable", "hidden", "refresh_intervals", "time_options"]
-					"properties": {
-						"collapse": {
-							"description": "Whether timepicker is collapsed or not.", "type": "boolean", "default": false
-						}
-						"enable": {
-							"description": "Whether timepicker is enabled or not.", "type": "boolean", "default": true
-						}
-						"hidden": {
-							"description": "Whether timepicker is visible or not.", "type": "boolean", "default": false
-						}
-						"refresh_intervals": {
-							"description": "Selectable intervals for auto-refresh.", "type": "array", "items": {
-									"type":                                           "string"
-							}
-							"default": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "1d"]
-						}
-						"time_options": {
-							"description": "TODO docs", "type": "array", "items": {
-									"type":              "string"
-							}
-							"default": ["5m", "15m", "1h", "6h", "12h", "24h", "2d", "7d", "30d"]
-						}
-					}
-				}
-				"fiscalYearStartMonth": {
-					"description": "TODO docs", "type": "integer", "minimum": 0, "maximum": 13, "exclusiveMaximum": true
-				}
-				"liveNow": {
-					"description": "TODO docs", "type": "boolean"
-				}
-				"weekStart": {
-					"description": "TODO docs", "type": "string"
-				}
-				"refresh": {
-					"description": "TODO docs", "oneOf": [{
-							"enum": [false]
-					}, {
-						"type": "string"
-					}]
-				}
-				"schemaVersion": {
-					"description": "Version of the JSON schema, incremented each time a Grafana update brings\nchanges to said schema.\nTODO this is the existing schema numbering system. It will be replaced by Thema's themaVersion", "type": "integer", "minimum": 0, "maximum": 65535, "default": 36
-				}
-				"version": {
-					"description": "Version of the dashboard, incremented each time the dashboard is updated.", "type": "integer", "minimum": 0, "maximum": 4294967295
-				}
-				"panels": {
-					"type": "array", "items": {
-						"type": "object", "oneOf": [{
-							"$ref": "#/components/schemas/Panel"
-						}, {
-							"$ref": "#/components/schemas/RowPanel"
-						}, {
-							"$ref": "#/components/schemas/GraphPanel"
-						}, {
-							"$ref": "#/components/schemas/HeatmapPanel"
-						}]
-					}
-				}
-				"templating": {
-					"description": "TODO docs", "type": "object", "required": ["list"]
-					"properties": {
-						"list": {
-							"type": "array", "items": {
-								"$ref": "#/components/schemas/VariableModel"
-							}
-						}
-					}
-				}
-				"annotations": {
-					"description": "TODO docs", "type": "object", "required": ["list"]
-					"properties": {
-						"list": {
-							"type": "array", "items": {
-								"$ref": "#/components/schemas/AnnotationQuery"
-							}
-						}
-					}
-				}
-				"links": {
-					"description": "TODO docs", "type": "array", "items": {
-							"$ref":              "#/components/schemas/DashboardLink"
-					}
-				}
-			}
-		}
-	}
-}
+-- in.cue --
+package generate
 
--- out/generate/0.0/nil --
-"openapi": "3.0.0"
-"info": {
-	"title":   "dashboard"
-	"version": "0.0"
-}
-"paths": {}
-"components": {
-	"schemas": {
-		"AnnotationQuery": {
-			"description": "TODO docs\nFROM: AnnotationQuery in grafana-data/src/types/annotations.ts", "type": "object", "required": ["datasource", "enable", "builtIn", "type", "showIn"]
-			"properties": {
-				"datasource": {
-					"description": "Datasource to use for annotation.", "type": "object", "properties": {
-							"type": {
-								"type": "string"
-							}
-						"uid": {
-							"type": "string"
-						}
-					}
-				}
-				"enable": {
-					"description": "Whether annotation is enabled.", "type": "boolean", "default": true
-				}
-				"name": {
-					"description": "Name of annotation.", "type": "string"
-				}
-				"builtIn": {
-					"type": "integer", "minimum": 0, "maximum": 255, "default": 0
-				}
-				"hide": {
-					"description": "Whether to hide annotation.", "type": "boolean", "default": false
-				}
-				"iconColor": {
-					"description": "Annotation icon color.", "type": "string"
-				}
-				"type": {
-					"type": "string", "default": "dashboard"
-				}
-				"rawQuery": {
-					"description": "Query for annotation data.", "type": "string"
-				}
-				"showIn": {
-					"type": "integer", "minimum": 0, "maximum": 255, "default": 0
-				}
-				"target": {
-					"$ref": "#/components/schemas/AnnotationTarget"
-				}
-			}
-		}
-		"AnnotationTarget": {
-			"description": "TODO docs", "type": "object", "required": ["limit", "matchAny", "tags", "type"]
-			"properties": {
-				"limit": {
-					"type": "integer", "format": "int64"
-				}
-				"matchAny": {
-					"type": "boolean"
-				}
-				"tags": {
-					"type": "array", "items": {
-						"type": "string"
-					}
-				}
-				"type": {
-					"type": "string"
-				}
-			}
-		}
-		"BaseValueMapping": {
-			"description": "TODO docs", "type": "object", "required": ["type", "options"]
-			"properties": {
-				"type": {
-					"$ref": "#/components/schemas/MappingType"
-				}
-				"options": {}
-			}
-		}
-		"DashboardCursorSync": {
-			"description": "0 for no shared crosshair or tooltip (default).\n1 for shared crosshair.\n2 for shared crosshair AND shared tooltip.", "type": "integer", "enum": [0, 1, 2]
-			"default": 0
-		}
-		"DashboardLink": {
-			"description": "FROM public/app/features/dashboard/state/DashboardModels.ts - ish\nTODO docs", "type": "object", "required": ["title", "type", "tags", "asDropdown", "targetBlank", "includeVars", "keepTime"]
-			"properties": {
-				"title": {
-					"type": "string"
-				}
-				"type": {
-					"$ref": "#/components/schemas/DashboardLinkType"
-				}
-				"icon": {
-					"type": "string"
-				}
-				"tooltip": {
-					"type": "string"
-				}
-				"url": {
-					"type": "string"
-				}
-				"tags": {
-					"type": "array", "items": {
-						"type": "string"
-					}
-				}
-				"asDropdown": {
-					"type": "boolean", "default": false
-				}
-				"targetBlank": {
-					"type": "boolean", "default": false
-				}
-				"includeVars": {
-					"type": "boolean", "default": false
-				}
-				"keepTime": {
-					"type": "boolean", "default": false
-				}
-			}
-		}
-		"DashboardLinkType": {
-			"description": "TODO docs", "type": "string", "enum": ["link", "dashboards"]
-		}
-		"DynamicConfigValue": {
-			"type": "object", "required": ["id"]
-			"properties": {
-				"id": {
-					"type": "string", "default": ""
-				}
-				"value": {}
-			}
-		}
-		"FieldColor": {
-			"description": "TODO docs", "type": "object", "required": ["mode"]
-			"properties": {
-				"mode": {
-					"description": "The main color scheme mode", "type": "string", "oneOf": [{
-							"enum": ["thresholds", "palette-classic", "palette-saturated", "continuous-GrYlRd", "fixed"]
-					}, {}]
-				}
-				"fixedColor": {
-					"description": "Stores the fixed color value if mode is fixed", "type": "string"
-				}
-				"seriesBy": {
-					"$ref": "#/components/schemas/FieldColorSeriesByMode"
-				}
-			}
-		}
-		"FieldColorModeId": {
-			"description": "TODO docs", "type": "string", "enum": ["thresholds", "palette-classic", "palette-saturated", "continuous-GrYlRd", "fixed"]
-		}
-		"FieldColorSeriesByMode": {
-			"description": "TODO docs", "type": "string", "enum": ["min", "max", "last"]
-		}
-		"FieldConfig": {
-			"type": "object", "properties": {
-				"displayName": {
-					"description": "The display value for this field.  This supports template variables blank is auto", "type": "string"
-				}
-				"displayNameFromDS": {
-					"description": "This can be used by data sources that return and explicit naming structure for values and labels\nWhen this property is configured, this value is used rather than the default naming strategy.", "type": "string"
-				}
-				"description": {
-					"description": "Human readable field metadata", "type": "string"
-				}
-				"path": {
-					"description": "An explicit path to the field in the datasource.  When the frame meta includes a path,\nThis will default to `${frame.meta.path}/${field.name}\n\nWhen defined, this value can be used as an identifier within the datasource scope, and\nmay be used to update the results", "type": "string"
-				}
-				"writeable": {
-					"description": "True if data source can write a value to the path.  Auth/authz are supported separately", "type": "boolean"
-				}
-				"filterable": {
-					"description": "True if data source field supports ad-hoc filters", "type": "boolean"
-				}
-				"unit": {
-					"description": "Numeric Options", "type": "string"
-				}
-				"decimals": {
-					"description": "Significant digits (for display)", "type": "number"
-				}
-				"min": {
-					"type": "number"
-				}
-				"max": {
-					"type": "number"
-				}
-				"mappings": {
-					"description": "Convert input values into a display string", "type": "array", "items": {
-							"$ref":                                               "#/components/schemas/ValueMapping"
-					}
-				}
-				"thresholds": {
-					"$ref": "#/components/schemas/ThresholdsConfig"
-				}
-				"color": {
-					"$ref": "#/components/schemas/FieldColor"
-				}
-				"links": {
-					"description": "The behavior when clicking on a result", "type": "array", "items": {}
-				}
-				"noValue": {
-					"description": "Alternative to empty string", "type": "string"
-				}
-				"custom": {
-					"description": "custom is specified by the PanelFieldConfig field\nin panel plugin schemas.", "type": "object"
-				}
-			}
-		}
-		"FieldConfigSource": {
-			"type": "object", "required": ["defaults", "overrides"]
-			"properties": {
-				"defaults": {
-					"$ref": "#/components/schemas/FieldConfig"
-				}
-				"overrides": {
-					"type": "array", "items": {
-						"type": "object", "required": ["matcher", "properties"]
-						"properties": {
-							"matcher": {
-								"$ref": "#/components/schemas/MatcherConfig"
-							}
-							"properties": {
-								"type": "array", "items": {
-									"$ref": "#/components/schemas/DynamicConfigValue"
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-		"GraphPanel": {
-			"description": "Support for legacy graph and heatmap panels.", "type": "object", "required": ["type"]
-			"properties": {
-				"type": {
-					"type": "string", "enum": ["graph"]
-				}
-			}
-		}
-		"GridPos": {
-			"type": "object", "required": ["h", "w", "x", "y"]
-			"properties": {
-				"h": {
-					"description": "Panel", "type": "integer", "minimum": 0, "exclusiveMinimum": true, "maximum": 4294967295, "default": 9
-				}
-				"w": {
-					"description": "Panel", "type": "integer", "minimum": 0, "exclusiveMinimum": true, "maximum": 24, "default": 12
-				}
-				"x": {
-					"description": "Panel x", "type": "integer", "minimum": 0, "maximum": 24, "exclusiveMaximum": true, "default": 0
-				}
-				"y": {
-					"description": "Panel y", "type": "integer", "minimum": 0, "maximum": 4294967295, "default": 0
-				}
-				"static": {
-					"description": "true if fixed", "type": "boolean"
-				}
-			}
-		}
-		"HeatmapPanel": {
-			"type": "object", "required": ["type"]
-			"properties": {
-				"type": {
-					"type": "string", "enum": ["heatmap"]
-				}
-			}
-		}
-		"MappingType": {
-			"description": "TODO docs", "type": "string", "enum": ["value", "range", "regex", "special"]
-		}
-		"MatcherConfig": {
-			"type": "object", "required": ["id"]
-			"properties": {
-				"id": {
-					"type": "string", "default": ""
-				}
-				"options": {}
-			}
-		}
-		"Panel": {
-			"description": "Dashboard panels. Panels are canonically defined inline\nbecause they share a version timeline with the dashboard\nschema; they do not evolve independently.", "type": "object", "required": ["type", "transparent", "repeatDirection", "transformations", "options", "fieldConfig"]
-			"properties": {
-				"type": {
-					"description": "The panel plugin type id. May not be empty.", "type": "string", "minLength": 1
-				}
-				"id": {
-					"description": "TODO docs", "type": "integer", "minimum": 0, "maximum": 4294967295
-				}
-				"pluginVersion": {
-					"description": "FIXME this almost certainly has to be changed in favor of scuemata versions", "type": "string"
-				}
-				"tags": {
-					"description": "TODO docs", "type": "array", "items": {
-							"type":              "string"
-					}
-				}
-				"targets": {
-					"description": "TODO docs", "type": "array", "items": {
-							"$ref":              "#/components/schemas/Target"
-					}
-				}
-				"title": {
-					"description": "Panel title.", "type": "string"
-				}
-				"description": {
-					"description": "Description.", "type": "string"
-				}
-				"transparent": {
-					"description": "Whether to display the panel without a background.", "type": "boolean", "default": false
-				}
-				"datasource": {
-					"description": "The datasource used in all targets.", "type": "object", "properties": {
-							"type": {
-								"type": "string"
-							}
-						"uid": {
-							"type": "string"
-						}
-					}
-				}
-				"gridPos": {
-					"$ref": "#/components/schemas/GridPos"
-				}
-				"links": {
-					"description": "Panel links.\nTODO fill this out - seems there are a couple variants?", "type": "array", "items": {
-							"$ref":                                                                          "#/components/schemas/DashboardLink"
-					}
-				}
-				"repeat": {
-					"description": "Name of template variable to repeat for.", "type": "string"
-				}
-				"repeatDirection": {
-					"description": "Direction to repeat in if 'repeat' is set.\n\"h\" for horizontal, \"v\" for vertical.", "type": "string", "enum": ["h", "v"]
-					"default": "h"
-				}
-				"maxDataPoints": {
-					"description": "TODO docs", "type": "number"
-				}
-				"thresholds": {
-					"description": "TODO docs - seems to be an old field from old dashboard alerts?", "type": "array", "items": {}
-				}
-				"timeRegions": {
-					"description": "TODO docs", "type": "array", "items": {}
-				}
-				"transformations": {
-					"type": "array", "items": {
-						"$ref": "#/components/schemas/Transformation"
-					}
-				}
-				"interval": {
-					"description": "TODO docs\nTODO tighter constraint", "type": "string"
-				}
-				"timeFrom": {
-					"description": "TODO docs\nTODO tighter constraint", "type": "string"
-				}
-				"timeShift": {
-					"description": "TODO docs\nTODO tighter constraint", "type": "string"
-				}
-				"options": {
-					"description": "options is specified by the PanelOptions field in panel\nplugin schemas.", "type": "object"
-				}
-				"fieldConfig": {
-					"$ref": "#/components/schemas/FieldConfigSource"
-				}
-			}
-		}
-		"RangeMap": {
-			"description": "TODO docs", "type": "object", "properties": {
-					"type": {
-						"type": "string", "enum": ["range"]
-				}
-				"options": {
-					"type": "object", "required": ["from", "to", "result"]
-					"properties": {
-						"from": {
-							"description": "to and from are `number | null` in current ts, really not sure what to do", "type": "number", "format": "double"
-						}
-						"to": {
-							"type": "number", "format": "double"
-						}
-						"result": {
-							"$ref": "#/components/schemas/ValueMappingResult"
-						}
-					}
-				}
-			}
-			"allOf": [{
-				"$ref": "#/components/schemas/BaseValueMapping"
-			}, {
-				"required": ["type", "options"]
-			}]
-		}
-		"RegexMap": {
-			"description": "TODO docs", "type": "object", "properties": {
-					"type": {
-						"type": "string", "enum": ["regex"]
-				}
-				"options": {
-					"type": "object", "required": ["pattern", "result"]
-					"properties": {
-						"pattern": {
-							"type": "string"
-						}
-						"result": {
-							"$ref": "#/components/schemas/ValueMappingResult"
-						}
-					}
-				}
-			}
-			"allOf": [{
-				"$ref": "#/components/schemas/BaseValueMapping"
-			}, {
-				"required": ["type", "options"]
-			}]
-		}
-		"RowPanel": {
-			"description": "Row panel", "type": "object", "required": ["type", "collapsed", "id", "panels"]
-			"properties": {
-				"type": {
-					"type": "string", "enum": ["row"]
-				}
-				"collapsed": {
-					"type": "boolean", "default": false
-				}
-				"title": {
-					"type": "string"
-				}
-				"datasource": {
-					"description": "Name of default datasource.", "type": "object", "properties": {
-							"type": {
-								"type": "string"
-							}
-						"uid": {
-							"type": "string"
-						}
-					}
-				}
-				"gridPos": {
-					"$ref": "#/components/schemas/GridPos"
-				}
-				"id": {
-					"type": "integer", "minimum": 0, "maximum": 4294967295
-				}
-				"panels": {
-					"type": "array", "items": {
-						"type": "object", "oneOf": [{
-							"$ref": "#/components/schemas/Panel"
-						}, {
-							"$ref": "#/components/schemas/GraphPanel"
-						}, {
-							"$ref": "#/components/schemas/HeatmapPanel"
-						}]
-					}
-				}
-				"repeat": {
-					"description": "Name of template variable to repeat for.", "type": "string"
-				}
-			}
-		}
-		"SpecialValueMap": {
-			"description": "TODO docs", "type": "object", "properties": {
-					"type": {
-						"type": "string", "enum": ["special"]
-				}
-				"options": {
-					"type": "object", "required": ["match", "pattern", "result"]
-					"properties": {
-						"match": {
-							"type": "string", "enum": ["true", "false"]
-						}
-						"pattern": {
-							"type": "string"
-						}
-						"result": {
-							"$ref": "#/components/schemas/ValueMappingResult"
-						}
-					}
-				}
-			}
-			"allOf": [{
-				"$ref": "#/components/schemas/BaseValueMapping"
-			}, {
-				"required": ["type", "options"]
-			}]
-		}
-		"SpecialValueMatch": {
-			"description": "TODO docs", "type": "string", "enum": ["true", "false", "null", "nan", "null+nan", "empty"]
-		}
-		"Target": {
-			"description": "Schema for panel targets is specified by datasource\nplugins. We use a placeholder definition, which the Go\nschema loader either left open/as-is with the Base\nvariant of the Dashboard and Panel families, or filled\nwith types derived from plugins in the Instance variant.\nWhen working directly from CUE, importers can extend this\ntype directly to achieve the same effect.", "type": "object"
-		}
-		"Threshold": {
-			"description": "TODO docs", "type": "object", "required": ["color"]
-			"properties": {
-				"value": {
-					"description": "TODO docs\nFIXME the corresponding typescript field is required/non-optional, but nulls currently appear here when serializing -Infinity to JSON", "type": "number"
-				}
-				"color": {
-					"description": "TODO docs", "type": "string"
-				}
-				"state": {
-					"description": "TODO docs\nTODO are the values here enumerable into a disjunction?\nSome seem to be listed in typescript comment", "type": "string"
-				}
-			}
-		}
-		"ThresholdsConfig": {
-			"type": "object", "required": ["mode", "steps"]
-			"properties": {
-				"mode": {
-					"$ref": "#/components/schemas/ThresholdsMode"
-				}
-				"steps": {
-					"description": "Must be sorted by 'value', first value is always -Infinity", "type": "array", "items": {
-							"$ref":                                                               "#/components/schemas/Threshold"
-					}
-				}
-			}
-		}
-		"ThresholdsMode": {
-			"type": "string", "enum": ["absolute", "percentage"]
-		}
-		"Transformation": {
-			"description": "TODO docs\nFIXME this is extremely underspecfied; wasn't obvious which typescript types corresponded to it", "type": "object", "required": ["id", "options"]
-			"properties": {
-				"id": {
-					"type": "string"
-				}
-				"options": {
-					"type": "object"
-				}
-			}
-		}
-		"ValueMap": {
-			"description": "TODO docs", "type": "object", "properties": {
-					"type": {
-						"type": "string", "enum": ["value"]
-				}
-				"options": {
-					"type": "object", "additionalProperties": {
-						"$ref": "#/components/schemas/ValueMappingResult"
-					}
-				}
-			}
-			"allOf": [{
-				"$ref": "#/components/schemas/BaseValueMapping"
-			}, {
-				"required": ["type", "options"]
-			}]
-		}
-		"ValueMapping": {
-			"description": "TODO docs", "type": "object", "oneOf": [{
-					"$ref":              "#/components/schemas/ValueMap"
-			}, {
-				"$ref": "#/components/schemas/RangeMap"
-			}, {
-				"$ref": "#/components/schemas/RegexMap"
-			}, {
-				"$ref": "#/components/schemas/SpecialValueMap"
-			}]
-		}
-		"ValueMappingResult": {
-			"description": "TODO docs", "type": "object", "properties": {
-					"text": {
-						"type": "string"
-					}
-				"color": {
-					"type": "string"
-				}
-				"icon": {
-					"type": "string"
-				}
-				"index": {
-					"type": "integer", "format": "int32"
-				}
-			}
-		}
-		"VariableModel": {
-			"description": "FROM: packages/grafana-data/src/types/templateVars.ts\nTODO docs\nTODO what about what's in public/app/features/types.ts?\nTODO there appear to be a lot of different kinds of [template] vars here? if so need a disjunction", "type": "object", "required": ["type", "name"]
-			"properties": {
-				"type": {
-					"$ref": "#/components/schemas/VariableType"
-				}
-				"name": {
-					"type": "string"
-				}
-				"label": {
-					"type": "string"
-				}
-			}
-		}
-		"VariableType": {
-			"description": "FROM: packages/grafana-data/src/types/templateVars.ts\nTODO docs\nTODO this implies some wider pattern/discriminated union, probably?", "type": "string", "enum": ["query", "adhoc", "constant", "datasource", "interval", "textbox", "custom", "system"]
-		}
-		"dashboard": {
-			"type": "object", "required": ["style", "editable", "graphTooltip", "schemaVersion"]
-			"properties": {
-				"id": {
-					"description": "Unique numeric identifier for the dashboard.\nTODO must isolate or remove identifiers local to a Grafana instance...?", "type": "integer", "format": "int64"
-				}
-				"uid": {
-					"description": "Unique dashboard identifier that can be generated by anyone. string (8-40)", "type": "string"
-				}
-				"title": {
-					"description": "Title of dashboard.", "type": "string"
-				}
-				"description": {
-					"description": "Description of dashboard.", "type": "string"
-				}
-				"gnetId": {
-					"type": "string"
-				}
-				"tags": {
-					"description": "Tags associated with dashboard.", "type": "array", "items": {
-							"type":                                    "string"
-					}
-				}
-				"style": {
-					"description": "Theme of dashboard.", "type": "string", "enum": ["dark", "light"]
-					"default": "dark"
-				}
-				"timezone": {
-					"description": "Timezone of dashboard,", "type": "string", "enum": ["browser", "utc", ""]
-					"default": "browser"
-				}
-				"editable": {
-					"description": "Whether a dashboard is editable or not.", "type": "boolean", "default": true
-				}
-				"graphTooltip": {
-					"$ref": "#/components/schemas/DashboardCursorSync"
-				}
-				"time": {
-					"description": "Time range for dashboard, e.g. last 6 hours, last 7 days, etc", "type": "object", "required": ["from", "to"]
-					"properties": {
-						"from": {
-							"type": "string", "default": "now-6h"
-						}
-						"to": {
-							"type": "string", "default": "now"
-						}
-					}
-				}
-				"timepicker": {
-					"description": "TODO docs\nTODO this appears to be spread all over in the frontend. Concepts will likely need tidying in tandem with schema changes", "type": "object", "required": ["collapse", "enable", "hidden", "refresh_intervals", "time_options"]
-					"properties": {
-						"collapse": {
-							"description": "Whether timepicker is collapsed or not.", "type": "boolean", "default": false
-						}
-						"enable": {
-							"description": "Whether timepicker is enabled or not.", "type": "boolean", "default": true
-						}
-						"hidden": {
-							"description": "Whether timepicker is visible or not.", "type": "boolean", "default": false
-						}
-						"refresh_intervals": {
-							"description": "Selectable intervals for auto-refresh.", "type": "array", "items": {
-									"type":                                           "string"
-							}
-							"default": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "1d"]
-						}
-						"time_options": {
-							"description": "TODO docs", "type": "array", "items": {
-									"type":              "string"
-							}
-							"default": ["5m", "15m", "1h", "6h", "12h", "24h", "2d", "7d", "30d"]
-						}
-					}
-				}
-				"fiscalYearStartMonth": {
-					"description": "TODO docs", "type": "integer", "minimum": 0, "maximum": 13, "exclusiveMaximum": true
-				}
-				"liveNow": {
-					"description": "TODO docs", "type": "boolean"
-				}
-				"weekStart": {
-					"description": "TODO docs", "type": "string"
-				}
-				"refresh": {
-					"description": "TODO docs", "oneOf": [{
-							"enum": [false]
-					}, {
-						"type": "string"
-					}]
-				}
-				"schemaVersion": {
-					"description": "Version of the JSON schema, incremented each time a Grafana update brings\nchanges to said schema.\nTODO this is the existing schema numbering system. It will be replaced by Thema's themaVersion", "type": "integer", "minimum": 0, "maximum": 65535, "default": 36
-				}
-				"version": {
-					"description": "Version of the dashboard, incremented each time the dashboard is updated.", "type": "integer", "minimum": 0, "maximum": 4294967295
-				}
-				"panels": {
-					"type": "array", "items": {
-						"type": "object", "oneOf": [{
-							"$ref": "#/components/schemas/Panel"
-						}, {
-							"$ref": "#/components/schemas/RowPanel"
-						}, {
-							"$ref": "#/components/schemas/GraphPanel"
-						}, {
-							"$ref": "#/components/schemas/HeatmapPanel"
-						}]
-					}
-				}
-				"templating": {
-					"description": "TODO docs", "type": "object", "required": ["list"]
-					"properties": {
-						"list": {
-							"type": "array", "items": {
-								"$ref": "#/components/schemas/VariableModel"
-							}
-						}
-					}
-				}
-				"annotations": {
-					"description": "TODO docs", "type": "object", "required": ["list"]
-					"properties": {
-						"list": {
-							"type": "array", "items": {
-								"$ref": "#/components/schemas/AnnotationQuery"
-							}
-						}
-					}
-				}
-				"links": {
-					"description": "TODO docs", "type": "array", "items": {
-							"$ref":              "#/components/schemas/DashboardLink"
-					}
-				}
-			}
-		}
-	}
-}
+import (
+    "strings"
+    "github.com/grafana/thema"
+)
 
+thema.#Lineage
+
+name: "dashboard"
+seqs: [
+	{
+		schemas: [
+			{// 0.0
+				@grafana(TSVeneer="type")
+
+				// Unique numeric identifier for the dashboard.
+				// TODO must isolate or remove identifiers local to a Grafana instance...?
+				id?: int64
+				// Unique dashboard identifier that can be generated by anyone. string (8-40)
+				uid?: string
+				// Title of dashboard.
+				title?: string
+				// Description of dashboard.
+				description?: string
+
+				gnetId?: string @grafanamaturity(NeedsExpertReview)
+				// Tags associated with dashboard.
+				tags?: [...string] @grafanamaturity(NeedsExpertReview)
+				// Theme of dashboard.
+				style: "light" | *"dark" @grafanamaturity(NeedsExpertReview)
+				// Timezone of dashboard,
+				timezone?: *"browser" | "utc" | "" @grafanamaturity(NeedsExpertReview)
+				// Whether a dashboard is editable or not.
+				editable:     bool | *true
+				graphTooltip: #DashboardCursorSync @grafanamaturity(NeedsExpertReview)
+				// Time range for dashboard, e.g. last 6 hours, last 7 days, etc
+				time?: {
+					from: string | *"now-6h"
+					to:   string | *"now"
+				} @grafanamaturity(NeedsExpertReview)
+
+				// TODO docs
+				// TODO this appears to be spread all over in the frontend. Concepts will likely need tidying in tandem with schema changes
+				timepicker?: {
+					// Whether timepicker is collapsed or not.
+					collapse: bool | *false
+					// Whether timepicker is enabled or not.
+					enable: bool | *true
+					// Whether timepicker is visible or not.
+					hidden: bool | *false
+					// Selectable intervals for auto-refresh.
+					refresh_intervals: [...string] | *["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "1d"]
+					// TODO docs
+					time_options: [...string] | *["5m", "15m", "1h", "6h", "12h", "24h", "2d", "7d", "30d"]
+				} @grafanamaturity(NeedsExpertReview)
+				// TODO docs
+				fiscalYearStartMonth?: uint8 & <13 @grafanamaturity(NeedsExpertReview)
+				// TODO docs
+				liveNow?: bool @grafanamaturity(NeedsExpertReview)
+				// TODO docs
+				weekStart?: string @grafanamaturity(NeedsExpertReview)
+
+				// TODO docs
+				refresh?: string | false @grafanamaturity(NeedsExpertReview)
+				// Version of the JSON schema, incremented each time a Grafana update brings
+				// changes to said schema.
+				// TODO this is the existing schema numbering system. It will be replaced by Thema's themaVersion
+				schemaVersion: uint16 | *36
+				// Version of the dashboard, incremented each time the dashboard is updated.
+				version?: uint32 @grafanamaturity(NeedsExpertReview)
+				panels?: [...(#Panel | #RowPanel | #GraphPanel | #HeatmapPanel)] @grafanamaturity(NeedsExpertReview)
+				// TODO docs
+				templating?: {
+					list: [...#VariableModel] @grafanamaturity(NeedsExpertReview)
+				}
+				// TODO docs
+				annotations?: {
+					list: [...#AnnotationQuery] @grafanamaturity(NeedsExpertReview)
+				}
+				// TODO docs
+				links?: [...#DashboardLink] @grafanamaturity(NeedsExpertReview)
+
+				///////////////////////////////////////
+				// Definitions (referenced above) are declared below
+
+				// TODO docs
+				#AnnotationTarget: {
+					limit:    int64
+					matchAny: bool
+					tags: [...string]
+					type: string
+				} @cuetsy(kind="interface") @grafanamaturity(NeedsExpertReview)
+
+				// TODO docs
+				// FROM: AnnotationQuery in grafana-data/src/types/annotations.ts
+				#AnnotationQuery: {
+					// Datasource to use for annotation.
+					datasource: {
+						type?: string
+						uid?:  string
+					} @grafanamaturity(NeedsExpertReview)
+
+					// Whether annotation is enabled.
+					enable: bool | *true @grafanamaturity(NeedsExpertReview)
+					// Name of annotation.
+					name?:   string     @grafanamaturity(NeedsExpertReview)
+					builtIn: uint8 | *0 @grafanamaturity(NeedsExpertReview) // TODO should this be persisted at all?
+					// Whether to hide annotation.
+					hide?: bool | *false @grafanamaturity(NeedsExpertReview)
+					// Annotation icon color.
+					iconColor?: string                @grafanamaturity(NeedsExpertReview)
+					type:       string | *"dashboard" @grafanamaturity(NeedsExpertReview)
+					// Query for annotation data.
+					rawQuery?: string            @grafanamaturity(NeedsExpertReview)
+					showIn:    uint8 | *0        @grafanamaturity(NeedsExpertReview)
+					target?:   #AnnotationTarget @grafanamaturity(NeedsExpertReview)
+				} @cuetsy(kind="interface")
+
+				// FROM: packages/grafana-data/src/types/templateVars.ts
+				// TODO docs
+				// TODO what about what's in public/app/features/types.ts?
+				// TODO there appear to be a lot of different kinds of [template] vars here? if so need a disjunction
+				#VariableModel: {
+					type:   #VariableType
+					name:   string
+					label?: string
+					...
+				} @cuetsy(kind="interface") @grafanamaturity(NeedsExpertReview)
+
+				// FROM public/app/features/dashboard/state/DashboardModels.ts - ish
+				// TODO docs
+				#DashboardLink: {
+					title:    string             @grafanamaturity(NeedsExpertReview)
+					type:     #DashboardLinkType @grafanamaturity(NeedsExpertReview)
+					icon?:    string             @grafanamaturity(NeedsExpertReview)
+					tooltip?: string             @grafanamaturity(NeedsExpertReview)
+					url?:     string             @grafanamaturity(NeedsExpertReview)
+					tags: [...string] @grafanamaturity(NeedsExpertReview)
+					asDropdown:  bool | *false @grafanamaturity(NeedsExpertReview)
+					targetBlank: bool | *false @grafanamaturity(NeedsExpertReview)
+					includeVars: bool | *false @grafanamaturity(NeedsExpertReview)
+					keepTime:    bool | *false @grafanamaturity(NeedsExpertReview)
+				} @cuetsy(kind="interface")
+
+				// TODO docs
+				#DashboardLinkType: "link" | "dashboards" @cuetsy(kind="type") @grafanamaturity(NeedsExpertReview)
+
+				// FROM: packages/grafana-data/src/types/templateVars.ts
+				// TODO docs
+				// TODO this implies some wider pattern/discriminated union, probably?
+				#VariableType: "query" | "adhoc" | "constant" | "datasource" | "interval" | "textbox" | "custom" | "system" @cuetsy(kind="type") @grafanamaturity(NeedsExpertReview)
+
+				// TODO docs
+				#FieldColorModeId: "thresholds" | "palette-classic" | "palette-saturated" | "continuous-GrYlRd" | "fixed" @cuetsy(kind="enum",memberNames="Thresholds|PaletteClassic|PaletteSaturated|ContinuousGrYlRd|Fixed") @grafanamaturity(NeedsExpertReview)
+
+				// TODO docs
+				#FieldColorSeriesByMode: "min" | "max" | "last" @cuetsy(kind="type") @grafanamaturity(NeedsExpertReview)
+
+				// TODO docs
+				#FieldColor: {
+					// The main color scheme mode
+					mode: #FieldColorModeId | string
+					// Stores the fixed color value if mode is fixed
+					fixedColor?: string
+					// Some visualizations need to know how to assign a series color from by value color schemes
+					seriesBy?: #FieldColorSeriesByMode
+				} @cuetsy(kind="interface") @grafanamaturity(NeedsExpertReview)
+
+				#GridPos: {
+					// Panel
+					h: uint32 & >0 | *9 @grafanamaturity(NeedsExpertReview)
+					// Panel
+					w: uint32 & >0 & <=24 | *12 @grafanamaturity(NeedsExpertReview)
+					// Panel x
+					x: uint32 & >=0 & <24 | *0 @grafanamaturity(NeedsExpertReview)
+					// Panel y
+					y: uint32 & >=0 | *0 @grafanamaturity(NeedsExpertReview)
+					// true if fixed
+					static?: bool @grafanamaturity(NeedsExpertReview)
+				} @cuetsy(kind="interface")
+
+				// TODO docs
+				#Threshold: {
+					// TODO docs
+					// FIXME the corresponding typescript field is required/non-optional, but nulls currently appear here when serializing -Infinity to JSON
+					value?: number @grafanamaturity(NeedsExpertReview)
+					// TODO docs
+					color: string @grafanamaturity(NeedsExpertReview)
+					// TODO docs
+					// TODO are the values here enumerable into a disjunction?
+					// Some seem to be listed in typescript comment
+					state?: string @grafanamaturity(NeedsExpertReview)
+				} @cuetsy(kind="interface") @grafanamaturity(NeedsExpertReview)
+
+				#ThresholdsMode: "absolute" | "percentage" @cuetsy(kind="enum") @grafanamaturity(NeedsExpertReview)
+
+				#ThresholdsConfig: {
+					mode: #ThresholdsMode @grafanamaturity(NeedsExpertReview)
+
+					// Must be sorted by 'value', first value is always -Infinity
+					steps: [...#Threshold] @grafanamaturity(NeedsExpertReview)
+				} @cuetsy(kind="interface") @grafanamaturity(NeedsExpertReview)
+
+				// TODO docs
+				#ValueMapping: #ValueMap | #RangeMap | #RegexMap | #SpecialValueMap @cuetsy(kind="type") @grafanamaturity(NeedsExpertReview)
+
+				// TODO docs
+				#MappingType: "value" | "range" | "regex" | "special" @cuetsy(kind="enum",memberNames="ValueToText|RangeToText|RegexToText|SpecialValue") @grafanamaturity(NeedsExpertReview)
+
+				// TODO docs
+				#BaseValueMapping: {
+					type: #MappingType
+					options: _
+				} @cuetsy(kind="interface") @grafana(TSVeneer="type")
+
+				// TODO docs
+				#ValueMap: {
+					#BaseValueMapping
+					type: "value"
+					options: [string]: #ValueMappingResult
+				} @cuetsy(kind="interface")
+
+				// TODO docs
+				#RangeMap: {
+					#BaseValueMapping
+					type: "range"
+					options: {
+						// to and from are `number | null` in current ts, really not sure what to do
+						from:   float64 @grafanamaturity(NeedsExpertReview)
+						to:     float64 @grafanamaturity(NeedsExpertReview)
+						result: #ValueMappingResult
+					}
+				} @cuetsy(kind="interface") @grafanamaturity(NeedsExpertReview)
+
+				// TODO docs
+				#RegexMap: {
+					#BaseValueMapping
+					type: "regex"
+					options: {
+						pattern: string
+						result:  #ValueMappingResult
+					}
+				} @cuetsy(kind="interface") @grafanamaturity(NeedsExpertReview)
+
+				// TODO docs
+				#SpecialValueMap: {
+					#BaseValueMapping
+					type: "special"
+					options: {
+						match:   "true" | "false"
+						pattern: string
+						result:  #ValueMappingResult
+					}
+				} @cuetsy(kind="interface") @grafanamaturity(NeedsExpertReview)
+
+				// TODO docs
+				#SpecialValueMatch: "true" | "false" | "null" | "nan" | "null+nan" | "empty" @cuetsy(kind="enum",memberNames="True|False|Null|NaN|NullAndNan|Empty")
+
+				// TODO docs
+				#ValueMappingResult: {
+					text?:  string
+					color?: string
+					icon?:  string
+					index?: int32
+				} @cuetsy(kind="interface")
+
+				// TODO docs
+				// FIXME this is extremely underspecfied; wasn't obvious which typescript types corresponded to it
+				#Transformation: {
+					id: string
+					options: {...}
+				} @cuetsy(kind="interface") @grafanamaturity(NeedsExpertReview)
+
+				// 0 for no shared crosshair or tooltip (default).
+				// 1 for shared crosshair.
+				// 2 for shared crosshair AND shared tooltip.
+				#DashboardCursorSync: *0 | 1 | 2 @cuetsy(kind="enum",memberNames="Off|Crosshair|Tooltip") @grafanamaturity(NeedsExpertReview)
+
+				// Schema for panel targets is specified by datasource
+				// plugins. We use a placeholder definition, which the Go
+				// schema loader either left open/as-is with the Base
+				// variant of the Dashboard and Panel families, or filled
+				// with types derived from plugins in the Instance variant.
+				// When working directly from CUE, importers can extend this
+				// type directly to achieve the same effect.
+				#Target: {...} @grafanamaturity(NeedsExpertReview)
+
+				// Dashboard panels. Panels are canonically defined inline
+				// because they share a version timeline with the dashboard
+				// schema; they do not evolve independently.
+				#Panel: {
+					// The panel plugin type id. May not be empty.
+					type: string & strings.MinRunes(1) @grafanamaturity(NeedsExpertReview)
+
+					// TODO docs
+					id?: uint32 @grafanamaturity(NeedsExpertReview)
+
+					// FIXME this almost certainly has to be changed in favor of scuemata versions
+					pluginVersion?: string @grafanamaturity(NeedsExpertReview)
+
+					// TODO docs
+					tags?: [...string] @grafanamaturity(NeedsExpertReview)
+
+					// TODO docs
+					targets?: [...#Target] @grafanamaturity(NeedsExpertReview)
+
+					// Panel title.
+					title?: string @grafanamaturity(NeedsExpertReview)
+					// Description.
+					description?: string @grafanamaturity(NeedsExpertReview)
+					// Whether to display the panel without a background.
+					transparent: bool | *false @grafanamaturity(NeedsExpertReview)
+					// The datasource used in all targets.
+					datasource?: {
+						type?: string
+						uid?:  string
+					} @grafanamaturity(NeedsExpertReview)
+					// Grid position.
+					gridPos?: #GridPos
+					// Panel links.
+					// TODO fill this out - seems there are a couple variants?
+					links?: [...#DashboardLink] @grafanamaturity(NeedsExpertReview)
+
+					// Name of template variable to repeat for.
+					repeat?: string @grafanamaturity(NeedsExpertReview)
+					// Direction to repeat in if 'repeat' is set.
+					// "h" for horizontal, "v" for vertical.
+					repeatDirection: *"h" | "v" @grafanamaturity(NeedsExpertReview)
+
+					// TODO docs
+					maxDataPoints?: number @grafanamaturity(NeedsExpertReview)
+
+					// TODO docs - seems to be an old field from old dashboard alerts?
+					thresholds?: [...] @grafanamaturity(NeedsExpertReview)
+
+					// TODO docs
+					timeRegions?: [...] @grafanamaturity(NeedsExpertReview)
+
+					transformations: [...#Transformation] @grafanamaturity(NeedsExpertReview)
+
+					// TODO docs
+					// TODO tighter constraint
+					interval?: string @grafanamaturity(NeedsExpertReview)
+
+					// TODO docs
+					// TODO tighter constraint
+					timeFrom?: string @grafanamaturity(NeedsExpertReview)
+
+					// TODO docs
+					// TODO tighter constraint
+					timeShift?: string @grafanamaturity(NeedsExpertReview)
+
+					// options is specified by the PanelOptions field in panel
+					// plugin schemas.
+					options: {...} @grafanamaturity(NeedsExpertReview)
+
+					fieldConfig: #FieldConfigSource
+				} @cuetsy(kind="interface") @grafana(TSVeneer="type") @grafanamaturity(NeedsExpertReview)
+
+				#FieldConfigSource: {
+					defaults: #FieldConfig
+					overrides: [...{
+						matcher: #MatcherConfig
+						properties: [...#DynamicConfigValue]
+					}] @grafanamaturity(NeedsExpertReview)
+				} @cuetsy(kind="interface") @grafana(TSVeneer="type") @grafanamaturity(NeedsExpertReview)
+
+				#MatcherConfig: {
+					id:       string | *"" @grafanamaturity(NeedsExpertReview)
+					options?: _            @grafanamaturity(NeedsExpertReview)
+				} @cuetsy(kind="interface")
+
+				#DynamicConfigValue: {
+					id:     string | *"" @grafanamaturity(NeedsExpertReview)
+					value?: _            @grafanamaturity(NeedsExpertReview)
+				}
+
+				#FieldConfig: {
+					// The display value for this field.  This supports template variables blank is auto
+					displayName?: string @grafanamaturity(NeedsExpertReview)
+
+					// This can be used by data sources that return and explicit naming structure for values and labels
+					// When this property is configured, this value is used rather than the default naming strategy.
+					displayNameFromDS?: string @grafanamaturity(NeedsExpertReview)
+
+					// Human readable field metadata
+					description?: string @grafanamaturity(NeedsExpertReview)
+
+					// An explicit path to the field in the datasource.  When the frame meta includes a path,
+					// This will default to `${frame.meta.path}/${field.name}
+					//
+					// When defined, this value can be used as an identifier within the datasource scope, and
+					// may be used to update the results
+					path?: string @grafanamaturity(NeedsExpertReview)
+
+					// True if data source can write a value to the path.  Auth/authz are supported separately
+					writeable?: bool @grafanamaturity(NeedsExpertReview)
+
+					// True if data source field supports ad-hoc filters
+					filterable?: bool @grafanamaturity(NeedsExpertReview)
+
+					// Numeric Options
+					unit?: string @grafanamaturity(NeedsExpertReview)
+
+					// Significant digits (for display)
+					decimals?: number @grafanamaturity(NeedsExpertReview)
+
+					min?: number @grafanamaturity(NeedsExpertReview)
+					max?: number @grafanamaturity(NeedsExpertReview)
+
+					// Convert input values into a display string
+					mappings?: [...#ValueMapping] @grafanamaturity(NeedsExpertReview)
+
+					// Map numeric values to states
+					thresholds?: #ThresholdsConfig @grafanamaturity(NeedsExpertReview)
+
+					// Map values to a display color
+					color?: #FieldColor @grafanamaturity(NeedsExpertReview)
+
+					// Used when reducing field values
+					//   nullValueMode?: NullValueMode
+
+					// The behavior when clicking on a result
+					links?: [...] @grafanamaturity(NeedsExpertReview)
+
+					// Alternative to empty string
+					noValue?: string @grafanamaturity(NeedsExpertReview)
+
+					// custom is specified by the PanelFieldConfig field
+					// in panel plugin schemas.
+					custom?: {...} @grafanamaturity(NeedsExpertReview)
+				} @cuetsy(kind="interface") @grafana(TSVeneer="type") @grafanamaturity(NeedsExpertReview)
+
+				// Row panel
+				#RowPanel: {
+					type:      "row"         @grafanamaturity(NeedsExpertReview)
+					collapsed: bool | *false @grafanamaturity(NeedsExpertReview)
+					title?:    string        @grafanamaturity(NeedsExpertReview)
+
+					// Name of default datasource.
+					datasource?: {
+						type?: string @grafanamaturity(NeedsExpertReview)
+						uid?:  string @grafanamaturity(NeedsExpertReview)
+					} @grafanamaturity(NeedsExpertReview)
+
+					gridPos?: #GridPos
+					id:       uint32 @grafanamaturity(NeedsExpertReview)
+					panels: [...(#Panel | #GraphPanel | #HeatmapPanel)] @grafanamaturity(NeedsExpertReview)
+					// Name of template variable to repeat for.
+					repeat?: string @grafanamaturity(NeedsExpertReview)
+				} @cuetsy(kind="interface") @grafanamaturity(NeedsExpertReview)
+
+				// Support for legacy graph and heatmap panels.
+				#GraphPanel: {
+					type: "graph" @grafanamaturity(NeedsExpertReview)
+					...
+				} @grafanamaturity(NeedsExpertReview)
+				#HeatmapPanel: {
+					type: "heatmap" @grafanamaturity(NeedsExpertReview)
+					...
+				} @grafanamaturity(NeedsExpertReview)
+			},
+		]
+	},
+]
+-- out/generate/0.0/expandrefs/err --
+#dashboard.schemaVersion: unsupported op for number &
 -- out/generate/0.0/group --
 {
 	"openapi": "3.0.0"
@@ -4323,472 +3324,1471 @@
 	}
 }
 
--- out/generate/0.0/expandrefs/err --
-#dashboard.schemaVersion: unsupported op for number &
--- in.cue --
-package generate
-
-import (
-    "strings"
-    "github.com/grafana/thema"
-)
-
-thema.#Lineage
-
-name: "dashboard"
-seqs: [
-	{
-		schemas: [
-			{// 0.0
-				@grafana(TSVeneer="type")
-
-				// Unique numeric identifier for the dashboard.
-				// TODO must isolate or remove identifiers local to a Grafana instance...?
-				id?: int64
-				// Unique dashboard identifier that can be generated by anyone. string (8-40)
-				uid?: string
-				// Title of dashboard.
-				title?: string
-				// Description of dashboard.
-				description?: string
-
-				gnetId?: string @grafanamaturity(NeedsExpertReview)
-				// Tags associated with dashboard.
-				tags?: [...string] @grafanamaturity(NeedsExpertReview)
-				// Theme of dashboard.
-				style: "light" | *"dark" @grafanamaturity(NeedsExpertReview)
-				// Timezone of dashboard,
-				timezone?: *"browser" | "utc" | "" @grafanamaturity(NeedsExpertReview)
-				// Whether a dashboard is editable or not.
-				editable:     bool | *true
-				graphTooltip: #DashboardCursorSync @grafanamaturity(NeedsExpertReview)
-				// Time range for dashboard, e.g. last 6 hours, last 7 days, etc
-				time?: {
-					from: string | *"now-6h"
-					to:   string | *"now"
-				} @grafanamaturity(NeedsExpertReview)
-
-				// TODO docs
-				// TODO this appears to be spread all over in the frontend. Concepts will likely need tidying in tandem with schema changes
-				timepicker?: {
-					// Whether timepicker is collapsed or not.
-					collapse: bool | *false
-					// Whether timepicker is enabled or not.
-					enable: bool | *true
-					// Whether timepicker is visible or not.
-					hidden: bool | *false
-					// Selectable intervals for auto-refresh.
-					refresh_intervals: [...string] | *["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "1d"]
-					// TODO docs
-					time_options: [...string] | *["5m", "15m", "1h", "6h", "12h", "24h", "2d", "7d", "30d"]
-				} @grafanamaturity(NeedsExpertReview)
-				// TODO docs
-				fiscalYearStartMonth?: uint8 & <13 @grafanamaturity(NeedsExpertReview)
-				// TODO docs
-				liveNow?: bool @grafanamaturity(NeedsExpertReview)
-				// TODO docs
-				weekStart?: string @grafanamaturity(NeedsExpertReview)
-
-				// TODO docs
-				refresh?: string | false @grafanamaturity(NeedsExpertReview)
-				// Version of the JSON schema, incremented each time a Grafana update brings
-				// changes to said schema.
-				// TODO this is the existing schema numbering system. It will be replaced by Thema's themaVersion
-				schemaVersion: uint16 | *36
-				// Version of the dashboard, incremented each time the dashboard is updated.
-				version?: uint32 @grafanamaturity(NeedsExpertReview)
-				panels?: [...(#Panel | #RowPanel | #GraphPanel | #HeatmapPanel)] @grafanamaturity(NeedsExpertReview)
-				// TODO docs
-				templating?: {
-					list: [...#VariableModel] @grafanamaturity(NeedsExpertReview)
-				}
-				// TODO docs
-				annotations?: {
-					list: [...#AnnotationQuery] @grafanamaturity(NeedsExpertReview)
-				}
-				// TODO docs
-				links?: [...#DashboardLink] @grafanamaturity(NeedsExpertReview)
-
-				///////////////////////////////////////
-				// Definitions (referenced above) are declared below
-
-				// TODO docs
-				#AnnotationTarget: {
-					limit:    int64
-					matchAny: bool
-					tags: [...string]
-					type: string
-				} @cuetsy(kind="interface") @grafanamaturity(NeedsExpertReview)
-
-				// TODO docs
-				// FROM: AnnotationQuery in grafana-data/src/types/annotations.ts
-				#AnnotationQuery: {
-					// Datasource to use for annotation.
-					datasource: {
-						type?: string
-						uid?:  string
-					} @grafanamaturity(NeedsExpertReview)
-
-					// Whether annotation is enabled.
-					enable: bool | *true @grafanamaturity(NeedsExpertReview)
-					// Name of annotation.
-					name?:   string     @grafanamaturity(NeedsExpertReview)
-					builtIn: uint8 | *0 @grafanamaturity(NeedsExpertReview) // TODO should this be persisted at all?
-					// Whether to hide annotation.
-					hide?: bool | *false @grafanamaturity(NeedsExpertReview)
-					// Annotation icon color.
-					iconColor?: string                @grafanamaturity(NeedsExpertReview)
-					type:       string | *"dashboard" @grafanamaturity(NeedsExpertReview)
-					// Query for annotation data.
-					rawQuery?: string            @grafanamaturity(NeedsExpertReview)
-					showIn:    uint8 | *0        @grafanamaturity(NeedsExpertReview)
-					target?:   #AnnotationTarget @grafanamaturity(NeedsExpertReview)
-				} @cuetsy(kind="interface")
-
-				// FROM: packages/grafana-data/src/types/templateVars.ts
-				// TODO docs
-				// TODO what about what's in public/app/features/types.ts?
-				// TODO there appear to be a lot of different kinds of [template] vars here? if so need a disjunction
-				#VariableModel: {
-					type:   #VariableType
-					name:   string
-					label?: string
-					...
-				} @cuetsy(kind="interface") @grafanamaturity(NeedsExpertReview)
-
-				// FROM public/app/features/dashboard/state/DashboardModels.ts - ish
-				// TODO docs
-				#DashboardLink: {
-					title:    string             @grafanamaturity(NeedsExpertReview)
-					type:     #DashboardLinkType @grafanamaturity(NeedsExpertReview)
-					icon?:    string             @grafanamaturity(NeedsExpertReview)
-					tooltip?: string             @grafanamaturity(NeedsExpertReview)
-					url?:     string             @grafanamaturity(NeedsExpertReview)
-					tags: [...string] @grafanamaturity(NeedsExpertReview)
-					asDropdown:  bool | *false @grafanamaturity(NeedsExpertReview)
-					targetBlank: bool | *false @grafanamaturity(NeedsExpertReview)
-					includeVars: bool | *false @grafanamaturity(NeedsExpertReview)
-					keepTime:    bool | *false @grafanamaturity(NeedsExpertReview)
-				} @cuetsy(kind="interface")
-
-				// TODO docs
-				#DashboardLinkType: "link" | "dashboards" @cuetsy(kind="type") @grafanamaturity(NeedsExpertReview)
-
-				// FROM: packages/grafana-data/src/types/templateVars.ts
-				// TODO docs
-				// TODO this implies some wider pattern/discriminated union, probably?
-				#VariableType: "query" | "adhoc" | "constant" | "datasource" | "interval" | "textbox" | "custom" | "system" @cuetsy(kind="type") @grafanamaturity(NeedsExpertReview)
-
-				// TODO docs
-				#FieldColorModeId: "thresholds" | "palette-classic" | "palette-saturated" | "continuous-GrYlRd" | "fixed" @cuetsy(kind="enum",memberNames="Thresholds|PaletteClassic|PaletteSaturated|ContinuousGrYlRd|Fixed") @grafanamaturity(NeedsExpertReview)
-
-				// TODO docs
-				#FieldColorSeriesByMode: "min" | "max" | "last" @cuetsy(kind="type") @grafanamaturity(NeedsExpertReview)
-
-				// TODO docs
-				#FieldColor: {
-					// The main color scheme mode
-					mode: #FieldColorModeId | string
-					// Stores the fixed color value if mode is fixed
-					fixedColor?: string
-					// Some visualizations need to know how to assign a series color from by value color schemes
-					seriesBy?: #FieldColorSeriesByMode
-				} @cuetsy(kind="interface") @grafanamaturity(NeedsExpertReview)
-
-				#GridPos: {
-					// Panel
-					h: uint32 & >0 | *9 @grafanamaturity(NeedsExpertReview)
-					// Panel
-					w: uint32 & >0 & <=24 | *12 @grafanamaturity(NeedsExpertReview)
-					// Panel x
-					x: uint32 & >=0 & <24 | *0 @grafanamaturity(NeedsExpertReview)
-					// Panel y
-					y: uint32 & >=0 | *0 @grafanamaturity(NeedsExpertReview)
-					// true if fixed
-					static?: bool @grafanamaturity(NeedsExpertReview)
-				} @cuetsy(kind="interface")
-
-				// TODO docs
-				#Threshold: {
-					// TODO docs
-					// FIXME the corresponding typescript field is required/non-optional, but nulls currently appear here when serializing -Infinity to JSON
-					value?: number @grafanamaturity(NeedsExpertReview)
-					// TODO docs
-					color: string @grafanamaturity(NeedsExpertReview)
-					// TODO docs
-					// TODO are the values here enumerable into a disjunction?
-					// Some seem to be listed in typescript comment
-					state?: string @grafanamaturity(NeedsExpertReview)
-				} @cuetsy(kind="interface") @grafanamaturity(NeedsExpertReview)
-
-				#ThresholdsMode: "absolute" | "percentage" @cuetsy(kind="enum") @grafanamaturity(NeedsExpertReview)
-
-				#ThresholdsConfig: {
-					mode: #ThresholdsMode @grafanamaturity(NeedsExpertReview)
-
-					// Must be sorted by 'value', first value is always -Infinity
-					steps: [...#Threshold] @grafanamaturity(NeedsExpertReview)
-				} @cuetsy(kind="interface") @grafanamaturity(NeedsExpertReview)
-
-				// TODO docs
-				#ValueMapping: #ValueMap | #RangeMap | #RegexMap | #SpecialValueMap @cuetsy(kind="type") @grafanamaturity(NeedsExpertReview)
-
-				// TODO docs
-				#MappingType: "value" | "range" | "regex" | "special" @cuetsy(kind="enum",memberNames="ValueToText|RangeToText|RegexToText|SpecialValue") @grafanamaturity(NeedsExpertReview)
-
-				// TODO docs
-				#BaseValueMapping: {
-					type: #MappingType
-					options: _
-				} @cuetsy(kind="interface") @grafana(TSVeneer="type")
-
-				// TODO docs
-				#ValueMap: {
-					#BaseValueMapping
-					type: "value"
-					options: [string]: #ValueMappingResult
-				} @cuetsy(kind="interface")
-
-				// TODO docs
-				#RangeMap: {
-					#BaseValueMapping
-					type: "range"
-					options: {
-						// to and from are `number | null` in current ts, really not sure what to do
-						from:   float64 @grafanamaturity(NeedsExpertReview)
-						to:     float64 @grafanamaturity(NeedsExpertReview)
-						result: #ValueMappingResult
+-- out/generate/0.0/nil --
+"openapi": "3.0.0"
+"info": {
+	"title":   "dashboard"
+	"version": "0.0"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"AnnotationQuery": {
+			"description": "TODO docs\nFROM: AnnotationQuery in grafana-data/src/types/annotations.ts", "type": "object", "required": ["datasource", "enable", "builtIn", "type", "showIn"]
+			"properties": {
+				"datasource": {
+					"description": "Datasource to use for annotation.", "type": "object", "properties": {
+							"type": {
+								"type": "string"
+							}
+						"uid": {
+							"type": "string"
+						}
 					}
-				} @cuetsy(kind="interface") @grafanamaturity(NeedsExpertReview)
-
-				// TODO docs
-				#RegexMap: {
-					#BaseValueMapping
-					type: "regex"
-					options: {
-						pattern: string
-						result:  #ValueMappingResult
-					}
-				} @cuetsy(kind="interface") @grafanamaturity(NeedsExpertReview)
-
-				// TODO docs
-				#SpecialValueMap: {
-					#BaseValueMapping
-					type: "special"
-					options: {
-						match:   "true" | "false"
-						pattern: string
-						result:  #ValueMappingResult
-					}
-				} @cuetsy(kind="interface") @grafanamaturity(NeedsExpertReview)
-
-				// TODO docs
-				#SpecialValueMatch: "true" | "false" | "null" | "nan" | "null+nan" | "empty" @cuetsy(kind="enum",memberNames="True|False|Null|NaN|NullAndNan|Empty")
-
-				// TODO docs
-				#ValueMappingResult: {
-					text?:  string
-					color?: string
-					icon?:  string
-					index?: int32
-				} @cuetsy(kind="interface")
-
-				// TODO docs
-				// FIXME this is extremely underspecfied; wasn't obvious which typescript types corresponded to it
-				#Transformation: {
-					id: string
-					options: {...}
-				} @cuetsy(kind="interface") @grafanamaturity(NeedsExpertReview)
-
-				// 0 for no shared crosshair or tooltip (default).
-				// 1 for shared crosshair.
-				// 2 for shared crosshair AND shared tooltip.
-				#DashboardCursorSync: *0 | 1 | 2 @cuetsy(kind="enum",memberNames="Off|Crosshair|Tooltip") @grafanamaturity(NeedsExpertReview)
-
-				// Schema for panel targets is specified by datasource
-				// plugins. We use a placeholder definition, which the Go
-				// schema loader either left open/as-is with the Base
-				// variant of the Dashboard and Panel families, or filled
-				// with types derived from plugins in the Instance variant.
-				// When working directly from CUE, importers can extend this
-				// type directly to achieve the same effect.
-				#Target: {...} @grafanamaturity(NeedsExpertReview)
-
-				// Dashboard panels. Panels are canonically defined inline
-				// because they share a version timeline with the dashboard
-				// schema; they do not evolve independently.
-				#Panel: {
-					// The panel plugin type id. May not be empty.
-					type: string & strings.MinRunes(1) @grafanamaturity(NeedsExpertReview)
-
-					// TODO docs
-					id?: uint32 @grafanamaturity(NeedsExpertReview)
-
-					// FIXME this almost certainly has to be changed in favor of scuemata versions
-					pluginVersion?: string @grafanamaturity(NeedsExpertReview)
-
-					// TODO docs
-					tags?: [...string] @grafanamaturity(NeedsExpertReview)
-
-					// TODO docs
-					targets?: [...#Target] @grafanamaturity(NeedsExpertReview)
-
-					// Panel title.
-					title?: string @grafanamaturity(NeedsExpertReview)
-					// Description.
-					description?: string @grafanamaturity(NeedsExpertReview)
-					// Whether to display the panel without a background.
-					transparent: bool | *false @grafanamaturity(NeedsExpertReview)
-					// The datasource used in all targets.
-					datasource?: {
-						type?: string
-						uid?:  string
-					} @grafanamaturity(NeedsExpertReview)
-					// Grid position.
-					gridPos?: #GridPos
-					// Panel links.
-					// TODO fill this out - seems there are a couple variants?
-					links?: [...#DashboardLink] @grafanamaturity(NeedsExpertReview)
-
-					// Name of template variable to repeat for.
-					repeat?: string @grafanamaturity(NeedsExpertReview)
-					// Direction to repeat in if 'repeat' is set.
-					// "h" for horizontal, "v" for vertical.
-					repeatDirection: *"h" | "v" @grafanamaturity(NeedsExpertReview)
-
-					// TODO docs
-					maxDataPoints?: number @grafanamaturity(NeedsExpertReview)
-
-					// TODO docs - seems to be an old field from old dashboard alerts?
-					thresholds?: [...] @grafanamaturity(NeedsExpertReview)
-
-					// TODO docs
-					timeRegions?: [...] @grafanamaturity(NeedsExpertReview)
-
-					transformations: [...#Transformation] @grafanamaturity(NeedsExpertReview)
-
-					// TODO docs
-					// TODO tighter constraint
-					interval?: string @grafanamaturity(NeedsExpertReview)
-
-					// TODO docs
-					// TODO tighter constraint
-					timeFrom?: string @grafanamaturity(NeedsExpertReview)
-
-					// TODO docs
-					// TODO tighter constraint
-					timeShift?: string @grafanamaturity(NeedsExpertReview)
-
-					// options is specified by the PanelOptions field in panel
-					// plugin schemas.
-					options: {...} @grafanamaturity(NeedsExpertReview)
-
-					fieldConfig: #FieldConfigSource
-				} @cuetsy(kind="interface") @grafana(TSVeneer="type") @grafanamaturity(NeedsExpertReview)
-
-				#FieldConfigSource: {
-					defaults: #FieldConfig
-					overrides: [...{
-						matcher: #MatcherConfig
-						properties: [...#DynamicConfigValue]
-					}] @grafanamaturity(NeedsExpertReview)
-				} @cuetsy(kind="interface") @grafana(TSVeneer="type") @grafanamaturity(NeedsExpertReview)
-
-				#MatcherConfig: {
-					id:       string | *"" @grafanamaturity(NeedsExpertReview)
-					options?: _            @grafanamaturity(NeedsExpertReview)
-				} @cuetsy(kind="interface")
-
-				#DynamicConfigValue: {
-					id:     string | *"" @grafanamaturity(NeedsExpertReview)
-					value?: _            @grafanamaturity(NeedsExpertReview)
 				}
+				"enable": {
+					"description": "Whether annotation is enabled.", "type": "boolean", "default": true
+				}
+				"name": {
+					"description": "Name of annotation.", "type": "string"
+				}
+				"builtIn": {
+					"type": "integer", "minimum": 0, "maximum": 255, "default": 0
+				}
+				"hide": {
+					"description": "Whether to hide annotation.", "type": "boolean", "default": false
+				}
+				"iconColor": {
+					"description": "Annotation icon color.", "type": "string"
+				}
+				"type": {
+					"type": "string", "default": "dashboard"
+				}
+				"rawQuery": {
+					"description": "Query for annotation data.", "type": "string"
+				}
+				"showIn": {
+					"type": "integer", "minimum": 0, "maximum": 255, "default": 0
+				}
+				"target": {
+					"$ref": "#/components/schemas/AnnotationTarget"
+				}
+			}
+		}
+		"AnnotationTarget": {
+			"description": "TODO docs", "type": "object", "required": ["limit", "matchAny", "tags", "type"]
+			"properties": {
+				"limit": {
+					"type": "integer", "format": "int64"
+				}
+				"matchAny": {
+					"type": "boolean"
+				}
+				"tags": {
+					"type": "array", "items": {
+						"type": "string"
+					}
+				}
+				"type": {
+					"type": "string"
+				}
+			}
+		}
+		"BaseValueMapping": {
+			"description": "TODO docs", "type": "object", "required": ["type", "options"]
+			"properties": {
+				"type": {
+					"$ref": "#/components/schemas/MappingType"
+				}
+				"options": {}
+			}
+		}
+		"DashboardCursorSync": {
+			"description": "0 for no shared crosshair or tooltip (default).\n1 for shared crosshair.\n2 for shared crosshair AND shared tooltip.", "type": "integer", "enum": [0, 1, 2]
+			"default": 0
+		}
+		"DashboardLink": {
+			"description": "FROM public/app/features/dashboard/state/DashboardModels.ts - ish\nTODO docs", "type": "object", "required": ["title", "type", "tags", "asDropdown", "targetBlank", "includeVars", "keepTime"]
+			"properties": {
+				"title": {
+					"type": "string"
+				}
+				"type": {
+					"$ref": "#/components/schemas/DashboardLinkType"
+				}
+				"icon": {
+					"type": "string"
+				}
+				"tooltip": {
+					"type": "string"
+				}
+				"url": {
+					"type": "string"
+				}
+				"tags": {
+					"type": "array", "items": {
+						"type": "string"
+					}
+				}
+				"asDropdown": {
+					"type": "boolean", "default": false
+				}
+				"targetBlank": {
+					"type": "boolean", "default": false
+				}
+				"includeVars": {
+					"type": "boolean", "default": false
+				}
+				"keepTime": {
+					"type": "boolean", "default": false
+				}
+			}
+		}
+		"DashboardLinkType": {
+			"description": "TODO docs", "type": "string", "enum": ["link", "dashboards"]
+		}
+		"DynamicConfigValue": {
+			"type": "object", "required": ["id"]
+			"properties": {
+				"id": {
+					"type": "string", "default": ""
+				}
+				"value": {}
+			}
+		}
+		"FieldColor": {
+			"description": "TODO docs", "type": "object", "required": ["mode"]
+			"properties": {
+				"mode": {
+					"description": "The main color scheme mode", "type": "string", "oneOf": [{
+							"enum": ["thresholds", "palette-classic", "palette-saturated", "continuous-GrYlRd", "fixed"]
+					}, {}]
+				}
+				"fixedColor": {
+					"description": "Stores the fixed color value if mode is fixed", "type": "string"
+				}
+				"seriesBy": {
+					"$ref": "#/components/schemas/FieldColorSeriesByMode"
+				}
+			}
+		}
+		"FieldColorModeId": {
+			"description": "TODO docs", "type": "string", "enum": ["thresholds", "palette-classic", "palette-saturated", "continuous-GrYlRd", "fixed"]
+		}
+		"FieldColorSeriesByMode": {
+			"description": "TODO docs", "type": "string", "enum": ["min", "max", "last"]
+		}
+		"FieldConfig": {
+			"type": "object", "properties": {
+				"displayName": {
+					"description": "The display value for this field.  This supports template variables blank is auto", "type": "string"
+				}
+				"displayNameFromDS": {
+					"description": "This can be used by data sources that return and explicit naming structure for values and labels\nWhen this property is configured, this value is used rather than the default naming strategy.", "type": "string"
+				}
+				"description": {
+					"description": "Human readable field metadata", "type": "string"
+				}
+				"path": {
+					"description": "An explicit path to the field in the datasource.  When the frame meta includes a path,\nThis will default to `${frame.meta.path}/${field.name}\n\nWhen defined, this value can be used as an identifier within the datasource scope, and\nmay be used to update the results", "type": "string"
+				}
+				"writeable": {
+					"description": "True if data source can write a value to the path.  Auth/authz are supported separately", "type": "boolean"
+				}
+				"filterable": {
+					"description": "True if data source field supports ad-hoc filters", "type": "boolean"
+				}
+				"unit": {
+					"description": "Numeric Options", "type": "string"
+				}
+				"decimals": {
+					"description": "Significant digits (for display)", "type": "number"
+				}
+				"min": {
+					"type": "number"
+				}
+				"max": {
+					"type": "number"
+				}
+				"mappings": {
+					"description": "Convert input values into a display string", "type": "array", "items": {
+							"$ref":                                               "#/components/schemas/ValueMapping"
+					}
+				}
+				"thresholds": {
+					"$ref": "#/components/schemas/ThresholdsConfig"
+				}
+				"color": {
+					"$ref": "#/components/schemas/FieldColor"
+				}
+				"links": {
+					"description": "The behavior when clicking on a result", "type": "array", "items": {}
+				}
+				"noValue": {
+					"description": "Alternative to empty string", "type": "string"
+				}
+				"custom": {
+					"description": "custom is specified by the PanelFieldConfig field\nin panel plugin schemas.", "type": "object"
+				}
+			}
+		}
+		"FieldConfigSource": {
+			"type": "object", "required": ["defaults", "overrides"]
+			"properties": {
+				"defaults": {
+					"$ref": "#/components/schemas/FieldConfig"
+				}
+				"overrides": {
+					"type": "array", "items": {
+						"type": "object", "required": ["matcher", "properties"]
+						"properties": {
+							"matcher": {
+								"$ref": "#/components/schemas/MatcherConfig"
+							}
+							"properties": {
+								"type": "array", "items": {
+									"$ref": "#/components/schemas/DynamicConfigValue"
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		"GraphPanel": {
+			"description": "Support for legacy graph and heatmap panels.", "type": "object", "required": ["type"]
+			"properties": {
+				"type": {
+					"type": "string", "enum": ["graph"]
+				}
+			}
+		}
+		"GridPos": {
+			"type": "object", "required": ["h", "w", "x", "y"]
+			"properties": {
+				"h": {
+					"description": "Panel", "type": "integer", "minimum": 0, "exclusiveMinimum": true, "maximum": 4294967295, "default": 9
+				}
+				"w": {
+					"description": "Panel", "type": "integer", "minimum": 0, "exclusiveMinimum": true, "maximum": 24, "default": 12
+				}
+				"x": {
+					"description": "Panel x", "type": "integer", "minimum": 0, "maximum": 24, "exclusiveMaximum": true, "default": 0
+				}
+				"y": {
+					"description": "Panel y", "type": "integer", "minimum": 0, "maximum": 4294967295, "default": 0
+				}
+				"static": {
+					"description": "true if fixed", "type": "boolean"
+				}
+			}
+		}
+		"HeatmapPanel": {
+			"type": "object", "required": ["type"]
+			"properties": {
+				"type": {
+					"type": "string", "enum": ["heatmap"]
+				}
+			}
+		}
+		"MappingType": {
+			"description": "TODO docs", "type": "string", "enum": ["value", "range", "regex", "special"]
+		}
+		"MatcherConfig": {
+			"type": "object", "required": ["id"]
+			"properties": {
+				"id": {
+					"type": "string", "default": ""
+				}
+				"options": {}
+			}
+		}
+		"Panel": {
+			"description": "Dashboard panels. Panels are canonically defined inline\nbecause they share a version timeline with the dashboard\nschema; they do not evolve independently.", "type": "object", "required": ["type", "transparent", "repeatDirection", "transformations", "options", "fieldConfig"]
+			"properties": {
+				"type": {
+					"description": "The panel plugin type id. May not be empty.", "type": "string", "minLength": 1
+				}
+				"id": {
+					"description": "TODO docs", "type": "integer", "minimum": 0, "maximum": 4294967295
+				}
+				"pluginVersion": {
+					"description": "FIXME this almost certainly has to be changed in favor of scuemata versions", "type": "string"
+				}
+				"tags": {
+					"description": "TODO docs", "type": "array", "items": {
+							"type":              "string"
+					}
+				}
+				"targets": {
+					"description": "TODO docs", "type": "array", "items": {
+							"$ref":              "#/components/schemas/Target"
+					}
+				}
+				"title": {
+					"description": "Panel title.", "type": "string"
+				}
+				"description": {
+					"description": "Description.", "type": "string"
+				}
+				"transparent": {
+					"description": "Whether to display the panel without a background.", "type": "boolean", "default": false
+				}
+				"datasource": {
+					"description": "The datasource used in all targets.", "type": "object", "properties": {
+							"type": {
+								"type": "string"
+							}
+						"uid": {
+							"type": "string"
+						}
+					}
+				}
+				"gridPos": {
+					"$ref": "#/components/schemas/GridPos"
+				}
+				"links": {
+					"description": "Panel links.\nTODO fill this out - seems there are a couple variants?", "type": "array", "items": {
+							"$ref":                                                                          "#/components/schemas/DashboardLink"
+					}
+				}
+				"repeat": {
+					"description": "Name of template variable to repeat for.", "type": "string"
+				}
+				"repeatDirection": {
+					"description": "Direction to repeat in if 'repeat' is set.\n\"h\" for horizontal, \"v\" for vertical.", "type": "string", "enum": ["h", "v"]
+					"default": "h"
+				}
+				"maxDataPoints": {
+					"description": "TODO docs", "type": "number"
+				}
+				"thresholds": {
+					"description": "TODO docs - seems to be an old field from old dashboard alerts?", "type": "array", "items": {}
+				}
+				"timeRegions": {
+					"description": "TODO docs", "type": "array", "items": {}
+				}
+				"transformations": {
+					"type": "array", "items": {
+						"$ref": "#/components/schemas/Transformation"
+					}
+				}
+				"interval": {
+					"description": "TODO docs\nTODO tighter constraint", "type": "string"
+				}
+				"timeFrom": {
+					"description": "TODO docs\nTODO tighter constraint", "type": "string"
+				}
+				"timeShift": {
+					"description": "TODO docs\nTODO tighter constraint", "type": "string"
+				}
+				"options": {
+					"description": "options is specified by the PanelOptions field in panel\nplugin schemas.", "type": "object"
+				}
+				"fieldConfig": {
+					"$ref": "#/components/schemas/FieldConfigSource"
+				}
+			}
+		}
+		"RangeMap": {
+			"description": "TODO docs", "type": "object", "properties": {
+					"type": {
+						"type": "string", "enum": ["range"]
+				}
+				"options": {
+					"type": "object", "required": ["from", "to", "result"]
+					"properties": {
+						"from": {
+							"description": "to and from are `number | null` in current ts, really not sure what to do", "type": "number", "format": "double"
+						}
+						"to": {
+							"type": "number", "format": "double"
+						}
+						"result": {
+							"$ref": "#/components/schemas/ValueMappingResult"
+						}
+					}
+				}
+			}
+			"allOf": [{
+				"$ref": "#/components/schemas/BaseValueMapping"
+			}, {
+				"required": ["type", "options"]
+			}]
+		}
+		"RegexMap": {
+			"description": "TODO docs", "type": "object", "properties": {
+					"type": {
+						"type": "string", "enum": ["regex"]
+				}
+				"options": {
+					"type": "object", "required": ["pattern", "result"]
+					"properties": {
+						"pattern": {
+							"type": "string"
+						}
+						"result": {
+							"$ref": "#/components/schemas/ValueMappingResult"
+						}
+					}
+				}
+			}
+			"allOf": [{
+				"$ref": "#/components/schemas/BaseValueMapping"
+			}, {
+				"required": ["type", "options"]
+			}]
+		}
+		"RowPanel": {
+			"description": "Row panel", "type": "object", "required": ["type", "collapsed", "id", "panels"]
+			"properties": {
+				"type": {
+					"type": "string", "enum": ["row"]
+				}
+				"collapsed": {
+					"type": "boolean", "default": false
+				}
+				"title": {
+					"type": "string"
+				}
+				"datasource": {
+					"description": "Name of default datasource.", "type": "object", "properties": {
+							"type": {
+								"type": "string"
+							}
+						"uid": {
+							"type": "string"
+						}
+					}
+				}
+				"gridPos": {
+					"$ref": "#/components/schemas/GridPos"
+				}
+				"id": {
+					"type": "integer", "minimum": 0, "maximum": 4294967295
+				}
+				"panels": {
+					"type": "array", "items": {
+						"type": "object", "oneOf": [{
+							"$ref": "#/components/schemas/Panel"
+						}, {
+							"$ref": "#/components/schemas/GraphPanel"
+						}, {
+							"$ref": "#/components/schemas/HeatmapPanel"
+						}]
+					}
+				}
+				"repeat": {
+					"description": "Name of template variable to repeat for.", "type": "string"
+				}
+			}
+		}
+		"SpecialValueMap": {
+			"description": "TODO docs", "type": "object", "properties": {
+					"type": {
+						"type": "string", "enum": ["special"]
+				}
+				"options": {
+					"type": "object", "required": ["match", "pattern", "result"]
+					"properties": {
+						"match": {
+							"type": "string", "enum": ["true", "false"]
+						}
+						"pattern": {
+							"type": "string"
+						}
+						"result": {
+							"$ref": "#/components/schemas/ValueMappingResult"
+						}
+					}
+				}
+			}
+			"allOf": [{
+				"$ref": "#/components/schemas/BaseValueMapping"
+			}, {
+				"required": ["type", "options"]
+			}]
+		}
+		"SpecialValueMatch": {
+			"description": "TODO docs", "type": "string", "enum": ["true", "false", "null", "nan", "null+nan", "empty"]
+		}
+		"Target": {
+			"description": "Schema for panel targets is specified by datasource\nplugins. We use a placeholder definition, which the Go\nschema loader either left open/as-is with the Base\nvariant of the Dashboard and Panel families, or filled\nwith types derived from plugins in the Instance variant.\nWhen working directly from CUE, importers can extend this\ntype directly to achieve the same effect.", "type": "object"
+		}
+		"Threshold": {
+			"description": "TODO docs", "type": "object", "required": ["color"]
+			"properties": {
+				"value": {
+					"description": "TODO docs\nFIXME the corresponding typescript field is required/non-optional, but nulls currently appear here when serializing -Infinity to JSON", "type": "number"
+				}
+				"color": {
+					"description": "TODO docs", "type": "string"
+				}
+				"state": {
+					"description": "TODO docs\nTODO are the values here enumerable into a disjunction?\nSome seem to be listed in typescript comment", "type": "string"
+				}
+			}
+		}
+		"ThresholdsConfig": {
+			"type": "object", "required": ["mode", "steps"]
+			"properties": {
+				"mode": {
+					"$ref": "#/components/schemas/ThresholdsMode"
+				}
+				"steps": {
+					"description": "Must be sorted by 'value', first value is always -Infinity", "type": "array", "items": {
+							"$ref":                                                               "#/components/schemas/Threshold"
+					}
+				}
+			}
+		}
+		"ThresholdsMode": {
+			"type": "string", "enum": ["absolute", "percentage"]
+		}
+		"Transformation": {
+			"description": "TODO docs\nFIXME this is extremely underspecfied; wasn't obvious which typescript types corresponded to it", "type": "object", "required": ["id", "options"]
+			"properties": {
+				"id": {
+					"type": "string"
+				}
+				"options": {
+					"type": "object"
+				}
+			}
+		}
+		"ValueMap": {
+			"description": "TODO docs", "type": "object", "properties": {
+					"type": {
+						"type": "string", "enum": ["value"]
+				}
+				"options": {
+					"type": "object", "additionalProperties": {
+						"$ref": "#/components/schemas/ValueMappingResult"
+					}
+				}
+			}
+			"allOf": [{
+				"$ref": "#/components/schemas/BaseValueMapping"
+			}, {
+				"required": ["type", "options"]
+			}]
+		}
+		"ValueMapping": {
+			"description": "TODO docs", "type": "object", "oneOf": [{
+					"$ref":              "#/components/schemas/ValueMap"
+			}, {
+				"$ref": "#/components/schemas/RangeMap"
+			}, {
+				"$ref": "#/components/schemas/RegexMap"
+			}, {
+				"$ref": "#/components/schemas/SpecialValueMap"
+			}]
+		}
+		"ValueMappingResult": {
+			"description": "TODO docs", "type": "object", "properties": {
+					"text": {
+						"type": "string"
+					}
+				"color": {
+					"type": "string"
+				}
+				"icon": {
+					"type": "string"
+				}
+				"index": {
+					"type": "integer", "format": "int32"
+				}
+			}
+		}
+		"VariableModel": {
+			"description": "FROM: packages/grafana-data/src/types/templateVars.ts\nTODO docs\nTODO what about what's in public/app/features/types.ts?\nTODO there appear to be a lot of different kinds of [template] vars here? if so need a disjunction", "type": "object", "required": ["type", "name"]
+			"properties": {
+				"type": {
+					"$ref": "#/components/schemas/VariableType"
+				}
+				"name": {
+					"type": "string"
+				}
+				"label": {
+					"type": "string"
+				}
+			}
+		}
+		"VariableType": {
+			"description": "FROM: packages/grafana-data/src/types/templateVars.ts\nTODO docs\nTODO this implies some wider pattern/discriminated union, probably?", "type": "string", "enum": ["query", "adhoc", "constant", "datasource", "interval", "textbox", "custom", "system"]
+		}
+		"dashboard": {
+			"type": "object", "required": ["style", "editable", "graphTooltip", "schemaVersion"]
+			"properties": {
+				"id": {
+					"description": "Unique numeric identifier for the dashboard.\nTODO must isolate or remove identifiers local to a Grafana instance...?", "type": "integer", "format": "int64"
+				}
+				"uid": {
+					"description": "Unique dashboard identifier that can be generated by anyone. string (8-40)", "type": "string"
+				}
+				"title": {
+					"description": "Title of dashboard.", "type": "string"
+				}
+				"description": {
+					"description": "Description of dashboard.", "type": "string"
+				}
+				"gnetId": {
+					"type": "string"
+				}
+				"tags": {
+					"description": "Tags associated with dashboard.", "type": "array", "items": {
+							"type":                                    "string"
+					}
+				}
+				"style": {
+					"description": "Theme of dashboard.", "type": "string", "enum": ["dark", "light"]
+					"default": "dark"
+				}
+				"timezone": {
+					"description": "Timezone of dashboard,", "type": "string", "enum": ["browser", "utc", ""]
+					"default": "browser"
+				}
+				"editable": {
+					"description": "Whether a dashboard is editable or not.", "type": "boolean", "default": true
+				}
+				"graphTooltip": {
+					"$ref": "#/components/schemas/DashboardCursorSync"
+				}
+				"time": {
+					"description": "Time range for dashboard, e.g. last 6 hours, last 7 days, etc", "type": "object", "required": ["from", "to"]
+					"properties": {
+						"from": {
+							"type": "string", "default": "now-6h"
+						}
+						"to": {
+							"type": "string", "default": "now"
+						}
+					}
+				}
+				"timepicker": {
+					"description": "TODO docs\nTODO this appears to be spread all over in the frontend. Concepts will likely need tidying in tandem with schema changes", "type": "object", "required": ["collapse", "enable", "hidden", "refresh_intervals", "time_options"]
+					"properties": {
+						"collapse": {
+							"description": "Whether timepicker is collapsed or not.", "type": "boolean", "default": false
+						}
+						"enable": {
+							"description": "Whether timepicker is enabled or not.", "type": "boolean", "default": true
+						}
+						"hidden": {
+							"description": "Whether timepicker is visible or not.", "type": "boolean", "default": false
+						}
+						"refresh_intervals": {
+							"description": "Selectable intervals for auto-refresh.", "type": "array", "items": {
+									"type":                                           "string"
+							}
+							"default": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "1d"]
+						}
+						"time_options": {
+							"description": "TODO docs", "type": "array", "items": {
+									"type":              "string"
+							}
+							"default": ["5m", "15m", "1h", "6h", "12h", "24h", "2d", "7d", "30d"]
+						}
+					}
+				}
+				"fiscalYearStartMonth": {
+					"description": "TODO docs", "type": "integer", "minimum": 0, "maximum": 13, "exclusiveMaximum": true
+				}
+				"liveNow": {
+					"description": "TODO docs", "type": "boolean"
+				}
+				"weekStart": {
+					"description": "TODO docs", "type": "string"
+				}
+				"refresh": {
+					"description": "TODO docs", "oneOf": [{
+							"enum": [false]
+					}, {
+						"type": "string"
+					}]
+				}
+				"schemaVersion": {
+					"description": "Version of the JSON schema, incremented each time a Grafana update brings\nchanges to said schema.\nTODO this is the existing schema numbering system. It will be replaced by Thema's themaVersion", "type": "integer", "minimum": 0, "maximum": 65535, "default": 36
+				}
+				"version": {
+					"description": "Version of the dashboard, incremented each time the dashboard is updated.", "type": "integer", "minimum": 0, "maximum": 4294967295
+				}
+				"panels": {
+					"type": "array", "items": {
+						"type": "object", "oneOf": [{
+							"$ref": "#/components/schemas/Panel"
+						}, {
+							"$ref": "#/components/schemas/RowPanel"
+						}, {
+							"$ref": "#/components/schemas/GraphPanel"
+						}, {
+							"$ref": "#/components/schemas/HeatmapPanel"
+						}]
+					}
+				}
+				"templating": {
+					"description": "TODO docs", "type": "object", "required": ["list"]
+					"properties": {
+						"list": {
+							"type": "array", "items": {
+								"$ref": "#/components/schemas/VariableModel"
+							}
+						}
+					}
+				}
+				"annotations": {
+					"description": "TODO docs", "type": "object", "required": ["list"]
+					"properties": {
+						"list": {
+							"type": "array", "items": {
+								"$ref": "#/components/schemas/AnnotationQuery"
+							}
+						}
+					}
+				}
+				"links": {
+					"description": "TODO docs", "type": "array", "items": {
+							"$ref":              "#/components/schemas/DashboardLink"
+					}
+				}
+			}
+		}
+	}
+}
 
-				#FieldConfig: {
-					// The display value for this field.  This supports template variables blank is auto
-					displayName?: string @grafanamaturity(NeedsExpertReview)
+-- out/generate/0.0/selfcontained --
+"openapi": "3.0.0"
+"info": {
+	"title":   "dashboard"
+	"version": "0.0"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"AnnotationQuery": {
+			"description": "TODO docs\nFROM: AnnotationQuery in grafana-data/src/types/annotations.ts", "type": "object", "required": ["datasource", "enable", "builtIn", "type", "showIn"]
+			"properties": {
+				"datasource": {
+					"description": "Datasource to use for annotation.", "type": "object", "properties": {
+							"type": {
+								"type": "string"
+							}
+						"uid": {
+							"type": "string"
+						}
+					}
+				}
+				"enable": {
+					"description": "Whether annotation is enabled.", "type": "boolean", "default": true
+				}
+				"name": {
+					"description": "Name of annotation.", "type": "string"
+				}
+				"builtIn": {
+					"type": "integer", "minimum": 0, "maximum": 255, "default": 0
+				}
+				"hide": {
+					"description": "Whether to hide annotation.", "type": "boolean", "default": false
+				}
+				"iconColor": {
+					"description": "Annotation icon color.", "type": "string"
+				}
+				"type": {
+					"type": "string", "default": "dashboard"
+				}
+				"rawQuery": {
+					"description": "Query for annotation data.", "type": "string"
+				}
+				"showIn": {
+					"type": "integer", "minimum": 0, "maximum": 255, "default": 0
+				}
+				"target": {
+					"$ref": "#/components/schemas/AnnotationTarget"
+				}
+			}
+		}
+		"AnnotationTarget": {
+			"description": "TODO docs", "type": "object", "required": ["limit", "matchAny", "tags", "type"]
+			"properties": {
+				"limit": {
+					"type": "integer", "format": "int64"
+				}
+				"matchAny": {
+					"type": "boolean"
+				}
+				"tags": {
+					"type": "array", "items": {
+						"type": "string"
+					}
+				}
+				"type": {
+					"type": "string"
+				}
+			}
+		}
+		"BaseValueMapping": {
+			"description": "TODO docs", "type": "object", "required": ["type", "options"]
+			"properties": {
+				"type": {
+					"$ref": "#/components/schemas/MappingType"
+				}
+				"options": {}
+			}
+		}
+		"DashboardCursorSync": {
+			"description": "0 for no shared crosshair or tooltip (default).\n1 for shared crosshair.\n2 for shared crosshair AND shared tooltip.", "type": "integer", "enum": [0, 1, 2]
+			"default": 0
+		}
+		"DashboardLink": {
+			"description": "FROM public/app/features/dashboard/state/DashboardModels.ts - ish\nTODO docs", "type": "object", "required": ["title", "type", "tags", "asDropdown", "targetBlank", "includeVars", "keepTime"]
+			"properties": {
+				"title": {
+					"type": "string"
+				}
+				"type": {
+					"$ref": "#/components/schemas/DashboardLinkType"
+				}
+				"icon": {
+					"type": "string"
+				}
+				"tooltip": {
+					"type": "string"
+				}
+				"url": {
+					"type": "string"
+				}
+				"tags": {
+					"type": "array", "items": {
+						"type": "string"
+					}
+				}
+				"asDropdown": {
+					"type": "boolean", "default": false
+				}
+				"targetBlank": {
+					"type": "boolean", "default": false
+				}
+				"includeVars": {
+					"type": "boolean", "default": false
+				}
+				"keepTime": {
+					"type": "boolean", "default": false
+				}
+			}
+		}
+		"DashboardLinkType": {
+			"description": "TODO docs", "type": "string", "enum": ["link", "dashboards"]
+		}
+		"DynamicConfigValue": {
+			"type": "object", "required": ["id"]
+			"properties": {
+				"id": {
+					"type": "string", "default": ""
+				}
+				"value": {}
+			}
+		}
+		"FieldColor": {
+			"description": "TODO docs", "type": "object", "required": ["mode"]
+			"properties": {
+				"mode": {
+					"description": "The main color scheme mode", "type": "string", "oneOf": [{
+							"enum": ["thresholds", "palette-classic", "palette-saturated", "continuous-GrYlRd", "fixed"]
+					}, {}]
+				}
+				"fixedColor": {
+					"description": "Stores the fixed color value if mode is fixed", "type": "string"
+				}
+				"seriesBy": {
+					"$ref": "#/components/schemas/FieldColorSeriesByMode"
+				}
+			}
+		}
+		"FieldColorModeId": {
+			"description": "TODO docs", "type": "string", "enum": ["thresholds", "palette-classic", "palette-saturated", "continuous-GrYlRd", "fixed"]
+		}
+		"FieldColorSeriesByMode": {
+			"description": "TODO docs", "type": "string", "enum": ["min", "max", "last"]
+		}
+		"FieldConfig": {
+			"type": "object", "properties": {
+				"displayName": {
+					"description": "The display value for this field.  This supports template variables blank is auto", "type": "string"
+				}
+				"displayNameFromDS": {
+					"description": "This can be used by data sources that return and explicit naming structure for values and labels\nWhen this property is configured, this value is used rather than the default naming strategy.", "type": "string"
+				}
+				"description": {
+					"description": "Human readable field metadata", "type": "string"
+				}
+				"path": {
+					"description": "An explicit path to the field in the datasource.  When the frame meta includes a path,\nThis will default to `${frame.meta.path}/${field.name}\n\nWhen defined, this value can be used as an identifier within the datasource scope, and\nmay be used to update the results", "type": "string"
+				}
+				"writeable": {
+					"description": "True if data source can write a value to the path.  Auth/authz are supported separately", "type": "boolean"
+				}
+				"filterable": {
+					"description": "True if data source field supports ad-hoc filters", "type": "boolean"
+				}
+				"unit": {
+					"description": "Numeric Options", "type": "string"
+				}
+				"decimals": {
+					"description": "Significant digits (for display)", "type": "number"
+				}
+				"min": {
+					"type": "number"
+				}
+				"max": {
+					"type": "number"
+				}
+				"mappings": {
+					"description": "Convert input values into a display string", "type": "array", "items": {
+							"$ref":                                               "#/components/schemas/ValueMapping"
+					}
+				}
+				"thresholds": {
+					"$ref": "#/components/schemas/ThresholdsConfig"
+				}
+				"color": {
+					"$ref": "#/components/schemas/FieldColor"
+				}
+				"links": {
+					"description": "The behavior when clicking on a result", "type": "array", "items": {}
+				}
+				"noValue": {
+					"description": "Alternative to empty string", "type": "string"
+				}
+				"custom": {
+					"description": "custom is specified by the PanelFieldConfig field\nin panel plugin schemas.", "type": "object"
+				}
+			}
+		}
+		"FieldConfigSource": {
+			"type": "object", "required": ["defaults", "overrides"]
+			"properties": {
+				"defaults": {
+					"$ref": "#/components/schemas/FieldConfig"
+				}
+				"overrides": {
+					"type": "array", "items": {
+						"type": "object", "required": ["matcher", "properties"]
+						"properties": {
+							"matcher": {
+								"$ref": "#/components/schemas/MatcherConfig"
+							}
+							"properties": {
+								"type": "array", "items": {
+									"$ref": "#/components/schemas/DynamicConfigValue"
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		"GraphPanel": {
+			"description": "Support for legacy graph and heatmap panels.", "type": "object", "required": ["type"]
+			"properties": {
+				"type": {
+					"type": "string", "enum": ["graph"]
+				}
+			}
+		}
+		"GridPos": {
+			"type": "object", "required": ["h", "w", "x", "y"]
+			"properties": {
+				"h": {
+					"description": "Panel", "type": "integer", "minimum": 0, "exclusiveMinimum": true, "maximum": 4294967295, "default": 9
+				}
+				"w": {
+					"description": "Panel", "type": "integer", "minimum": 0, "exclusiveMinimum": true, "maximum": 24, "default": 12
+				}
+				"x": {
+					"description": "Panel x", "type": "integer", "minimum": 0, "maximum": 24, "exclusiveMaximum": true, "default": 0
+				}
+				"y": {
+					"description": "Panel y", "type": "integer", "minimum": 0, "maximum": 4294967295, "default": 0
+				}
+				"static": {
+					"description": "true if fixed", "type": "boolean"
+				}
+			}
+		}
+		"HeatmapPanel": {
+			"type": "object", "required": ["type"]
+			"properties": {
+				"type": {
+					"type": "string", "enum": ["heatmap"]
+				}
+			}
+		}
+		"MappingType": {
+			"description": "TODO docs", "type": "string", "enum": ["value", "range", "regex", "special"]
+		}
+		"MatcherConfig": {
+			"type": "object", "required": ["id"]
+			"properties": {
+				"id": {
+					"type": "string", "default": ""
+				}
+				"options": {}
+			}
+		}
+		"Panel": {
+			"description": "Dashboard panels. Panels are canonically defined inline\nbecause they share a version timeline with the dashboard\nschema; they do not evolve independently.", "type": "object", "required": ["type", "transparent", "repeatDirection", "transformations", "options", "fieldConfig"]
+			"properties": {
+				"type": {
+					"description": "The panel plugin type id. May not be empty.", "type": "string", "minLength": 1
+				}
+				"id": {
+					"description": "TODO docs", "type": "integer", "minimum": 0, "maximum": 4294967295
+				}
+				"pluginVersion": {
+					"description": "FIXME this almost certainly has to be changed in favor of scuemata versions", "type": "string"
+				}
+				"tags": {
+					"description": "TODO docs", "type": "array", "items": {
+							"type":              "string"
+					}
+				}
+				"targets": {
+					"description": "TODO docs", "type": "array", "items": {
+							"$ref":              "#/components/schemas/Target"
+					}
+				}
+				"title": {
+					"description": "Panel title.", "type": "string"
+				}
+				"description": {
+					"description": "Description.", "type": "string"
+				}
+				"transparent": {
+					"description": "Whether to display the panel without a background.", "type": "boolean", "default": false
+				}
+				"datasource": {
+					"description": "The datasource used in all targets.", "type": "object", "properties": {
+							"type": {
+								"type": "string"
+							}
+						"uid": {
+							"type": "string"
+						}
+					}
+				}
+				"gridPos": {
+					"$ref": "#/components/schemas/GridPos"
+				}
+				"links": {
+					"description": "Panel links.\nTODO fill this out - seems there are a couple variants?", "type": "array", "items": {
+							"$ref":                                                                          "#/components/schemas/DashboardLink"
+					}
+				}
+				"repeat": {
+					"description": "Name of template variable to repeat for.", "type": "string"
+				}
+				"repeatDirection": {
+					"description": "Direction to repeat in if 'repeat' is set.\n\"h\" for horizontal, \"v\" for vertical.", "type": "string", "enum": ["h", "v"]
+					"default": "h"
+				}
+				"maxDataPoints": {
+					"description": "TODO docs", "type": "number"
+				}
+				"thresholds": {
+					"description": "TODO docs - seems to be an old field from old dashboard alerts?", "type": "array", "items": {}
+				}
+				"timeRegions": {
+					"description": "TODO docs", "type": "array", "items": {}
+				}
+				"transformations": {
+					"type": "array", "items": {
+						"$ref": "#/components/schemas/Transformation"
+					}
+				}
+				"interval": {
+					"description": "TODO docs\nTODO tighter constraint", "type": "string"
+				}
+				"timeFrom": {
+					"description": "TODO docs\nTODO tighter constraint", "type": "string"
+				}
+				"timeShift": {
+					"description": "TODO docs\nTODO tighter constraint", "type": "string"
+				}
+				"options": {
+					"description": "options is specified by the PanelOptions field in panel\nplugin schemas.", "type": "object"
+				}
+				"fieldConfig": {
+					"$ref": "#/components/schemas/FieldConfigSource"
+				}
+			}
+		}
+		"RangeMap": {
+			"description": "TODO docs", "type": "object", "properties": {
+					"type": {
+						"type": "string", "enum": ["range"]
+				}
+				"options": {
+					"type": "object", "required": ["from", "to", "result"]
+					"properties": {
+						"from": {
+							"description": "to and from are `number | null` in current ts, really not sure what to do", "type": "number", "format": "double"
+						}
+						"to": {
+							"type": "number", "format": "double"
+						}
+						"result": {
+							"$ref": "#/components/schemas/ValueMappingResult"
+						}
+					}
+				}
+			}
+			"allOf": [{
+				"$ref": "#/components/schemas/BaseValueMapping"
+			}, {
+				"required": ["type", "options"]
+			}]
+		}
+		"RegexMap": {
+			"description": "TODO docs", "type": "object", "properties": {
+					"type": {
+						"type": "string", "enum": ["regex"]
+				}
+				"options": {
+					"type": "object", "required": ["pattern", "result"]
+					"properties": {
+						"pattern": {
+							"type": "string"
+						}
+						"result": {
+							"$ref": "#/components/schemas/ValueMappingResult"
+						}
+					}
+				}
+			}
+			"allOf": [{
+				"$ref": "#/components/schemas/BaseValueMapping"
+			}, {
+				"required": ["type", "options"]
+			}]
+		}
+		"RowPanel": {
+			"description": "Row panel", "type": "object", "required": ["type", "collapsed", "id", "panels"]
+			"properties": {
+				"type": {
+					"type": "string", "enum": ["row"]
+				}
+				"collapsed": {
+					"type": "boolean", "default": false
+				}
+				"title": {
+					"type": "string"
+				}
+				"datasource": {
+					"description": "Name of default datasource.", "type": "object", "properties": {
+							"type": {
+								"type": "string"
+							}
+						"uid": {
+							"type": "string"
+						}
+					}
+				}
+				"gridPos": {
+					"$ref": "#/components/schemas/GridPos"
+				}
+				"id": {
+					"type": "integer", "minimum": 0, "maximum": 4294967295
+				}
+				"panels": {
+					"type": "array", "items": {
+						"type": "object", "oneOf": [{
+							"$ref": "#/components/schemas/Panel"
+						}, {
+							"$ref": "#/components/schemas/GraphPanel"
+						}, {
+							"$ref": "#/components/schemas/HeatmapPanel"
+						}]
+					}
+				}
+				"repeat": {
+					"description": "Name of template variable to repeat for.", "type": "string"
+				}
+			}
+		}
+		"SpecialValueMap": {
+			"description": "TODO docs", "type": "object", "properties": {
+					"type": {
+						"type": "string", "enum": ["special"]
+				}
+				"options": {
+					"type": "object", "required": ["match", "pattern", "result"]
+					"properties": {
+						"match": {
+							"type": "string", "enum": ["true", "false"]
+						}
+						"pattern": {
+							"type": "string"
+						}
+						"result": {
+							"$ref": "#/components/schemas/ValueMappingResult"
+						}
+					}
+				}
+			}
+			"allOf": [{
+				"$ref": "#/components/schemas/BaseValueMapping"
+			}, {
+				"required": ["type", "options"]
+			}]
+		}
+		"SpecialValueMatch": {
+			"description": "TODO docs", "type": "string", "enum": ["true", "false", "null", "nan", "null+nan", "empty"]
+		}
+		"Target": {
+			"description": "Schema for panel targets is specified by datasource\nplugins. We use a placeholder definition, which the Go\nschema loader either left open/as-is with the Base\nvariant of the Dashboard and Panel families, or filled\nwith types derived from plugins in the Instance variant.\nWhen working directly from CUE, importers can extend this\ntype directly to achieve the same effect.", "type": "object"
+		}
+		"Threshold": {
+			"description": "TODO docs", "type": "object", "required": ["color"]
+			"properties": {
+				"value": {
+					"description": "TODO docs\nFIXME the corresponding typescript field is required/non-optional, but nulls currently appear here when serializing -Infinity to JSON", "type": "number"
+				}
+				"color": {
+					"description": "TODO docs", "type": "string"
+				}
+				"state": {
+					"description": "TODO docs\nTODO are the values here enumerable into a disjunction?\nSome seem to be listed in typescript comment", "type": "string"
+				}
+			}
+		}
+		"ThresholdsConfig": {
+			"type": "object", "required": ["mode", "steps"]
+			"properties": {
+				"mode": {
+					"$ref": "#/components/schemas/ThresholdsMode"
+				}
+				"steps": {
+					"description": "Must be sorted by 'value', first value is always -Infinity", "type": "array", "items": {
+							"$ref":                                                               "#/components/schemas/Threshold"
+					}
+				}
+			}
+		}
+		"ThresholdsMode": {
+			"type": "string", "enum": ["absolute", "percentage"]
+		}
+		"Transformation": {
+			"description": "TODO docs\nFIXME this is extremely underspecfied; wasn't obvious which typescript types corresponded to it", "type": "object", "required": ["id", "options"]
+			"properties": {
+				"id": {
+					"type": "string"
+				}
+				"options": {
+					"type": "object"
+				}
+			}
+		}
+		"ValueMap": {
+			"description": "TODO docs", "type": "object", "properties": {
+					"type": {
+						"type": "string", "enum": ["value"]
+				}
+				"options": {
+					"type": "object", "additionalProperties": {
+						"$ref": "#/components/schemas/ValueMappingResult"
+					}
+				}
+			}
+			"allOf": [{
+				"$ref": "#/components/schemas/BaseValueMapping"
+			}, {
+				"required": ["type", "options"]
+			}]
+		}
+		"ValueMapping": {
+			"description": "TODO docs", "type": "object", "oneOf": [{
+					"$ref":              "#/components/schemas/ValueMap"
+			}, {
+				"$ref": "#/components/schemas/RangeMap"
+			}, {
+				"$ref": "#/components/schemas/RegexMap"
+			}, {
+				"$ref": "#/components/schemas/SpecialValueMap"
+			}]
+		}
+		"ValueMappingResult": {
+			"description": "TODO docs", "type": "object", "properties": {
+					"text": {
+						"type": "string"
+					}
+				"color": {
+					"type": "string"
+				}
+				"icon": {
+					"type": "string"
+				}
+				"index": {
+					"type": "integer", "format": "int32"
+				}
+			}
+		}
+		"VariableModel": {
+			"description": "FROM: packages/grafana-data/src/types/templateVars.ts\nTODO docs\nTODO what about what's in public/app/features/types.ts?\nTODO there appear to be a lot of different kinds of [template] vars here? if so need a disjunction", "type": "object", "required": ["type", "name"]
+			"properties": {
+				"type": {
+					"$ref": "#/components/schemas/VariableType"
+				}
+				"name": {
+					"type": "string"
+				}
+				"label": {
+					"type": "string"
+				}
+			}
+		}
+		"VariableType": {
+			"description": "FROM: packages/grafana-data/src/types/templateVars.ts\nTODO docs\nTODO this implies some wider pattern/discriminated union, probably?", "type": "string", "enum": ["query", "adhoc", "constant", "datasource", "interval", "textbox", "custom", "system"]
+		}
+		"dashboard": {
+			"type": "object", "required": ["style", "editable", "graphTooltip", "schemaVersion"]
+			"properties": {
+				"id": {
+					"description": "Unique numeric identifier for the dashboard.\nTODO must isolate or remove identifiers local to a Grafana instance...?", "type": "integer", "format": "int64"
+				}
+				"uid": {
+					"description": "Unique dashboard identifier that can be generated by anyone. string (8-40)", "type": "string"
+				}
+				"title": {
+					"description": "Title of dashboard.", "type": "string"
+				}
+				"description": {
+					"description": "Description of dashboard.", "type": "string"
+				}
+				"gnetId": {
+					"type": "string"
+				}
+				"tags": {
+					"description": "Tags associated with dashboard.", "type": "array", "items": {
+							"type":                                    "string"
+					}
+				}
+				"style": {
+					"description": "Theme of dashboard.", "type": "string", "enum": ["dark", "light"]
+					"default": "dark"
+				}
+				"timezone": {
+					"description": "Timezone of dashboard,", "type": "string", "enum": ["browser", "utc", ""]
+					"default": "browser"
+				}
+				"editable": {
+					"description": "Whether a dashboard is editable or not.", "type": "boolean", "default": true
+				}
+				"graphTooltip": {
+					"$ref": "#/components/schemas/DashboardCursorSync"
+				}
+				"time": {
+					"description": "Time range for dashboard, e.g. last 6 hours, last 7 days, etc", "type": "object", "required": ["from", "to"]
+					"properties": {
+						"from": {
+							"type": "string", "default": "now-6h"
+						}
+						"to": {
+							"type": "string", "default": "now"
+						}
+					}
+				}
+				"timepicker": {
+					"description": "TODO docs\nTODO this appears to be spread all over in the frontend. Concepts will likely need tidying in tandem with schema changes", "type": "object", "required": ["collapse", "enable", "hidden", "refresh_intervals", "time_options"]
+					"properties": {
+						"collapse": {
+							"description": "Whether timepicker is collapsed or not.", "type": "boolean", "default": false
+						}
+						"enable": {
+							"description": "Whether timepicker is enabled or not.", "type": "boolean", "default": true
+						}
+						"hidden": {
+							"description": "Whether timepicker is visible or not.", "type": "boolean", "default": false
+						}
+						"refresh_intervals": {
+							"description": "Selectable intervals for auto-refresh.", "type": "array", "items": {
+									"type":                                           "string"
+							}
+							"default": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "1d"]
+						}
+						"time_options": {
+							"description": "TODO docs", "type": "array", "items": {
+									"type":              "string"
+							}
+							"default": ["5m", "15m", "1h", "6h", "12h", "24h", "2d", "7d", "30d"]
+						}
+					}
+				}
+				"fiscalYearStartMonth": {
+					"description": "TODO docs", "type": "integer", "minimum": 0, "maximum": 13, "exclusiveMaximum": true
+				}
+				"liveNow": {
+					"description": "TODO docs", "type": "boolean"
+				}
+				"weekStart": {
+					"description": "TODO docs", "type": "string"
+				}
+				"refresh": {
+					"description": "TODO docs", "oneOf": [{
+							"enum": [false]
+					}, {
+						"type": "string"
+					}]
+				}
+				"schemaVersion": {
+					"description": "Version of the JSON schema, incremented each time a Grafana update brings\nchanges to said schema.\nTODO this is the existing schema numbering system. It will be replaced by Thema's themaVersion", "type": "integer", "minimum": 0, "maximum": 65535, "default": 36
+				}
+				"version": {
+					"description": "Version of the dashboard, incremented each time the dashboard is updated.", "type": "integer", "minimum": 0, "maximum": 4294967295
+				}
+				"panels": {
+					"type": "array", "items": {
+						"type": "object", "oneOf": [{
+							"$ref": "#/components/schemas/Panel"
+						}, {
+							"$ref": "#/components/schemas/RowPanel"
+						}, {
+							"$ref": "#/components/schemas/GraphPanel"
+						}, {
+							"$ref": "#/components/schemas/HeatmapPanel"
+						}]
+					}
+				}
+				"templating": {
+					"description": "TODO docs", "type": "object", "required": ["list"]
+					"properties": {
+						"list": {
+							"type": "array", "items": {
+								"$ref": "#/components/schemas/VariableModel"
+							}
+						}
+					}
+				}
+				"annotations": {
+					"description": "TODO docs", "type": "object", "required": ["list"]
+					"properties": {
+						"list": {
+							"type": "array", "items": {
+								"$ref": "#/components/schemas/AnnotationQuery"
+							}
+						}
+					}
+				}
+				"links": {
+					"description": "TODO docs", "type": "array", "items": {
+							"$ref":              "#/components/schemas/DashboardLink"
+					}
+				}
+			}
+		}
+	}
+}
 
-					// This can be used by data sources that return and explicit naming structure for values and labels
-					// When this property is configured, this value is used rather than the default naming strategy.
-					displayNameFromDS?: string @grafanamaturity(NeedsExpertReview)
-
-					// Human readable field metadata
-					description?: string @grafanamaturity(NeedsExpertReview)
-
-					// An explicit path to the field in the datasource.  When the frame meta includes a path,
-					// This will default to `${frame.meta.path}/${field.name}
-					//
-					// When defined, this value can be used as an identifier within the datasource scope, and
-					// may be used to update the results
-					path?: string @grafanamaturity(NeedsExpertReview)
-
-					// True if data source can write a value to the path.  Auth/authz are supported separately
-					writeable?: bool @grafanamaturity(NeedsExpertReview)
-
-					// True if data source field supports ad-hoc filters
-					filterable?: bool @grafanamaturity(NeedsExpertReview)
-
-					// Numeric Options
-					unit?: string @grafanamaturity(NeedsExpertReview)
-
-					// Significant digits (for display)
-					decimals?: number @grafanamaturity(NeedsExpertReview)
-
-					min?: number @grafanamaturity(NeedsExpertReview)
-					max?: number @grafanamaturity(NeedsExpertReview)
-
-					// Convert input values into a display string
-					mappings?: [...#ValueMapping] @grafanamaturity(NeedsExpertReview)
-
-					// Map numeric values to states
-					thresholds?: #ThresholdsConfig @grafanamaturity(NeedsExpertReview)
-
-					// Map values to a display color
-					color?: #FieldColor @grafanamaturity(NeedsExpertReview)
-
-					// Used when reducing field values
-					//   nullValueMode?: NullValueMode
-
-					// The behavior when clicking on a result
-					links?: [...] @grafanamaturity(NeedsExpertReview)
-
-					// Alternative to empty string
-					noValue?: string @grafanamaturity(NeedsExpertReview)
-
-					// custom is specified by the PanelFieldConfig field
-					// in panel plugin schemas.
-					custom?: {...} @grafanamaturity(NeedsExpertReview)
-				} @cuetsy(kind="interface") @grafana(TSVeneer="type") @grafanamaturity(NeedsExpertReview)
-
-				// Row panel
-				#RowPanel: {
-					type:      "row"         @grafanamaturity(NeedsExpertReview)
-					collapsed: bool | *false @grafanamaturity(NeedsExpertReview)
-					title?:    string        @grafanamaturity(NeedsExpertReview)
-
-					// Name of default datasource.
-					datasource?: {
-						type?: string @grafanamaturity(NeedsExpertReview)
-						uid?:  string @grafanamaturity(NeedsExpertReview)
-					} @grafanamaturity(NeedsExpertReview)
-
-					gridPos?: #GridPos
-					id:       uint32 @grafanamaturity(NeedsExpertReview)
-					panels: [...(#Panel | #GraphPanel | #HeatmapPanel)] @grafanamaturity(NeedsExpertReview)
-					// Name of template variable to repeat for.
-					repeat?: string @grafanamaturity(NeedsExpertReview)
-				} @cuetsy(kind="interface") @grafanamaturity(NeedsExpertReview)
-
-				// Support for legacy graph and heatmap panels.
-				#GraphPanel: {
-					type: "graph" @grafanamaturity(NeedsExpertReview)
-					...
-				} @grafanamaturity(NeedsExpertReview)
-				#HeatmapPanel: {
-					type: "heatmap" @grafanamaturity(NeedsExpertReview)
-					...
-				} @grafanamaturity(NeedsExpertReview)
-			},
-		]
-	},
-]
+-- out/generate/0.0/subpath/err --
+#someField: openapi: #someField: field not found: someField
+-- out/generate/0.0/subpathroot/err --
+#overriddenName: openapi: #overriddenName: field not found: someField
