@@ -188,6 +188,12 @@
 	}
 }
 
+-- out/generate/0.0/subpath/err --
+#someField: openapi: #someField: field not found: someField
+-- out/generate/0.0/subpath/err --
+#someField: openapi: #someField: field not found: someField
+-- out/generate/0.0/subpathroot/err --
+#overriddenName: openapi: #overriddenName: field not found: someField
 -- out/generate/0.1/expandrefs --
 "openapi": "3.0.0"
 "info": {
@@ -297,13 +303,11 @@
 	"components": {
 		"schemas": {
 			"rootfield": {
-				"type": "object"
-				"oneOf": [{
+				"type": "object", "oneOf": [{
 					"required": ["branch", "branchone"]
 					"properties": {
 						"branch": {
-							"type": "integer"
-							"enum": [1]
+							"type": "integer", "enum": [1]
 						}
 						"branchone": {
 							"type": "string"
@@ -313,8 +317,7 @@
 					"required": ["branch", "branchtwo"]
 					"properties": {
 						"branch": {
-							"type": "integer"
-							"enum": [2]
+							"type": "integer", "enum": [2]
 						}
 						"branchtwo": {
 							"type": "string"
@@ -324,12 +327,10 @@
 					"required": ["branch", "branchthree"]
 					"properties": {
 						"branch": {
-							"type": "integer"
-							"enum": [3]
+							"type": "integer", "enum": [3]
 						}
 						"branchthree": {
-							"type": "object"
-							"oneOf": [{
+							"type": "object", "oneOf": [{
 								"required": ["branchthreeinner"]
 								"properties": {
 									"branchthreeinner": {
@@ -669,3 +670,9 @@
 	}
 }
 
+-- out/generate/0.1/subpath/err --
+#someField: openapi: #someField: field not found: someField
+-- out/generate/0.1/subpath/err --
+#someField: openapi: #someField: field not found: someField
+-- out/generate/0.1/subpathroot/err --
+#overriddenName: openapi: #overriddenName: field not found: someField

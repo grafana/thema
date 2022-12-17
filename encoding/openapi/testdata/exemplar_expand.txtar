@@ -95,6 +95,12 @@
 	}
 }
 
+-- out/generate/0.0/subpath/err --
+#someField: openapi: #someField: field not found: someField
+-- out/generate/0.0/subpath/err --
+#someField: openapi: #someField: field not found: someField
+-- out/generate/0.0/subpathroot/err --
+#overriddenName: openapi: #overriddenName: field not found: someField
 -- out/generate/0.1/expandrefs --
 "openapi": "3.0.0"
 "info": {
@@ -174,8 +180,6 @@
 			"init": {
 				"type": "string"
 			}
-		}
-		"schemas": {
 			"optional": {
 				"type": "integer"
 			}
@@ -275,6 +279,12 @@
 	}
 }
 
+-- out/generate/0.1/subpath/err --
+#someField: openapi: #someField: field not found: someField
+-- out/generate/0.1/subpath/err --
+#someField: openapi: #someField: field not found: someField
+-- out/generate/0.1/subpathroot/err --
+#overriddenName: openapi: #overriddenName: field not found: someField
 -- out/generate/0.2/expandrefs --
 "openapi": "3.0.0"
 "info": {
@@ -342,16 +352,11 @@
 			"init": {
 				"type": "string"
 			}
-		}
-		"schemas": {
 			"optional": {
 				"type": "integer"
 			}
-		}
-		"schemas": {
 			"withDefault": {
-				"type": "string"
-				"enum": ["foo", "bar"]
+				"type": "string", "enum": ["foo", "bar"]
 				"default": "foo"
 			}
 		}
@@ -490,6 +495,12 @@
 	}
 }
 
+-- out/generate/0.2/subpath/err --
+#someField: openapi: #someField: field not found: someField
+-- out/generate/0.2/subpath/err --
+#someField: openapi: #someField: field not found: someField
+-- out/generate/0.2/subpathroot/err --
+#overriddenName: openapi: #overriddenName: field not found: someField
 -- out/generate/0.3/expandrefs --
 "openapi": "3.0.0"
 "info": {
@@ -557,16 +568,11 @@
 			"init": {
 				"type": "string"
 			}
-		}
-		"schemas": {
 			"optional": {
 				"type": "integer"
 			}
-		}
-		"schemas": {
 			"withDefault": {
-				"type": "string"
-				"enum": ["foo", "bar", "baz"]
+				"type": "string", "enum": ["foo", "bar", "baz"]
 				"default": "foo"
 			}
 		}
@@ -705,3 +711,9 @@
 	}
 }
 
+-- out/generate/0.3/subpath/err --
+#someField: openapi: #someField: field not found: someField
+-- out/generate/0.3/subpath/err --
+#someField: openapi: #someField: field not found: someField
+-- out/generate/0.3/subpathroot/err --
+#overriddenName: openapi: #overriddenName: field not found: someField

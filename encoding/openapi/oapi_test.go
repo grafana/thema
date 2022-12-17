@@ -3,6 +3,7 @@ package openapi
 import (
 	"testing"
 
+	"cuelang.org/go/cue"
 	"cuelang.org/go/encoding/openapi"
 	"github.com/grafana/thema"
 	cuetxtar "github.com/grafana/thema/internal/txtartest"
@@ -46,6 +47,19 @@ func TestGenerate(t *testing.T) {
 				Config: &openapi.Config{
 					SelfContained: true,
 				},
+			},
+		},
+		{
+			name: "subpath",
+			cfg: &Config{
+				Subpath: cue.ParsePath("someField"),
+			},
+		},
+		{
+			name: "subpathroot",
+			cfg: &Config{
+				Subpath: cue.ParsePath("someField"),
+				RootName: "overriddenName",
 			},
 		},
 	}
