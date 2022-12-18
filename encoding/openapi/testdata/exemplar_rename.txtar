@@ -1,0 +1,186 @@
+-- out/generate/0.0/expandrefs --
+"openapi": "3.0.0"
+"info": {
+	"title":   "rename"
+	"version": "0.0"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"rename": {
+			"type": "object", "required": ["before", "unchanged"]
+			"properties": {
+				"before": {
+					"type": "string"
+				}
+				"unchanged": {
+					"type": "string"
+				}
+			}
+		}
+	}
+}
+
+-- out/generate/0.0/group --
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "rename"
+		"version": "0.0"
+	}
+	"path": {}
+	"components": {
+		"schemas": {
+			"before": {
+				"type": "string"
+			}
+			"unchanged": {
+				"type": "string"
+			}
+		}
+	}
+}
+
+-- out/generate/0.0/nil --
+"openapi": "3.0.0"
+"info": {
+	"title":   "rename"
+	"version": "0.0"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"rename": {
+			"type": "object", "required": ["before", "unchanged"]
+			"properties": {
+				"before": {
+					"type": "string"
+				}
+				"unchanged": {
+					"type": "string"
+				}
+			}
+		}
+	}
+}
+
+-- out/generate/0.0/selfcontained --
+"openapi": "3.0.0"
+"info": {
+	"title":   "rename"
+	"version": "0.0"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"rename": {
+			"type": "object", "required": ["before", "unchanged"]
+			"properties": {
+				"before": {
+					"type": "string"
+				}
+				"unchanged": {
+					"type": "string"
+				}
+			}
+		}
+	}
+}
+
+-- out/generate/0.0/subpath/err --
+#someField: openapi: #someField: field not found: someField
+-- out/generate/0.0/subpathroot/err --
+#overriddenName: openapi: #overriddenName: field not found: someField
+-- out/generate/1.0/expandrefs --
+"openapi": "3.0.0"
+"info": {
+	"title":   "rename"
+	"version": "1.0"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"rename": {
+			"type": "object", "required": ["after", "unchanged"]
+			"properties": {
+				"after": {
+					"type": "string"
+				}
+				"unchanged": {
+					"type": "string"
+				}
+			}
+		}
+	}
+}
+
+-- out/generate/1.0/group --
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "rename"
+		"version": "1.0"
+	}
+	"path": {}
+	"components": {
+		"schemas": {
+			"after": {
+				"type": "string"
+			}
+			"unchanged": {
+				"type": "string"
+			}
+		}
+	}
+}
+
+-- out/generate/1.0/nil --
+"openapi": "3.0.0"
+"info": {
+	"title":   "rename"
+	"version": "1.0"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"rename": {
+			"type": "object", "required": ["after", "unchanged"]
+			"properties": {
+				"after": {
+					"type": "string"
+				}
+				"unchanged": {
+					"type": "string"
+				}
+			}
+		}
+	}
+}
+
+-- out/generate/1.0/selfcontained --
+"openapi": "3.0.0"
+"info": {
+	"title":   "rename"
+	"version": "1.0"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"rename": {
+			"type": "object", "required": ["after", "unchanged"]
+			"properties": {
+				"after": {
+					"type": "string"
+				}
+				"unchanged": {
+					"type": "string"
+				}
+			}
+		}
+	}
+}
+
+-- out/generate/1.0/subpath/err --
+#someField: openapi: #someField: field not found: someField
+-- out/generate/1.0/subpathroot/err --
+#overriddenName: openapi: #overriddenName: field not found: someField

@@ -3,31 +3,77 @@ package openapi
 import (
 	"testing"
 
-	"cuelang.org/go/cue/cuecontext"
-	"cuelang.org/go/cue/errors"
-	"cuelang.org/go/cue/format"
+	"cuelang.org/go/cue"
+	"cuelang.org/go/encoding/openapi"
 	"github.com/grafana/thema"
-	"github.com/grafana/thema/exemplars"
+	cuetxtar "github.com/grafana/thema/internal/txtartest"
 )
 
-// TODO make a testscript-based golden file approach to this that captures all exemplar encoding
-func testGenerateSchema(t *testing.T) {
-	rt := thema.NewRuntime(cuecontext.New())
-	lin, err := exemplars.ExpandLineage(rt)
-	if err != nil {
-		t.Fatal(err)
+func TestGenerate(t *testing.T) {
+	test := cuetxtar.LineageSuite{
+		Root:             "./testdata",
+		Name:             "generate",
+		IncludeExemplars: true,
+		ToDo: map[string]string{
+			"TestGenerate/dashboard/0.0/expandrefs": "unexpected problem with converting unification",
+		},
 	}
 
-	sch := thema.SchemaP(lin, thema.SV(0, 0))
-	f, err := GenerateSchema(sch, nil)
-	if err != nil {
-		t.Fatal(errors.Details(err, nil))
+	vars := []struct {
+		name string
+		cfg  *Config
+	}{
+		{
+			name: "nil",
+			cfg:  nil,
+		},
+		{
+			name: "group",
+			cfg: &Config{
+				Group: true,
+			},
+		},
+		{
+			name: "expandrefs",
+			cfg: &Config{
+				Config: &openapi.Config{
+					ExpandReferences: true,
+				},
+			},
+		},
+		{
+			name: "selfcontained",
+			cfg: &Config{
+				Config: &openapi.Config{
+					SelfContained: true,
+				},
+			},
+		},
+		{
+			name: "subpath",
+			cfg: &Config{
+				Subpath: cue.ParsePath("someField"),
+			},
+		},
+		{
+			name: "subpathroot",
+			cfg: &Config{
+				Subpath:  cue.ParsePath("someField"),
+				RootName: "overriddenName",
+			},
+		},
 	}
 
-	b, err := format.Node(f)
-	if err != nil {
-		t.Fatal(err)
-	}
+	test.Run(t, func(t *cuetxtar.LineageTest) {
+		lin := t.BindLineage(nil)
 
-	_ = b
+		cuetxtar.ForEachSchema(t, lin, func(t *cuetxtar.LineageTest, sch thema.Schema) {
+			for _, tc := range vars {
+				itest := tc
+				t.T.Run(itest.name, func(gt *testing.T) {
+					t.WriteFileOrErr(itest.name)(GenerateSchema(sch, itest.cfg))
+				})
+			}
+		})
+	})
 }
