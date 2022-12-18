@@ -20,10 +20,10 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
+	"sort"
 	"strings"
 	"testing"
 	"testing/fstest"
@@ -43,11 +43,12 @@ import (
 	"golang.org/x/tools/txtar"
 )
 
-// A CueTest represents a test run that process all CUE tests in the txtar
-// format rooted in a given directory. See the [Test] documentation for
-// more details.
-type CueTest struct {
-	// Run CueTest on this directory.
+// A LineageSuite represents a suite of tests run against a single
+// [thema.Lineage] that exercise a particular set of related behaviors that
+// operate on lineage. Inputs and outputs for the test suite are collected
+// within a single .txtar file. See the [LineageTest] documentation for more details.
+type LineageSuite struct {
+	// Run LineageSuite on this directory.
 	Root string
 
 	// Name is a unique name for this test. The golden file for this test is
@@ -62,24 +63,30 @@ type CueTest struct {
 
 	// ToDo is a map of tests that should be skipped now, but should be fixed.
 	ToDo map[string]string
+
+	// IncludeExemplars specifies whether the standard Thema lineage exemplars
+	// should be included as inputs to the executed test.
+	//
+	// If true, the Thema exemplars will be loaded and test results will be
+	// placed within Root with the naming pattern exemplar_<name>.txtar.
+	IncludeExemplars bool
 }
 
-// A Test represents a single test based on a .txtar file.
+// A LineageTest represents a single test based on a .txtar file.
 //
-// A Test embeds *[testing.T] and should be used to report errors.
+// A LineageTest embeds *[testing.T] and should be used to report errors.
 //
-// Entries within the txtar file define CUE files (available via the
-// [Test.Instance] method) and expected output (or "golden") files (names
-// starting with "out/\(testname)"). The "main" golden file is "out/\(testname)"
-// itself, used when [Test] is used directly as an [io.Writer] and with
-// [Test.WriteFile].
+// Entries within the txtar file define CUE files containing lineage inputs, and
+// expected output (or "golden") files (names starting with "out/\(testname)").
+// The "main" golden file is "out/\(testname)" itself, used when [LineageTest]
+// is used directly as an [io.Writer] and with [LineageTest.WriteFile].
 //
-// When the test function has returned, output written with [Test.Write], [Test.Writer]
+// When the test function has returned, output written with [LineageTest.Write], [Test.Writer]
 // and friends is checked against the expected output files.
 //
 // A txtar file can define test-specific tags and values in the comment section.
-// These are available via the [Test.HasTag] and [Test.Value] methods.
-// The #skip tag causes a [Test] to be skipped.
+// These are available via the [Test.HasTag] and [LineageTest.Value] methods.
+// The #skip tag causes a [LineageTest] to be skipped.
 // The #noformat tag causes the $THEMA_FORMAT_TXTAR value
 // to be ignored.
 //
@@ -90,8 +97,8 @@ type CueTest struct {
 // If $THEMA_FORMAT_TXTAR is non-empty, any CUE files in the txtar
 // file will be updated to be properly formatted, unless the #noformat
 // tag is present.
-type Test struct {
-	// Allow Test to be used as a T.
+type LineageTest struct {
+	// Allow LineageTest to be used as a T.
 	*testing.T
 
 	prefix   string
@@ -103,12 +110,28 @@ type Test struct {
 	// The absolute path of the current test directory.
 	Dir string
 
+	// name of the exemplar, if they're being used
+	exemplar string
+
+	// AllowFilesetDivergence indicates whether a correctness criteria for the
+	// test is that set of files in the Archive should be exactly equal to
+	// the set in outFiles.
+	//
+	// If true, divergent filesets are not considered a failure criteria, and
+	// updating golden files will not remove files from the archive.
+	//
+	// If true, divergent filesets are considered a failure criteria, and
+	// updating golden files will remove files from the archive.
+	AllowFilesetDivergence bool
+
 	hasGold bool
+
+	suite *LineageSuite
 }
 
 // Write implements [io.Writer] by writing to the output for the test,
 // which will be tested against the main golden file.
-func (t *Test) Write(b []byte) (n int, err error) {
+func (t *LineageTest) Write(b []byte) (n int, err error) {
 	if t.buf == nil {
 		t.buf = &bytes.Buffer{}
 		t.outFiles = append(t.outFiles, file{t.prefix, t.buf})
@@ -126,7 +149,7 @@ type file struct {
 // section of the txtar file like:
 //
 //	#x
-func (t *Test) HasTag(key string) bool {
+func (t *LineageTest) HasTag(key string) bool {
 	prefix := []byte("#" + key)
 	s := bufio.NewScanner(bytes.NewReader(t.Archive.Comment))
 	for s.Scan() {
@@ -147,7 +170,7 @@ func (t *Test) HasTag(key string) bool {
 //	#key: value
 //
 // White space is trimmed from the value before returning.
-func (t *Test) Value(key string) (value string, ok bool) {
+func (t *LineageTest) Value(key string) (value string, ok bool) {
 	prefix := []byte("#" + key + ":")
 	s := bufio.NewScanner(bytes.NewReader(t.Archive.Comment))
 	for s.Scan() {
@@ -161,14 +184,14 @@ func (t *Test) Value(key string) (value string, ok bool) {
 
 // Bool searches for a line starting with #key: value in the comment and
 // reports whether the key exists and its value is true.
-func (t *Test) Bool(key string) bool {
+func (t *LineageTest) Bool(key string) bool {
 	s, ok := t.Value(key)
 	return ok && s == "true"
 }
 
 // Rel converts filename to a normalized form so that it will given the same
 // output across different runs and OSes.
-func (t *Test) Rel(filename string) string {
+func (t *LineageTest) Rel(filename string) string {
 	rel, err := filepath.Rel(t.Dir, filename)
 	if err != nil {
 		return filepath.Base(filename)
@@ -176,10 +199,11 @@ func (t *Test) Rel(filename string) string {
 	return filepath.ToSlash(rel)
 }
 
-// WriteErrors writes the full list of errors in err to the test output.
-func (t *Test) WriteErrors(err errors.Error) {
+// WriteErrors writes the full list of errors in err to the output with
+// the given name, joined to any active prefixes.
+func (t *LineageTest) WriteErrors(err error, name string) {
 	if err != nil {
-		errors.Print(t, err, &errors.Config{
+		errors.Print(t.Writer(path.Join(name, "err")), err, &errors.Config{
 			Cwd:     t.Dir,
 			ToSlash: true,
 		})
@@ -192,17 +216,35 @@ func (t *Test) WriteErrors(err errors.Error) {
 //	== name
 //
 // where name is the base name of f.Filename.
-func (t *Test) WriteFile(f *ast.File) {
-	// fmt.Fprintln(t, "==", filepath.Base(f.Filename))
-	// _, _ = t.Write(formatNode(t.T, f))
-	fmt.Fprintln(t.Writer(f.Filename), string(formatNode(t.T, f)))
+// func (t *LineageTest) WriteFile(f *ast.File) {
+// 	fmt.Fprintln(t, "==", filepath.Base(f.Filename))
+// 	_, _ = t.Write(formatNode(t.T, f))
+// }
+
+// WriteFile formats f and writes it to an output with the provided name,
+// joined to any active prefixes.
+func (t *LineageTest) WriteFile(f *ast.File, name string) {
+	fmt.Fprintln(t.Writer(name), string(formatNode(t.T, f)))
+}
+
+// WriteFileOrErr creates a function that will write either a file or an error
+// to the provided provided output name, joined onto any active prefixes on the
+// LineageTest.
+func (t *LineageTest) WriteFileOrErr(name string) func(*ast.File, error) {
+	return func(f *ast.File, err error) {
+		if err != nil {
+			t.WriteErrors(err, name)
+		} else {
+			t.WriteFile(f, name)
+		}
+	}
 }
 
 // Writer returns a Writer with the given name. Data written will
 // be checked against the file with name "out/\(testName)/\(name)"
 // in the txtar file. If name is empty, data will be written to the test
 // output and checked against "out/\(testName)".
-func (t *Test) Writer(name string) io.Writer {
+func (t *LineageTest) Writer(name string) io.Writer {
 	switch name {
 	case "":
 		name = t.prefix
@@ -255,17 +297,21 @@ func formatNode(t *testing.T, f *ast.File) []byte {
 // By default, it will assume the entire instance is intended to be a lineage.
 // However, if a #lineagePath key exists with a value, that path will be
 // used instead.
-func (t *Test) BindLineage(rt *thema.Runtime) thema.Lineage {
+func (t *LineageTest) BindLineage(rt *thema.Runtime) thema.Lineage {
+	t.Helper()
 	var ctx *cue.Context
 	if rt == nil {
-		ctx = cuecontext.New()
-		rt = thema.NewRuntime(ctx)
+		ctx = Context()
+		rt = Runtime()
 	} else {
 		ctx = rt.Context()
 	}
 
-	t.Helper()
-	inst := t.Instance()
+	if t.exemplar != "" {
+		return getExemplars(rt)[t.exemplar]
+	}
+
+	inst := t.instance()
 	val := ctx.BuildInstance(inst)
 	if p, ok := t.Value("lineagePath"); ok {
 		pp := cue.ParsePath(p)
@@ -285,18 +331,18 @@ func (t *Test) BindLineage(rt *thema.Runtime) thema.Lineage {
 	return lin
 }
 
-// Instance returns the single instance representing the
+// instance returns the single instance representing the
 // root directory in the txtar file.
-func (t *Test) Instance() *build.Instance {
-	return t.Instances()[0]
+func (t *LineageTest) instance() *build.Instance {
+	return t.instances()[0]
 }
 
-// Instances returns the valid instances for this .txtar file or skips the
+// instances returns the valid instances for this .txtar file or skips the
 // test if there is an error loading the instances.
-func (t *Test) Instances(args ...string) []*build.Instance {
+func (t *LineageTest) instances(args ...string) []*build.Instance {
 	t.Helper()
 
-	a := t.RawInstances(args...)
+	a := t.rawInstances(args...)
 	for _, i := range a {
 		if i.Err != nil {
 			if t.hasGold {
@@ -308,10 +354,10 @@ func (t *Test) Instances(args ...string) []*build.Instance {
 	return a
 }
 
-// RawInstances returns the instances represented by this .txtar file. The
+// rawInstances returns the instances represented by this .txtar file. The
 // returned instances are not checked for errors.
-func (t *Test) RawInstances(args ...string) []*build.Instance {
-	binsts, err := Load(t.Archive, t.Dir, args...)
+func (t *LineageTest) rawInstances(args ...string) []*build.Instance {
+	binsts, err := Load(t.Archive, t.Name(), args...)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -344,9 +390,9 @@ func Load(a *txtar.Archive, dir string, args ...string) ([]*build.Instance, erro
 
 // Run runs tests defined in txtar files in x.Root or its subdirectories.
 //
-// The function f is called for each such txtar file. See the [Test] documentation
+// The function f is called for each such txtar file. See the [LineageTest] documentation
 // for more details.
-func (x *CueTest) Run(t *testing.T, f func(tc *Test)) {
+func (x *LineageSuite) Run(t *testing.T, f func(tc *LineageTest)) {
 	t.Helper()
 
 	dir, err := os.Getwd()
@@ -355,6 +401,43 @@ func (x *CueTest) Run(t *testing.T, f func(tc *Test)) {
 	}
 
 	root := x.Root
+
+	all := make(map[string]thema.Lineage)
+	if x.IncludeExemplars {
+		all = getExemplars(nil)
+	}
+	ents, err := os.ReadDir(x.Root)
+	if err != nil {
+		t.Fatalf("could not read root dir %s: %s", x.Root, err)
+	}
+
+	for _, ent := range ents {
+		name := ent.Name()
+		if path.Ext(name) == ".txtar" && strings.HasPrefix(name, "exemplar_") {
+			if !x.IncludeExemplars {
+				t.Fail()
+				t.Logf("%s: test files with prefix exemplar_ are reserved for exemplar testing with LineageSuite.IncludeExemplars=true", name)
+			} else {
+				name = name[9 : len(name)-6]
+				if _, has := all[name]; has {
+					delete(all, name)
+				} else {
+					t.Fail()
+					t.Logf("%s: no exemplar exists with name %q, file must be removed", ent.Name(), name)
+				}
+			}
+		}
+	}
+
+	if t.Failed() {
+		t.FailNow()
+	}
+
+	if x.IncludeExemplars {
+		for name := range all {
+			os.Create(filepath.Join(x.Root, fmt.Sprintf("exemplar_%s.txtar", name)))
+		}
+	}
 
 	err = filepath.WalkDir(root, func(fullpath string, entry fs.DirEntry, err error) error {
 		if err != nil {
@@ -374,12 +457,14 @@ func (x *CueTest) Run(t *testing.T, f func(tc *Test)) {
 				t.Fatalf("error parsing txtar file: %v", err)
 			}
 
-			tc := &Test{
-				T:       t,
-				Archive: a,
-				Dir:     filepath.Dir(filepath.Join(dir, fullpath)),
+			tc := &LineageTest{
+				T:        t,
+				Archive:  a,
+				Dir:      filepath.Dir(filepath.Join(dir, fullpath)),
+				exemplar: exemplarNameFromPath(fullpath),
 
 				prefix: path.Join("out", x.Name),
+				suite:  x,
 			}
 
 			if tc.HasTag("skip") {
@@ -420,9 +505,15 @@ func (x *CueTest) Run(t *testing.T, f func(tc *Test)) {
 
 			f(tc)
 
+			// Construct index of files in general, and set of files associated
+			// with this test by prefix
 			index := make(map[string]int, len(a.Files))
+			indexthis := make(map[string]bool, len(a.Files))
 			for i, f := range a.Files {
 				index[f.Name] = i
+				if strings.HasPrefix(f.Name, tc.prefix) {
+					indexthis[f.Name] = true
+				}
 			}
 
 			// Insert results of this test at first location of any existing
@@ -434,9 +525,21 @@ func (x *CueTest) Run(t *testing.T, f func(tc *Test)) {
 					break
 				}
 			}
-
 			files := a.Files[:k:k]
 
+			// fmt.Println(tc.prefix, "K", k)
+			// for _, f := range tc.outFiles {
+			// 	fmt.Println("OUT:", f.name)
+			// }
+			// for _, f := range a.Files {
+			// 	fmt.Println("ARCHIVE:", f.Name)
+			// }
+			// for _, f := range files {
+			// 	fmt.Println("SLICE:", f.Name)
+			// }
+
+			// Walk all files created during this test, comparing them against
+			// archive contents
 			for _, sub := range tc.outFiles {
 				result := sub.buf.Bytes()
 
@@ -446,10 +549,19 @@ func (x *CueTest) Run(t *testing.T, f func(tc *Test)) {
 				if i, ok := index[sub.name]; ok {
 					gold.Data = a.Files[i].Data
 					delete(index, sub.name)
+					delete(indexthis, sub.name)
 
 					if bytes.Equal(gold.Data, result) {
 						continue
 					}
+				} else if !tc.AllowFilesetDivergence && !envvars.UpdateGoldenFiles {
+					t.Fail()
+					if strings.HasSuffix(sub.name, "/err") {
+						t.Logf("error for result %s:\n%s", strings.TrimSuffix(sub.name, "/err"), string(result))
+					} else {
+						t.Logf("result %s does not exist (rerun with %s=1 to fix)", sub.name, envvars.VarUpdateGolden)
+					}
+					continue
 				}
 
 				if envvars.UpdateGoldenFiles {
@@ -472,8 +584,41 @@ func (x *CueTest) Run(t *testing.T, f func(tc *Test)) {
 			}
 			a.Files = files
 
+			if !tc.AllowFilesetDivergence && len(indexthis) != 0 {
+				if !envvars.UpdateGoldenFiles {
+					var extra []string
+					for name := range indexthis {
+						extra = append(extra, name)
+					}
+					t.Errorf("output not generated by test (rerun with %s=1 to fix):\n\t%s\n", envvars.VarUpdateGolden, strings.Join(extra, "\n\t"))
+				} else {
+					update = true
+					seen := make(map[string]bool)
+					// Remove duplicates and files no longer generated by test
+					filtered := make([]txtar.File, 0, len(a.Files)-len(indexthis))
+					// In case duplicates appeared, walk backwards to ensure keeping latest one
+					for i := len(a.Files) - 1; i >= 0; i-- {
+						f := a.Files[i]
+						if !strings.HasPrefix(f.Name, tc.prefix) || (!indexthis[f.Name] && !seen[f.Name]) {
+							filtered = append(filtered, f)
+						}
+						seen[f.Name] = true
+					}
+					a.Files = filtered
+				}
+			}
+
 			if update {
-				err = ioutil.WriteFile(fullpath, txtar.Format(a), 0644)
+				dedupe(a)
+				sort.Slice(a.Files, func(i, j int) bool {
+					isout := func(s string) bool { return strings.HasPrefix(s, "out/") }
+					if isout(a.Files[i].Name) != isout(a.Files[j].Name) {
+						return isout(a.Files[j].Name)
+					}
+					return a.Files[i].Name < a.Files[j].Name
+				})
+
+				err = os.WriteFile(fullpath, txtar.Format(a), 0644)
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -486,4 +631,18 @@ func (x *CueTest) Run(t *testing.T, f func(tc *Test)) {
 	if err != nil {
 		t.Fatal(err)
 	}
+}
+
+// Dedupe files. Some weird bug in the suite causes some files to double up when
+// writing goldens. This is a kludge to avoid solving the actual problem.
+func dedupe(a *txtar.Archive) {
+	seen := make(map[string]bool)
+	flist := make([]txtar.File, 0, len(a.Files))
+	for i := len(a.Files) - 1; i >= 0; i-- {
+		if !seen[a.Files[i].Name] {
+			flist = append(flist, a.Files[i])
+		}
+		seen[a.Files[i].Name] = true
+	}
+	a.Files = flist
 }

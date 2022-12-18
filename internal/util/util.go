@@ -6,13 +6,9 @@ import (
 	"io/fs"
 	"math/rand"
 	"path/filepath"
+	"strings"
 
-	"cuelang.org/go/cue"
-	"cuelang.org/go/cue/ast"
-	"cuelang.org/go/cue/ast/astutil"
 	"cuelang.org/go/cue/load"
-	"cuelang.org/go/cue/parser"
-	tastutil "github.com/grafana/thema/internal/astutil"
 )
 
 // ToOverlay converts an fs.FS into a CUE loader overlay.
@@ -63,55 +59,6 @@ func RandSeq(n int) string {
 	return string(b)
 }
 
-// ToInstanceDef exports the provided cue.Value (which is expected to be a thema
-// schema) into a top-level definition within a cue.Instance, allowing some
-// older cue stdlib (like encoding/openapi) that still want a cue.Instance to
-// work with the value.
-func ToInstanceDef(v cue.Value, name string, ctx *cue.Context) (*cue.Instance, error) {
-	if ctx == nil {
-		ctx = v.Context()
-	}
-
-	expr, _ := parser.ParseExpr("empty", "{}")
-	bv := ctx.BuildExpr(expr)
-
-	base := RandSeq(10)
-	p := cue.MakePath(cue.Str(base), cue.Def(name))
-	pp := cue.MakePath(cue.Str(base))
-	dumpv := bv.FillPath(p, v).LookupPath(pp)
-
-	// TODO just Eval()'ing without giving the user choices is not great.
-	// But how else to get rid of all the (potential) joinSchema references?
-	n := tastutil.Format(dumpv.Eval())
-	var f *ast.File
-	switch x := n.(type) {
-	case *ast.StructLit:
-		// errs not possible here, structlits always convert
-		f, _ = astutil.ToFile(x) // nolint: errcheck
-	case *ast.File:
-		f = x
-	default:
-		return nil, fmt.Errorf("schema cue.Value converted to unexpected ast type %T", n)
-	}
-
-	// Quote labels that would shadow keywords/type identifiers. This is probably
-	// something that cue's format package should do itself.
-	ast.Walk(f, func(n ast.Node) bool {
-		switch x := n.(type) {
-		case *ast.Field:
-			nam, isident, err := ast.LabelName(x.Label)
-			if err == nil && isident && mustQuote(nam) {
-				x.Label = ast.NewString(nam)
-			}
-		}
-		return true
-
-	}, nil)
-
-	rt := (*cue.Runtime)(ctx)
-	return rt.CompileFile(f)
-}
-
 // TODO make a better list - rely on CUE Go API somehow? Tokens?
 func mustQuote(n string) bool {
 	quoteneed := []string{
@@ -129,4 +76,23 @@ func mustQuote(n string) bool {
 		}
 	}
 	return false
+}
+
+// SanitizeLabelString strips characters from a string that are not allowed for
+// use in a CUE label.
+func SanitizeLabelString(s string) string {
+	return strings.Map(func(r rune) rune {
+		switch {
+		case r >= 'a' && r <= 'z':
+			fallthrough
+		case r >= 'A' && r <= 'Z':
+			fallthrough
+		case r >= '0' && r <= '9':
+			fallthrough
+		case r == '_':
+			return r
+		default:
+			return -1
+		}
+	}, s)
 }

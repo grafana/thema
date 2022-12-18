@@ -42,7 +42,7 @@ type TypeConfigOpenAPI struct {
 	// lowercase version of the Lineage.Name() is used.
 	PackageName string
 
-	// ApplyFuncs is a slice of AST manipulation funcs that will be executedagainst
+	// ApplyFuncs is a slice of AST manipulation funcs that will be executed against
 	// the generated Go file prior to running it through goimports. For each slice
 	// element, [astutil.Apply] is called with the element as the "pre" parameter.
 	ApplyFuncs []astutil.ApplyFunc
@@ -53,6 +53,9 @@ type TypeConfigOpenAPI struct {
 	// codegen by multiple orders of magnitude. Succeeding silently but slowly is a bad
 	// default behavior when the fix is usually quite easy.)
 	IgnoreDiscoveredImports bool
+
+	// Config is passed through to the Thema OpenAPI encoder, [openapi.GenerateSchema].
+	Config *openapi.Config
 }
 
 // GenerateTypesOpenAPI generates native Go code corresponding to the provided Schema.
@@ -61,7 +64,7 @@ func GenerateTypesOpenAPI(sch thema.Schema, cfg *TypeConfigOpenAPI) ([]byte, err
 		cfg = new(TypeConfigOpenAPI)
 	}
 
-	f, err := openapi.GenerateSchema(sch, nil)
+	f, err := openapi.GenerateSchema(sch, cfg.Config)
 	if err != nil {
 		return nil, fmt.Errorf("thema openapi generation failed: %w", err)
 	}

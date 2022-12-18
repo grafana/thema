@@ -2,6 +2,9 @@ module github.com/grafana/thema
 
 go 1.19
 
+// contains openapi encoder fixes. remove ASAP
+replace cuelang.org/go => github.com/sdboyer/cue v0.5.0-beta.1.0.20221218101942-2ebe38f6cfb1
+
 require (
 	cuelang.org/go v0.5.0-beta.2
 	github.com/deepmap/oapi-codegen v1.10.1
