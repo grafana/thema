@@ -42,7 +42,7 @@ type TypeConfigOpenAPI struct {
 	// lowercase version of the Lineage.Name() is used.
 	PackageName string
 
-	// ApplyFuncs is a slice of AST manipulation funcs that will be executedagainst
+	// ApplyFuncs is a slice of AST manipulation funcs that will be executed against
 	// the generated Go file prior to running it through goimports. For each slice
 	// element, [astutil.Apply] is called with the element as the "pre" parameter.
 	ApplyFuncs []astutil.ApplyFunc
@@ -54,14 +54,8 @@ type TypeConfigOpenAPI struct {
 	// default behavior when the fix is usually quite easy.)
 	IgnoreDiscoveredImports bool
 
-	// Group indicates that the type is a grouped lineage - the root schema itself
-	// does not represent an object that is ever expected to exist independently,
-	// but each of its top-level fields do.
-	//
-	// NOTE - https://github.com/grafana/thema/issues/62 is the issue for formalizing
-	// the group concept. Fixing that issue will obviate this field. Once fixed,
-	// this field will be ignored, deprecated, and eventually removed.
-	Group bool
+	// Config is passed through to the Thema OpenAPI encoder, [openapi.GenerateSchema].
+	Config *openapi.Config
 }
 
 // GenerateTypesOpenAPI generates native Go code corresponding to the provided Schema.
@@ -70,11 +64,7 @@ func GenerateTypesOpenAPI(sch thema.Schema, cfg *TypeConfigOpenAPI) ([]byte, err
 		cfg = new(TypeConfigOpenAPI)
 	}
 
-	ocfg := &openapi.Config{
-		Group: cfg.Group,
-	}
-
-	f, err := openapi.GenerateSchema(sch, ocfg)
+	f, err := openapi.GenerateSchema(sch, cfg.Config)
 	if err != nil {
 		return nil, fmt.Errorf("thema openapi generation failed: %w", err)
 	}

@@ -41,11 +41,100 @@ Aliasish: {
 Embedder: {
     embedderField: bytes
 }
--- out/generate/0.0/expandrefs/err --
-#import.baz: unsupported op . for object type ({
-	fieldInDef: int32 | string
-}):
-    ../../../../../../../thema.test/generate/in.cue:21:17
+-- out/generate/0.0/expandrefs --
+"openapi": "3.0.0"
+"info": {
+	"title":   "import"
+	"version": "0.0"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"AsRef": {
+			"type": "object", "required": ["run", "tell", "dat"]
+			"properties": {
+				"run": {
+					"type": "integer", "format": "int32"
+				}
+				"tell": {
+					"type": "string", "format": "binary"
+				}
+				"dat": {
+					"type": "array", "items": {
+						"type": "string"
+					}
+				}
+			}
+		}
+		"Baz": {
+			"type": "object", "required": ["fieldInDef"]
+			"properties": {
+				"fieldInDef": {
+					"oneOf": [{
+						"minimum": -2147483648, "maximum": 2147483647
+					}, {}]
+				}
+			}
+		}
+		"import": {
+			"type": "object", "required": ["foo", "baz", "someField", "embedderField"]
+			"properties": {
+				"foo": {
+					"type": "string"
+				}
+				"bar": {
+					"type": "integer", "format": "int32"
+				}
+				"baz": {
+					"type": "object", "required": ["fieldInDef"]
+					"properties": {
+						"fieldInDef": {
+							"oneOf": [{
+								"minimum": -2147483648, "maximum": 2147483647
+							}, {}]
+						}
+					}
+				}
+				"quark": {
+					"type": "object", "required": ["run", "tell", "dat"]
+					"properties": {
+						"run": {
+							"type": "integer", "format": "int32"
+						}
+						"tell": {
+							"type": "string", "format": "binary"
+						}
+						"dat": {
+							"type": "array", "items": {
+								"type": "string"
+							}
+						}
+					}
+				}
+				"someField": {
+					"type": "object", "required": ["run", "tell", "dat"]
+					"properties": {
+						"run": {
+							"type": "integer", "format": "int32"
+						}
+						"tell": {
+							"type": "string", "format": "binary"
+						}
+						"dat": {
+							"type": "array", "items": {
+								"type": "string"
+							}
+						}
+					}
+				}
+				"embedderField": {
+					"type": "string", "format": "binary"
+				}
+			}
+		}
+	}
+}
+
 -- out/generate/0.0/group --
 {
 	"openapi": "3.0.0"
