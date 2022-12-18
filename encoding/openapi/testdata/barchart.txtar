@@ -326,8 +326,193 @@ VizTooltipOptions: {
 	sort: SortOrder
 } @cuetsy(kind="interface")
 
--- out/generate/0.0/expandrefs/err --
-#barchart.PanelOptions.barRadius: unsupported op for number &
+-- out/generate/0.0/expandrefs --
+"openapi": "3.0.0"
+"info": {
+	"title":   "barchart"
+	"version": "0.0"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"barchart": {
+			"type": "object", "required": ["PanelOptions", "PanelFieldConfig"]
+			"properties": {
+				"PanelOptions": {
+					"type": "object", "required": ["orientation", "xTickLabelRotation", "xTickLabelMaxLength", "stacking", "showValue", "barWidth", "legend", "tooltip", "groupWidth"]
+					"properties": {
+						"xField": {
+							"description": "TODO docs", "type": "string"
+						}
+						"colorByField": {
+							"description": "TODO docs", "type": "string"
+						}
+						"orientation": {
+							"description": "TODO docs", "type": "string", "enum": ["auto", "vertical", "horizontal"]
+							"default": "auto"
+						}
+						"barRadius": {
+							"description": "TODO docs", "type": "number", "minimum": 0, "maximum": 0.5, "default": 0
+						}
+						"xTickLabelRotation": {
+							"description": "TODO docs", "type": "integer", "minimum": -90, "maximum": 90, "default": 0
+						}
+						"xTickLabelMaxLength": {
+							"description": "TODO docs", "type": "integer", "minimum": 0, "maximum": 2147483647
+						}
+						"xTickLabelSpacing": {
+							"description": "TODO docs\nnegative values indicate backwards skipping behavior", "type": "integer", "minimum": -2147483648, "maximum": 2147483647, "default": 0
+						}
+						"stacking": {
+							"description": "TODO docs", "type": "string", "enum": ["none", "normal", "percent"]
+							"default": "none"
+						}
+						"showValue": {
+							"description": "This controls whether values are shown on top or to the left of bars.", "type": "string", "enum": ["auto", "never", "always"]
+							"default": "auto"
+						}
+						"barWidth": {
+							"description": "Controls the width of bars. 1 = Max width, 0 = Min width.", "type": "number", "minimum": 0, "maximum": 1, "default": 0.97
+						}
+						"legend": {
+							"type": "object", "required": ["displayMode", "placement", "showLegend", "calcs"]
+							"properties": {
+								"displayMode": {
+									"type": "string", "enum": ["list", "table", "hidden"]
+								}
+								"placement": {
+									"type": "string", "enum": ["bottom", "right"]
+								}
+								"showLegend": {
+									"type": "boolean"
+								}
+								"asTable": {
+									"type": "boolean"
+								}
+								"isVisible": {
+									"type": "boolean"
+								}
+								"sortBy": {
+									"type": "string"
+								}
+								"sortDesc": {
+									"type": "boolean"
+								}
+								"width": {
+									"type": "number"
+								}
+								"calcs": {
+									"type": "array", "items": {
+										"type": "string"
+									}
+								}
+							}
+						}
+						"tooltip": {
+							"type": "object", "required": ["mode", "sort"]
+							"properties": {
+								"mode": {
+									"type": "string", "enum": ["single", "multi", "none"]
+								}
+								"sort": {
+									"type": "string", "enum": ["asc", "desc", "none"]
+								}
+							}
+						}
+						"text": {
+							"type": "object", "properties": {
+								"titleSize": {
+									"description": "Explicit title text size", "type": "number"
+								}
+								"valueSize": {
+									"description": "Explicit value text size", "type": "number"
+								}
+							}
+						}
+						"groupWidth": {
+							"description": "Controls the width of groups. 1 = max with, 0 = min width.", "type": "number", "minimum": 0, "maximum": 1, "default": 0.7
+						}
+					}
+				}
+				"PanelFieldConfig": {
+					"type": "object", "properties": {
+						"lineWidth": {
+							"description": "Controls line width of the bars.", "type": "integer", "minimum": 0, "maximum": 10, "default": 1
+						}
+						"fillOpacity": {
+							"description": "Controls the fill opacity of the bars.", "type": "integer", "minimum": 0, "maximum": 100, "default": 80
+						}
+						"gradientMode": {
+							"description": "Set the mode of the gradient fill. Fill gradient is based on the line color. To change the color, use the standard color scheme field option.\nGradient appearance is influenced by the Fill opacity setting.", "type": "string", "enum": ["none", "opacity", "hue", "scheme"]
+							"default": "none"
+						}
+						"axisPlacement": {
+							"type": "string", "enum": ["auto", "top", "right", "bottom", "left", "hidden"]
+						}
+						"axisColorMode": {
+							"type": "string", "enum": ["text", "series"]
+						}
+						"axisLabel": {
+							"type": "string"
+						}
+						"axisWidth": {
+							"type": "number"
+						}
+						"axisSoftMin": {
+							"type": "number"
+						}
+						"axisSoftMax": {
+							"type": "number"
+						}
+						"axisGridShow": {
+							"type": "boolean"
+						}
+						"scaleDistribution": {
+							"type": "object", "required": ["type"]
+							"properties": {
+								"type": {
+									"type": "string", "enum": ["linear", "log", "ordinal", "symlog"]
+								}
+								"log": {
+									"type": "number"
+								}
+								"linearThreshold": {
+									"type": "number"
+								}
+							}
+						}
+						"hideFrom": {
+							"type": "object", "required": ["tooltip", "legend", "viz"]
+							"properties": {
+								"tooltip": {
+									"type": "boolean"
+								}
+								"legend": {
+									"type": "boolean"
+								}
+								"viz": {
+									"type": "boolean"
+								}
+							}
+						}
+						"thresholdsStyle": {
+							"description": "Threshold rendering", "type": "object", "required": ["mode"]
+							"properties": {
+								"mode": {
+									"type": "string", "enum": ["off", "line", "dashed", "area", "line+area", "dashed+area", "series"]
+								}
+							}
+						}
+						"axisCenteredZero": {
+							"type": "boolean"
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
 -- out/generate/0.0/group --
 {
 	"openapi": "3.0.0"
