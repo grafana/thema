@@ -126,8 +126,8 @@ github.com/rogpeppe/go-internal v1.8.1/go.mod h1:JeRgkft04UBgHMgCIwADu4Pn6Mtm5d4
 github.com/rogpeppe/go-internal v1.9.0 h1:73kH8U+JUqXU8lRuOHeVHaa/SZPifC7BkcraZVejAe8=
 github.com/rogpeppe/go-internal v1.9.0/go.mod h1:WtVeX8xhTBvf0smdhujwtBcq4Qrzq/fJaraNFVN+nFs=
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
-github.com/sdboyer/cue v0.5.0-beta.1.0.20221218101942-2ebe38f6cfb1 h1:v36fv+A+cyuQN1y72ROAvLlcnwSvJf3ukEyLQyKuvVg=
-github.com/sdboyer/cue v0.5.0-beta.1.0.20221218101942-2ebe38f6cfb1/go.mod h1:okjJBHFQFer+a41sAe2SaGm1glWS8oEb6CmJvn5Zdws=
+github.com/sdboyer/cue v0.5.0-beta.2.0.20221218111347-341999f48bdb h1:X6XJsprVDQnlG4vT5TVb+cRlGMU78L/IKej8Q6SDFGY=
+github.com/sdboyer/cue v0.5.0-beta.2.0.20221218111347-341999f48bdb/go.mod h1:okjJBHFQFer+a41sAe2SaGm1glWS8oEb6CmJvn5Zdws=
 github.com/spf13/cobra v1.4.0 h1:y+wJpx64xcgO1V+RcnwW0LEHxTKRi2ZDPSBjWnrg88Q=
 github.com/spf13/cobra v1.4.0/go.mod h1:Wo4iy3BUC+X2Fybo0PDqwJIv3dNRiZLHQymsfxlB84g=
 github.com/spf13/pflag v1.0.5 h1:iy+VFUOCP1a+8yFto/drg2CJ5u0yRoB7fZw3DKv/JXA=
