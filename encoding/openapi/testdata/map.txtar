@@ -1,0 +1,383 @@
+-- in.cue --
+package generate
+
+import "github.com/grafana/thema"
+
+thema.#Lineage
+name: "basic"
+seqs: [
+    {
+        schemas: [
+            {
+                valPrimitive: [string]: bool
+                valList: [string]: [...string]
+                valStruct: [string]: {
+                    foo: string
+                }
+                optValPrimitive?: [string]: bool
+                optValList?: [string]: [...string]
+                optValStruct?: [string]: {
+                    foo: string
+                }
+                refValue: [string]: aStruct
+                someField: aMap
+            }
+        ]
+    }
+]
+
+aMap: [string]: bool
+aStruct: {
+    foo: string
+}
+
+-- out/generate/0.0/expandrefs --
+"openapi": "3.0.0"
+"info": {
+	"title":   "basic"
+	"version": "0.0"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"basic": {
+			"type": "object", "required": ["valPrimitive", "valList", "valStruct", "refValue", "someField"]
+			"properties": {
+				"valPrimitive": {
+					"type": "object", "additionalProperties": {
+						"type": "boolean"
+					}
+				}
+				"valList": {
+					"type": "object", "additionalProperties": {
+						"type": "array", "items": {
+							"type": "string"
+						}
+					}
+				}
+				"valStruct": {
+					"type": "object", "additionalProperties": {
+						"type": "object", "required": ["foo"]
+						"properties": {
+							"foo": {
+								"type": "string"
+							}
+						}
+					}
+				}
+				"optValPrimitive": {
+					"type": "object", "additionalProperties": {
+						"type": "boolean"
+					}
+				}
+				"optValList": {
+					"type": "object", "additionalProperties": {
+						"type": "array", "items": {
+							"type": "string"
+						}
+					}
+				}
+				"optValStruct": {
+					"type": "object", "additionalProperties": {
+						"type": "object", "required": ["foo"]
+						"properties": {
+							"foo": {
+								"type": "string"
+							}
+						}
+					}
+				}
+				"refValue": {
+					"type": "object", "additionalProperties": {
+						"type": "object", "required": ["foo"]
+						"properties": {
+							"foo": {
+								"type": "string"
+							}
+						}
+					}
+				}
+				"someField": {
+					"type": "object", "additionalProperties": {
+						"type": "boolean"
+					}
+				}
+			}
+		}
+	}
+}
+
+-- out/generate/0.0/group --
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "basic"
+		"version": "0.0"
+	}
+	"path": {}
+	"components": {
+		"schemas": {
+			"valPrimitive": {
+				"type": "object", "additionalProperties": {
+					"type": "boolean"
+				}
+			}
+			"valList": {
+				"type": "object", "additionalProperties": {
+					"type": "array", "items": {
+						"type": "string"
+					}
+				}
+			}
+			"valStruct": {
+				"type": "object", "additionalProperties": {
+					"type": "object", "required": ["foo"]
+					"properties": {
+						"foo": {
+							"type": "string"
+						}
+					}
+				}
+			}
+			"optValPrimitive": {
+				"type": "object", "additionalProperties": {
+					"type": "boolean"
+				}
+			}
+			"optValList": {
+				"type": "object", "additionalProperties": {
+					"type": "array", "items": {
+						"type": "string"
+					}
+				}
+			}
+			"optValStruct": {
+				"type": "object", "additionalProperties": {
+					"type": "object", "required": ["foo"]
+					"properties": {
+						"foo": {
+							"type": "string"
+						}
+					}
+				}
+			}
+			"aStruct": {
+				"type": "object", "required": ["foo"]
+				"properties": {
+					"foo": {
+						"type": "string"
+					}
+				}
+			}
+			"refValue": {
+				"type": "object", "additionalProperties": {
+					"$ref": "#/components/schemas/aStruct"
+				}
+			}
+			"someField": {
+				"type": "object", "additionalProperties": {
+					"type": "boolean"
+				}
+			}
+		}
+	}
+}
+
+-- out/generate/0.0/nil --
+"openapi": "3.0.0"
+"info": {
+	"title":   "basic"
+	"version": "0.0"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"aMap": {
+			"type": "object", "additionalProperties": {
+				"type": "boolean"
+			}
+		}
+		"aStruct": {
+			"type": "object", "required": ["foo"]
+			"properties": {
+				"foo": {
+					"type": "string"
+				}
+			}
+		}
+		"basic": {
+			"type": "object", "required": ["valPrimitive", "valList", "valStruct", "refValue", "someField"]
+			"properties": {
+				"valPrimitive": {
+					"type": "object", "additionalProperties": {
+						"type": "boolean"
+					}
+				}
+				"valList": {
+					"type": "object", "additionalProperties": {
+						"type": "array", "items": {
+							"type": "string"
+						}
+					}
+				}
+				"valStruct": {
+					"type": "object", "additionalProperties": {
+						"type": "object", "required": ["foo"]
+						"properties": {
+							"foo": {
+								"type": "string"
+							}
+						}
+					}
+				}
+				"optValPrimitive": {
+					"type": "object", "additionalProperties": {
+						"type": "boolean"
+					}
+				}
+				"optValList": {
+					"type": "object", "additionalProperties": {
+						"type": "array", "items": {
+							"type": "string"
+						}
+					}
+				}
+				"optValStruct": {
+					"type": "object", "additionalProperties": {
+						"type": "object", "required": ["foo"]
+						"properties": {
+							"foo": {
+								"type": "string"
+							}
+						}
+					}
+				}
+				"refValue": {
+					"type": "object", "additionalProperties": {
+						"$ref": "#/components/schemas/aStruct"
+					}
+				}
+				"someField": {
+					"$ref": "#/components/schemas/aMap"
+				}
+			}
+		}
+	}
+}
+
+-- out/generate/0.0/selfcontained --
+"openapi": "3.0.0"
+"info": {
+	"title":   "basic"
+	"version": "0.0"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"aMap": {
+			"type": "object", "additionalProperties": {
+				"type": "boolean"
+			}
+		}
+		"aStruct": {
+			"type": "object", "required": ["foo"]
+			"properties": {
+				"foo": {
+					"type": "string"
+				}
+			}
+		}
+		"basic": {
+			"type": "object", "required": ["valPrimitive", "valList", "valStruct", "refValue", "someField"]
+			"properties": {
+				"valPrimitive": {
+					"type": "object", "additionalProperties": {
+						"type": "boolean"
+					}
+				}
+				"valList": {
+					"type": "object", "additionalProperties": {
+						"type": "array", "items": {
+							"type": "string"
+						}
+					}
+				}
+				"valStruct": {
+					"type": "object", "additionalProperties": {
+						"type": "object", "required": ["foo"]
+						"properties": {
+							"foo": {
+								"type": "string"
+							}
+						}
+					}
+				}
+				"optValPrimitive": {
+					"type": "object", "additionalProperties": {
+						"type": "boolean"
+					}
+				}
+				"optValList": {
+					"type": "object", "additionalProperties": {
+						"type": "array", "items": {
+							"type": "string"
+						}
+					}
+				}
+				"optValStruct": {
+					"type": "object", "additionalProperties": {
+						"type": "object", "required": ["foo"]
+						"properties": {
+							"foo": {
+								"type": "string"
+							}
+						}
+					}
+				}
+				"refValue": {
+					"type": "object", "additionalProperties": {
+						"$ref": "#/components/schemas/aStruct"
+					}
+				}
+				"someField": {
+					"$ref": "#/components/schemas/aMap"
+				}
+			}
+		}
+	}
+}
+
+-- out/generate/0.0/subpath --
+"openapi": "3.0.0"
+"info": {
+	"title":   "someField"
+	"version": "0.0"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"someField": {
+			"type": "object", "additionalProperties": {
+				"type": "boolean"
+			}
+		}
+	}
+}
+
+-- out/generate/0.0/subpathroot --
+"openapi": "3.0.0"
+"info": {
+	"title":   "overriddenName"
+	"version": "0.0"
+}
+"paths": {}
+"components": {
+	"schemas": {
+		"overriddenName": {
+			"type": "object", "additionalProperties": {
+				"type": "boolean"
+			}
+		}
+	}
+}
+
