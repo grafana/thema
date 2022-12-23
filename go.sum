@@ -52,8 +52,8 @@ github.com/google/uuid v1.2.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+
 github.com/google/uuid v1.3.0 h1:t6JiXgmwXMjEs8VusXIJk2BXHsn+wx8BZdTaoZ5fu7I=
 github.com/google/uuid v1.3.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/gorilla/mux v1.8.0/go.mod h1:DVbg23sWSpFRCP0SfiEN6jmj59UnW/n46BH5rLB71So=
-github.com/grafana/cuetsy v0.1.2 h1:v4re6ZMrQMsfS9iyJhdkgRxSLmqgtmGUZ2OY0VuKN7c=
-github.com/grafana/cuetsy v0.1.2/go.mod h1:4KWkUOslwvRTpEv7wdQG0jDFTuJmU+0L9x0h4kWxa2A=
+github.com/grafana/cuetsy v0.1.4 h1:Vj6zYEIJlB6+DanzSqjxaxBBeFUaY66lICJFGU/kF80=
+github.com/grafana/cuetsy v0.1.4/go.mod h1:4KWkUOslwvRTpEv7wdQG0jDFTuJmU+0L9x0h4kWxa2A=
 github.com/inconshreveable/mousetrap v1.0.0 h1:Z8tu5sraLXCXIcARxBp/8cbvlwVa7Z1NHg9XEKhtSvM=
 github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANytuPF1OarO4DADm73n8=
 github.com/invopop/yaml v0.1.0 h1:YW3WGUoJEXYfzWBjn00zIlrw7brGVD0fUKRYDPAPhrc=
