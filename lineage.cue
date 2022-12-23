@@ -29,20 +29,22 @@ import (
 
 	// schemas is the ordered list of all schemas in the lineage. Each element is a
 	// #SchemaDecl.
-	schemas: [...#SchemaDecl] & list.MinItems(1)
+	schemas: [...#SchemaDecl & { _#schema: joinSchema }] & list.MinItems(1)
 
 	schemas: L=[for i, decl in schemas {
-		schema: joinSchema // unify joinSchema with all schemas in lineage
-		// schema: struct.MinFields(1) // TODO might this be a good way to enforce non-empty schema?
-		if i != 0 {
-			lens: reverse: {
-				to: L[i-1].schema
-				from: decl.schema
-			}
-			if decl.v[1] == 0 {
-				lens: forward: {
-					to: decl.schema
-					from: L[i-1].schema
+		#SchemaDecl & {
+			// schema: struct.MinFields(1) // TODO might this be a good way to enforce non-empty schema?
+//			_#schema: joinSchema // unify joinSchema with all schemas in lineage
+			if i != 0 {
+				lens: reverse: {
+					to: L[i-1]._#schema
+					from: L[i]._#schema
+				}
+				if L[i].version[1] == 0 {
+					lens: forward: {
+						to: L[i]._#schema
+						from: L[i-1]._#schema
+					}
 				}
 			}
 		}
@@ -50,9 +52,7 @@ import (
 
 	_allv: [...#SyntacticVersion] & [for _, sch in schemas { sch.version }]
 
-	let pos = [0, for i, sch in schemas[1:]
-		if schemas[i].version[0] < sch.version[0] { i+1 }
-	]
+	let pos = [ 0, for i, sch in schemas[1:] if schemas[i].version[0] < sch.version[0] { i+1 } ]
 
 	// _counts tracks the number of versions in each major version in the lineage.
 	// The index corresponds to the major version number, and the value is the
@@ -88,9 +88,21 @@ import (
 
 	schema: {...}
 
+	// Thema's internal handle for the user-provided schema definition. This
+	// handle is used by all helpers/operations in the thema package. As a
+	// CUE definition, use of this handle means that all thema schemas are
+	// always recursively closed by default.
+	//
+	// This handle is also unified with the joinSchema of the containing lineage.
+	_#schema: schema
+//	_#schema: schema & _join
+
+	// The joinSchema of the containing lineage.
+//	_join: _
+
 	// examples is an optional set of named examples of the schema, intended
 	// for use in documentation or other non-functional contexts.
-	examples?: [string]: schema
+	examples?: [string]: _#schema
 
 	// lens defines a bidirectional relation between this schema and its
 	// predecessor. These relations describe how instances of the predecessor
@@ -105,21 +117,21 @@ import (
 	//    changes were backwards compatible, so no explicit transform is necessary.
 	//  - (x>0).0 - forward and reverse transform. A breaking change requires
 	//    explicit changes written in both directions.
-	lens: _
-
-	if version[1] == 0 {
-		// First schema has no lens
-		if version[0] == 0 {
-			lens: close({})
+	lens: {
+		if version[1] == 0 {
+			// First schema has no lens
+			if version[0] == 0 {
+				close({})
+			}
+			// First schema in non-0 major has a MajorLens, with two transforms
+			if version[0] != 0 {
+				#MajorLens
+			}
 		}
-		// First schema in non-0 major has a MajorLens, with two transforms
-		if version[0] != 0 {
-			lens: #MajorLens
+		if version[1] != 0 {
+			// Schemas with non-zero minor versions have a MinorLens, with one transform
+			#MinorLens
 		}
-	}
-	if version[1] != 0 {
-		// Schemas with non-zero minor versions have a MinorLens, with one transform
-		lens: #MinorLens
 	}
 }
 
@@ -142,11 +154,14 @@ import (
 	// The schema this transform is mapping to.
 	to: {...}
 
-	// The schema this transform is mapping from.
+	// The schema this transform is mapping from. Also where the input instance
+	// is placed as an argument to the map.
 	from: {...}
 
-	// The actual mapping between schemas. The value should be equivalent to an instance
-	// of the 'to' schema, constructed through references to the 'from' schema.
+	// The mapping between the 'from' and 'to' schemas.
+	//
+	// The value must be an instance of the 'to' schema, constructed  be equivalent
+	// to an instance of the 'to' schema, constructed through references to the 'from' schema.
 	//
 	// For example, if the 'from' and 'to' schemas are:
 	//   from: { a: string }
@@ -162,22 +177,18 @@ import (
 	lacunas?: [...#Lacuna]
 }
 
-_#vSch: {
-	v:   #SyntacticVersion
-	sch: _
-}
-
 // LatestVersion returns the SyntacticVersion of a lineage's latest schema.
 //
-// Take care in using this. If any code that depends on schema contents relies on it,
-// that code will break as soon as a breaking schema change is made. This may be desirable
-// within a tight development loop - e.g., for a finite team, working within a single
-// repository - in order to force updating code that must be kept in sync.
+// Take care in using this. If any code that depends on schema contents relies
+// on it, that code will break as soon as a breaking schema change is made. This
+// may be desirable within a tight development loop - e.g., for a finite team,
+// working within a single repository - in order to force updating code that
+// must be kept in sync.
 //
 // But using it in, for example, an API client based on Thema lineages
 // undermines the entire goal of Thema, as it would forces breaking changes
-// immediately on the client's users, rather than allowing them to update
-// at their own pace.
+// immediately on the client's users, rather than allowing them to update at
+// their own pace.
 //
 // TODO functionize
 #LatestVersion: {
@@ -185,14 +196,7 @@ _#vSch: {
 	out: lin.schemas[len(lin.schemas)-1].version
 }
 
-// Helper that constructs a one-dimensional list of all the schema versions that
-// exist in a lineage.
-_allv: {
-	lin: #Lineage
-	out: [...#SyntacticVersion] & [for _, sch in lin.schemas { sch.version }]
-}
-
-// Get a single schema version from the lineage.
+// Get a single schema from a lineage.
 #Pick: {
 	lin: #Lineage
 	// The schema version to pick. Either:
@@ -214,8 +218,7 @@ _allv: {
 		if len(v) == 1 {lin._counts[v[0]]},
 	]
 
-	// TODO apply object headers, etc.
-	out: {for sch in lin.schemas if sch.version == _v {sch}}
+	out: {for sch in lin.schemas if sch.version == _v {sch._#schema}}
 }
 
 // SyntacticVersion is an ordered pair of non-negative integers. It represents

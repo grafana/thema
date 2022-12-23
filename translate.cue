@@ -54,8 +54,7 @@ import "list"
 				// the key places where thema is maybe-sorta implicitly assuming
 				// its inputs are concrete instances, and won't work quite right
 				// with incomplete CUE structures
-				// inst: lasti.inst & (#Pick & { lin: inlin, v: vsch.v }).out
-				inst: lasti.inst & inlin.seqs[vsch.v[0]].schemas[vsch.v[1]]
+				inst: lasti.inst & (#Pick & { lin: inlin, v: vsch.v }).out
 				lacunas: []
 			}
 			if vsch.v[0] > lasti.v[0] {
