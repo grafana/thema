@@ -1,6 +1,7 @@
 package thema
 
 import (
+	"struct"
 	"list"
 )
 
@@ -27,36 +28,38 @@ import (
 	// TODO(must) https://github.com/cue-lang/cue/issues/943
 	// name: must(isconcrete(name), "all lineages must have a name")
 
+	// The lineage-local handle for #SchemaDecl, into which we have injected this
+	// lineage's joinSchema.
+	let Schema = #SchemaDecl & { _join: joinSchema }
+
 	// schemas is the ordered list of all schemas in the lineage. Each element is a
 	// #SchemaDecl.
-	schemas: [...#SchemaDecl & { _#schema: joinSchema }] & list.MinItems(1)
+	schemas: [Schema, ...Schema]
+//	L.schemas & { schemas: list.MinItems(1) }
 
-	schemas: L=[for i, decl in schemas {
-		#SchemaDecl & {
-			// schema: struct.MinFields(1) // TODO might this be a good way to enforce non-empty schema?
-//			_#schema: joinSchema // unify joinSchema with all schemas in lineage
+	schemas: Schemas=[for i, _ in schemas {
+		Schema & {
 			if i != 0 {
 				lens: reverse: {
-					to: L[i-1]._#schema
-					from: L[i]._#schema
+					to: Schemas[i-1]._#schema
+					from: Schemas[i]._#schema
 				}
-				if L[i].version[1] == 0 {
+				if Schemas[i].version[1] == 0 {
 					lens: forward: {
-						to: L[i]._#schema
-						from: L[i-1]._#schema
+						to: Schemas[i]._#schema
+						from: Schemas[i-1]._#schema
 					}
 				}
 			}
 		}
 	}]
 
-	_allv: [...#SyntacticVersion] & [for _, sch in schemas { sch.version }]
-
-	let pos = [ 0, for i, sch in schemas[1:] if schemas[i].version[0] < sch.version[0] { i+1 } ]
-
 	// _counts tracks the number of versions in each major version in the lineage.
 	// The index corresponds to the major version number, and the value is the
 	// number of minor versions within that major.
+	_counts: [...uint64]
+
+	let pos = [0, for i, sch in schemas[1:] if schemas[i].version[0] < sch.version[0] { i+1 }]
 	_counts: [for i, idx in pos[:len(pos)-1] {
 		pos[i+1]-list.Sum(pos[:i+1])
 	}, len(schemas)-pos[len(pos)-1]]
@@ -82,8 +85,8 @@ import (
 	// this unnecessary, but explicitly declaring the version is always useful for
 	// readability.
 	//
-	// Declaring a version number inconsistent with the actual set of breaking
-	// changes results in an invalid lineage.
+	// The entire lineage is considered invalid if the version number in this field
+	// is inconsistent with the algorithmically determined set of [non-]breaking changes.
 	version: #SyntacticVersion
 
 	schema: {...}
@@ -94,11 +97,11 @@ import (
 	// always recursively closed by default.
 	//
 	// This handle is also unified with the joinSchema of the containing lineage.
-	_#schema: schema
+	_#schema: schema & struct.MinFields(1) & _join
 //	_#schema: schema & _join
 
 	// The joinSchema of the containing lineage.
-//	_join: _
+	_join: _
 
 	// examples is an optional set of named examples of the schema, intended
 	// for use in documentation or other non-functional contexts.
@@ -177,7 +180,8 @@ import (
 	lacunas?: [...#Lacuna]
 }
 
-// LatestVersion returns the SyntacticVersion of a lineage's latest schema.
+// LatestVersion is a pseudofunction that returns the SyntacticVersion of a lineage's
+// latest schema.
 //
 // Take care in using this. If any code that depends on schema contents relies
 // on it, that code will break as soon as a breaking schema change is made. This
@@ -196,29 +200,38 @@ import (
 	out: lin.schemas[len(lin.schemas)-1].version
 }
 
-// Get a single schema from a lineage.
+// Pick is a pseudofunction that returns the schema from a provided Lineage
+// (lin) that corresponds to the provided SyntacticVersion (v). Bounds
+// constraints enforce that the provided version number exists within the
+// provided lineage.
+//
+// Pick is the only correct mechanism to retrieve a lineage's declared schema.
+// Retrieving a lineage's schemas by direct indexing will not check invariants,
+// apply compositions or joinSchemas.
 #Pick: {
+	// The lineage from which to retrieve a schema.
 	lin: #Lineage
-	// The schema version to pick. Either:
-	//
-	//   * An exact #SyntacticVersion: [1, 0]
-	//   * Just the major version number: [1]
-	//
-	// The latter form will select the latest schema within the given
-	// sequence.
-	v: #SyntacticVersion | [uint64]
-//	v: [<len(lin.seqs), <len(lin.seqs[v[0]].schemas)] | [<len(lin.seqs)]
-	v: [<len(lin._counts), <=lin._counts[v[0]]] | [<=len(lin._counts)]
+
+	// The schema version to retrieve. Either:
+	v: #SyntacticVersion & [<len(lin._counts), <=lin._counts[v[0]]]
 	// TODO(must) https://github.com/cue-lang/cue/issues/943
 	// must(isconcrete(v[0]), "must specify a concrete sequence number")
 
-	let _v = #SyntacticVersion & [
-		v[0],
-		if len(v) == 2 {v[1]},
-		if len(v) == 1 {lin._counts[v[0]]},
-	]
+	out: {for sch in lin.schemas if sch.version == v {sch._#schema}}
+}
 
-	out: {for sch in lin.schemas if sch.version == _v {sch._#schema}}
+// PickDef takes the same arguments as Pick, but returns the entire
+// #SchemaDecl rather than just the actual schema body.
+#PickDef: {
+	// The lineage from which to retrieve a schema.
+	lin: #Lineage
+
+	// The schema version to retrieve. Either:
+	v: #SyntacticVersion & [<len(lin._counts), <=lin._counts[v[0]]]
+	// TODO(must) https://github.com/cue-lang/cue/issues/943
+	// must(isconcrete(v[0]), "must specify a concrete sequence number")
+
+	out: {for sch in lin.schemas if sch.version == v {sch}}
 }
 
 // SyntacticVersion is an ordered pair of non-negative integers. It represents
@@ -227,16 +240,16 @@ import (
 #SyntacticVersion: [uint64, uint64]
 
 // TODO functionize
-_cmpSV: {
+_cmpSV: FN={
 	l:   #SyntacticVersion
 	r:   #SyntacticVersion
 	out: -1 | 0 | 1
 	out: {
-		if l[0] < r[0] {-1}
-		if l[0] > r[0] {1}
-		if l[0] == r[0] && l[1] < r[1] {-1}
-		if l[0] == r[0] && l[1] > r[1] {1}
-		if l == r {0}
+		if FN.l[0] < FN.r[0] {-1}
+		if FN.l[0] > FN.r[0] {1}
+		if FN.l[0] == FN.r[0] && FN.l[1] < FN.r[1] {-1}
+		if FN.l[0] == FN.r[0] && FN.l[1] > FN.r[1] {1}
+		if FN.l == FN.r {0}
 	}
 }
 
