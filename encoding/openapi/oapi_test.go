@@ -71,7 +71,7 @@ func TestGenerate(t *testing.T) {
 			for _, tc := range vars {
 				itest := tc
 				t.T.Run(itest.name, func(gt *testing.T) {
-					t.WriteFileOrErr(itest.name)(GenerateSchema(sch, itest.cfg))
+					t.WriteFileOrErr(itest.name + ".json")(GenerateSchema(sch, itest.cfg))
 				})
 			}
 		})

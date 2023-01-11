@@ -326,1007 +326,1688 @@ VizTooltipOptions: {
 	sort: SortOrder
 } @cuetsy(kind="interface")
 
--- out/generate/0.0/expandrefs --
-"openapi": "3.0.0"
-"info": {
-	"title":   "barchart"
-	"version": "0.0"
-}
-"paths": {}
-"components": {
-	"schemas": {
-		"barchart": {
-			"type": "object", "required": ["PanelOptions", "PanelFieldConfig"]
-			"properties": {
-				"PanelOptions": {
-					"type": "object", "required": ["orientation", "xTickLabelRotation", "xTickLabelMaxLength", "stacking", "showValue", "barWidth", "legend", "tooltip", "groupWidth"]
-					"properties": {
-						"xField": {
-							"description": "TODO docs", "type": "string"
-						}
-						"colorByField": {
-							"description": "TODO docs", "type": "string"
-						}
-						"orientation": {
-							"description": "TODO docs", "type": "string", "enum": ["auto", "vertical", "horizontal"]
-							"default": "auto"
-						}
-						"barRadius": {
-							"description": "TODO docs", "type": "number", "minimum": 0, "maximum": 0.5, "default": 0
-						}
-						"xTickLabelRotation": {
-							"description": "TODO docs", "type": "integer", "minimum": -90, "maximum": 90, "default": 0
-						}
-						"xTickLabelMaxLength": {
-							"description": "TODO docs", "type": "integer", "minimum": 0, "maximum": 2147483647
-						}
-						"xTickLabelSpacing": {
-							"description": "TODO docs\nnegative values indicate backwards skipping behavior", "type": "integer", "minimum": -2147483648, "maximum": 2147483647, "default": 0
-						}
-						"stacking": {
-							"description": "TODO docs", "type": "string", "enum": ["none", "normal", "percent"]
-							"default": "none"
-						}
-						"showValue": {
-							"description": "This controls whether values are shown on top or to the left of bars.", "type": "string", "enum": ["auto", "never", "always"]
-							"default": "auto"
-						}
-						"barWidth": {
-							"description": "Controls the width of bars. 1 = Max width, 0 = Min width.", "type": "number", "minimum": 0, "maximum": 1, "default": 0.97
-						}
-						"legend": {
-							"type": "object", "required": ["displayMode", "placement", "showLegend", "calcs"]
-							"properties": {
-								"displayMode": {
-									"type": "string", "enum": ["list", "table", "hidden"]
-								}
-								"placement": {
-									"type": "string", "enum": ["bottom", "right"]
-								}
-								"showLegend": {
-									"type": "boolean"
-								}
-								"asTable": {
-									"type": "boolean"
-								}
-								"isVisible": {
-									"type": "boolean"
-								}
-								"sortBy": {
-									"type": "string"
-								}
-								"sortDesc": {
-									"type": "boolean"
-								}
-								"width": {
-									"type": "number"
-								}
-								"calcs": {
-									"type": "array", "items": {
-										"type": "string"
-									}
-								}
-							}
-						}
-						"tooltip": {
-							"type": "object", "required": ["mode", "sort"]
-							"properties": {
-								"mode": {
-									"type": "string", "enum": ["single", "multi", "none"]
-								}
-								"sort": {
-									"type": "string", "enum": ["asc", "desc", "none"]
-								}
-							}
-						}
-						"text": {
-							"type": "object", "properties": {
-								"titleSize": {
-									"description": "Explicit title text size", "type": "number"
-								}
-								"valueSize": {
-									"description": "Explicit value text size", "type": "number"
-								}
-							}
-						}
-						"groupWidth": {
-							"description": "Controls the width of groups. 1 = max with, 0 = min width.", "type": "number", "minimum": 0, "maximum": 1, "default": 0.7
-						}
-					}
-				}
-				"PanelFieldConfig": {
-					"type": "object", "properties": {
-						"lineWidth": {
-							"description": "Controls line width of the bars.", "type": "integer", "minimum": 0, "maximum": 10, "default": 1
-						}
-						"fillOpacity": {
-							"description": "Controls the fill opacity of the bars.", "type": "integer", "minimum": 0, "maximum": 100, "default": 80
-						}
-						"gradientMode": {
-							"description": "Set the mode of the gradient fill. Fill gradient is based on the line color. To change the color, use the standard color scheme field option.\nGradient appearance is influenced by the Fill opacity setting.", "type": "string", "enum": ["none", "opacity", "hue", "scheme"]
-							"default": "none"
-						}
-						"axisPlacement": {
-							"type": "string", "enum": ["auto", "top", "right", "bottom", "left", "hidden"]
-						}
-						"axisColorMode": {
-							"type": "string", "enum": ["text", "series"]
-						}
-						"axisLabel": {
-							"type": "string"
-						}
-						"axisWidth": {
-							"type": "number"
-						}
-						"axisSoftMin": {
-							"type": "number"
-						}
-						"axisSoftMax": {
-							"type": "number"
-						}
-						"axisGridShow": {
-							"type": "boolean"
-						}
-						"scaleDistribution": {
-							"type": "object", "required": ["type"]
-							"properties": {
-								"type": {
-									"type": "string", "enum": ["linear", "log", "ordinal", "symlog"]
-								}
-								"log": {
-									"type": "number"
-								}
-								"linearThreshold": {
-									"type": "number"
-								}
-							}
-						}
-						"hideFrom": {
-							"type": "object", "required": ["tooltip", "legend", "viz"]
-							"properties": {
-								"tooltip": {
-									"type": "boolean"
-								}
-								"legend": {
-									"type": "boolean"
-								}
-								"viz": {
-									"type": "boolean"
-								}
-							}
-						}
-						"thresholdsStyle": {
-							"description": "Threshold rendering", "type": "object", "required": ["mode"]
-							"properties": {
-								"mode": {
-									"type": "string", "enum": ["off", "line", "dashed", "area", "line+area", "dashed+area", "series"]
-								}
-							}
-						}
-						"axisCenteredZero": {
-							"type": "boolean"
-						}
-					}
-				}
-			}
-		}
-	}
-}
-
--- out/generate/0.0/group --
+-- out/generate/0.0/expandrefs.json --
 {
-	"openapi": "3.0.0"
-	"info": {
-		"title":   "barchart"
-		"version": "0.0"
-	}
-	"path": {}
-	"components": {
-		"schemas": {
-			"LegendDisplayMode": {
-				"description": "TODO docs\nNote: \"hidden\" needs to remain as an option for plugins compatibility", "type": "string", "enum": ["list", "table", "hidden"]
-			}
-			"LegendPlacement": {
-				"description": "TODO docs", "type": "string", "enum": ["bottom", "right"]
-			}
-			"OptionsWithLegend": {
-				"description": "TODO docs", "type": "object", "required": ["legend"]
-				"properties": {
-					"legend": {
-						"$ref": "#/components/schemas/VizLegendOptions"
-					}
-				}
-			}
-			"OptionsWithTextFormatting": {
-				"description": "TODO docs", "type": "object", "properties": {
-						"text": {
-							"$ref": "#/components/schemas/VizTextDisplayOptions"
-						}
-				}
-			}
-			"OptionsWithTooltip": {
-				"description": "TODO docs", "type": "object", "required": ["tooltip"]
-				"properties": {
-					"tooltip": {
-						"$ref": "#/components/schemas/VizTooltipOptions"
-					}
-				}
-			}
-			"PanelOptions": {
-				"type": "object", "properties": {
-					"xField": {
-						"description": "TODO docs", "type": "string"
-					}
-					"colorByField": {
-						"description": "TODO docs", "type": "string"
-					}
-					"orientation": {
-						"$ref": "#/components/schemas/VizOrientation"
-					}
-					"barRadius": {
-						"description": "TODO docs", "type": "number", "minimum": 0, "maximum": 0.5, "default": 0
-					}
-					"xTickLabelRotation": {
-						"description": "TODO docs", "type": "integer", "minimum": -90, "maximum": 90, "default": 0
-					}
-					"xTickLabelMaxLength": {
-						"description": "TODO docs", "type": "integer", "minimum": 0, "maximum": 2147483647
-					}
-					"xTickLabelSpacing": {
-						"description": "TODO docs\nnegative values indicate backwards skipping behavior", "type": "integer", "minimum": -2147483648, "maximum": 2147483647, "default": 0
-					}
-					"stacking": {
-						"$ref": "#/components/schemas/StackingMode"
-					}
-					"showValue": {
-						"$ref": "#/components/schemas/VisibilityMode"
-					}
-					"barWidth": {
-						"description": "Controls the width of bars. 1 = Max width, 0 = Min width.", "type": "number", "minimum": 0, "maximum": 1, "default": 0.97
-					}
-					"groupWidth": {
-						"description": "Controls the width of groups. 1 = max with, 0 = min width.", "type": "number", "minimum": 0, "maximum": 1, "default": 0.7
-					}
-				}
-				"allOf": [{
-					"$ref": "#/components/schemas/OptionsWithLegend"
-				}, {
-					"$ref": "#/components/schemas/OptionsWithTooltip"
-				}, {
-					"$ref": "#/components/schemas/OptionsWithTextFormatting"
-				}, {
-					"required": ["orientation", "xTickLabelRotation", "xTickLabelMaxLength", "stacking", "showValue", "barWidth", "groupWidth"]
-				}]
-			}
-			"SortOrder": {
-				"description": "TODO docs", "type": "string", "enum": ["asc", "desc", "none"]
-			}
-			"StackingMode": {
-				"description": "TODO docs", "type": "string", "enum": ["none", "normal", "percent"]
-			}
-			"TooltipDisplayMode": {
-				"description": "TODO docs", "type": "string", "enum": ["single", "multi", "none"]
-			}
-			"VisibilityMode": {
-				"description": "TODO docs", "type": "string", "enum": ["auto", "never", "always"]
-			}
-			"VizLegendOptions": {
-				"description": "TODO docs", "type": "object", "required": ["displayMode", "placement", "showLegend", "calcs"]
-				"properties": {
-					"displayMode": {
-						"$ref": "#/components/schemas/LegendDisplayMode"
-					}
-					"placement": {
-						"$ref": "#/components/schemas/LegendPlacement"
-					}
-					"showLegend": {
-						"type": "boolean"
-					}
-					"asTable": {
-						"type": "boolean"
-					}
-					"isVisible": {
-						"type": "boolean"
-					}
-					"sortBy": {
-						"type": "string"
-					}
-					"sortDesc": {
-						"type": "boolean"
-					}
-					"width": {
-						"type": "number"
-					}
-					"calcs": {
-						"type": "array", "items": {
-							"type": "string"
-						}
-					}
-				}
-			}
-			"VizOrientation": {
-				"description": "TODO docs", "type": "string", "enum": ["auto", "vertical", "horizontal"]
-			}
-			"VizTextDisplayOptions": {
-				"description": "TODO docs", "type": "object", "properties": {
-						"titleSize": {
-							"description": "Explicit title text size", "type": "number"
-						}
-					"valueSize": {
-						"description": "Explicit value text size", "type": "number"
-					}
-				}
-			}
-			"VizTooltipOptions": {
-				"description": "TODO docs", "type": "object", "required": ["mode", "sort"]
-				"properties": {
-					"mode": {
-						"$ref": "#/components/schemas/TooltipDisplayMode"
-					}
-					"sort": {
-						"$ref": "#/components/schemas/SortOrder"
-					}
-				}
-			}
-			"AxisColorMode": {
-				"description": "TODO docs", "type": "string", "enum": ["text", "series"]
-			}
-			"AxisConfig": {
-				"description": "TODO docs", "type": "object", "properties": {
-						"axisPlacement": {
-							"$ref": "#/components/schemas/AxisPlacement"
-						}
-					"axisColorMode": {
-						"$ref": "#/components/schemas/AxisColorMode"
-					}
-					"axisLabel": {
-						"type": "string"
-					}
-					"axisWidth": {
-						"type": "number"
-					}
-					"axisSoftMin": {
-						"type": "number"
-					}
-					"axisSoftMax": {
-						"type": "number"
-					}
-					"axisGridShow": {
-						"type": "boolean"
-					}
-					"scaleDistribution": {
-						"$ref": "#/components/schemas/ScaleDistributionConfig"
-					}
-					"axisCenteredZero": {
-						"type": "boolean"
-					}
-				}
-			}
-			"AxisPlacement": {
-				"description": "TODO docs", "type": "string", "enum": ["auto", "top", "right", "bottom", "left", "hidden"]
-			}
-			"GraphGradientMode": {
-				"description": "TODO docs", "type": "string", "enum": ["none", "opacity", "hue", "scheme"]
-			}
-			"GraphThresholdsStyleConfig": {
-				"description": "TODO docs", "type": "object", "required": ["mode"]
-				"properties": {
-					"mode": {
-						"$ref": "#/components/schemas/GraphTresholdsStyleMode"
-					}
-				}
-			}
-			"GraphTresholdsStyleMode": {
-				"description": "TODO docs", "type": "string", "enum": ["off", "line", "dashed", "area", "line+area", "dashed+area", "series"]
-			}
-			"HideSeriesConfig": {
-				"description": "TODO docs", "type": "object", "required": ["tooltip", "legend", "viz"]
-				"properties": {
-					"tooltip": {
-						"type": "boolean"
-					}
-					"legend": {
-						"type": "boolean"
-					}
-					"viz": {
-						"type": "boolean"
-					}
-				}
-			}
-			"HideableFieldConfig": {
-				"description": "TODO docs", "type": "object", "properties": {
-						"hideFrom": {
-							"$ref": "#/components/schemas/HideSeriesConfig"
-						}
-				}
-			}
-			"PanelFieldConfig": {
-				"type": "object", "properties": {
-					"lineWidth": {
-						"description": "Controls line width of the bars.", "type": "integer", "minimum": 0, "maximum": 10, "default": 1
-					}
-					"fillOpacity": {
-						"description": "Controls the fill opacity of the bars.", "type": "integer", "minimum": 0, "maximum": 100, "default": 80
-					}
-					"gradientMode": {
-						"$ref": "#/components/schemas/GraphGradientMode"
-					}
-					"thresholdsStyle": {
-						"$ref": "#/components/schemas/GraphThresholdsStyleConfig"
-					}
-				}
-				"allOf": [{
-					"$ref": "#/components/schemas/AxisConfig"
-				}, {
-					"$ref": "#/components/schemas/HideableFieldConfig"
-				}]
-			}
-			"ScaleDistribution": {
-				"description": "TODO docs", "type": "string", "enum": ["linear", "log", "ordinal", "symlog"]
-			}
-			"ScaleDistributionConfig": {
-				"description": "TODO docs", "type": "object", "required": ["type"]
-				"properties": {
-					"type": {
-						"$ref": "#/components/schemas/ScaleDistribution"
-					}
-					"log": {
-						"type": "number"
-					}
-					"linearThreshold": {
-						"type": "number"
-					}
-				}
-			}
-		}
-	}
+  "openapi": "3.0.0",
+  "info": {
+    "title": "barchart",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "barchart": {
+        "type": "object",
+        "required": [
+          "PanelOptions",
+          "PanelFieldConfig"
+        ],
+        "properties": {
+          "PanelOptions": {
+            "type": "object",
+            "required": [
+              "orientation",
+              "xTickLabelRotation",
+              "xTickLabelMaxLength",
+              "stacking",
+              "showValue",
+              "barWidth",
+              "legend",
+              "tooltip",
+              "groupWidth"
+            ],
+            "properties": {
+              "xField": {
+                "description": "TODO docs",
+                "type": "string"
+              },
+              "colorByField": {
+                "description": "TODO docs",
+                "type": "string"
+              },
+              "orientation": {
+                "description": "TODO docs",
+                "type": "string",
+                "enum": [
+                  "auto",
+                  "vertical",
+                  "horizontal"
+                ],
+                "default": "auto"
+              },
+              "barRadius": {
+                "description": "TODO docs",
+                "type": "number",
+                "minimum": 0,
+                "maximum": 0.5,
+                "default": 0
+              },
+              "xTickLabelRotation": {
+                "description": "TODO docs",
+                "type": "integer",
+                "minimum": -90,
+                "maximum": 90,
+                "default": 0
+              },
+              "xTickLabelMaxLength": {
+                "description": "TODO docs",
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 2147483647
+              },
+              "xTickLabelSpacing": {
+                "description": "TODO docs\nnegative values indicate backwards skipping behavior",
+                "type": "integer",
+                "minimum": -2147483648,
+                "maximum": 2147483647,
+                "default": 0
+              },
+              "stacking": {
+                "description": "TODO docs",
+                "type": "string",
+                "enum": [
+                  "none",
+                  "normal",
+                  "percent"
+                ],
+                "default": "none"
+              },
+              "showValue": {
+                "description": "This controls whether values are shown on top or to the left of bars.",
+                "type": "string",
+                "enum": [
+                  "auto",
+                  "never",
+                  "always"
+                ],
+                "default": "auto"
+              },
+              "barWidth": {
+                "description": "Controls the width of bars. 1 = Max width, 0 = Min width.",
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1,
+                "default": 0.97
+              },
+              "legend": {
+                "type": "object",
+                "required": [
+                  "displayMode",
+                  "placement",
+                  "showLegend",
+                  "calcs"
+                ],
+                "properties": {
+                  "displayMode": {
+                    "type": "string",
+                    "enum": [
+                      "list",
+                      "table",
+                      "hidden"
+                    ]
+                  },
+                  "placement": {
+                    "type": "string",
+                    "enum": [
+                      "bottom",
+                      "right"
+                    ]
+                  },
+                  "showLegend": {
+                    "type": "boolean"
+                  },
+                  "asTable": {
+                    "type": "boolean"
+                  },
+                  "isVisible": {
+                    "type": "boolean"
+                  },
+                  "sortBy": {
+                    "type": "string"
+                  },
+                  "sortDesc": {
+                    "type": "boolean"
+                  },
+                  "width": {
+                    "type": "number"
+                  },
+                  "calcs": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "tooltip": {
+                "type": "object",
+                "required": [
+                  "mode",
+                  "sort"
+                ],
+                "properties": {
+                  "mode": {
+                    "type": "string",
+                    "enum": [
+                      "single",
+                      "multi",
+                      "none"
+                    ]
+                  },
+                  "sort": {
+                    "type": "string",
+                    "enum": [
+                      "asc",
+                      "desc",
+                      "none"
+                    ]
+                  }
+                }
+              },
+              "text": {
+                "type": "object",
+                "properties": {
+                  "titleSize": {
+                    "description": "Explicit title text size",
+                    "type": "number"
+                  },
+                  "valueSize": {
+                    "description": "Explicit value text size",
+                    "type": "number"
+                  }
+                }
+              },
+              "groupWidth": {
+                "description": "Controls the width of groups. 1 = max with, 0 = min width.",
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1,
+                "default": 0.7
+              }
+            }
+          },
+          "PanelFieldConfig": {
+            "type": "object",
+            "properties": {
+              "lineWidth": {
+                "description": "Controls line width of the bars.",
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 10,
+                "default": 1
+              },
+              "fillOpacity": {
+                "description": "Controls the fill opacity of the bars.",
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100,
+                "default": 80
+              },
+              "gradientMode": {
+                "description": "Set the mode of the gradient fill. Fill gradient is based on the line color. To change the color, use the standard color scheme field option.\nGradient appearance is influenced by the Fill opacity setting.",
+                "type": "string",
+                "enum": [
+                  "none",
+                  "opacity",
+                  "hue",
+                  "scheme"
+                ],
+                "default": "none"
+              },
+              "axisPlacement": {
+                "type": "string",
+                "enum": [
+                  "auto",
+                  "top",
+                  "right",
+                  "bottom",
+                  "left",
+                  "hidden"
+                ]
+              },
+              "axisColorMode": {
+                "type": "string",
+                "enum": [
+                  "text",
+                  "series"
+                ]
+              },
+              "axisLabel": {
+                "type": "string"
+              },
+              "axisWidth": {
+                "type": "number"
+              },
+              "axisSoftMin": {
+                "type": "number"
+              },
+              "axisSoftMax": {
+                "type": "number"
+              },
+              "axisGridShow": {
+                "type": "boolean"
+              },
+              "scaleDistribution": {
+                "type": "object",
+                "required": [
+                  "type"
+                ],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "linear",
+                      "log",
+                      "ordinal",
+                      "symlog"
+                    ]
+                  },
+                  "log": {
+                    "type": "number"
+                  },
+                  "linearThreshold": {
+                    "type": "number"
+                  }
+                }
+              },
+              "hideFrom": {
+                "type": "object",
+                "required": [
+                  "tooltip",
+                  "legend",
+                  "viz"
+                ],
+                "properties": {
+                  "tooltip": {
+                    "type": "boolean"
+                  },
+                  "legend": {
+                    "type": "boolean"
+                  },
+                  "viz": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              "thresholdsStyle": {
+                "description": "Threshold rendering",
+                "type": "object",
+                "required": [
+                  "mode"
+                ],
+                "properties": {
+                  "mode": {
+                    "type": "string",
+                    "enum": [
+                      "off",
+                      "line",
+                      "dashed",
+                      "area",
+                      "line+area",
+                      "dashed+area",
+                      "series"
+                    ]
+                  }
+                }
+              },
+              "axisCenteredZero": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
 }
-
--- out/generate/0.0/nil --
-"openapi": "3.0.0"
-"info": {
-	"title":   "barchart"
-	"version": "0.0"
+-- out/generate/0.0/group.json --
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "barchart",
+    "version": "0.0"
+  },
+  "path": {},
+  "components": {
+    "schemas": {
+      "LegendDisplayMode": {
+        "description": "TODO docs\nNote: \"hidden\" needs to remain as an option for plugins compatibility",
+        "type": "string",
+        "enum": [
+          "list",
+          "table",
+          "hidden"
+        ]
+      },
+      "LegendPlacement": {
+        "description": "TODO docs",
+        "type": "string",
+        "enum": [
+          "bottom",
+          "right"
+        ]
+      },
+      "OptionsWithLegend": {
+        "description": "TODO docs",
+        "type": "object",
+        "required": [
+          "legend"
+        ],
+        "properties": {
+          "legend": {
+            "$ref": "#/components/schemas/VizLegendOptions"
+          }
+        }
+      },
+      "OptionsWithTextFormatting": {
+        "description": "TODO docs",
+        "type": "object",
+        "properties": {
+          "text": {
+            "$ref": "#/components/schemas/VizTextDisplayOptions"
+          }
+        }
+      },
+      "OptionsWithTooltip": {
+        "description": "TODO docs",
+        "type": "object",
+        "required": [
+          "tooltip"
+        ],
+        "properties": {
+          "tooltip": {
+            "$ref": "#/components/schemas/VizTooltipOptions"
+          }
+        }
+      },
+      "PanelOptions": {
+        "type": "object",
+        "properties": {
+          "xField": {
+            "description": "TODO docs",
+            "type": "string"
+          },
+          "colorByField": {
+            "description": "TODO docs",
+            "type": "string"
+          },
+          "orientation": {
+            "$ref": "#/components/schemas/VizOrientation"
+          },
+          "barRadius": {
+            "description": "TODO docs",
+            "type": "number",
+            "minimum": 0,
+            "maximum": 0.5,
+            "default": 0
+          },
+          "xTickLabelRotation": {
+            "description": "TODO docs",
+            "type": "integer",
+            "minimum": -90,
+            "maximum": 90,
+            "default": 0
+          },
+          "xTickLabelMaxLength": {
+            "description": "TODO docs",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 2147483647
+          },
+          "xTickLabelSpacing": {
+            "description": "TODO docs\nnegative values indicate backwards skipping behavior",
+            "type": "integer",
+            "minimum": -2147483648,
+            "maximum": 2147483647,
+            "default": 0
+          },
+          "stacking": {
+            "$ref": "#/components/schemas/StackingMode"
+          },
+          "showValue": {
+            "$ref": "#/components/schemas/VisibilityMode"
+          },
+          "barWidth": {
+            "description": "Controls the width of bars. 1 = Max width, 0 = Min width.",
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "default": 0.97
+          },
+          "groupWidth": {
+            "description": "Controls the width of groups. 1 = max with, 0 = min width.",
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "default": 0.7
+          }
+        },
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OptionsWithLegend"
+          },
+          {
+            "$ref": "#/components/schemas/OptionsWithTooltip"
+          },
+          {
+            "$ref": "#/components/schemas/OptionsWithTextFormatting"
+          },
+          {
+            "required": [
+              "orientation",
+              "xTickLabelRotation",
+              "xTickLabelMaxLength",
+              "stacking",
+              "showValue",
+              "barWidth",
+              "groupWidth"
+            ]
+          }
+        ]
+      },
+      "SortOrder": {
+        "description": "TODO docs",
+        "type": "string",
+        "enum": [
+          "asc",
+          "desc",
+          "none"
+        ]
+      },
+      "StackingMode": {
+        "description": "TODO docs",
+        "type": "string",
+        "enum": [
+          "none",
+          "normal",
+          "percent"
+        ]
+      },
+      "TooltipDisplayMode": {
+        "description": "TODO docs",
+        "type": "string",
+        "enum": [
+          "single",
+          "multi",
+          "none"
+        ]
+      },
+      "VisibilityMode": {
+        "description": "TODO docs",
+        "type": "string",
+        "enum": [
+          "auto",
+          "never",
+          "always"
+        ]
+      },
+      "VizLegendOptions": {
+        "description": "TODO docs",
+        "type": "object",
+        "required": [
+          "displayMode",
+          "placement",
+          "showLegend",
+          "calcs"
+        ],
+        "properties": {
+          "displayMode": {
+            "$ref": "#/components/schemas/LegendDisplayMode"
+          },
+          "placement": {
+            "$ref": "#/components/schemas/LegendPlacement"
+          },
+          "showLegend": {
+            "type": "boolean"
+          },
+          "asTable": {
+            "type": "boolean"
+          },
+          "isVisible": {
+            "type": "boolean"
+          },
+          "sortBy": {
+            "type": "string"
+          },
+          "sortDesc": {
+            "type": "boolean"
+          },
+          "width": {
+            "type": "number"
+          },
+          "calcs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "VizOrientation": {
+        "description": "TODO docs",
+        "type": "string",
+        "enum": [
+          "auto",
+          "vertical",
+          "horizontal"
+        ]
+      },
+      "VizTextDisplayOptions": {
+        "description": "TODO docs",
+        "type": "object",
+        "properties": {
+          "titleSize": {
+            "description": "Explicit title text size",
+            "type": "number"
+          },
+          "valueSize": {
+            "description": "Explicit value text size",
+            "type": "number"
+          }
+        }
+      },
+      "VizTooltipOptions": {
+        "description": "TODO docs",
+        "type": "object",
+        "required": [
+          "mode",
+          "sort"
+        ],
+        "properties": {
+          "mode": {
+            "$ref": "#/components/schemas/TooltipDisplayMode"
+          },
+          "sort": {
+            "$ref": "#/components/schemas/SortOrder"
+          }
+        }
+      },
+      "AxisColorMode": {
+        "description": "TODO docs",
+        "type": "string",
+        "enum": [
+          "text",
+          "series"
+        ]
+      },
+      "AxisConfig": {
+        "description": "TODO docs",
+        "type": "object",
+        "properties": {
+          "axisPlacement": {
+            "$ref": "#/components/schemas/AxisPlacement"
+          },
+          "axisColorMode": {
+            "$ref": "#/components/schemas/AxisColorMode"
+          },
+          "axisLabel": {
+            "type": "string"
+          },
+          "axisWidth": {
+            "type": "number"
+          },
+          "axisSoftMin": {
+            "type": "number"
+          },
+          "axisSoftMax": {
+            "type": "number"
+          },
+          "axisGridShow": {
+            "type": "boolean"
+          },
+          "scaleDistribution": {
+            "$ref": "#/components/schemas/ScaleDistributionConfig"
+          },
+          "axisCenteredZero": {
+            "type": "boolean"
+          }
+        }
+      },
+      "AxisPlacement": {
+        "description": "TODO docs",
+        "type": "string",
+        "enum": [
+          "auto",
+          "top",
+          "right",
+          "bottom",
+          "left",
+          "hidden"
+        ]
+      },
+      "GraphGradientMode": {
+        "description": "TODO docs",
+        "type": "string",
+        "enum": [
+          "none",
+          "opacity",
+          "hue",
+          "scheme"
+        ]
+      },
+      "GraphThresholdsStyleConfig": {
+        "description": "TODO docs",
+        "type": "object",
+        "required": [
+          "mode"
+        ],
+        "properties": {
+          "mode": {
+            "$ref": "#/components/schemas/GraphTresholdsStyleMode"
+          }
+        }
+      },
+      "GraphTresholdsStyleMode": {
+        "description": "TODO docs",
+        "type": "string",
+        "enum": [
+          "off",
+          "line",
+          "dashed",
+          "area",
+          "line+area",
+          "dashed+area",
+          "series"
+        ]
+      },
+      "HideSeriesConfig": {
+        "description": "TODO docs",
+        "type": "object",
+        "required": [
+          "tooltip",
+          "legend",
+          "viz"
+        ],
+        "properties": {
+          "tooltip": {
+            "type": "boolean"
+          },
+          "legend": {
+            "type": "boolean"
+          },
+          "viz": {
+            "type": "boolean"
+          }
+        }
+      },
+      "HideableFieldConfig": {
+        "description": "TODO docs",
+        "type": "object",
+        "properties": {
+          "hideFrom": {
+            "$ref": "#/components/schemas/HideSeriesConfig"
+          }
+        }
+      },
+      "PanelFieldConfig": {
+        "type": "object",
+        "properties": {
+          "lineWidth": {
+            "description": "Controls line width of the bars.",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10,
+            "default": 1
+          },
+          "fillOpacity": {
+            "description": "Controls the fill opacity of the bars.",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100,
+            "default": 80
+          },
+          "gradientMode": {
+            "$ref": "#/components/schemas/GraphGradientMode"
+          },
+          "thresholdsStyle": {
+            "$ref": "#/components/schemas/GraphThresholdsStyleConfig"
+          }
+        },
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/AxisConfig"
+          },
+          {
+            "$ref": "#/components/schemas/HideableFieldConfig"
+          }
+        ]
+      },
+      "ScaleDistribution": {
+        "description": "TODO docs",
+        "type": "string",
+        "enum": [
+          "linear",
+          "log",
+          "ordinal",
+          "symlog"
+        ]
+      },
+      "ScaleDistributionConfig": {
+        "description": "TODO docs",
+        "type": "object",
+        "required": [
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/ScaleDistribution"
+          },
+          "log": {
+            "type": "number"
+          },
+          "linearThreshold": {
+            "type": "number"
+          }
+        }
+      }
+    }
+  }
 }
-"paths": {}
-"components": {
-	"schemas": {
-		"AxisColorMode": {
-			"description": "TODO docs", "type": "string", "enum": ["text", "series"]
-		}
-		"AxisConfig": {
-			"description": "TODO docs", "type": "object", "properties": {
-					"axisPlacement": {
-						"$ref": "#/components/schemas/AxisPlacement"
-					}
-				"axisColorMode": {
-					"$ref": "#/components/schemas/AxisColorMode"
-				}
-				"axisLabel": {
-					"type": "string"
-				}
-				"axisWidth": {
-					"type": "number"
-				}
-				"axisSoftMin": {
-					"type": "number"
-				}
-				"axisSoftMax": {
-					"type": "number"
-				}
-				"axisGridShow": {
-					"type": "boolean"
-				}
-				"scaleDistribution": {
-					"$ref": "#/components/schemas/ScaleDistributionConfig"
-				}
-				"axisCenteredZero": {
-					"type": "boolean"
-				}
-			}
-		}
-		"AxisPlacement": {
-			"description": "TODO docs", "type": "string", "enum": ["auto", "top", "right", "bottom", "left", "hidden"]
-		}
-		"GraphGradientMode": {
-			"description": "TODO docs", "type": "string", "enum": ["none", "opacity", "hue", "scheme"]
-		}
-		"GraphThresholdsStyleConfig": {
-			"description": "TODO docs", "type": "object", "required": ["mode"]
-			"properties": {
-				"mode": {
-					"$ref": "#/components/schemas/GraphTresholdsStyleMode"
-				}
-			}
-		}
-		"GraphTresholdsStyleMode": {
-			"description": "TODO docs", "type": "string", "enum": ["off", "line", "dashed", "area", "line+area", "dashed+area", "series"]
-		}
-		"HideSeriesConfig": {
-			"description": "TODO docs", "type": "object", "required": ["tooltip", "legend", "viz"]
-			"properties": {
-				"tooltip": {
-					"type": "boolean"
-				}
-				"legend": {
-					"type": "boolean"
-				}
-				"viz": {
-					"type": "boolean"
-				}
-			}
-		}
-		"HideableFieldConfig": {
-			"description": "TODO docs", "type": "object", "properties": {
-					"hideFrom": {
-						"$ref": "#/components/schemas/HideSeriesConfig"
-					}
-			}
-		}
-		"LegendDisplayMode": {
-			"description": "TODO docs\nNote: \"hidden\" needs to remain as an option for plugins compatibility", "type": "string", "enum": ["list", "table", "hidden"]
-		}
-		"LegendPlacement": {
-			"description": "TODO docs", "type": "string", "enum": ["bottom", "right"]
-		}
-		"OptionsWithLegend": {
-			"description": "TODO docs", "type": "object", "required": ["legend"]
-			"properties": {
-				"legend": {
-					"$ref": "#/components/schemas/VizLegendOptions"
-				}
-			}
-		}
-		"OptionsWithTextFormatting": {
-			"description": "TODO docs", "type": "object", "properties": {
-					"text": {
-						"$ref": "#/components/schemas/VizTextDisplayOptions"
-					}
-			}
-		}
-		"OptionsWithTooltip": {
-			"description": "TODO docs", "type": "object", "required": ["tooltip"]
-			"properties": {
-				"tooltip": {
-					"$ref": "#/components/schemas/VizTooltipOptions"
-				}
-			}
-		}
-		"ScaleDistribution": {
-			"description": "TODO docs", "type": "string", "enum": ["linear", "log", "ordinal", "symlog"]
-		}
-		"ScaleDistributionConfig": {
-			"description": "TODO docs", "type": "object", "required": ["type"]
-			"properties": {
-				"type": {
-					"$ref": "#/components/schemas/ScaleDistribution"
-				}
-				"log": {
-					"type": "number"
-				}
-				"linearThreshold": {
-					"type": "number"
-				}
-			}
-		}
-		"SortOrder": {
-			"description": "TODO docs", "type": "string", "enum": ["asc", "desc", "none"]
-		}
-		"StackingMode": {
-			"description": "TODO docs", "type": "string", "enum": ["none", "normal", "percent"]
-		}
-		"TooltipDisplayMode": {
-			"description": "TODO docs", "type": "string", "enum": ["single", "multi", "none"]
-		}
-		"VisibilityMode": {
-			"description": "TODO docs", "type": "string", "enum": ["auto", "never", "always"]
-		}
-		"VizLegendOptions": {
-			"description": "TODO docs", "type": "object", "required": ["displayMode", "placement", "showLegend", "calcs"]
-			"properties": {
-				"displayMode": {
-					"$ref": "#/components/schemas/LegendDisplayMode"
-				}
-				"placement": {
-					"$ref": "#/components/schemas/LegendPlacement"
-				}
-				"showLegend": {
-					"type": "boolean"
-				}
-				"asTable": {
-					"type": "boolean"
-				}
-				"isVisible": {
-					"type": "boolean"
-				}
-				"sortBy": {
-					"type": "string"
-				}
-				"sortDesc": {
-					"type": "boolean"
-				}
-				"width": {
-					"type": "number"
-				}
-				"calcs": {
-					"type": "array", "items": {
-						"type": "string"
-					}
-				}
-			}
-		}
-		"VizOrientation": {
-			"description": "TODO docs", "type": "string", "enum": ["auto", "vertical", "horizontal"]
-		}
-		"VizTextDisplayOptions": {
-			"description": "TODO docs", "type": "object", "properties": {
-					"titleSize": {
-						"description": "Explicit title text size", "type": "number"
-					}
-				"valueSize": {
-					"description": "Explicit value text size", "type": "number"
-				}
-			}
-		}
-		"VizTooltipOptions": {
-			"description": "TODO docs", "type": "object", "required": ["mode", "sort"]
-			"properties": {
-				"mode": {
-					"$ref": "#/components/schemas/TooltipDisplayMode"
-				}
-				"sort": {
-					"$ref": "#/components/schemas/SortOrder"
-				}
-			}
-		}
-		"barchart": {
-			"type": "object", "required": ["PanelOptions", "PanelFieldConfig"]
-			"properties": {
-				"PanelOptions": {
-					"type": "object", "properties": {
-						"xField": {
-							"description": "TODO docs", "type": "string"
-						}
-						"colorByField": {
-							"description": "TODO docs", "type": "string"
-						}
-						"orientation": {
-							"$ref": "#/components/schemas/VizOrientation"
-						}
-						"barRadius": {
-							"description": "TODO docs", "type": "number", "minimum": 0, "maximum": 0.5, "default": 0
-						}
-						"xTickLabelRotation": {
-							"description": "TODO docs", "type": "integer", "minimum": -90, "maximum": 90, "default": 0
-						}
-						"xTickLabelMaxLength": {
-							"description": "TODO docs", "type": "integer", "minimum": 0, "maximum": 2147483647
-						}
-						"xTickLabelSpacing": {
-							"description": "TODO docs\nnegative values indicate backwards skipping behavior", "type": "integer", "minimum": -2147483648, "maximum": 2147483647, "default": 0
-						}
-						"stacking": {
-							"$ref": "#/components/schemas/StackingMode"
-						}
-						"showValue": {
-							"$ref": "#/components/schemas/VisibilityMode"
-						}
-						"barWidth": {
-							"description": "Controls the width of bars. 1 = Max width, 0 = Min width.", "type": "number", "minimum": 0, "maximum": 1, "default": 0.97
-						}
-						"groupWidth": {
-							"description": "Controls the width of groups. 1 = max with, 0 = min width.", "type": "number", "minimum": 0, "maximum": 1, "default": 0.7
-						}
-					}
-					"allOf": [{
-						"$ref": "#/components/schemas/OptionsWithLegend"
-					}, {
-						"$ref": "#/components/schemas/OptionsWithTooltip"
-					}, {
-						"$ref": "#/components/schemas/OptionsWithTextFormatting"
-					}, {
-						"required": ["orientation", "xTickLabelRotation", "xTickLabelMaxLength", "stacking", "showValue", "barWidth", "groupWidth"]
-					}]
-				}
-				"PanelFieldConfig": {
-					"type": "object", "properties": {
-						"lineWidth": {
-							"description": "Controls line width of the bars.", "type": "integer", "minimum": 0, "maximum": 10, "default": 1
-						}
-						"fillOpacity": {
-							"description": "Controls the fill opacity of the bars.", "type": "integer", "minimum": 0, "maximum": 100, "default": 80
-						}
-						"gradientMode": {
-							"$ref": "#/components/schemas/GraphGradientMode"
-						}
-						"thresholdsStyle": {
-							"$ref": "#/components/schemas/GraphThresholdsStyleConfig"
-						}
-					}
-					"allOf": [{
-						"$ref": "#/components/schemas/AxisConfig"
-					}, {
-						"$ref": "#/components/schemas/HideableFieldConfig"
-					}]
-				}
-			}
-		}
-	}
+-- out/generate/0.0/nil.json --
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "barchart",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "AxisColorMode": {
+        "description": "TODO docs",
+        "type": "string",
+        "enum": [
+          "text",
+          "series"
+        ]
+      },
+      "AxisConfig": {
+        "description": "TODO docs",
+        "type": "object",
+        "properties": {
+          "axisPlacement": {
+            "$ref": "#/components/schemas/AxisPlacement"
+          },
+          "axisColorMode": {
+            "$ref": "#/components/schemas/AxisColorMode"
+          },
+          "axisLabel": {
+            "type": "string"
+          },
+          "axisWidth": {
+            "type": "number"
+          },
+          "axisSoftMin": {
+            "type": "number"
+          },
+          "axisSoftMax": {
+            "type": "number"
+          },
+          "axisGridShow": {
+            "type": "boolean"
+          },
+          "scaleDistribution": {
+            "$ref": "#/components/schemas/ScaleDistributionConfig"
+          },
+          "axisCenteredZero": {
+            "type": "boolean"
+          }
+        }
+      },
+      "AxisPlacement": {
+        "description": "TODO docs",
+        "type": "string",
+        "enum": [
+          "auto",
+          "top",
+          "right",
+          "bottom",
+          "left",
+          "hidden"
+        ]
+      },
+      "GraphGradientMode": {
+        "description": "TODO docs",
+        "type": "string",
+        "enum": [
+          "none",
+          "opacity",
+          "hue",
+          "scheme"
+        ]
+      },
+      "GraphThresholdsStyleConfig": {
+        "description": "TODO docs",
+        "type": "object",
+        "required": [
+          "mode"
+        ],
+        "properties": {
+          "mode": {
+            "$ref": "#/components/schemas/GraphTresholdsStyleMode"
+          }
+        }
+      },
+      "GraphTresholdsStyleMode": {
+        "description": "TODO docs",
+        "type": "string",
+        "enum": [
+          "off",
+          "line",
+          "dashed",
+          "area",
+          "line+area",
+          "dashed+area",
+          "series"
+        ]
+      },
+      "HideSeriesConfig": {
+        "description": "TODO docs",
+        "type": "object",
+        "required": [
+          "tooltip",
+          "legend",
+          "viz"
+        ],
+        "properties": {
+          "tooltip": {
+            "type": "boolean"
+          },
+          "legend": {
+            "type": "boolean"
+          },
+          "viz": {
+            "type": "boolean"
+          }
+        }
+      },
+      "HideableFieldConfig": {
+        "description": "TODO docs",
+        "type": "object",
+        "properties": {
+          "hideFrom": {
+            "$ref": "#/components/schemas/HideSeriesConfig"
+          }
+        }
+      },
+      "LegendDisplayMode": {
+        "description": "TODO docs\nNote: \"hidden\" needs to remain as an option for plugins compatibility",
+        "type": "string",
+        "enum": [
+          "list",
+          "table",
+          "hidden"
+        ]
+      },
+      "LegendPlacement": {
+        "description": "TODO docs",
+        "type": "string",
+        "enum": [
+          "bottom",
+          "right"
+        ]
+      },
+      "OptionsWithLegend": {
+        "description": "TODO docs",
+        "type": "object",
+        "required": [
+          "legend"
+        ],
+        "properties": {
+          "legend": {
+            "$ref": "#/components/schemas/VizLegendOptions"
+          }
+        }
+      },
+      "OptionsWithTextFormatting": {
+        "description": "TODO docs",
+        "type": "object",
+        "properties": {
+          "text": {
+            "$ref": "#/components/schemas/VizTextDisplayOptions"
+          }
+        }
+      },
+      "OptionsWithTooltip": {
+        "description": "TODO docs",
+        "type": "object",
+        "required": [
+          "tooltip"
+        ],
+        "properties": {
+          "tooltip": {
+            "$ref": "#/components/schemas/VizTooltipOptions"
+          }
+        }
+      },
+      "ScaleDistribution": {
+        "description": "TODO docs",
+        "type": "string",
+        "enum": [
+          "linear",
+          "log",
+          "ordinal",
+          "symlog"
+        ]
+      },
+      "ScaleDistributionConfig": {
+        "description": "TODO docs",
+        "type": "object",
+        "required": [
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/ScaleDistribution"
+          },
+          "log": {
+            "type": "number"
+          },
+          "linearThreshold": {
+            "type": "number"
+          }
+        }
+      },
+      "SortOrder": {
+        "description": "TODO docs",
+        "type": "string",
+        "enum": [
+          "asc",
+          "desc",
+          "none"
+        ]
+      },
+      "StackingMode": {
+        "description": "TODO docs",
+        "type": "string",
+        "enum": [
+          "none",
+          "normal",
+          "percent"
+        ]
+      },
+      "TooltipDisplayMode": {
+        "description": "TODO docs",
+        "type": "string",
+        "enum": [
+          "single",
+          "multi",
+          "none"
+        ]
+      },
+      "VisibilityMode": {
+        "description": "TODO docs",
+        "type": "string",
+        "enum": [
+          "auto",
+          "never",
+          "always"
+        ]
+      },
+      "VizLegendOptions": {
+        "description": "TODO docs",
+        "type": "object",
+        "required": [
+          "displayMode",
+          "placement",
+          "showLegend",
+          "calcs"
+        ],
+        "properties": {
+          "displayMode": {
+            "$ref": "#/components/schemas/LegendDisplayMode"
+          },
+          "placement": {
+            "$ref": "#/components/schemas/LegendPlacement"
+          },
+          "showLegend": {
+            "type": "boolean"
+          },
+          "asTable": {
+            "type": "boolean"
+          },
+          "isVisible": {
+            "type": "boolean"
+          },
+          "sortBy": {
+            "type": "string"
+          },
+          "sortDesc": {
+            "type": "boolean"
+          },
+          "width": {
+            "type": "number"
+          },
+          "calcs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "VizOrientation": {
+        "description": "TODO docs",
+        "type": "string",
+        "enum": [
+          "auto",
+          "vertical",
+          "horizontal"
+        ]
+      },
+      "VizTextDisplayOptions": {
+        "description": "TODO docs",
+        "type": "object",
+        "properties": {
+          "titleSize": {
+            "description": "Explicit title text size",
+            "type": "number"
+          },
+          "valueSize": {
+            "description": "Explicit value text size",
+            "type": "number"
+          }
+        }
+      },
+      "VizTooltipOptions": {
+        "description": "TODO docs",
+        "type": "object",
+        "required": [
+          "mode",
+          "sort"
+        ],
+        "properties": {
+          "mode": {
+            "$ref": "#/components/schemas/TooltipDisplayMode"
+          },
+          "sort": {
+            "$ref": "#/components/schemas/SortOrder"
+          }
+        }
+      },
+      "barchart": {
+        "type": "object",
+        "required": [
+          "PanelOptions",
+          "PanelFieldConfig"
+        ],
+        "properties": {
+          "PanelOptions": {
+            "type": "object",
+            "properties": {
+              "xField": {
+                "description": "TODO docs",
+                "type": "string"
+              },
+              "colorByField": {
+                "description": "TODO docs",
+                "type": "string"
+              },
+              "orientation": {
+                "$ref": "#/components/schemas/VizOrientation"
+              },
+              "barRadius": {
+                "description": "TODO docs",
+                "type": "number",
+                "minimum": 0,
+                "maximum": 0.5,
+                "default": 0
+              },
+              "xTickLabelRotation": {
+                "description": "TODO docs",
+                "type": "integer",
+                "minimum": -90,
+                "maximum": 90,
+                "default": 0
+              },
+              "xTickLabelMaxLength": {
+                "description": "TODO docs",
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 2147483647
+              },
+              "xTickLabelSpacing": {
+                "description": "TODO docs\nnegative values indicate backwards skipping behavior",
+                "type": "integer",
+                "minimum": -2147483648,
+                "maximum": 2147483647,
+                "default": 0
+              },
+              "stacking": {
+                "$ref": "#/components/schemas/StackingMode"
+              },
+              "showValue": {
+                "$ref": "#/components/schemas/VisibilityMode"
+              },
+              "barWidth": {
+                "description": "Controls the width of bars. 1 = Max width, 0 = Min width.",
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1,
+                "default": 0.97
+              },
+              "groupWidth": {
+                "description": "Controls the width of groups. 1 = max with, 0 = min width.",
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1,
+                "default": 0.7
+              }
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OptionsWithLegend"
+              },
+              {
+                "$ref": "#/components/schemas/OptionsWithTooltip"
+              },
+              {
+                "$ref": "#/components/schemas/OptionsWithTextFormatting"
+              },
+              {
+                "required": [
+                  "orientation",
+                  "xTickLabelRotation",
+                  "xTickLabelMaxLength",
+                  "stacking",
+                  "showValue",
+                  "barWidth",
+                  "groupWidth"
+                ]
+              }
+            ]
+          },
+          "PanelFieldConfig": {
+            "type": "object",
+            "properties": {
+              "lineWidth": {
+                "description": "Controls line width of the bars.",
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 10,
+                "default": 1
+              },
+              "fillOpacity": {
+                "description": "Controls the fill opacity of the bars.",
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100,
+                "default": 80
+              },
+              "gradientMode": {
+                "$ref": "#/components/schemas/GraphGradientMode"
+              },
+              "thresholdsStyle": {
+                "$ref": "#/components/schemas/GraphThresholdsStyleConfig"
+              }
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AxisConfig"
+              },
+              {
+                "$ref": "#/components/schemas/HideableFieldConfig"
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
 }
-
--- out/generate/0.0/selfcontained --
-"openapi": "3.0.0"
-"info": {
-	"title":   "barchart"
-	"version": "0.0"
+-- out/generate/0.0/selfcontained.json --
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "barchart",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "AxisColorMode": {
+        "description": "TODO docs",
+        "type": "string",
+        "enum": [
+          "text",
+          "series"
+        ]
+      },
+      "AxisConfig": {
+        "description": "TODO docs",
+        "type": "object",
+        "properties": {
+          "axisPlacement": {
+            "$ref": "#/components/schemas/AxisPlacement"
+          },
+          "axisColorMode": {
+            "$ref": "#/components/schemas/AxisColorMode"
+          },
+          "axisLabel": {
+            "type": "string"
+          },
+          "axisWidth": {
+            "type": "number"
+          },
+          "axisSoftMin": {
+            "type": "number"
+          },
+          "axisSoftMax": {
+            "type": "number"
+          },
+          "axisGridShow": {
+            "type": "boolean"
+          },
+          "scaleDistribution": {
+            "$ref": "#/components/schemas/ScaleDistributionConfig"
+          },
+          "axisCenteredZero": {
+            "type": "boolean"
+          }
+        }
+      },
+      "AxisPlacement": {
+        "description": "TODO docs",
+        "type": "string",
+        "enum": [
+          "auto",
+          "top",
+          "right",
+          "bottom",
+          "left",
+          "hidden"
+        ]
+      },
+      "GraphGradientMode": {
+        "description": "TODO docs",
+        "type": "string",
+        "enum": [
+          "none",
+          "opacity",
+          "hue",
+          "scheme"
+        ]
+      },
+      "GraphThresholdsStyleConfig": {
+        "description": "TODO docs",
+        "type": "object",
+        "required": [
+          "mode"
+        ],
+        "properties": {
+          "mode": {
+            "$ref": "#/components/schemas/GraphTresholdsStyleMode"
+          }
+        }
+      },
+      "GraphTresholdsStyleMode": {
+        "description": "TODO docs",
+        "type": "string",
+        "enum": [
+          "off",
+          "line",
+          "dashed",
+          "area",
+          "line+area",
+          "dashed+area",
+          "series"
+        ]
+      },
+      "HideSeriesConfig": {
+        "description": "TODO docs",
+        "type": "object",
+        "required": [
+          "tooltip",
+          "legend",
+          "viz"
+        ],
+        "properties": {
+          "tooltip": {
+            "type": "boolean"
+          },
+          "legend": {
+            "type": "boolean"
+          },
+          "viz": {
+            "type": "boolean"
+          }
+        }
+      },
+      "HideableFieldConfig": {
+        "description": "TODO docs",
+        "type": "object",
+        "properties": {
+          "hideFrom": {
+            "$ref": "#/components/schemas/HideSeriesConfig"
+          }
+        }
+      },
+      "LegendDisplayMode": {
+        "description": "TODO docs\nNote: \"hidden\" needs to remain as an option for plugins compatibility",
+        "type": "string",
+        "enum": [
+          "list",
+          "table",
+          "hidden"
+        ]
+      },
+      "LegendPlacement": {
+        "description": "TODO docs",
+        "type": "string",
+        "enum": [
+          "bottom",
+          "right"
+        ]
+      },
+      "OptionsWithLegend": {
+        "description": "TODO docs",
+        "type": "object",
+        "required": [
+          "legend"
+        ],
+        "properties": {
+          "legend": {
+            "$ref": "#/components/schemas/VizLegendOptions"
+          }
+        }
+      },
+      "OptionsWithTextFormatting": {
+        "description": "TODO docs",
+        "type": "object",
+        "properties": {
+          "text": {
+            "$ref": "#/components/schemas/VizTextDisplayOptions"
+          }
+        }
+      },
+      "OptionsWithTooltip": {
+        "description": "TODO docs",
+        "type": "object",
+        "required": [
+          "tooltip"
+        ],
+        "properties": {
+          "tooltip": {
+            "$ref": "#/components/schemas/VizTooltipOptions"
+          }
+        }
+      },
+      "ScaleDistribution": {
+        "description": "TODO docs",
+        "type": "string",
+        "enum": [
+          "linear",
+          "log",
+          "ordinal",
+          "symlog"
+        ]
+      },
+      "ScaleDistributionConfig": {
+        "description": "TODO docs",
+        "type": "object",
+        "required": [
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/ScaleDistribution"
+          },
+          "log": {
+            "type": "number"
+          },
+          "linearThreshold": {
+            "type": "number"
+          }
+        }
+      },
+      "SortOrder": {
+        "description": "TODO docs",
+        "type": "string",
+        "enum": [
+          "asc",
+          "desc",
+          "none"
+        ]
+      },
+      "StackingMode": {
+        "description": "TODO docs",
+        "type": "string",
+        "enum": [
+          "none",
+          "normal",
+          "percent"
+        ]
+      },
+      "TooltipDisplayMode": {
+        "description": "TODO docs",
+        "type": "string",
+        "enum": [
+          "single",
+          "multi",
+          "none"
+        ]
+      },
+      "VisibilityMode": {
+        "description": "TODO docs",
+        "type": "string",
+        "enum": [
+          "auto",
+          "never",
+          "always"
+        ]
+      },
+      "VizLegendOptions": {
+        "description": "TODO docs",
+        "type": "object",
+        "required": [
+          "displayMode",
+          "placement",
+          "showLegend",
+          "calcs"
+        ],
+        "properties": {
+          "displayMode": {
+            "$ref": "#/components/schemas/LegendDisplayMode"
+          },
+          "placement": {
+            "$ref": "#/components/schemas/LegendPlacement"
+          },
+          "showLegend": {
+            "type": "boolean"
+          },
+          "asTable": {
+            "type": "boolean"
+          },
+          "isVisible": {
+            "type": "boolean"
+          },
+          "sortBy": {
+            "type": "string"
+          },
+          "sortDesc": {
+            "type": "boolean"
+          },
+          "width": {
+            "type": "number"
+          },
+          "calcs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "VizOrientation": {
+        "description": "TODO docs",
+        "type": "string",
+        "enum": [
+          "auto",
+          "vertical",
+          "horizontal"
+        ]
+      },
+      "VizTextDisplayOptions": {
+        "description": "TODO docs",
+        "type": "object",
+        "properties": {
+          "titleSize": {
+            "description": "Explicit title text size",
+            "type": "number"
+          },
+          "valueSize": {
+            "description": "Explicit value text size",
+            "type": "number"
+          }
+        }
+      },
+      "VizTooltipOptions": {
+        "description": "TODO docs",
+        "type": "object",
+        "required": [
+          "mode",
+          "sort"
+        ],
+        "properties": {
+          "mode": {
+            "$ref": "#/components/schemas/TooltipDisplayMode"
+          },
+          "sort": {
+            "$ref": "#/components/schemas/SortOrder"
+          }
+        }
+      },
+      "barchart": {
+        "type": "object",
+        "required": [
+          "PanelOptions",
+          "PanelFieldConfig"
+        ],
+        "properties": {
+          "PanelOptions": {
+            "type": "object",
+            "properties": {
+              "xField": {
+                "description": "TODO docs",
+                "type": "string"
+              },
+              "colorByField": {
+                "description": "TODO docs",
+                "type": "string"
+              },
+              "orientation": {
+                "$ref": "#/components/schemas/VizOrientation"
+              },
+              "barRadius": {
+                "description": "TODO docs",
+                "type": "number",
+                "minimum": 0,
+                "maximum": 0.5,
+                "default": 0
+              },
+              "xTickLabelRotation": {
+                "description": "TODO docs",
+                "type": "integer",
+                "minimum": -90,
+                "maximum": 90,
+                "default": 0
+              },
+              "xTickLabelMaxLength": {
+                "description": "TODO docs",
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 2147483647
+              },
+              "xTickLabelSpacing": {
+                "description": "TODO docs\nnegative values indicate backwards skipping behavior",
+                "type": "integer",
+                "minimum": -2147483648,
+                "maximum": 2147483647,
+                "default": 0
+              },
+              "stacking": {
+                "$ref": "#/components/schemas/StackingMode"
+              },
+              "showValue": {
+                "$ref": "#/components/schemas/VisibilityMode"
+              },
+              "barWidth": {
+                "description": "Controls the width of bars. 1 = Max width, 0 = Min width.",
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1,
+                "default": 0.97
+              },
+              "groupWidth": {
+                "description": "Controls the width of groups. 1 = max with, 0 = min width.",
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1,
+                "default": 0.7
+              }
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OptionsWithLegend"
+              },
+              {
+                "$ref": "#/components/schemas/OptionsWithTooltip"
+              },
+              {
+                "$ref": "#/components/schemas/OptionsWithTextFormatting"
+              },
+              {
+                "required": [
+                  "orientation",
+                  "xTickLabelRotation",
+                  "xTickLabelMaxLength",
+                  "stacking",
+                  "showValue",
+                  "barWidth",
+                  "groupWidth"
+                ]
+              }
+            ]
+          },
+          "PanelFieldConfig": {
+            "type": "object",
+            "properties": {
+              "lineWidth": {
+                "description": "Controls line width of the bars.",
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 10,
+                "default": 1
+              },
+              "fillOpacity": {
+                "description": "Controls the fill opacity of the bars.",
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100,
+                "default": 80
+              },
+              "gradientMode": {
+                "$ref": "#/components/schemas/GraphGradientMode"
+              },
+              "thresholdsStyle": {
+                "$ref": "#/components/schemas/GraphThresholdsStyleConfig"
+              }
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AxisConfig"
+              },
+              {
+                "$ref": "#/components/schemas/HideableFieldConfig"
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
 }
-"paths": {}
-"components": {
-	"schemas": {
-		"AxisColorMode": {
-			"description": "TODO docs", "type": "string", "enum": ["text", "series"]
-		}
-		"AxisConfig": {
-			"description": "TODO docs", "type": "object", "properties": {
-					"axisPlacement": {
-						"$ref": "#/components/schemas/AxisPlacement"
-					}
-				"axisColorMode": {
-					"$ref": "#/components/schemas/AxisColorMode"
-				}
-				"axisLabel": {
-					"type": "string"
-				}
-				"axisWidth": {
-					"type": "number"
-				}
-				"axisSoftMin": {
-					"type": "number"
-				}
-				"axisSoftMax": {
-					"type": "number"
-				}
-				"axisGridShow": {
-					"type": "boolean"
-				}
-				"scaleDistribution": {
-					"$ref": "#/components/schemas/ScaleDistributionConfig"
-				}
-				"axisCenteredZero": {
-					"type": "boolean"
-				}
-			}
-		}
-		"AxisPlacement": {
-			"description": "TODO docs", "type": "string", "enum": ["auto", "top", "right", "bottom", "left", "hidden"]
-		}
-		"GraphGradientMode": {
-			"description": "TODO docs", "type": "string", "enum": ["none", "opacity", "hue", "scheme"]
-		}
-		"GraphThresholdsStyleConfig": {
-			"description": "TODO docs", "type": "object", "required": ["mode"]
-			"properties": {
-				"mode": {
-					"$ref": "#/components/schemas/GraphTresholdsStyleMode"
-				}
-			}
-		}
-		"GraphTresholdsStyleMode": {
-			"description": "TODO docs", "type": "string", "enum": ["off", "line", "dashed", "area", "line+area", "dashed+area", "series"]
-		}
-		"HideSeriesConfig": {
-			"description": "TODO docs", "type": "object", "required": ["tooltip", "legend", "viz"]
-			"properties": {
-				"tooltip": {
-					"type": "boolean"
-				}
-				"legend": {
-					"type": "boolean"
-				}
-				"viz": {
-					"type": "boolean"
-				}
-			}
-		}
-		"HideableFieldConfig": {
-			"description": "TODO docs", "type": "object", "properties": {
-					"hideFrom": {
-						"$ref": "#/components/schemas/HideSeriesConfig"
-					}
-			}
-		}
-		"LegendDisplayMode": {
-			"description": "TODO docs\nNote: \"hidden\" needs to remain as an option for plugins compatibility", "type": "string", "enum": ["list", "table", "hidden"]
-		}
-		"LegendPlacement": {
-			"description": "TODO docs", "type": "string", "enum": ["bottom", "right"]
-		}
-		"OptionsWithLegend": {
-			"description": "TODO docs", "type": "object", "required": ["legend"]
-			"properties": {
-				"legend": {
-					"$ref": "#/components/schemas/VizLegendOptions"
-				}
-			}
-		}
-		"OptionsWithTextFormatting": {
-			"description": "TODO docs", "type": "object", "properties": {
-					"text": {
-						"$ref": "#/components/schemas/VizTextDisplayOptions"
-					}
-			}
-		}
-		"OptionsWithTooltip": {
-			"description": "TODO docs", "type": "object", "required": ["tooltip"]
-			"properties": {
-				"tooltip": {
-					"$ref": "#/components/schemas/VizTooltipOptions"
-				}
-			}
-		}
-		"ScaleDistribution": {
-			"description": "TODO docs", "type": "string", "enum": ["linear", "log", "ordinal", "symlog"]
-		}
-		"ScaleDistributionConfig": {
-			"description": "TODO docs", "type": "object", "required": ["type"]
-			"properties": {
-				"type": {
-					"$ref": "#/components/schemas/ScaleDistribution"
-				}
-				"log": {
-					"type": "number"
-				}
-				"linearThreshold": {
-					"type": "number"
-				}
-			}
-		}
-		"SortOrder": {
-			"description": "TODO docs", "type": "string", "enum": ["asc", "desc", "none"]
-		}
-		"StackingMode": {
-			"description": "TODO docs", "type": "string", "enum": ["none", "normal", "percent"]
-		}
-		"TooltipDisplayMode": {
-			"description": "TODO docs", "type": "string", "enum": ["single", "multi", "none"]
-		}
-		"VisibilityMode": {
-			"description": "TODO docs", "type": "string", "enum": ["auto", "never", "always"]
-		}
-		"VizLegendOptions": {
-			"description": "TODO docs", "type": "object", "required": ["displayMode", "placement", "showLegend", "calcs"]
-			"properties": {
-				"displayMode": {
-					"$ref": "#/components/schemas/LegendDisplayMode"
-				}
-				"placement": {
-					"$ref": "#/components/schemas/LegendPlacement"
-				}
-				"showLegend": {
-					"type": "boolean"
-				}
-				"asTable": {
-					"type": "boolean"
-				}
-				"isVisible": {
-					"type": "boolean"
-				}
-				"sortBy": {
-					"type": "string"
-				}
-				"sortDesc": {
-					"type": "boolean"
-				}
-				"width": {
-					"type": "number"
-				}
-				"calcs": {
-					"type": "array", "items": {
-						"type": "string"
-					}
-				}
-			}
-		}
-		"VizOrientation": {
-			"description": "TODO docs", "type": "string", "enum": ["auto", "vertical", "horizontal"]
-		}
-		"VizTextDisplayOptions": {
-			"description": "TODO docs", "type": "object", "properties": {
-					"titleSize": {
-						"description": "Explicit title text size", "type": "number"
-					}
-				"valueSize": {
-					"description": "Explicit value text size", "type": "number"
-				}
-			}
-		}
-		"VizTooltipOptions": {
-			"description": "TODO docs", "type": "object", "required": ["mode", "sort"]
-			"properties": {
-				"mode": {
-					"$ref": "#/components/schemas/TooltipDisplayMode"
-				}
-				"sort": {
-					"$ref": "#/components/schemas/SortOrder"
-				}
-			}
-		}
-		"barchart": {
-			"type": "object", "required": ["PanelOptions", "PanelFieldConfig"]
-			"properties": {
-				"PanelOptions": {
-					"type": "object", "properties": {
-						"xField": {
-							"description": "TODO docs", "type": "string"
-						}
-						"colorByField": {
-							"description": "TODO docs", "type": "string"
-						}
-						"orientation": {
-							"$ref": "#/components/schemas/VizOrientation"
-						}
-						"barRadius": {
-							"description": "TODO docs", "type": "number", "minimum": 0, "maximum": 0.5, "default": 0
-						}
-						"xTickLabelRotation": {
-							"description": "TODO docs", "type": "integer", "minimum": -90, "maximum": 90, "default": 0
-						}
-						"xTickLabelMaxLength": {
-							"description": "TODO docs", "type": "integer", "minimum": 0, "maximum": 2147483647
-						}
-						"xTickLabelSpacing": {
-							"description": "TODO docs\nnegative values indicate backwards skipping behavior", "type": "integer", "minimum": -2147483648, "maximum": 2147483647, "default": 0
-						}
-						"stacking": {
-							"$ref": "#/components/schemas/StackingMode"
-						}
-						"showValue": {
-							"$ref": "#/components/schemas/VisibilityMode"
-						}
-						"barWidth": {
-							"description": "Controls the width of bars. 1 = Max width, 0 = Min width.", "type": "number", "minimum": 0, "maximum": 1, "default": 0.97
-						}
-						"groupWidth": {
-							"description": "Controls the width of groups. 1 = max with, 0 = min width.", "type": "number", "minimum": 0, "maximum": 1, "default": 0.7
-						}
-					}
-					"allOf": [{
-						"$ref": "#/components/schemas/OptionsWithLegend"
-					}, {
-						"$ref": "#/components/schemas/OptionsWithTooltip"
-					}, {
-						"$ref": "#/components/schemas/OptionsWithTextFormatting"
-					}, {
-						"required": ["orientation", "xTickLabelRotation", "xTickLabelMaxLength", "stacking", "showValue", "barWidth", "groupWidth"]
-					}]
-				}
-				"PanelFieldConfig": {
-					"type": "object", "properties": {
-						"lineWidth": {
-							"description": "Controls line width of the bars.", "type": "integer", "minimum": 0, "maximum": 10, "default": 1
-						}
-						"fillOpacity": {
-							"description": "Controls the fill opacity of the bars.", "type": "integer", "minimum": 0, "maximum": 100, "default": 80
-						}
-						"gradientMode": {
-							"$ref": "#/components/schemas/GraphGradientMode"
-						}
-						"thresholdsStyle": {
-							"$ref": "#/components/schemas/GraphThresholdsStyleConfig"
-						}
-					}
-					"allOf": [{
-						"$ref": "#/components/schemas/AxisConfig"
-					}, {
-						"$ref": "#/components/schemas/HideableFieldConfig"
-					}]
-				}
-			}
-		}
-	}
-}
-
--- out/generate/0.0/subpath/err --
+-- out/generate/0.0/subpath.json/err --
 #someField: openapi: #someField: field not found: someField
--- out/generate/0.0/subpathroot/err --
+-- out/generate/0.0/subpathroot.json/err --
 #overriddenName: openapi: #overriddenName: field not found: someField
