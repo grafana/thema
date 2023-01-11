@@ -276,8 +276,6 @@ func formatNode(t *testing.T, f *ast.File) []byte {
 	var str string
 	var err error
 
-	fmt.Println(f.Filename)
-
 	ctx := cuecontext.New()
 	switch filepath.Ext(f.Filename) {
 	case ".json":
