@@ -45,7 +45,7 @@ Embedder: {
 #import.baz: unsupported op . for object type ({
 	fieldInDef: int32 | string
 }):
-    ../../../../../../../thema.test/generate/in.cue:21:17
+    ./in.cue:21:17
 -- out/generate/0.0/group.json --
 {
   "openapi": "3.0.0",

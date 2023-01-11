@@ -43,6 +43,9 @@ import (
 	"golang.org/x/tools/txtar"
 )
 
+// FIXME hardcoding this path as prefix for test inputs, for now
+const testPath = "thema.test/generate"
+
 // A LineageSuite represents a suite of tests run against a single
 // [thema.Lineage] that exercise a particular set of related behaviors that
 // operate on lineage. Inputs and outputs for the test suite are collected
@@ -204,7 +207,7 @@ func (t *LineageTest) Rel(filename string) string {
 func (t *LineageTest) WriteErrors(err error, name string) {
 	if err != nil {
 		errors.Print(t.Writer(path.Join(name, "err")), err, &errors.Config{
-			Cwd:     t.Dir,
+			Cwd:     "/" + testPath,
 			ToSlash: true,
 		})
 	}
@@ -377,11 +380,10 @@ func Load(a *txtar.Archive, dir string, args ...string) ([]*build.Instance, erro
 	}
 
 	if _, has := mfs[filepath.Join("cue.mod", "module.cue")]; !has {
-		mfs[filepath.Join("cue.mod", "module.cue")] = &fstest.MapFile{Data: []byte(fmt.Sprintf(`module: "thema.test/generate"`))}
+		mfs[filepath.Join("cue.mod", "module.cue")] = &fstest.MapFile{Data: []byte(fmt.Sprintf("module: %q", testPath))}
 	}
 
 	var insts []*build.Instance
-
 	for _, arg := range append([]string{"."}, args...) {
 		binst, err := tload.InstanceWithThema(mfs, arg)
 		if err != nil {
