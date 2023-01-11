@@ -1,392 +1,472 @@
--- out/generate/0.0/expandrefs --
-"openapi": "3.0.0"
-"info": {
-	"title":   "expand"
-	"version": "0.0"
-}
-"paths": {}
-"components": {
-	"schemas": {
-		"expand": {
-			"type": "object", "required": ["init"]
-			"properties": {
-				"init": {
-					"type": "string"
-				}
-			}
-		}
-	}
-}
-
--- out/generate/0.0/group --
+-- out/generate/0.0/expandrefs.json --
 {
-	"openapi": "3.0.0"
-	"info": {
-		"title":   "expand"
-		"version": "0.0"
-	}
-	"path": {}
-	"components": {
-		"schemas": {
-			"init": {
-				"type": "string"
-			}
-		}
-	}
+  "openapi": "3.0.0",
+  "info": {
+    "title": "expand",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "expand": {
+        "type": "object",
+        "required": [
+          "init"
+        ],
+        "properties": {
+          "init": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
 }
-
--- out/generate/0.0/nil --
-"openapi": "3.0.0"
-"info": {
-	"title":   "expand"
-	"version": "0.0"
+-- out/generate/0.0/group.json --
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "expand",
+    "version": "0.0"
+  },
+  "path": {},
+  "components": {
+    "schemas": {
+      "init": {
+        "type": "string"
+      }
+    }
+  }
 }
-"paths": {}
-"components": {
-	"schemas": {
-		"expand": {
-			"type": "object", "required": ["init"]
-			"properties": {
-				"init": {
-					"type": "string"
-				}
-			}
-		}
-	}
+-- out/generate/0.0/nil.json --
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "expand",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "expand": {
+        "type": "object",
+        "required": [
+          "init"
+        ],
+        "properties": {
+          "init": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
 }
-
--- out/generate/0.0/selfcontained --
-"openapi": "3.0.0"
-"info": {
-	"title":   "expand"
-	"version": "0.0"
+-- out/generate/0.0/selfcontained.json --
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "expand",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "expand": {
+        "type": "object",
+        "required": [
+          "init"
+        ],
+        "properties": {
+          "init": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
 }
-"paths": {}
-"components": {
-	"schemas": {
-		"expand": {
-			"type": "object", "required": ["init"]
-			"properties": {
-				"init": {
-					"type": "string"
-				}
-			}
-		}
-	}
-}
-
--- out/generate/0.0/subpath/err --
+-- out/generate/0.0/subpath.json/err --
 #someField: openapi: #someField: field not found: someField
--- out/generate/0.0/subpathroot/err --
+-- out/generate/0.0/subpathroot.json/err --
 #overriddenName: openapi: #overriddenName: field not found: someField
--- out/generate/0.1/expandrefs --
-"openapi": "3.0.0"
-"info": {
-	"title":   "expand"
-	"version": "0.1"
-}
-"paths": {}
-"components": {
-	"schemas": {
-		"expand": {
-			"type": "object", "required": ["init"]
-			"properties": {
-				"init": {
-					"type": "string"
-				}
-				"optional": {
-					"type": "integer"
-				}
-			}
-		}
-	}
-}
-
--- out/generate/0.1/group --
+-- out/generate/0.1/expandrefs.json --
 {
-	"openapi": "3.0.0"
-	"info": {
-		"title":   "expand"
-		"version": "0.1"
-	}
-	"path": {}
-	"components": {
-		"schemas": {
-			"init": {
-				"type": "string"
-			}
-			"optional": {
-				"type": "integer"
-			}
-		}
-	}
+  "openapi": "3.0.0",
+  "info": {
+    "title": "expand",
+    "version": "0.1"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "expand": {
+        "type": "object",
+        "required": [
+          "init"
+        ],
+        "properties": {
+          "init": {
+            "type": "string"
+          },
+          "optional": {
+            "type": "integer"
+          }
+        }
+      }
+    }
+  }
 }
-
--- out/generate/0.1/nil --
-"openapi": "3.0.0"
-"info": {
-	"title":   "expand"
-	"version": "0.1"
+-- out/generate/0.1/group.json --
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "expand",
+    "version": "0.1"
+  },
+  "path": {},
+  "components": {
+    "schemas": {
+      "init": {
+        "type": "string"
+      },
+      "optional": {
+        "type": "integer"
+      }
+    }
+  }
 }
-"paths": {}
-"components": {
-	"schemas": {
-		"expand": {
-			"type": "object", "required": ["init"]
-			"properties": {
-				"init": {
-					"type": "string"
-				}
-				"optional": {
-					"type": "integer"
-				}
-			}
-		}
-	}
+-- out/generate/0.1/nil.json --
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "expand",
+    "version": "0.1"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "expand": {
+        "type": "object",
+        "required": [
+          "init"
+        ],
+        "properties": {
+          "init": {
+            "type": "string"
+          },
+          "optional": {
+            "type": "integer"
+          }
+        }
+      }
+    }
+  }
 }
-
--- out/generate/0.1/selfcontained --
-"openapi": "3.0.0"
-"info": {
-	"title":   "expand"
-	"version": "0.1"
+-- out/generate/0.1/selfcontained.json --
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "expand",
+    "version": "0.1"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "expand": {
+        "type": "object",
+        "required": [
+          "init"
+        ],
+        "properties": {
+          "init": {
+            "type": "string"
+          },
+          "optional": {
+            "type": "integer"
+          }
+        }
+      }
+    }
+  }
 }
-"paths": {}
-"components": {
-	"schemas": {
-		"expand": {
-			"type": "object", "required": ["init"]
-			"properties": {
-				"init": {
-					"type": "string"
-				}
-				"optional": {
-					"type": "integer"
-				}
-			}
-		}
-	}
-}
-
--- out/generate/0.1/subpath/err --
+-- out/generate/0.1/subpath.json/err --
 #someField: openapi: #someField: field not found: someField
--- out/generate/0.1/subpathroot/err --
+-- out/generate/0.1/subpathroot.json/err --
 #overriddenName: openapi: #overriddenName: field not found: someField
--- out/generate/0.2/expandrefs --
-"openapi": "3.0.0"
-"info": {
-	"title":   "expand"
-	"version": "0.2"
-}
-"paths": {}
-"components": {
-	"schemas": {
-		"expand": {
-			"type": "object", "required": ["init"]
-			"properties": {
-				"init": {
-					"type": "string"
-				}
-				"optional": {
-					"type": "integer"
-				}
-				"withDefault": {
-					"type": "string", "enum": ["foo", "bar"]
-					"default": "foo"
-				}
-			}
-		}
-	}
-}
-
--- out/generate/0.2/group --
+-- out/generate/0.2/expandrefs.json --
 {
-	"openapi": "3.0.0"
-	"info": {
-		"title":   "expand"
-		"version": "0.2"
-	}
-	"path": {}
-	"components": {
-		"schemas": {
-			"init": {
-				"type": "string"
-			}
-			"optional": {
-				"type": "integer"
-			}
-			"withDefault": {
-				"type": "string", "enum": ["foo", "bar"]
-				"default": "foo"
-			}
-		}
-	}
+  "openapi": "3.0.0",
+  "info": {
+    "title": "expand",
+    "version": "0.2"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "expand": {
+        "type": "object",
+        "required": [
+          "init"
+        ],
+        "properties": {
+          "init": {
+            "type": "string"
+          },
+          "optional": {
+            "type": "integer"
+          },
+          "withDefault": {
+            "type": "string",
+            "enum": [
+              "foo",
+              "bar"
+            ],
+            "default": "foo"
+          }
+        }
+      }
+    }
+  }
 }
-
--- out/generate/0.2/nil --
-"openapi": "3.0.0"
-"info": {
-	"title":   "expand"
-	"version": "0.2"
+-- out/generate/0.2/group.json --
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "expand",
+    "version": "0.2"
+  },
+  "path": {},
+  "components": {
+    "schemas": {
+      "init": {
+        "type": "string"
+      },
+      "optional": {
+        "type": "integer"
+      },
+      "withDefault": {
+        "type": "string",
+        "enum": [
+          "foo",
+          "bar"
+        ],
+        "default": "foo"
+      }
+    }
+  }
 }
-"paths": {}
-"components": {
-	"schemas": {
-		"expand": {
-			"type": "object", "required": ["init"]
-			"properties": {
-				"init": {
-					"type": "string"
-				}
-				"optional": {
-					"type": "integer"
-				}
-				"withDefault": {
-					"type": "string", "enum": ["foo", "bar"]
-					"default": "foo"
-				}
-			}
-		}
-	}
+-- out/generate/0.2/nil.json --
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "expand",
+    "version": "0.2"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "expand": {
+        "type": "object",
+        "required": [
+          "init"
+        ],
+        "properties": {
+          "init": {
+            "type": "string"
+          },
+          "optional": {
+            "type": "integer"
+          },
+          "withDefault": {
+            "type": "string",
+            "enum": [
+              "foo",
+              "bar"
+            ],
+            "default": "foo"
+          }
+        }
+      }
+    }
+  }
 }
-
--- out/generate/0.2/selfcontained --
-"openapi": "3.0.0"
-"info": {
-	"title":   "expand"
-	"version": "0.2"
+-- out/generate/0.2/selfcontained.json --
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "expand",
+    "version": "0.2"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "expand": {
+        "type": "object",
+        "required": [
+          "init"
+        ],
+        "properties": {
+          "init": {
+            "type": "string"
+          },
+          "optional": {
+            "type": "integer"
+          },
+          "withDefault": {
+            "type": "string",
+            "enum": [
+              "foo",
+              "bar"
+            ],
+            "default": "foo"
+          }
+        }
+      }
+    }
+  }
 }
-"paths": {}
-"components": {
-	"schemas": {
-		"expand": {
-			"type": "object", "required": ["init"]
-			"properties": {
-				"init": {
-					"type": "string"
-				}
-				"optional": {
-					"type": "integer"
-				}
-				"withDefault": {
-					"type": "string", "enum": ["foo", "bar"]
-					"default": "foo"
-				}
-			}
-		}
-	}
-}
-
--- out/generate/0.2/subpath/err --
+-- out/generate/0.2/subpath.json/err --
 #someField: openapi: #someField: field not found: someField
--- out/generate/0.2/subpathroot/err --
+-- out/generate/0.2/subpathroot.json/err --
 #overriddenName: openapi: #overriddenName: field not found: someField
--- out/generate/0.3/expandrefs --
-"openapi": "3.0.0"
-"info": {
-	"title":   "expand"
-	"version": "0.3"
-}
-"paths": {}
-"components": {
-	"schemas": {
-		"expand": {
-			"type": "object", "required": ["init"]
-			"properties": {
-				"init": {
-					"type": "string"
-				}
-				"optional": {
-					"type": "integer"
-				}
-				"withDefault": {
-					"type": "string", "enum": ["foo", "bar", "baz"]
-					"default": "foo"
-				}
-			}
-		}
-	}
-}
-
--- out/generate/0.3/group --
+-- out/generate/0.3/expandrefs.json --
 {
-	"openapi": "3.0.0"
-	"info": {
-		"title":   "expand"
-		"version": "0.3"
-	}
-	"path": {}
-	"components": {
-		"schemas": {
-			"init": {
-				"type": "string"
-			}
-			"optional": {
-				"type": "integer"
-			}
-			"withDefault": {
-				"type": "string", "enum": ["foo", "bar", "baz"]
-				"default": "foo"
-			}
-		}
-	}
+  "openapi": "3.0.0",
+  "info": {
+    "title": "expand",
+    "version": "0.3"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "expand": {
+        "type": "object",
+        "required": [
+          "init"
+        ],
+        "properties": {
+          "init": {
+            "type": "string"
+          },
+          "optional": {
+            "type": "integer"
+          },
+          "withDefault": {
+            "type": "string",
+            "enum": [
+              "foo",
+              "bar",
+              "baz"
+            ],
+            "default": "foo"
+          }
+        }
+      }
+    }
+  }
 }
-
--- out/generate/0.3/nil --
-"openapi": "3.0.0"
-"info": {
-	"title":   "expand"
-	"version": "0.3"
+-- out/generate/0.3/group.json --
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "expand",
+    "version": "0.3"
+  },
+  "path": {},
+  "components": {
+    "schemas": {
+      "init": {
+        "type": "string"
+      },
+      "optional": {
+        "type": "integer"
+      },
+      "withDefault": {
+        "type": "string",
+        "enum": [
+          "foo",
+          "bar",
+          "baz"
+        ],
+        "default": "foo"
+      }
+    }
+  }
 }
-"paths": {}
-"components": {
-	"schemas": {
-		"expand": {
-			"type": "object", "required": ["init"]
-			"properties": {
-				"init": {
-					"type": "string"
-				}
-				"optional": {
-					"type": "integer"
-				}
-				"withDefault": {
-					"type": "string", "enum": ["foo", "bar", "baz"]
-					"default": "foo"
-				}
-			}
-		}
-	}
+-- out/generate/0.3/nil.json --
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "expand",
+    "version": "0.3"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "expand": {
+        "type": "object",
+        "required": [
+          "init"
+        ],
+        "properties": {
+          "init": {
+            "type": "string"
+          },
+          "optional": {
+            "type": "integer"
+          },
+          "withDefault": {
+            "type": "string",
+            "enum": [
+              "foo",
+              "bar",
+              "baz"
+            ],
+            "default": "foo"
+          }
+        }
+      }
+    }
+  }
 }
-
--- out/generate/0.3/selfcontained --
-"openapi": "3.0.0"
-"info": {
-	"title":   "expand"
-	"version": "0.3"
+-- out/generate/0.3/selfcontained.json --
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "expand",
+    "version": "0.3"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "expand": {
+        "type": "object",
+        "required": [
+          "init"
+        ],
+        "properties": {
+          "init": {
+            "type": "string"
+          },
+          "optional": {
+            "type": "integer"
+          },
+          "withDefault": {
+            "type": "string",
+            "enum": [
+              "foo",
+              "bar",
+              "baz"
+            ],
+            "default": "foo"
+          }
+        }
+      }
+    }
+  }
 }
-"paths": {}
-"components": {
-	"schemas": {
-		"expand": {
-			"type": "object", "required": ["init"]
-			"properties": {
-				"init": {
-					"type": "string"
-				}
-				"optional": {
-					"type": "integer"
-				}
-				"withDefault": {
-					"type": "string", "enum": ["foo", "bar", "baz"]
-					"default": "foo"
-				}
-			}
-		}
-	}
-}
-
--- out/generate/0.3/subpath/err --
+-- out/generate/0.3/subpath.json/err --
 #someField: openapi: #someField: field not found: someField
--- out/generate/0.3/subpathroot/err --
+-- out/generate/0.3/subpathroot.json/err --
 #overriddenName: openapi: #overriddenName: field not found: someField

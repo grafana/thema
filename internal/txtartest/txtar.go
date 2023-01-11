@@ -224,6 +224,9 @@ func (t *LineageTest) WriteErrors(err error, name string) {
 // WriteFile formats f and writes it to an output with the provided name,
 // joined to any active prefixes.
 func (t *LineageTest) WriteFile(f *ast.File, name string) {
+	if f.Filename == "" {
+		f.Filename = name
+	}
 	fmt.Fprintln(t.Writer(name), string(formatNode(t.T, f)))
 }
 
@@ -273,12 +276,15 @@ func formatNode(t *testing.T, f *ast.File) []byte {
 	var str string
 	var err error
 
+	fmt.Println(f.Filename)
+
 	ctx := cuecontext.New()
 	switch filepath.Ext(f.Filename) {
 	case ".json":
-		str, err = json.Marshal(ctx.BuildFile(f))
+		var byt []byte
+		byt, err = ctx.BuildFile(f).MarshalJSON()
 		if err == nil {
-			str, err = json.Indent([]byte(str), "", "  ")
+			str, err = json.Indent(byt, "", "  ")
 		}
 	case ".yaml", ".yml":
 		str, err = yaml.Marshal(ctx.BuildFile(f))
