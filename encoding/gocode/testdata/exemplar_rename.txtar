@@ -1,3 +1,11 @@
+-- out/generate/0.0/group.go --
+package defaultchange
+
+// Before defines model for before.
+type Before string
+
+// Unchanged defines model for unchanged.
+type Unchanged string
 -- out/generate/0.0/nil.go --
 package rename
 
@@ -6,11 +14,11 @@ type Rename struct {
 	Before    string `json:"before"`
 	Unchanged string `json:"unchanged"`
 }
--- out/generate/0.0/group.go --
+-- out/generate/1.0/group.go --
 package defaultchange
 
-// Before defines model for before.
-type Before string
+// After defines model for after.
+type After string
 
 // Unchanged defines model for unchanged.
 type Unchanged string
@@ -22,11 +30,3 @@ type Rename struct {
 	After     string `json:"after"`
 	Unchanged string `json:"unchanged"`
 }
--- out/generate/1.0/group.go --
-package defaultchange
-
-// After defines model for after.
-type After string
-
-// Unchanged defines model for unchanged.
-type Unchanged string
