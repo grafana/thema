@@ -1,0 +1,460 @@
+-- in.cue --
+package generate
+
+import "github.com/grafana/thema"
+
+thema.#Lineage
+name: "basic"
+seqs: [
+    {
+        schemas: [
+            {
+                EmbedRef
+                foo: string
+                someField: {
+                    EmbedRef
+                    run: int32
+                    tell: bytes
+                    dat: [...string]
+                }
+            }
+        ]
+    }
+]
+
+EmbedRef: {
+    refField1: string
+    refField2: 42
+}
+
+-- out/generate/0.0/expandrefs.json --
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "basic",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "basic": {
+        "type": "object",
+        "required": [
+          "foo",
+          "refField1",
+          "someField",
+          "refField2"
+        ],
+        "properties": {
+          "foo": {
+            "type": "string"
+          },
+          "refField1": {
+            "type": "string"
+          },
+          "someField": {
+            "type": "object",
+            "required": [
+              "run",
+              "tell",
+              "refField1",
+              "dat",
+              "refField2"
+            ],
+            "properties": {
+              "run": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "tell": {
+                "type": "string",
+                "format": "binary"
+              },
+              "refField1": {
+                "type": "string"
+              },
+              "dat": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "refField2": {
+                "type": "integer",
+                "enum": [
+                  42
+                ]
+              }
+            }
+          },
+          "refField2": {
+            "type": "integer",
+            "enum": [
+              42
+            ]
+          }
+        }
+      }
+    }
+  }
+}
+-- out/generate/0.0/group.json --
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "basic",
+    "version": "0.0"
+  },
+  "path": {},
+  "components": {
+    "schemas": {
+      "foo": {
+        "type": "string"
+      },
+      "refField1": {
+        "type": "string"
+      },
+      "EmbedRef": {
+        "type": "object",
+        "required": [
+          "refField1",
+          "refField2"
+        ],
+        "properties": {
+          "refField1": {
+            "type": "string"
+          },
+          "refField2": {
+            "type": "integer",
+            "enum": [
+              42
+            ]
+          }
+        }
+      },
+      "someField": {
+        "type": "object",
+        "properties": {
+          "run": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tell": {
+            "type": "string",
+            "format": "binary"
+          },
+          "dat": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EmbedRef"
+          },
+          {
+            "required": [
+              "run",
+              "tell",
+              "dat"
+            ]
+          }
+        ]
+      },
+      "refField2": {
+        "type": "integer",
+        "enum": [
+          42
+        ]
+      }
+    }
+  }
+}
+-- out/generate/0.0/nil.json --
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "basic",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "EmbedRef": {
+        "type": "object",
+        "required": [
+          "refField1",
+          "refField2"
+        ],
+        "properties": {
+          "refField1": {
+            "type": "string"
+          },
+          "refField2": {
+            "type": "integer",
+            "enum": [
+              42
+            ]
+          }
+        }
+      },
+      "basic": {
+        "type": "object",
+        "properties": {
+          "foo": {
+            "type": "string"
+          },
+          "someField": {
+            "type": "object",
+            "properties": {
+              "run": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "tell": {
+                "type": "string",
+                "format": "binary"
+              },
+              "dat": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EmbedRef"
+              },
+              {
+                "required": [
+                  "run",
+                  "tell",
+                  "dat"
+                ]
+              }
+            ]
+          }
+        },
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EmbedRef"
+          },
+          {
+            "required": [
+              "foo",
+              "someField"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}
+-- out/generate/0.0/selfcontained.json --
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "basic",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "EmbedRef": {
+        "type": "object",
+        "required": [
+          "refField1",
+          "refField2"
+        ],
+        "properties": {
+          "refField1": {
+            "type": "string"
+          },
+          "refField2": {
+            "type": "integer",
+            "enum": [
+              42
+            ]
+          }
+        }
+      },
+      "basic": {
+        "type": "object",
+        "properties": {
+          "foo": {
+            "type": "string"
+          },
+          "someField": {
+            "type": "object",
+            "properties": {
+              "run": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "tell": {
+                "type": "string",
+                "format": "binary"
+              },
+              "dat": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EmbedRef"
+              },
+              {
+                "required": [
+                  "run",
+                  "tell",
+                  "dat"
+                ]
+              }
+            ]
+          }
+        },
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EmbedRef"
+          },
+          {
+            "required": [
+              "foo",
+              "someField"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}
+-- out/generate/0.0/subpath.json --
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "someField",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "EmbedRef": {
+        "type": "object",
+        "required": [
+          "refField1",
+          "refField2"
+        ],
+        "properties": {
+          "refField1": {
+            "type": "string"
+          },
+          "refField2": {
+            "type": "integer",
+            "enum": [
+              42
+            ]
+          }
+        }
+      },
+      "someField": {
+        "type": "object",
+        "properties": {
+          "run": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tell": {
+            "type": "string",
+            "format": "binary"
+          },
+          "dat": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EmbedRef"
+          },
+          {
+            "required": [
+              "run",
+              "tell",
+              "dat"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}
+-- out/generate/0.0/subpathroot.json --
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "overriddenName",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "EmbedRef": {
+        "type": "object",
+        "required": [
+          "refField1",
+          "refField2"
+        ],
+        "properties": {
+          "refField1": {
+            "type": "string"
+          },
+          "refField2": {
+            "type": "integer",
+            "enum": [
+              42
+            ]
+          }
+        }
+      },
+      "overriddenName": {
+        "type": "object",
+        "properties": {
+          "run": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tell": {
+            "type": "string",
+            "format": "binary"
+          },
+          "dat": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EmbedRef"
+          },
+          {
+            "required": [
+              "run",
+              "tell",
+              "dat"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}
