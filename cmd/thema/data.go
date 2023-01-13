@@ -24,8 +24,6 @@ type dataCommand struct {
 
 	lla *lineageLoadArgs
 
-	inst *thema.Instance
-
 	err error
 }
 
@@ -72,16 +70,6 @@ func (dc *dataCommand) setup(cmd *cobra.Command) {
 	dehydrateCmd.Flags().StringVarP(&dc.format, "format", "e", "", "input data format. Autodetected by default, but can be constrained to \"json\" or \"yaml\".")
 	dehydrateCmd.PersistentPreRunE = mergeCobraefuncs(dc.lla.validateLineageInput, dc.lla.validateVersionInputOptional, dc.validateDataInput)
 	dehydrateCmd.RunE = dc.runDehydrate
-}
-
-func (dc *dataCommand) run(cmd *cobra.Command, args []string) {
-	switch cmd.CalledAs() {
-	case "validate":
-	case "validate-any":
-	case "translate":
-	case "hydrate":
-	case "dehydrate":
-	}
 }
 
 var dataCmd = &cobra.Command{
@@ -155,7 +143,7 @@ func (dc *dataCommand) runValidateAny(cmd *cobra.Command, args []string) error {
 	}
 	inst := dc.lla.dl.lin.ValidateAny(dc.datval)
 	if inst != nil {
-		fmt.Fprintf(cmd.OutOrStdout(), "%s\n", dc.inst.Schema().Version())
+		fmt.Fprintf(cmd.OutOrStdout(), "%s\n", inst.Schema().Version())
 		return nil
 	}
 
@@ -242,19 +230,26 @@ func (dc *dataCommand) runHydrate(cmd *cobra.Command, args []string) error {
 		panic("datval does not exist")
 	}
 
-	inst := dc.lla.dl.lin.ValidateAny(dc.datval)
-	if inst == nil {
-		return errors.New("input data is not valid for any schema in lineage")
+	var inst *thema.Instance
+	var err error
+	if dc.lla.dl.sch != nil {
+		inst, err = dc.lla.dl.sch.Validate(dc.datval)
+		if err != nil {
+			return err
+		}
+	} else {
+		inst = dc.lla.dl.lin.ValidateAny(dc.datval)
+		if inst == nil {
+			return errors.New("input data is not valid for any schema in lineage")
+		}
 	}
 
 	// TODO support non-JSON output
 	byt, err := json.MarshalIndent(inst.Hydrate().Underlying(), "", "  ")
 	if err != nil {
-		// fmt.Printf("%+v %#v\n", inst.Hydrate().Underlying(), inst.Hydrate().Underlying())
 		return fmt.Errorf("error marshaling hydrated object to JSON: %w", err)
 	}
-	buf := bytes.NewBuffer(byt)
-	_, err = io.Copy(cmd.OutOrStdout(), buf)
+	_, err = io.Copy(cmd.OutOrStdout(), bytes.NewBuffer(byt))
 
 	return err
 }
@@ -264,9 +259,9 @@ var dehydrateCmd = &cobra.Command{
 	Short: "Remove all schema-specified defaults from some valid input data",
 	Long: `Remove all schema-specified defaults from some valid input data.
 ` + dataReuseText + `
-Success outputs the input data object, but fully dehydrated, with all of its values
-that are implied by defaults specified in its validating schema removed. Input
-formatting (e.g. indent spaces) and/or object key ordering are not maintained.
+Success outputs the input data object  with all values removed that are implied
+by defaults specified in its validating schema. Input object field orderings
+and formatting are not maintained.
 
 If a syntactic version is not provided (-v), the input data will be checked
 for validity against all schemas in the lineage.
@@ -279,19 +274,26 @@ func (dc *dataCommand) runDehydrate(cmd *cobra.Command, args []string) error {
 		panic("datval does not exist")
 	}
 
-	inst := dc.lla.dl.lin.ValidateAny(dc.datval)
-	if inst == nil {
-		return errors.New("input data is not valid for any schema in lineage")
+	var inst *thema.Instance
+	var err error
+	if dc.lla.dl.sch != nil {
+		inst, err = dc.lla.dl.sch.Validate(dc.datval)
+		if err != nil {
+			return err
+		}
+	} else {
+		inst = dc.lla.dl.lin.ValidateAny(dc.datval)
+		if inst == nil {
+			return errors.New("input data is not valid for any schema in lineage")
+		}
 	}
 
 	// TODO support non-JSON output
-	byt, err := json.MarshalIndent(dc.inst.Hydrate().Underlying(), "", "  ")
+	byt, err := json.MarshalIndent(inst.Dehydrate().Underlying(), "", "  ")
 	if err != nil {
-		fmt.Printf("%+v %#v\n", dc.inst.Hydrate().Underlying(), dc.inst.Hydrate().Underlying())
 		return fmt.Errorf("error marshaling hydrated object to JSON: %w", err)
 	}
-	buf := bytes.NewBuffer(byt)
-	_, err = io.Copy(cmd.OutOrStdout(), buf)
+	_, err = io.Copy(cmd.OutOrStdout(), bytes.NewBuffer(byt))
 
 	return err
 }
