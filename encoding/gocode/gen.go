@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"embed"
 	"fmt"
-	"go/ast"
-	"go/format"
 	"go/parser"
 	"go/token"
 	"path/filepath"
@@ -15,11 +13,13 @@ import (
 
 	"cuelang.org/go/cue"
 	"cuelang.org/go/pkg/encoding/yaml"
+	"github.com/dave/dst"
+	"github.com/dave/dst/decorator"
+	"github.com/dave/dst/dstutil"
 	"github.com/deepmap/oapi-codegen/pkg/codegen"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/grafana/thema"
 	"github.com/grafana/thema/encoding/openapi"
-	"golang.org/x/tools/go/ast/astutil"
 	"golang.org/x/tools/imports"
 )
 
@@ -44,8 +44,8 @@ type TypeConfigOpenAPI struct {
 
 	// ApplyFuncs is a slice of AST manipulation funcs that will be executed against
 	// the generated Go file prior to running it through goimports. For each slice
-	// element, [astutil.Apply] is called with the element as the "pre" parameter.
-	ApplyFuncs []astutil.ApplyFunc
+	// element, [dstutil.Apply] is called with the element as the "pre" parameter.
+	ApplyFuncs []dstutil.ApplyFunc
 
 	// IgnoreDiscoveredImports causes the generator not to fail with an error in the
 	// event that goimports adds additional import statements. (The default behavior
@@ -202,10 +202,10 @@ type BindingConfig struct {
 	// parameter as a key.
 	PrivateFactory bool
 
-	// Assignee is an ast.Ident that determines the generic type parameter used
+	// Assignee is an dst.Ident that determines the generic type parameter used
 	// in the generated [thema.ConvergentLineageFactory]. If this parameter is nil,
 	// a [thema.LineageFactory] is generated instead.
-	Assignee *ast.Ident
+	Assignee *dst.Ident
 
 	// TargetSchemaVersion determines the schema version that will be used in a call
 	// to [thema.BindType], along with Assignee, in order to create a
@@ -220,8 +220,8 @@ type BindingConfig struct {
 
 	// ApplyFuncs is a slice of AST manipulation funcs that will be executed against
 	// the generated Go file prior to running it through goimports. For each slice
-	// element, [astutil.Apply] is called with the element as the "pre" parameter.
-	ApplyFuncs []astutil.ApplyFunc
+	// element, [dstutil.Apply] is called with the element as the "pre" parameter.
+	ApplyFuncs []dstutil.ApplyFunc
 
 	// IgnoreDiscoveredImports causes the generator not to fail with an error in the
 	// event that goimports adds additional import statements. (The default behavior
@@ -344,7 +344,7 @@ type bindingVars struct {
 	// Whether we're generating a convergent lineage
 	IsConvergent bool
 	// The ident of the generic type parameter for a convergent lineage.
-	Assignee *ast.Ident
+	Assignee *dst.Ident
 	// The initializer for a Assignee
 	AssigneeInit string
 
@@ -354,7 +354,7 @@ type bindingVars struct {
 type genGoFile struct {
 	errifadd bool
 	path     string
-	appliers []astutil.ApplyFunc
+	appliers []dstutil.ApplyFunc
 	in       []byte
 }
 
@@ -362,16 +362,16 @@ func postprocessGoFile(cfg genGoFile) ([]byte, error) {
 	fname := filepath.Base(cfg.path)
 	buf := new(bytes.Buffer)
 	fset := token.NewFileSet()
-	gf, err := parser.ParseFile(fset, fname, string(cfg.in), parser.ParseComments)
+	gf, err := decorator.ParseFile(fset, fname, string(cfg.in), parser.ParseComments)
 	if err != nil {
 		return nil, fmt.Errorf("error parsing generated file: %w", err)
 	}
 
 	for _, af := range cfg.appliers {
-		astutil.Apply(gf, af, nil)
+		dstutil.Apply(gf, af, nil)
 	}
 
-	err = format.Node(buf, fset, gf)
+	err = decorator.Fprint(buf, gf)
 	if err != nil {
 		return nil, fmt.Errorf("error formatting generated file: %w", err)
 	}

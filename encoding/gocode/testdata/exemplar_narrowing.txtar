@@ -1,0 +1,24 @@
+-- out/generate/0.0/nil.go --
+package narrowing
+
+// Narrowing defines model for narrowing.
+type Narrowing struct {
+	Boolish interface{} `json:"boolish"`
+}
+-- out/generate/0.0/group.go --
+package defaultchange
+
+// Boolish defines model for boolish.
+type Boolish interface{}
+-- out/generate/1.0/nil.go --
+package narrowing
+
+// Narrowing defines model for narrowing.
+type Narrowing struct {
+	Properbool bool `json:"properbool"`
+}
+-- out/generate/1.0/group.go --
+package defaultchange
+
+// Properbool defines model for properbool.
+type Properbool bool

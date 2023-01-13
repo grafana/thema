@@ -1,0 +1,24 @@
+-- out/generate/0.0/nil.go --
+package disjunct
+
+// Disjunct defines model for disjunct.
+type Disjunct struct {
+	Rootfield interface{} `json:"rootfield"`
+}
+-- out/generate/0.0/group.go --
+package defaultchange
+
+// Rootfield defines model for rootfield.
+type Rootfield interface{}
+-- out/generate/0.1/nil.go --
+package disjunct
+
+// Disjunct defines model for disjunct.
+type Disjunct struct {
+	Rootfield interface{} `json:"rootfield"`
+}
+-- out/generate/0.1/group.go --
+package defaultchange
+
+// Rootfield defines model for rootfield.
+type Rootfield interface{}
