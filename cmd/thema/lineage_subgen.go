@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"go/ast"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
+
+	"github.com/dave/dst"
 
 	"cuelang.org/go/cue"
 	"cuelang.org/go/cue/cuecontext"
@@ -339,7 +340,7 @@ func (gc *genCommand) runGoBindings(cmd *cobra.Command, args []string) error {
 	}
 
 	if gc.bindtype != "" {
-		cfg.Assignee = ast.NewIdent(gc.bindtype)
+		cfg.Assignee = dst.NewIdent(gc.bindtype)
 	}
 
 	f, err := gocode.GenerateLineageBinding(gc.lin, cfg)
