@@ -230,11 +230,11 @@ func (t *LineageTest) WriteFile(f *ast.File, name string) {
 	if f.Filename == "" {
 		f.Filename = name
 	}
-	fmt.Fprintln(t.Writer(name), string(formatNode(t.T, f)))
+	fmt.Fprintln(t.Writer(name), formatNode(t.T, f))
 }
 
 // WriteFileOrErr creates a function that will write either a file or an error
-// to the provided provided output name, joined onto any active prefixes on the
+// to the provided output name, joined onto any active prefixes on the
 // LineageTest.
 func (t *LineageTest) WriteFileOrErr(name string) func(*ast.File, error) {
 	return func(f *ast.File, err error) {
@@ -242,6 +242,19 @@ func (t *LineageTest) WriteFileOrErr(name string) func(*ast.File, error) {
 			t.WriteErrors(err, name)
 		} else {
 			t.WriteFile(f, name)
+		}
+	}
+}
+
+// WriteFileOrErrBytes creates a function that will write either a file or an error
+// to the provided output name, joined onto any active prefixes on the
+// LineageTest.
+func (t *LineageTest) WriteFileOrErrBytes(name string) func([]byte, error) {
+	return func(b []byte, err error) {
+		if err != nil {
+			t.WriteErrors(err, name)
+		} else {
+			fmt.Fprintf(t.Writer(name), string(b))
 		}
 	}
 }
@@ -274,7 +287,7 @@ func (t *LineageTest) Writer(name string) io.Writer {
 	return w
 }
 
-func formatNode(t *testing.T, f *ast.File) []byte {
+func formatNode(t *testing.T, f *ast.File) string {
 	t.Helper()
 	var str string
 	var err error
@@ -297,7 +310,7 @@ func formatNode(t *testing.T, f *ast.File) []byte {
 		t.Fatal(err)
 	}
 
-	return []byte(str)
+	return str
 }
 
 // BindLineage attempts to bind a lineage from the root instance in the txtar.
