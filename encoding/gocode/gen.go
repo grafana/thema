@@ -42,7 +42,7 @@ type TypeConfigOpenAPI struct {
 	// lowercase version of the Lineage.Name() is used.
 	PackageName string
 
-	// ApplyFuncs is a slice of DST manipulation funcs that will be executed against
+	// ApplyFuncs is a slice of AST manipulation funcs that will be executed against
 	// the generated Go file prior to running it through goimports. For each slice
 	// element, [dstutil.Apply] is called with the element as the "pre" parameter.
 	ApplyFuncs []dstutil.ApplyFunc
