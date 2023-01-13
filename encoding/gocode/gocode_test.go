@@ -14,7 +14,7 @@ func TestGenerate(t *testing.T) {
 		Name:             "generate",
 		IncludeExemplars: true,
 		ToDo: map[string]string{
-			"TestGenerate/dashboard/0.0/expandrefs": "unexpected problem with converting unification",
+			"embed": "struct embeddings and inlined fields not rendered properly",
 		},
 	}
 
@@ -39,8 +39,9 @@ func TestGenerate(t *testing.T) {
 
 		cuetxtar.ForEachSchema(t, lin, func(t *cuetxtar.LineageTest, sch thema.Schema) {
 			for _, tc := range vars {
-				t.Run(tc.name, func(gt *testing.T) {
-					t.WriteFileOrErrBytes(tc.name + ".go")(GenerateTypesOpenAPI(sch, tc.cfg))
+				itc := tc
+				t.Run(itc.name, func(gt *testing.T) {
+					t.WriteFileOrErrBytes(itc.name + ".go")(GenerateTypesOpenAPI(sch, itc.cfg))
 				})
 			}
 		})

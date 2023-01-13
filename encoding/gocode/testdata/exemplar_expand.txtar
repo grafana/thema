@@ -1,22 +1,14 @@
+-- out/generate/0.0/group.go --
+package defaultchange
+
+// Init defines model for init.
+type Init string
 -- out/generate/0.0/nil.go --
 package expand
 
 // Expand defines model for expand.
 type Expand struct {
 	Init string `json:"init"`
-}
--- out/generate/0.0/group.go --
-package defaultchange
-
-// Init defines model for init.
-type Init string
--- out/generate/0.1/nil.go --
-package expand
-
-// Expand defines model for expand.
-type Expand struct {
-	Init     string `json:"init"`
-	Optional *int   `json:"optional,omitempty"`
 }
 -- out/generate/0.1/group.go --
 package defaultchange
@@ -26,25 +18,14 @@ type Init string
 
 // Optional defines model for optional.
 type Optional int
--- out/generate/0.2/nil.go --
+-- out/generate/0.1/nil.go --
 package expand
-
-// Defines values for ExpandWithDefault.
-const (
-	ExpandWithDefaultBar ExpandWithDefault = "bar"
-
-	ExpandWithDefaultFoo ExpandWithDefault = "foo"
-)
 
 // Expand defines model for expand.
 type Expand struct {
-	Init        string             `json:"init"`
-	Optional    *int               `json:"optional,omitempty"`
-	WithDefault *ExpandWithDefault `json:"withDefault,omitempty"`
+	Init     string `json:"init"`
+	Optional *int   `json:"optional,omitempty"`
 }
-
-// ExpandWithDefault defines model for Expand.WithDefault.
-type ExpandWithDefault string
 -- out/generate/0.2/group.go --
 package defaultchange
 
@@ -63,14 +44,12 @@ type Optional int
 
 // WithDefault defines model for withDefault.
 type WithDefault string
--- out/generate/0.3/nil.go --
+-- out/generate/0.2/nil.go --
 package expand
 
 // Defines values for ExpandWithDefault.
 const (
 	ExpandWithDefaultBar ExpandWithDefault = "bar"
-
-	ExpandWithDefaultBaz ExpandWithDefault = "baz"
 
 	ExpandWithDefaultFoo ExpandWithDefault = "foo"
 )
@@ -104,3 +83,24 @@ type Optional int
 
 // WithDefault defines model for withDefault.
 type WithDefault string
+-- out/generate/0.3/nil.go --
+package expand
+
+// Defines values for ExpandWithDefault.
+const (
+	ExpandWithDefaultBar ExpandWithDefault = "bar"
+
+	ExpandWithDefaultBaz ExpandWithDefault = "baz"
+
+	ExpandWithDefaultFoo ExpandWithDefault = "foo"
+)
+
+// Expand defines model for expand.
+type Expand struct {
+	Init        string             `json:"init"`
+	Optional    *int               `json:"optional,omitempty"`
+	WithDefault *ExpandWithDefault `json:"withDefault,omitempty"`
+}
+
+// ExpandWithDefault defines model for Expand.WithDefault.
+type ExpandWithDefault string
