@@ -42,7 +42,7 @@ type TypeConfigOpenAPI struct {
 	// lowercase version of the Lineage.Name() is used.
 	PackageName string
 
-	// ApplyFuncs is a slice of DST manipulation funcs that will be executed against
+	// ApplyFuncs is a slice of AST manipulation funcs that will be executed against
 	// the generated Go file prior to running it through goimports. For each slice
 	// element, [dstutil.Apply] is called with the element as the "pre" parameter.
 	ApplyFuncs []dstutil.ApplyFunc
@@ -218,7 +218,7 @@ type BindingConfig struct {
 	// lowercase version of the Lineage.Name() is used.
 	PackageName string
 
-	// ApplyFuncs is a slice of DST manipulation funcs that will be executed against
+	// ApplyFuncs is a slice of AST manipulation funcs that will be executed against
 	// the generated Go file prior to running it through goimports. For each slice
 	// element, [dstutil.Apply] is called with the element as the "pre" parameter.
 	ApplyFuncs []dstutil.ApplyFunc
@@ -397,7 +397,7 @@ func postprocessGoFile(cfg genGoFile) ([]byte, error) {
 
 		if len(added) != 0 {
 			// TODO improve the guidance in this error if/when we better abstract over imports to generate
-			return nil, fmt.Errorf("goimports added the following import statements to %s: \n\t%s\nRelying on goimports to find imports significantly slows down code generation. Either add these imports with an DST manipulation in cfg.ApplyFuncs, or set cfg.IgnoreDiscoveredImports to true", cfg.path, strings.Join(added, "\n\t"))
+			return nil, fmt.Errorf("goimports added the following import statements to %s: \n\t%s\nRelying on goimports to find imports significantly slows down code generation. Either add these imports with an AST manipulation in cfg.ApplyFuncs, or set cfg.IgnoreDiscoveredImports to true", cfg.path, strings.Join(added, "\n\t"))
 		}
 	}
 	return byt, nil
