@@ -9,11 +9,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/dave/dst"
-
 	"cuelang.org/go/cue"
 	"cuelang.org/go/cue/cuecontext"
 	"cuelang.org/go/pkg/encoding/yaml"
+	"github.com/dave/dst"
 	"github.com/grafana/thema"
 	"github.com/grafana/thema/encoding/gocode"
 	"github.com/grafana/thema/encoding/jsonschema"
