@@ -9,6 +9,7 @@ go 1.19
 
 require (
 	cuelang.org/go v0.5.0-beta.2
+	github.com/dave/dst v0.27.2
 	github.com/deepmap/oapi-codegen v1.10.1
 	github.com/getkin/kin-openapi v0.103.0
 	github.com/google/go-cmp v0.5.8
