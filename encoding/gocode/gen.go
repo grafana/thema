@@ -54,7 +54,8 @@ type TypeConfigOpenAPI struct {
 	// default behavior when the fix is usually quite easy.)
 	IgnoreDiscoveredImports bool
 
-	// NoOptionalPointers removes all pointers the types that were marked as optional in cue file.
+	// NoOptionalPointers removes all pointers the types that were marked as optional in cue file
+	// for Go files.
 	NoOptionalPointers bool
 
 	// Config is passed through to the Thema OpenAPI encoder, [openapi.GenerateSchema].
