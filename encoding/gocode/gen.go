@@ -83,16 +83,24 @@ func GenerateTypesOpenAPI(sch thema.Schema, cfg *TypeConfigOpenAPI) ([]byte, err
 		cfg.PackageName = sch.Lineage().Name()
 	}
 
-	ccfg := codegen.Options{
-		GenerateTypes: true,
-		SkipFmt:       true,
-		SkipPrune:     true,
-		UserTemplates: map[string]string{
-			"imports.tmpl": importstmpl,
+	ccfg := codegen.Configuration{
+		PackageName: cfg.PackageName,
+		Compatibility: codegen.CompatibilityOptions{
+			AlwaysPrefixEnumValues: true,
+		},
+		Generate: codegen.GenerateOptions{
+			Models: true,
+		},
+		OutputOptions: codegen.OutputOptions{
+			SkipFmt:   true,
+			SkipPrune: true,
+			UserTemplates: map[string]string{
+				"imports.tmpl": importstmpl,
+			},
 		},
 	}
 
-	gostr, err := codegen.Generate(oT, cfg.PackageName, ccfg)
+	gostr, err := codegen.Generate(oT, ccfg)
 	if err != nil {
 		return nil, fmt.Errorf("openapi generation failed: %w", err)
 	}
