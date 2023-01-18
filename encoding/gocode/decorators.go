@@ -81,7 +81,7 @@ func ddepoint(e dst.Expr) dst.Expr {
 }
 
 // Depointerizer returns an AST manipulator that removes redundant
-// pointer indirection from all map and slice types.
+// pointer indirection from the defined types.
 func Depointerizer(exprs ...dst.Expr) dstutil.ApplyFunc {
 	depointers := make(map[dst.Expr]bool)
 	for _, expr := range exprs {
