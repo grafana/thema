@@ -68,11 +68,11 @@ func GenerateTypesOpenAPI(sch thema.Schema, cfg *TypeConfigOpenAPI) ([]byte, err
 		cfg = new(TypeConfigOpenAPI)
 	}
 
-	depointer := Depointerizer(&dst.MapType{}, &dst.ArrayType{})
+	depointer := depointerizer(&dst.MapType{}, &dst.ArrayType{})
 	if cfg.NoOptionalPointers {
-		depointer = Depointerizer()
+		depointer = depointerizer()
 	}
-	cfg.ApplyFuncs = append(cfg.ApplyFuncs, DecoderCompactor(), depointer)
+	cfg.ApplyFuncs = append(cfg.ApplyFuncs, decoderCompactor(), depointer)
 
 	f, err := openapi.GenerateSchema(sch, cfg.Config)
 	if err != nil {
