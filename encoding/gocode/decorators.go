@@ -23,7 +23,7 @@ func isAdditionalPropertiesStruct(tspec *dst.TypeSpec) (dst.Expr, bool) {
 	return nil, false
 }
 
-func DecoderCompactor() dstutil.ApplyFunc {
+func decoderCompactor() dstutil.ApplyFunc {
 	return func(c *dstutil.Cursor) bool {
 		f, is := c.Node().(*dst.File)
 		if !is {
@@ -80,9 +80,9 @@ func ddepoint(e dst.Expr) dst.Expr {
 	return e
 }
 
-// Depointerizer returns an AST manipulator that removes redundant
+// depointerizer returns an AST manipulator that removes redundant
 // pointer indirection from the defined types.
-func Depointerizer(exprs ...dst.Expr) dstutil.ApplyFunc {
+func depointerizer(exprs ...dst.Expr) dstutil.ApplyFunc {
 	depointers := make(map[dst.Expr]bool)
 	for _, expr := range exprs {
 		depointers[expr] = true
