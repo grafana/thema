@@ -54,6 +54,10 @@ type TypeConfigOpenAPI struct {
 	// default behavior when the fix is usually quite easy.)
 	IgnoreDiscoveredImports bool
 
+	// NoOptionalPointers removes all pointers the types that were marked as optional in cue file
+	// for Go files.
+	NoOptionalPointers bool
+
 	// Config is passed through to the Thema OpenAPI encoder, [openapi.GenerateSchema].
 	Config *openapi.Config
 }
@@ -63,6 +67,12 @@ func GenerateTypesOpenAPI(sch thema.Schema, cfg *TypeConfigOpenAPI) ([]byte, err
 	if cfg == nil {
 		cfg = new(TypeConfigOpenAPI)
 	}
+
+	depointer := depointerizer(&dst.MapType{}, &dst.ArrayType{})
+	if cfg.NoOptionalPointers {
+		depointer = depointerizer()
+	}
+	cfg.ApplyFuncs = append(cfg.ApplyFuncs, decoderCompactor(), depointer)
 
 	f, err := openapi.GenerateSchema(sch, cfg.Config)
 	if err != nil {
