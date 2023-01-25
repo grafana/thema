@@ -1,7 +1,10 @@
 package gocode
 
 import (
+	"fmt"
 	"go/token"
+	"regexp"
+	"strings"
 
 	"github.com/dave/dst"
 	"github.com/dave/dst/dstutil"
@@ -109,4 +112,63 @@ func depoint(e dst.Expr) dst.Expr {
 		return star.X
 	}
 	return e
+}
+
+func fixTODOComments() dstutil.ApplyFunc {
+	return func(cursor *dstutil.Cursor) bool {
+		switch f := cursor.Node().(type) {
+		case *dst.File:
+			for _, d := range f.Decls {
+				fixTODOComment(d.Decorations().Start.All())
+			}
+		case *dst.Field:
+			fixTODOComment(f.Decorations().Start.All())
+		}
+
+		return true
+	}
+}
+
+func fixTODOComment(comments []string) {
+	todoRegex := regexp.MustCompile("(//) (.*) (TODO.*)")
+	if len(comments) > 0 {
+		comments[0] = todoRegex.ReplaceAllString(comments[0], "$1 $3")
+	}
+}
+
+func fixRawData() dstutil.ApplyFunc {
+	return func(c *dstutil.Cursor) bool {
+		f, is := c.Node().(*dst.File)
+		if !is {
+			return false
+		}
+
+		rawFields := make(map[string]string)
+		for _, decl := range f.Decls {
+			if gd, is := decl.(*dst.GenDecl); is {
+				for _, t := range gd.Specs {
+					if ts, ok := t.(*dst.TypeSpec); ok {
+						if tp, ok := ts.Type.(*dst.StructType); ok && len(tp.Fields.List) == 1 {
+							if fn, ok := tp.Fields.List[0].Type.(*dst.SelectorExpr); ok {
+								ts.Name.Name = strings.ReplaceAll(ts.Name.Name, "_", "")
+								rawFields[ts.Name.Name] = fmt.Sprintf("%s.%s", fn.X, fn.Sel.Name)
+							}
+						}
+					}
+				}
+			}
+		}
+
+		typesWithFunc := make(map[string][]string)
+		for _, decl := range f.Decls {
+			if fd, is := decl.(*dst.FuncDecl); is {
+				fnType := ddepoint(fd.Recv.List[0].Type).(*dst.Ident).Name
+				if rawFields[fnType] != "" {
+					typesWithFunc[fnType] = append(typesWithFunc[fnType], fd.Name.Name)
+				}
+			}
+		}
+
+		return true
+	}
 }
