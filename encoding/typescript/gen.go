@@ -80,7 +80,6 @@ func GenerateTypes(sch thema.Schema, cfg *TypeConfig) (*ast.File, error) {
 		if cfg.RootAsType {
 			as = cuetsy.TypeAlias
 		}
-
 		top, err := cuetsy.GenerateSingleAST(cfg.RootName, sch.Underlying(), as)
 		if err != nil {
 			return nil, fmt.Errorf("generating TS for schema root failed: %w", err)
