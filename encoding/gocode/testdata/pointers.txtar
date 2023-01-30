@@ -13,7 +13,6 @@ seqs: [
 					anint?:   int
 					abool?:   bool
 					alist?: [...string]
-					amap?: [string]: string
 				},
 			]
 		},
@@ -38,20 +37,18 @@ package pointers
 
 // Pointers defines model for pointers.
 type Pointers struct {
-	Abool   *bool             `json:"abool,omitempty"`
-	Alist   []string          `json:"alist,omitempty"`
-	Amap    map[string]string `json:"amap,omitempty"`
-	Anint   *int              `json:"anint,omitempty"`
-	Astring *string           `json:"astring,omitempty"`
+	Abool   *bool    `json:"abool,omitempty"`
+	Alist   []string `json:"alist,omitempty"`
+	Anint   *int     `json:"anint,omitempty"`
+	Astring *string  `json:"astring,omitempty"`
 }
 -- out/generate/0.0/depointerized.go --
 package defaultchange
 
 // Pointers defines model for pointers.
 type Pointers struct {
-	Abool   bool              `json:"abool,omitempty"`
-	Alist   []string          `json:"alist,omitempty"`
-	Amap    map[string]string `json:"amap,omitempty"`
-	Anint   int               `json:"anint,omitempty"`
-	Astring string            `json:"astring,omitempty"`
+	Abool   bool     `json:"abool,omitempty"`
+	Alist   []string `json:"alist,omitempty"`
+	Anint   int      `json:"anint,omitempty"`
+	Astring string   `json:"astring,omitempty"`
 }
