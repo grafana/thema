@@ -1,0 +1,57 @@
+-- in.cue --
+package generate
+
+import "github.com/grafana/thema"
+
+thema.#Lineage
+name: "pointers"
+seqs: [
+        {
+            schemas: [
+                {
+				    astring?: string
+					anint?:   int
+					abool?:   bool
+					alist?: [...string]
+					amap?: [string]: string
+				},
+			]
+		},
+	]
+
+-- out/generate/0.0/group.go --
+package defaultchange
+
+// Abool defines model for abool.
+type Abool bool
+
+// Alist defines model for alist.
+type Alist []string
+
+// Anint defines model for anint.
+type Anint int
+
+// Astring defines model for astring.
+type Astring string
+-- out/generate/0.0/nil.go --
+package pointers
+
+// Pointers defines model for pointers.
+type Pointers struct {
+	Abool   *bool             `json:"abool,omitempty"`
+	Alist   []string          `json:"alist,omitempty"`
+	Amap    map[string]string `json:"amap,omitempty"`
+	Anint   *int              `json:"anint,omitempty"`
+	Astring *string           `json:"astring,omitempty"`
+}
+-- out/generate/0.0/depointerized.go --
+package defaultchange
+
+// Pointers defines model for pointers.
+type Pointers struct {
+	Abool   bool              `json:"abool,omitempty"`
+	Alist   []string          `json:"alist,omitempty"`
+	Amap    map[string]string `json:"amap,omitempty"`
+	Anint   int               `json:"anint,omitempty"`
+	Astring string            `json:"astring,omitempty"`
+}

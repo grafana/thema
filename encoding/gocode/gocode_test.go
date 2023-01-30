@@ -32,6 +32,12 @@ func TestGenerate(t *testing.T) {
 				Config: &openapi.Config{Group: true},
 			},
 		},
+		{
+			name: "depointerized",
+			cfg: &TypeConfigOpenAPI{
+				NoOptionalPointers: true,
+			},
+		},
 	}
 
 	test.Run(t, func(t *cuetxtar.LineageTest) {
