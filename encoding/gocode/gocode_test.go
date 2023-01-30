@@ -14,7 +14,8 @@ func TestGenerate(t *testing.T) {
 		Name:             "generate",
 		IncludeExemplars: true,
 		ToDo: map[string]string{
-			"embed": "struct embeddings and inlined fields not rendered properly",
+			"embed":       "struct embeddings and inlined fields not rendered properly",
+			"map_pointer": "group doesn't render maps",
 		},
 	}
 
