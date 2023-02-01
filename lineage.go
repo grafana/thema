@@ -58,7 +58,8 @@ func BindLineage(raw cue.Value, rt *Runtime, opts ...BindOption) (Lineage, error
 	}
 
 	// The candidate lineage must be error-free.
-	if err := raw.Validate(cue.Concrete(false)); err != nil {
+	// TODO replace this with Err, this check isn't actually what we want up here. Only schemas themselves must be cycle-free
+	if err := raw.Validate(cue.Concrete(false), cue.DisallowCycles(true)); err != nil {
 		return nil, err
 	}
 
@@ -102,8 +103,13 @@ func BindLineage(raw cue.Value, rt *Runtime, opts ...BindOption) (Lineage, error
 			lin.allv = append(lin.allv, v)
 
 			sch := schiter.Value()
-			defpath := cue.MakePath(cue.Def(fmt.Sprintf("%s%v%v", util.SanitizeLabelString(nam), v[0], v[1])))
-			defsch := rt.Underlying().FillPath(defpath, sch).LookupPath(defpath)
+
+			defname := fmt.Sprintf("%s%v%v", util.SanitizeLabelString(nam), v[0], v[1])
+			defpath := cue.MakePath(cue.Def(defname))
+			defsch := rt.Context().
+				CompileString(fmt.Sprintf("#%s: _", defname)).
+				FillPath(defpath, sch).
+				LookupPath(defpath)
 			if defsch.Validate() != nil {
 				panic(defsch.Validate())
 			}
