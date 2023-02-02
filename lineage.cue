@@ -15,11 +15,14 @@ import (
 	// value space; the schemas defined in this lineage must be instances of the
 	// joinSchema.
 	//
+	// All Thema schemas must be struct-kinded. As such,
+	//
 	// In the base case, the joinSchema is unconstrained/top - any value may be
 	// used as a schema.
 	//
 	// A lineage's joinSchema may never change as the lineage evolves.
-	joinSchema: {...}
+	//	joinSchema: {}
+	joinSchema: struct.MinFields(0)
 
 	// The name of the thing specified by the schemas in this lineage.
 	//
@@ -30,24 +33,27 @@ import (
 
 	// The lineage-local handle for #SchemaDecl, into which we have injected this
 	// lineage's joinSchema.
-	let Schema = #SchemaDecl & { _join: joinSchema }
+	let Schema = #SchemaDecl & {_join: joinSchema}
 
 	// schemas is the ordered list of all schemas in the lineage. Each element is a
 	// #SchemaDecl.
-	schemas: [Schema, ...Schema]
-//	L.schemas & { schemas: list.MinItems(1) }
+	schemas: [...]
 
-	schemas: Schemas=[for i, _ in schemas {
+	schemas: S=[ for i, _ in schemas {
+		let cur = S[i]
 		Schema & {
+			//			_#schema: cur.schema & joinSchema
+			examples: [string]: cur._#schema
 			if i != 0 {
+				let pre = S[i-1]
 				lens: reverse: {
-					to: Schemas[i-1]._#schema
-					from: Schemas[i]._#schema
+					to:   pre._#schema
+					from: cur._#schema
 				}
-				if Schemas[i].version[1] == 0 {
+				if schemas[i].version[1] == 0 {
 					lens: forward: {
-						to: Schemas[i]._#schema
-						from: Schemas[i-1]._#schema
+						to:   cur._#schema
+						from: pre._#schema
 					}
 				}
 			}
@@ -59,10 +65,28 @@ import (
 	// number of minor versions within that major.
 	_counts: [...uint64]
 
-	let pos = [0, for i, sch in schemas[1:] if schemas[i].version[0] < sch.version[0] { i+1 }]
-	_counts: [for i, idx in pos[:len(pos)-1] {
-		pos[i+1]-list.Sum(pos[:i+1])
-	}, len(schemas)-pos[len(pos)-1]]
+	if len(schemas) > 1 {
+		let pos = [0, for i, sch in list.Drop(schemas, 1) if schemas[i].version[0] < sch.version[0] {i + 1}]
+		_counts: [ for i, idx in list.Slice(pos, 0, len(pos)-1) {
+			pos[i+1] - list.Sum(list.Slice(pos, 0, i+1))
+		}, len(schemas) - pos[len(pos)-1]]
+
+		// The following approach to the above:
+		//
+		//		let pos = [0, for i, sch in schemas[1:] if schemas[i].version[0] < sch.version[0] { i+1 }]
+		//		_counts: [for i, idx in pos[:len(pos)-1] {
+		//			pos[i+1]-list.Sum(pos[:i+1])
+		//		}, len(schemas)-pos[len(pos)-1]]
+		//
+		// causes the following cue internals panic:
+		// panic: getNodeContext: nodeContext out of sync [recovered]
+		//	panic: getNodeContext: nodeContext out of sync
+	}
+	if len(schemas) == 1 {
+		_counts: [0]
+	}
+
+	counts: _counts
 	// TODO check subsumption (backwards compat) of each schema with its successor natively in CUE
 }
 
@@ -89,7 +113,7 @@ import (
 	// is inconsistent with the algorithmically determined set of [non-]breaking changes.
 	version: #SyntacticVersion
 
-	schema: {...}
+	schema: _
 
 	// Thema's internal handle for the user-provided schema definition. This
 	// handle is used by all helpers/operations in the thema package. As a
@@ -97,15 +121,13 @@ import (
 	// always recursively closed by default.
 	//
 	// This handle is also unified with the joinSchema of the containing lineage.
-	_#schema: schema & struct.MinFields(1) & _join
-//	_#schema: schema & _join
+	_#schema: struct.MinFields(1) & _join & schema
 
-	// The joinSchema of the containing lineage.
-	_join: _
+	_join: struct.MinFields(0)
 
 	// examples is an optional set of named examples of the schema, intended
 	// for use in documentation or other non-functional contexts.
-	examples?: [string]: _#schema
+	examples?: [string]: _
 
 	// lens defines a bidirectional relation between this schema and its
 	// predecessor. These relations describe how instances of the predecessor
@@ -126,6 +148,7 @@ import (
 			if version[0] == 0 {
 				close({})
 			}
+
 			// First schema in non-0 major has a MajorLens, with two transforms
 			if version[0] != 0 {
 				#MajorLens
@@ -209,7 +232,7 @@ import (
 // Retrieving a lineage's schemas by direct indexing will not check invariants,
 // apply compositions or joinSchemas.
 #Pick: {
-	// The lineage from which to retrieve a schema.
+	// The lineage from which to retrieve a schema
 	lin: #Lineage
 
 	// The schema version to retrieve. Either:
