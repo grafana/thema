@@ -82,21 +82,18 @@ func ddepoint(e dst.Expr) dst.Expr {
 
 // depointerizer returns an AST manipulator that removes redundant
 // pointer indirection from the defined types.
-func depointerizer(exprs ...dst.Expr) dstutil.ApplyFunc {
-	depointers := make(map[dst.Expr]bool)
-	for _, expr := range exprs {
-		depointers[expr] = true
-	}
+func depointerizer(allTypes bool) dstutil.ApplyFunc {
 	return func(c *dstutil.Cursor) bool {
 		switch x := c.Node().(type) {
 		case *dst.Field:
 			if s, is := x.Type.(*dst.StarExpr); is {
-				if len(exprs) == 0 {
-					x.Type = depoint(s)
+				if allTypes {
+					x.Type = ddepoint(s)
 					return true
 				}
-				if _, ok := depointers[s]; ok {
-					x.Type = depoint(s)
+				switch deref := depoint(s).(type) {
+				case *dst.ArrayType, *dst.MapType:
+					x.Type = deref
 				}
 			}
 		}
