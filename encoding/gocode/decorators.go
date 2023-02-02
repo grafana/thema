@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"unicode"
 
 	"github.com/dave/dst"
 	"github.com/dave/dst/dstutil"
@@ -52,10 +53,15 @@ func fixTODOComments() dstutil.ApplyFunc {
 		switch f := cursor.Node().(type) {
 		case *dst.File:
 			for _, d := range f.Decls {
+				if isTypeSpec(d) {
+					removeGoFieldComment(d.Decorations().Start.All())
+				}
 				fixTODOComment(d.Decorations().Start.All())
 			}
 		case *dst.Field:
-			fixTODOComment(f.Decorations().Start.All())
+			if len(f.Names) > 0 {
+				removeGoFieldComment(f.Decorations().Start.All())
+			}
 		}
 
 		return true
@@ -69,10 +75,35 @@ func fixTODOComment(comments []string) {
 	}
 }
 
+func removeGoFieldComment(comments []string) {
+	todoRegex := regexp.MustCompile("(//) ([A-Z].*?) ([A-Z]?.*?) (.*)")
+	if len(comments) > 0 {
+		matches := todoRegex.FindAllStringSubmatch(comments[0], -1)
+		if len(matches) > 0 {
+			if strings.EqualFold(matches[0][3], matches[0][2]) {
+				comments[0] = fmt.Sprintf("%s %s %s", matches[0][1], matches[0][3], matches[0][4])
+			} else {
+				r := []rune(matches[0][3])
+				if unicode.IsUpper(r[0]) {
+					comments[0] = fmt.Sprintf("%s %s %s", matches[0][1], matches[0][3], matches[0][4])
+				}
+			}
+		}
+	}
+}
+
+func isTypeSpec(d dst.Decl) bool {
+	gd, ok := d.(*dst.GenDecl)
+	if !ok {
+		return false
+	}
+
+	_, is := gd.Specs[0].(*dst.TypeSpec)
+	return is
+}
+
 // It fixes the "generic" fields. It happens when a value in cue could be different structs.
-// For Go it generates a struct with a json.RawMessage field inside and multiple functions to map
-// between the different possibilities.
-// These structs usually have underscores, and we need to fix these names since isn't a correct way to do it in Go.
+// For Go it generates a struct with a json.RawMessage field inside and multiple functions to map it between the different possibilities.
 func fixRawData() dstutil.ApplyFunc {
 	return func(c *dstutil.Cursor) bool {
 		f, is := c.Node().(*dst.File)
@@ -90,7 +121,10 @@ func fixRawData() dstutil.ApplyFunc {
 					if ts, ok := t.(*dst.TypeSpec); ok {
 						if tp, ok := ts.Type.(*dst.StructType); ok && len(tp.Fields.List) == 1 {
 							if fn, ok := tp.Fields.List[0].Type.(*dst.SelectorExpr); ok {
-								rawFields[ts.Name.Name] = fmt.Sprintf("%s.%s", fn.X, fn.Sel.Name)
+								star := setStar(tp.Fields.List[0].Type)
+								if fmt.Sprintf("%s.%s", fn.X, fn.Sel.Name) == "json.RawMessage" {
+									rawFields[ts.Name.Name] = fmt.Sprintf("%s%s.%s", star, fn.X, fn.Sel.Name)
+								}
 							}
 						}
 					}
@@ -132,12 +166,12 @@ func fixRawData() dstutil.ApplyFunc {
 								case *dst.Ident:
 									if existing[tx.Name] {
 										f.Type = dst.NewIdent(star + "interface{}")
-										//f.Type = dst.NewIdent(star + strings.ReplaceAll(tx.Name, "_", ""))
 									}
 								case *dst.ArrayType:
-									if _, ok := tx.Elt.(*dst.Ident); ok {
-										//tx.Elt = dst.NewIdent(star + "interface{}")
-										tx.Elt = dst.NewIdent(strings.ReplaceAll(tx.Elt.(*dst.Ident).Name, "_", ""))
+									if id, ok := tx.Elt.(*dst.Ident); ok {
+										if existing[id.Name] {
+											tx.Elt = dst.NewIdent("interface{}")
+										}
 									}
 								}
 							}
