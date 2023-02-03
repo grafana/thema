@@ -142,11 +142,19 @@ func fixRawData() dstutil.ApplyFunc {
 			case *dst.FuncDecl:
 				c.Delete()
 			case *dst.GenDecl:
+				// Deletes all "generics" generated for these json.RawMessage structs
+				comments := x.Decorations().Start.All()
+				if len(comments) > 0 {
+					if strings.HasSuffix(comments[0], "defines model for .") {
+						c.Delete()
+					}
+				}
 				for _, spec := range x.Specs {
 					if tp, ok := spec.(*dst.TypeSpec); ok {
-						// Delete the structs
+						// Delete structs with only json.RawMessage
 						if existingRawFields[tp.Name.Name] {
 							c.Delete()
+							continue
 						}
 						// Set types that was using these structs as interface{}
 						if st, ok := tp.Type.(*dst.StructType); ok {
