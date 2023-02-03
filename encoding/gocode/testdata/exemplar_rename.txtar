@@ -14,6 +14,14 @@ type Rename struct {
 	Before    string `json:"before"`
 	Unchanged string `json:"unchanged"`
 }
+-- out/generate/0.0/depointerized.go --
+package defaultchange
+
+// Rename defines model for rename.
+type Rename struct {
+	Before    string `json:"before"`
+	Unchanged string `json:"unchanged"`
+}
 -- out/generate/1.0/group.go --
 package defaultchange
 
@@ -24,6 +32,14 @@ type After string
 type Unchanged string
 -- out/generate/1.0/nil.go --
 package rename
+
+// Rename defines model for rename.
+type Rename struct {
+	After     string `json:"after"`
+	Unchanged string `json:"unchanged"`
+}
+-- out/generate/1.0/depointerized.go --
+package defaultchange
 
 // Rename defines model for rename.
 type Rename struct {
