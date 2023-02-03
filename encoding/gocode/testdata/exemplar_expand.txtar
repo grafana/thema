@@ -2,7 +2,7 @@
 package defaultchange
 
 // Init defines model for init.
-type Init string
+type Init = string
 -- out/generate/0.0/nil.go --
 package expand
 
@@ -21,10 +21,10 @@ type Expand struct {
 package defaultchange
 
 // Init defines model for init.
-type Init string
+type Init = string
 
 // Optional defines model for optional.
-type Optional int
+type Optional = int
 -- out/generate/0.1/nil.go --
 package expand
 
@@ -47,15 +47,14 @@ package defaultchange
 // Defines values for WithDefault.
 const (
 	WithDefaultBar WithDefault = "bar"
-
 	WithDefaultFoo WithDefault = "foo"
 )
 
 // Init defines model for init.
-type Init string
+type Init = string
 
 // Optional defines model for optional.
-type Optional int
+type Optional = int
 
 // WithDefault defines model for withDefault.
 type WithDefault string
@@ -65,7 +64,6 @@ package expand
 // Defines values for ExpandWithDefault.
 const (
 	ExpandWithDefaultBar ExpandWithDefault = "bar"
-
 	ExpandWithDefaultFoo ExpandWithDefault = "foo"
 )
 
@@ -84,7 +82,6 @@ package defaultchange
 // Defines values for ExpandWithDefault.
 const (
 	ExpandWithDefaultBar ExpandWithDefault = "bar"
-
 	ExpandWithDefaultFoo ExpandWithDefault = "foo"
 )
 
@@ -103,17 +100,15 @@ package defaultchange
 // Defines values for WithDefault.
 const (
 	WithDefaultBar WithDefault = "bar"
-
 	WithDefaultBaz WithDefault = "baz"
-
 	WithDefaultFoo WithDefault = "foo"
 )
 
 // Init defines model for init.
-type Init string
+type Init = string
 
 // Optional defines model for optional.
-type Optional int
+type Optional = int
 
 // WithDefault defines model for withDefault.
 type WithDefault string
@@ -123,9 +118,7 @@ package expand
 // Defines values for ExpandWithDefault.
 const (
 	ExpandWithDefaultBar ExpandWithDefault = "bar"
-
 	ExpandWithDefaultBaz ExpandWithDefault = "baz"
-
 	ExpandWithDefaultFoo ExpandWithDefault = "foo"
 )
 
@@ -144,9 +137,7 @@ package defaultchange
 // Defines values for ExpandWithDefault.
 const (
 	ExpandWithDefaultBar ExpandWithDefault = "bar"
-
 	ExpandWithDefaultBaz ExpandWithDefault = "baz"
-
 	ExpandWithDefaultFoo ExpandWithDefault = "foo"
 )
 

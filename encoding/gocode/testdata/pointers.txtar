@@ -4,7 +4,7 @@ package generate
 import "github.com/grafana/thema"
 
 thema.#Lineage
-name: "pointers"
+name: "defaultchange"
 seqs: [
         {
             schemas: [
@@ -22,21 +22,21 @@ seqs: [
 package defaultchange
 
 // Abool defines model for abool.
-type Abool bool
+type Abool = bool
 
 // Alist defines model for alist.
-type Alist []string
+type Alist = []string
 
 // Anint defines model for anint.
-type Anint int
+type Anint = int
 
 // Astring defines model for astring.
-type Astring string
+type Astring = string
 -- out/generate/0.0/nil.go --
-package pointers
+package defaultchange
 
-// Pointers defines model for pointers.
-type Pointers struct {
+// Defaultchange defines model for defaultchange.
+type Defaultchange struct {
 	Abool   *bool    `json:"abool,omitempty"`
 	Alist   []string `json:"alist,omitempty"`
 	Anint   *int     `json:"anint,omitempty"`
@@ -45,8 +45,8 @@ type Pointers struct {
 -- out/generate/0.0/depointerized.go --
 package defaultchange
 
-// Pointers defines model for pointers.
-type Pointers struct {
+// Defaultchange defines model for defaultchange.
+type Defaultchange struct {
 	Abool   bool     `json:"abool,omitempty"`
 	Alist   []string `json:"alist,omitempty"`
 	Anint   int      `json:"anint,omitempty"`

@@ -150,21 +150,7 @@ func fixRawData() dstutil.ApplyFunc {
 						}
 						// Set types that was using these structs as interface{}
 						if st, ok := tp.Type.(*dst.StructType); ok {
-							for _, f := range st.Fields.List {
-								star := setStar(f.Type)
-								switch tx := depoint(f.Type).(type) {
-								case *dst.Ident:
-									if existingRawFields[tx.Name] {
-										f.Type = dst.NewIdent(star + "interface{}")
-									}
-								case *dst.ArrayType:
-									if id, ok := tx.Elt.(*dst.Ident); ok {
-										if existingRawFields[id.Name] {
-											tx.Elt = dst.NewIdent(star + "interface{}")
-										}
-									}
-								}
-							}
+							iterateStruct(st, existingRawFields)
 						}
 					}
 				}
@@ -173,5 +159,25 @@ func fixRawData() dstutil.ApplyFunc {
 		}, nil)
 
 		return true
+	}
+}
+
+func iterateStruct(s *dst.StructType, existingRawFields map[string]bool) {
+	for _, f := range s.Fields.List {
+		star := setStar(f.Type)
+		switch tx := depoint(f.Type).(type) {
+		case *dst.Ident:
+			if existingRawFields[tx.Name] {
+				f.Type = dst.NewIdent(star + "interface{}")
+			}
+		case *dst.ArrayType:
+			if id, ok := tx.Elt.(*dst.Ident); ok {
+				if existingRawFields[id.Name] {
+					tx.Elt = dst.NewIdent(star + "interface{}")
+				}
+			}
+		case *dst.StructType:
+			iterateStruct(tx, existingRawFields)
+		}
 	}
 }

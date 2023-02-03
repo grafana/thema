@@ -4,9 +4,7 @@ package defaultchange
 // Defines values for Aunion.
 const (
 	AunionBar Aunion = "bar"
-
 	AunionBaz Aunion = "baz"
-
 	AunionFoo Aunion = "foo"
 )
 
@@ -18,9 +16,7 @@ package defaultchange
 // Defines values for DefaultchangeAunion.
 const (
 	DefaultchangeAunionBar DefaultchangeAunion = "bar"
-
 	DefaultchangeAunionBaz DefaultchangeAunion = "baz"
-
 	DefaultchangeAunionFoo DefaultchangeAunion = "foo"
 )
 
@@ -37,9 +33,7 @@ package defaultchange
 // Defines values for DefaultchangeAunion.
 const (
 	DefaultchangeAunionBar DefaultchangeAunion = "bar"
-
 	DefaultchangeAunionBaz DefaultchangeAunion = "baz"
-
 	DefaultchangeAunionFoo DefaultchangeAunion = "foo"
 )
 
@@ -56,9 +50,7 @@ package defaultchange
 // Defines values for Aunion.
 const (
 	AunionBar Aunion = "bar"
-
 	AunionBaz Aunion = "baz"
-
 	AunionFoo Aunion = "foo"
 )
 
@@ -70,9 +62,7 @@ package defaultchange
 // Defines values for DefaultchangeAunion.
 const (
 	DefaultchangeAunionBar DefaultchangeAunion = "bar"
-
 	DefaultchangeAunionBaz DefaultchangeAunion = "baz"
-
 	DefaultchangeAunionFoo DefaultchangeAunion = "foo"
 )
 
@@ -89,9 +79,7 @@ package defaultchange
 // Defines values for DefaultchangeAunion.
 const (
 	DefaultchangeAunionBar DefaultchangeAunion = "bar"
-
 	DefaultchangeAunionBaz DefaultchangeAunion = "baz"
-
 	DefaultchangeAunionFoo DefaultchangeAunion = "foo"
 )
 

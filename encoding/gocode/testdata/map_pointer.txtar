@@ -4,7 +4,7 @@ package generate
 import "github.com/grafana/thema"
 
 thema.#Lineage
-name: "pointers"
+name: "defaultchange"
 seqs: [
         {
             schemas: [
