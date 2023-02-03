@@ -31,12 +31,12 @@ import (
 	// TODO(must) https://github.com/cue-lang/cue/issues/943
 	// name: must(isconcrete(name), "all lineages must have a name")
 
-	// The lineage-local handle for #SchemaDecl, into which we have injected this
+	// The lineage-local handle for #SchemaDef, into which we have injected this
 	// lineage's joinSchema.
-	let Schema = #SchemaDecl & {_join: joinSchema}
+	let Schema = #SchemaDef & {_join: joinSchema}
 
 	// schemas is the ordered list of all schemas in the lineage. Each element is a
-	// #SchemaDecl.
+	// #SchemaDef.
 	schemas: [...]
 
 	schemas: S=[ for i, _ in schemas {
@@ -90,17 +90,17 @@ import (
 	// TODO check subsumption (backwards compat) of each schema with its successor natively in CUE
 }
 
-// #SchemaDecl represents a single schema declaration in Thema. In addition to
+// #SchemaDef represents a single schema declaration in Thema. In addition to
 // the schema itself, it contains the schema's version, optional examples,
 // composition instructions, and lenses that map to or from the schema, as
 // required by Thema's invariants.
 //
 // Note that the version number must be explicitly declared, even though the
 // correct value is algorithmically determined.
-#SchemaDecl: {
+#SchemaDef: {
 	// version is the Syntactic Version number of the schema. While this property
 	// is settable by lineage authors, it has exactly one correct value for any
-	// particular #SchemaDecl in any lineage, algorithmically determined by its
+	// particular #SchemaDef in any lineage, algorithmically determined by its
 	// position in the list of schemas and the number of its predecessors that
 	// make breaking changes to their schemas.
 	//
@@ -238,13 +238,13 @@ import (
 	// The schema version to retrieve. Either:
 	v: #SyntacticVersion & [<len(lin._counts), <=lin._counts[v[0]]]
 	// TODO(must) https://github.com/cue-lang/cue/issues/943
-	// must(isconcrete(v[0]), "must specify a concrete sequence number")
+	// must(isconcrete(v[0]), "must specify a concrete major version")
 
 	out: {for sch in lin.schemas if sch.version == v {sch._#schema}}
 }
 
 // PickDef takes the same arguments as Pick, but returns the entire
-// #SchemaDecl rather than just the actual schema body.
+// #SchemaDef rather than only the schema body itself.
 #PickDef: {
 	// The lineage from which to retrieve a schema.
 	lin: #Lineage

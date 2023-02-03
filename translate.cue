@@ -2,7 +2,7 @@ package thema
 
 import "list"
 
-// Translate takes a instance, a lineage, and a rule for deciding a target
+// Translate takes an instance, a lineage, and a rule for deciding a target
 // schema version. The instance is iteratively transformed through the lineage's
 // list of schemas, starting at the version the instance is valid against, and
 // continuing until the target schema version is reached.
@@ -17,13 +17,13 @@ import "list"
 	linst: #LinkedInstance
 	to:    #SyntacticVersion
 
-//	let VF = linst.v
-//	let VT = to
-//	let inlinst = linst
-//	let inlinst = T.linst
-//	let inlin = inlinst
+	//	let VF = linst.v
+	//	let VT = to
+	//	let inlinst = linst
+	//	let inlinst = T.linst
+	//	let inlin = inlinst
 
-	let cmp = (_cmpSV & { l: T.linst.v, r: T.to }).out
+	let cmp = (_cmpSV & {l: T.linst.v, r: T.to}).out
 
 	out: {
 		linst: #LinkedInstance
