@@ -18,7 +18,7 @@ func depointerizer(allTypes bool) dstutil.ApplyFunc {
 		case *dst.Field:
 			if s, is := x.Type.(*dst.StarExpr); is {
 				if allTypes {
-					x.Type = ddepoint(s)
+					x.Type = depoint(s)
 					return true
 				}
 				switch deref := depoint(s).(type) {
