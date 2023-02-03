@@ -1,0 +1,36 @@
+-- in.cue --
+package generate
+
+import "github.com/grafana/thema"
+
+thema.#Lineage
+name: "pointers"
+seqs: [
+        {
+            schemas: [
+                {
+				    amap?: [string]: string
+				},
+			]
+		},
+	]
+
+-- out/generate/0.0/group.go --
+package defaultchange
+
+// Amap defines model for amap.
+type Amap map[string]string
+-- out/generate/0.0/nil.go --
+package pointers
+
+// Pointers defines model for pointers.
+type Pointers struct {
+	Amap map[string]string `json:"amap,omitempty"`
+}
+-- out/generate/0.0/depointerized.go --
+package defaultchange
+
+// Pointers defines model for pointers.
+type Pointers struct {
+	Amap map[string]string `json:"amap,omitempty"`
+}
