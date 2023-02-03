@@ -81,7 +81,7 @@ func removeGoFieldComment(comments []string) {
 				comments[0] = fmt.Sprintf("%s %s %s", matches[0][1], matches[0][3], matches[0][4])
 			} else {
 				r := []rune(matches[0][3])
-				if unicode.IsUpper(r[0]) {
+				if !unicode.IsLower(r[0]) {
 					comments[0] = fmt.Sprintf("%s %s %s", matches[0][1], matches[0][3], matches[0][4])
 				}
 			}
@@ -108,66 +108,59 @@ func fixRawData() dstutil.ApplyFunc {
 			return false
 		}
 
-		rawFields := make(map[string]string)
-		typesWithFunc := make(map[string][]string)
+		rawFields := make(map[string]bool)
+		existingRawFields := make(map[string]bool)
 		for _, decl := range f.Decls {
 			switch x := decl.(type) {
-			// Find the structs that only contains json.RawMessage inside
+			// Find the structs that only contains one json.RawMessage inside
 			case *dst.GenDecl:
 				for _, t := range x.Specs {
 					if ts, ok := t.(*dst.TypeSpec); ok {
 						if tp, ok := ts.Type.(*dst.StructType); ok && len(tp.Fields.List) == 1 {
 							if fn, ok := tp.Fields.List[0].Type.(*dst.SelectorExpr); ok {
-								star := setStar(tp.Fields.List[0].Type)
 								if fmt.Sprintf("%s.%s", fn.X, fn.Sel.Name) == "json.RawMessage" {
-									rawFields[ts.Name.Name] = fmt.Sprintf("%s%s.%s", star, fn.X, fn.Sel.Name)
+									rawFields[ts.Name.Name] = true
 								}
 							}
 						}
 					}
 				}
-			// Find the functions of the previous structs to verify that are the ones that we are looking for
-			// With this information we can create validators for these json.RawMessage
+			// Find the functions of the previous structs to verify that are the ones that we are looking for.
 			case *dst.FuncDecl:
 				for _, recv := range x.Recv.List {
 					fnType := depoint(recv.Type).(*dst.Ident).Name
-					if rawFields[fnType] != "" {
-						typesWithFunc[fnType] = append(typesWithFunc[fnType], x.Name.Name)
+					if rawFields[fnType] {
+						existingRawFields[fnType] = true
 					}
 				}
 			}
 		}
 
-		// Verify that are the structs that we are looking for.
-		existing := make(map[string]bool)
-		for k, _ := range typesWithFunc {
-			if rawFields[k] != "" {
-				existing[k] = true
-			}
-		}
-
 		dstutil.Apply(f, func(c *dstutil.Cursor) bool {
 			switch x := c.Node().(type) {
+			// Delete the functions
 			case *dst.FuncDecl:
 				c.Delete()
 			case *dst.GenDecl:
 				for _, spec := range x.Specs {
 					if tp, ok := spec.(*dst.TypeSpec); ok {
-						if existing[tp.Name.Name] {
+						// Delete the structs
+						if existingRawFields[tp.Name.Name] {
 							c.Delete()
 						}
+						// Set types that was using these structs as interface{}
 						if st, ok := tp.Type.(*dst.StructType); ok {
 							for _, f := range st.Fields.List {
 								star := setStar(f.Type)
 								switch tx := depoint(f.Type).(type) {
 								case *dst.Ident:
-									if existing[tx.Name] {
+									if existingRawFields[tx.Name] {
 										f.Type = dst.NewIdent(star + "interface{}")
 									}
 								case *dst.ArrayType:
 									if id, ok := tx.Elt.(*dst.Ident); ok {
-										if existing[id.Name] {
-											tx.Elt = dst.NewIdent("interface{}")
+										if existingRawFields[id.Name] {
+											tx.Elt = dst.NewIdent(star + "interface{}")
 										}
 									}
 								}
