@@ -2,13 +2,13 @@
 package defaultchange
 
 // Abool defines model for abool.
-type Abool bool
+type Abool = bool
 
 // Anint defines model for anint.
-type Anint int
+type Anint = int
 
 // Astring defines model for astring.
-type Astring string
+type Astring = string
 -- out/generate/0.0/nil.go --
 package single
 

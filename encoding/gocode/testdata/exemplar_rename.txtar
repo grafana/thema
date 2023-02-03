@@ -2,10 +2,10 @@
 package defaultchange
 
 // Before defines model for before.
-type Before string
+type Before = string
 
 // Unchanged defines model for unchanged.
-type Unchanged string
+type Unchanged = string
 -- out/generate/0.0/nil.go --
 package rename
 
@@ -26,10 +26,10 @@ type Rename struct {
 package defaultchange
 
 // After defines model for after.
-type After string
+type After = string
 
 // Unchanged defines model for unchanged.
-type Unchanged string
+type Unchanged = string
 -- out/generate/1.0/nil.go --
 package rename
 
