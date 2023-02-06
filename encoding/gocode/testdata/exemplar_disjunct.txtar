@@ -14,6 +14,13 @@ package defaultchange
 type Disjunct struct {
 	Rootfield interface{} `json:"rootfield"`
 }
+-- out/generate/0.0/godeclincomments.go --
+package defaultchange
+
+// Disjunct defines model for disjunct.
+type Disjunct struct {
+	Rootfield interface{} `json:"rootfield"`
+}
 -- out/generate/0.1/group.go --
 package defaultchange
 -- out/generate/0.1/nil.go --
@@ -24,6 +31,13 @@ type Disjunct struct {
 	Rootfield interface{} `json:"rootfield"`
 }
 -- out/generate/0.1/depointerized.go --
+package defaultchange
+
+// Disjunct defines model for disjunct.
+type Disjunct struct {
+	Rootfield interface{} `json:"rootfield"`
+}
+-- out/generate/0.1/godeclincomments.go --
 package defaultchange
 
 // Disjunct defines model for disjunct.

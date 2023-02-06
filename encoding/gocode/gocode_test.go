@@ -39,6 +39,12 @@ func TestGenerate(t *testing.T) {
 				NoOptionalPointers: true,
 			},
 		},
+		{
+			name: "godeclincomments",
+			cfg: &TypeConfigOpenAPI{
+				UseGoDeclInComments: true,
+			},
+		},
 	}
 
 	test.Run(t, func(t *cuetxtar.LineageTest) {

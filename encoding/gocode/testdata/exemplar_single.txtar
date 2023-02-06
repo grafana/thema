@@ -27,3 +27,12 @@ type Single struct {
 	Anint   int    `json:"anint"`
 	Astring string `json:"astring"`
 }
+-- out/generate/0.0/godeclincomments.go --
+package defaultchange
+
+// Single defines model for single.
+type Single struct {
+	Abool   bool   `json:"abool"`
+	Anint   int    `json:"anint"`
+	Astring string `json:"astring"`
+}
