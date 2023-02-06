@@ -58,6 +58,9 @@ type TypeConfigOpenAPI struct {
 	// for Go files.
 	NoOptionalPointers bool
 
+	// UseGoDeclInComments sets the name of the fields and structs at the beginning of each comment.
+	UseGoDeclInComments bool
+
 	// Config is passed through to the Thema OpenAPI encoder, [openapi.GenerateSchema].
 	Config *openapi.Config
 }
@@ -72,7 +75,11 @@ func GenerateTypesOpenAPI(sch thema.Schema, cfg *TypeConfigOpenAPI) ([]byte, err
 	if cfg.NoOptionalPointers {
 		depointer = depointerizer(true)
 	}
-	cfg.ApplyFuncs = append(cfg.ApplyFuncs, decoderCompactor(), depointer)
+	cfg.ApplyFuncs = append(cfg.ApplyFuncs, depointer, fixRawData())
+
+	if !cfg.UseGoDeclInComments {
+		cfg.ApplyFuncs = append(cfg.ApplyFuncs, fixTODOComments())
+	}
 
 	f, err := openapi.GenerateSchema(sch, cfg.Config)
 	if err != nil {
@@ -93,16 +100,26 @@ func GenerateTypesOpenAPI(sch thema.Schema, cfg *TypeConfigOpenAPI) ([]byte, err
 		cfg.PackageName = sch.Lineage().Name()
 	}
 
-	ccfg := codegen.Options{
-		GenerateTypes: true,
-		SkipFmt:       true,
-		SkipPrune:     true,
-		UserTemplates: map[string]string{
-			"imports.tmpl": importstmpl,
+	ccfg := codegen.Configuration{
+		PackageName: cfg.PackageName,
+		Compatibility: codegen.CompatibilityOptions{
+			AlwaysPrefixEnumValues: true,
 		},
+		Generate: codegen.GenerateOptions{
+			Models: true,
+		},
+		OutputOptions: codegen.OutputOptions{
+			SkipFmt:   true,
+			SkipPrune: true,
+			UserTemplates: map[string]string{
+				"imports.tmpl": importstmpl,
+			},
+		},
+		ImportMapping:     nil,
+		AdditionalImports: nil,
 	}
 
-	gostr, err := codegen.Generate(oT, cfg.PackageName, ccfg)
+	gostr, err := codegen.Generate(oT, ccfg)
 	if err != nil {
 		return nil, fmt.Errorf("openapi generation failed: %w", err)
 	}
