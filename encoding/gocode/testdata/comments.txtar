@@ -129,3 +129,31 @@ type Defaultchange struct {
 	} `json:"nested"`
 	S Struct `json:"s"`
 }
+-- out/generate/0.0/godeclincomments.go --
+package defaultchange
+
+// NestedStruct defines model for NestedStruct.
+type NestedStruct struct {
+	Nested Struct `json:"nested"`
+
+	// Test TODO docs
+	Test string `json:"test"`
+}
+
+// Struct defines model for Struct.
+type Struct struct {
+	// Astring AString struct comment
+	Astring *string `json:"astring,omitempty"`
+}
+
+// Defaultchange defines model for defaultchange.
+type Defaultchange struct {
+	// Astring TODO docs
+	Astring *string      `json:"astring,omitempty"`
+	N       NestedStruct `json:"n"`
+	Nested  struct {
+		N NestedStruct `json:"n"`
+		S Struct       `json:"s"`
+	} `json:"nested"`
+	S Struct `json:"s"`
+}
