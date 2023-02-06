@@ -2,13 +2,13 @@
 package defaultchange
 
 // Abool defines model for abool.
-type Abool bool
+type Abool = bool
 
 // Anint defines model for anint.
-type Anint int
+type Anint = int
 
 // Astring defines model for astring.
-type Astring string
+type Astring = string
 -- out/generate/0.0/nil.go --
 package single
 
@@ -19,6 +19,15 @@ type Single struct {
 	Astring string `json:"astring"`
 }
 -- out/generate/0.0/depointerized.go --
+package defaultchange
+
+// Single defines model for single.
+type Single struct {
+	Abool   bool   `json:"abool"`
+	Anint   int    `json:"anint"`
+	Astring string `json:"astring"`
+}
+-- out/generate/0.0/godeclincomments.go --
 package defaultchange
 
 // Single defines model for single.
