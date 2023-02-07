@@ -198,7 +198,9 @@ func iterateStruct(s *dst.StructType, existingRawFields map[string]bool) {
 func iterateMap(s *dst.MapType, existingRawFields map[string]bool) {
 	switch mx := s.Value.(type) {
 	case *dst.Ident:
-		mx.Name = setStar(mx) + "interface{}"
+		if existingRawFields[mx.Name] {
+			mx.Name = setStar(mx) + "interface{}"
+		}
 	case *dst.ArrayType:
 		if id, ok := mx.Elt.(*dst.Ident); ok {
 			if existingRawFields[id.Name] {
