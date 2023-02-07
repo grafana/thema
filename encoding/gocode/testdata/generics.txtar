@@ -11,10 +11,13 @@ seqs: [
                 {
                     #Generic: string | bool
                     #Generated: {
-                        generic:          #Generic
-                        optionalGeneric?: #Generic
-                        mapGeneric:      [string]: #Generic
-                        listGeneric:     [...#Generic]
+                        generic:                #Generic
+                        optionalGeneric?:       #Generic
+                        mapGeneric:             [string]: #Generic
+                        listGeneric:            [...#Generic]
+                        mapList: [string]:      [...#Generic]
+                        mapChained: [string]:   [string]: #Generic
+                        mapListChained:         [string]: [string]: [string]: [...#Generic]
                         nestedStruct: {
                             structGeneric: #Generic
                             mapGeneric:    [string]: #Generic
@@ -31,10 +34,13 @@ package defaultchange
 
 // Generated defines model for Generated.
 type Generated struct {
-	Generic      interface{}            `json:"generic"`
-	ListGeneric  []interface{}          `json:"listGeneric"`
-	MapGeneric   map[string]interface{} `json:"mapGeneric"`
-	NestedStruct struct {
+	Generic        interface{}                                    `json:"generic"`
+	ListGeneric    []interface{}                                  `json:"listGeneric"`
+	MapChained     map[string]map[string]interface{}              `json:"mapChained"`
+	MapGeneric     map[string]interface{}                         `json:"mapGeneric"`
+	MapList        map[string][]interface{}                       `json:"mapList"`
+	MapListChained map[string]map[string]map[string][]interface{} `json:"mapListChained"`
+	NestedStruct   struct {
 		ListGeneric   []interface{}          `json:"listGeneric"`
 		MapGeneric    map[string]interface{} `json:"mapGeneric"`
 		StructGeneric interface{}            `json:"structGeneric"`
@@ -46,10 +52,13 @@ package defaultchange
 
 // Generated defines model for Generated.
 type Generated struct {
-	Generic      interface{}            `json:"generic"`
-	ListGeneric  []interface{}          `json:"listGeneric"`
-	MapGeneric   map[string]interface{} `json:"mapGeneric"`
-	NestedStruct struct {
+	Generic        interface{}                                    `json:"generic"`
+	ListGeneric    []interface{}                                  `json:"listGeneric"`
+	MapChained     map[string]map[string]interface{}              `json:"mapChained"`
+	MapGeneric     map[string]interface{}                         `json:"mapGeneric"`
+	MapList        map[string][]interface{}                       `json:"mapList"`
+	MapListChained map[string]map[string]map[string][]interface{} `json:"mapListChained"`
+	NestedStruct   struct {
 		ListGeneric   []interface{}          `json:"listGeneric"`
 		MapGeneric    map[string]interface{} `json:"mapGeneric"`
 		StructGeneric interface{}            `json:"structGeneric"`
@@ -64,10 +73,13 @@ package defaultchange
 
 // Generated defines model for Generated.
 type Generated struct {
-	Generic      interface{}            `json:"generic"`
-	ListGeneric  []interface{}          `json:"listGeneric"`
-	MapGeneric   map[string]interface{} `json:"mapGeneric"`
-	NestedStruct struct {
+	Generic        interface{}                                    `json:"generic"`
+	ListGeneric    []interface{}                                  `json:"listGeneric"`
+	MapChained     map[string]map[string]interface{}              `json:"mapChained"`
+	MapGeneric     map[string]interface{}                         `json:"mapGeneric"`
+	MapList        map[string][]interface{}                       `json:"mapList"`
+	MapListChained map[string]map[string]map[string][]interface{} `json:"mapListChained"`
+	NestedStruct   struct {
 		ListGeneric   []interface{}          `json:"listGeneric"`
 		MapGeneric    map[string]interface{} `json:"mapGeneric"`
 		StructGeneric interface{}            `json:"structGeneric"`
@@ -82,10 +94,13 @@ package defaultchange
 
 // Generated defines model for Generated.
 type Generated struct {
-	Generic      interface{}            `json:"generic"`
-	ListGeneric  []interface{}          `json:"listGeneric"`
-	MapGeneric   map[string]interface{} `json:"mapGeneric"`
-	NestedStruct struct {
+	Generic        interface{}                                    `json:"generic"`
+	ListGeneric    []interface{}                                  `json:"listGeneric"`
+	MapChained     map[string]map[string]interface{}              `json:"mapChained"`
+	MapGeneric     map[string]interface{}                         `json:"mapGeneric"`
+	MapList        map[string][]interface{}                       `json:"mapList"`
+	MapListChained map[string]map[string]map[string][]interface{} `json:"mapListChained"`
+	NestedStruct   struct {
 		ListGeneric   []interface{}          `json:"listGeneric"`
 		MapGeneric    map[string]interface{} `json:"mapGeneric"`
 		StructGeneric interface{}            `json:"structGeneric"`
