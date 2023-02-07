@@ -1,0 +1,97 @@
+-- in.cue --
+package generate
+
+import "github.com/grafana/thema"
+
+thema.#Lineage
+name: "defaultchange"
+seqs: [
+        {
+            schemas: [
+                {
+                    #Generic: string | bool
+                    #Generated: {
+                        generic:          #Generic
+                        optionalGeneric?: #Generic
+                        mapGeneric:      [string]: #Generic
+                        listGeneric:     [...#Generic]
+                        nestedStruct: {
+                            structGeneric: #Generic
+                            mapGeneric:    [string]: #Generic
+                            listGeneric:   [...#Generic]
+                        }
+					}
+				},
+			]
+		},
+	]
+
+-- out/generate/0.0/group.go --
+package defaultchange
+
+// Generated defines model for Generated.
+type Generated struct {
+	Generic      interface{}            `json:"generic"`
+	ListGeneric  []interface{}          `json:"listGeneric"`
+	MapGeneric   map[string]interface{} `json:"mapGeneric"`
+	NestedStruct struct {
+		ListGeneric   []interface{}          `json:"listGeneric"`
+		MapGeneric    map[string]interface{} `json:"mapGeneric"`
+		StructGeneric interface{}            `json:"structGeneric"`
+	} `json:"nestedStruct"`
+	OptionalGeneric *interface{} `json:"optionalGeneric,omitempty"`
+}
+-- out/generate/0.0/nil.go --
+package defaultchange
+
+// Generated defines model for Generated.
+type Generated struct {
+	Generic      interface{}            `json:"generic"`
+	ListGeneric  []interface{}          `json:"listGeneric"`
+	MapGeneric   map[string]interface{} `json:"mapGeneric"`
+	NestedStruct struct {
+		ListGeneric   []interface{}          `json:"listGeneric"`
+		MapGeneric    map[string]interface{} `json:"mapGeneric"`
+		StructGeneric interface{}            `json:"structGeneric"`
+	} `json:"nestedStruct"`
+	OptionalGeneric *interface{} `json:"optionalGeneric,omitempty"`
+}
+
+// Defaultchange defines model for defaultchange.
+type Defaultchange = map[string]interface{}
+-- out/generate/0.0/depointerized.go --
+package defaultchange
+
+// Generated defines model for Generated.
+type Generated struct {
+	Generic      interface{}            `json:"generic"`
+	ListGeneric  []interface{}          `json:"listGeneric"`
+	MapGeneric   map[string]interface{} `json:"mapGeneric"`
+	NestedStruct struct {
+		ListGeneric   []interface{}          `json:"listGeneric"`
+		MapGeneric    map[string]interface{} `json:"mapGeneric"`
+		StructGeneric interface{}            `json:"structGeneric"`
+	} `json:"nestedStruct"`
+	OptionalGeneric interface{} `json:"optionalGeneric,omitempty"`
+}
+
+// Defaultchange defines model for defaultchange.
+type Defaultchange = map[string]interface{}
+-- out/generate/0.0/godeclincomments.go --
+package defaultchange
+
+// Generated defines model for Generated.
+type Generated struct {
+	Generic      interface{}            `json:"generic"`
+	ListGeneric  []interface{}          `json:"listGeneric"`
+	MapGeneric   map[string]interface{} `json:"mapGeneric"`
+	NestedStruct struct {
+		ListGeneric   []interface{}          `json:"listGeneric"`
+		MapGeneric    map[string]interface{} `json:"mapGeneric"`
+		StructGeneric interface{}            `json:"structGeneric"`
+	} `json:"nestedStruct"`
+	OptionalGeneric *interface{} `json:"optionalGeneric,omitempty"`
+}
+
+// Defaultchange defines model for defaultchange.
+type Defaultchange = map[string]interface{}
