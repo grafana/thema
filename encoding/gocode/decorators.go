@@ -161,9 +161,7 @@ func fixRawData() dstutil.ApplyFunc {
 							iterateStruct(st, existingRawFields)
 						}
 						if mt, ok := tp.Type.(*dst.MapType); ok {
-							if mx, ok := mt.Value.(*dst.Ident); ok && existingRawFields[mx.Name] {
-								mx.Name = setStar(tp.Type) + "interface{}"
-							}
+							iterateMap(mt, existingRawFields)
 						}
 					}
 				}
@@ -190,11 +188,24 @@ func iterateStruct(s *dst.StructType, existingRawFields map[string]bool) {
 				}
 			}
 		case *dst.MapType:
-			if mx, ok := tx.Value.(*dst.Ident); ok && existingRawFields[mx.Name] {
-				mx.Name = star + "interface{}"
-			}
+			iterateMap(tx, existingRawFields)
 		case *dst.StructType:
 			iterateStruct(tx, existingRawFields)
 		}
+	}
+}
+
+func iterateMap(s *dst.MapType, existingRawFields map[string]bool) {
+	switch mx := s.Value.(type) {
+	case *dst.Ident:
+		mx.Name = setStar(mx) + "interface{}"
+	case *dst.ArrayType:
+		if id, ok := mx.Elt.(*dst.Ident); ok {
+			if existingRawFields[id.Name] {
+				mx.Elt = dst.NewIdent(setStar(mx) + "interface{}")
+			}
+		}
+	case *dst.MapType:
+		iterateMap(mx, existingRawFields)
 	}
 }
