@@ -1,0 +1,112 @@
+-- in.cue --
+package generate
+
+import "github.com/grafana/thema"
+
+thema.#Lineage
+name: "defaultchange"
+seqs: [
+        {
+            schemas: [
+                {
+                    #MutiType: string | bool
+                    #Generated: {
+                        MutiType:                #MutiType
+                        optionalMutiType?:       #MutiType
+                        mapMutiType:             [string]: #MutiType
+                        listMutiType:            [...#MutiType]
+                        mapList: [string]:      [...#MutiType]
+                        mapChained: [string]:   [string]: #MutiType
+                        mapListChained:         [string]: [string]: [string]: [...#MutiType]
+                        nestedStruct: {
+                            structMutiType: #MutiType
+                            mapMutiType:    [string]: #MutiType
+                            listMutiType:   [...#MutiType]
+                        }
+					}
+				},
+			]
+		},
+	]
+
+-- out/generate/0.0/group.go --
+package defaultchange
+
+// Generated defines model for Generated.
+type Generated struct {
+	MutiType       interface{}                                    `json:"MutiType"`
+	ListMutiType   []interface{}                                  `json:"listMutiType"`
+	MapChained     map[string]map[string]interface{}              `json:"mapChained"`
+	MapList        map[string][]interface{}                       `json:"mapList"`
+	MapListChained map[string]map[string]map[string][]interface{} `json:"mapListChained"`
+	MapMutiType    map[string]interface{}                         `json:"mapMutiType"`
+	NestedStruct   struct {
+		ListMutiType   []interface{}          `json:"listMutiType"`
+		MapMutiType    map[string]interface{} `json:"mapMutiType"`
+		StructMutiType interface{}            `json:"structMutiType"`
+	} `json:"nestedStruct"`
+	OptionalMutiType *interface{} `json:"optionalMutiType,omitempty"`
+}
+-- out/generate/0.0/nil.go --
+package defaultchange
+
+// Generated defines model for Generated.
+type Generated struct {
+	MutiType       interface{}                                    `json:"MutiType"`
+	ListMutiType   []interface{}                                  `json:"listMutiType"`
+	MapChained     map[string]map[string]interface{}              `json:"mapChained"`
+	MapList        map[string][]interface{}                       `json:"mapList"`
+	MapListChained map[string]map[string]map[string][]interface{} `json:"mapListChained"`
+	MapMutiType    map[string]interface{}                         `json:"mapMutiType"`
+	NestedStruct   struct {
+		ListMutiType   []interface{}          `json:"listMutiType"`
+		MapMutiType    map[string]interface{} `json:"mapMutiType"`
+		StructMutiType interface{}            `json:"structMutiType"`
+	} `json:"nestedStruct"`
+	OptionalMutiType *interface{} `json:"optionalMutiType,omitempty"`
+}
+
+// Defaultchange defines model for defaultchange.
+type Defaultchange = map[string]interface{}
+-- out/generate/0.0/depointerized.go --
+package defaultchange
+
+// Generated defines model for Generated.
+type Generated struct {
+	MutiType       interface{}                                    `json:"MutiType"`
+	ListMutiType   []interface{}                                  `json:"listMutiType"`
+	MapChained     map[string]map[string]interface{}              `json:"mapChained"`
+	MapList        map[string][]interface{}                       `json:"mapList"`
+	MapListChained map[string]map[string]map[string][]interface{} `json:"mapListChained"`
+	MapMutiType    map[string]interface{}                         `json:"mapMutiType"`
+	NestedStruct   struct {
+		ListMutiType   []interface{}          `json:"listMutiType"`
+		MapMutiType    map[string]interface{} `json:"mapMutiType"`
+		StructMutiType interface{}            `json:"structMutiType"`
+	} `json:"nestedStruct"`
+	OptionalMutiType interface{} `json:"optionalMutiType,omitempty"`
+}
+
+// Defaultchange defines model for defaultchange.
+type Defaultchange = map[string]interface{}
+-- out/generate/0.0/godeclincomments.go --
+package defaultchange
+
+// Generated defines model for Generated.
+type Generated struct {
+	MutiType       interface{}                                    `json:"MutiType"`
+	ListMutiType   []interface{}                                  `json:"listMutiType"`
+	MapChained     map[string]map[string]interface{}              `json:"mapChained"`
+	MapList        map[string][]interface{}                       `json:"mapList"`
+	MapListChained map[string]map[string]map[string][]interface{} `json:"mapListChained"`
+	MapMutiType    map[string]interface{}                         `json:"mapMutiType"`
+	NestedStruct   struct {
+		ListMutiType   []interface{}          `json:"listMutiType"`
+		MapMutiType    map[string]interface{} `json:"mapMutiType"`
+		StructMutiType interface{}            `json:"structMutiType"`
+	} `json:"nestedStruct"`
+	OptionalMutiType *interface{} `json:"optionalMutiType,omitempty"`
+}
+
+// Defaultchange defines model for defaultchange.
+type Defaultchange = map[string]interface{}
