@@ -17,6 +17,7 @@ seqs: [
 			{
 				astring?: string
 				anint:   int64 | *42
+				afloat:  float64
 				abool:   bool
 			}
 		]
@@ -27,6 +28,7 @@ seqs: [
 type TestType struct {
 	Astring *string `json:"astring"`
 	Anint   int64   `json:"anint"`
+	Afloat  float64 `json:"afloat"`
 	Abool   bool    `json:"abool"`
 }
 
