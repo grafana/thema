@@ -102,11 +102,9 @@ func assignable(sch cue.Value, T interface{}) error {
 		switch sk {
 		case cue.ListKind:
 			checklist(gval, sval, p)
-		case cue.NumberKind:
-			errs[p.String()] = fmt.Errorf(
-				"%s: CUE number type comprises both floats and ints, may only correspond to interface{}/any", p,
-			)
 		case cue.FloatKind, cue.IntKind, cue.StringKind, cue.BytesKind, cue.BoolKind:
+			checkscalar(gval, sval, p)
+		case cue.NumberKind:
 			checkscalar(gval, sval, p)
 		case cue.StructKind:
 			checkstruct(gval, sval, p)
