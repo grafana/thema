@@ -9,19 +9,23 @@ seqs: [
         {
             schemas: [
                 {
-                    #MutiType: string | bool
+                    #MultiType: string | bool
                     #Generated: {
-                        MutiType:                #MutiType
-                        optionalMutiType?:       #MutiType
-                        mapMutiType:             [string]: #MutiType
-                        listMutiType:            [...#MutiType]
-                        mapList: [string]:      [...#MutiType]
-                        mapChained: [string]:   [string]: #MutiType
-                        mapListChained:         [string]: [string]: [string]: [...#MutiType]
+                        MultiType:               #MultiType
+                        optionalMultiType?:      #MultiType
+                        mapMultiType:            [string]: #MultiType
+                        listMultiType:           [...#MultiType]
+                        mapList: [string]:       [...#MultiType]
+                        mapChained: [string]:    [string]: #MultiType
+                        mapListChained:          [string]: [string]: [string]: [...#MultiType]
+                        doubleList:              [...[...#MultiType]]
+                        mapDoubleList:           [string]: [...[...#MultiType]]
+                        mapTripeList:            [string]: [...[...[...#MultiType]]]
+                        emptyStructs:            [...[...{...}]]
                         nestedStruct: {
-                            structMutiType: #MutiType
-                            mapMutiType:    [string]: #MutiType
-                            listMutiType:   [...#MutiType]
+                            structMultiType: #MultiType
+                            mapMultiType:    [string]: #MultiType
+                            listMultiType:   [...#MultiType]
                         }
 					}
 				},
@@ -34,36 +38,44 @@ package defaultchange
 
 // Generated defines model for Generated.
 type Generated struct {
-	MutiType       interface{}                                    `json:"MutiType"`
-	ListMutiType   []interface{}                                  `json:"listMutiType"`
+	MultiType      interface{}                                    `json:"MultiType"`
+	DoubleList     [][]interface{}                                `json:"doubleList"`
+	EmptyStructs   [][]map[string]interface{}                     `json:"emptyStructs"`
+	ListMultiType  []interface{}                                  `json:"listMultiType"`
 	MapChained     map[string]map[string]interface{}              `json:"mapChained"`
+	MapDoubleList  map[string][][]interface{}                     `json:"mapDoubleList"`
 	MapList        map[string][]interface{}                       `json:"mapList"`
 	MapListChained map[string]map[string]map[string][]interface{} `json:"mapListChained"`
-	MapMutiType    map[string]interface{}                         `json:"mapMutiType"`
+	MapMultiType   map[string]interface{}                         `json:"mapMultiType"`
+	MapTripeList   map[string][][][]interface{}                   `json:"mapTripeList"`
 	NestedStruct   struct {
-		ListMutiType   []interface{}          `json:"listMutiType"`
-		MapMutiType    map[string]interface{} `json:"mapMutiType"`
-		StructMutiType interface{}            `json:"structMutiType"`
+		ListMultiType   []interface{}          `json:"listMultiType"`
+		MapMultiType    map[string]interface{} `json:"mapMultiType"`
+		StructMultiType interface{}            `json:"structMultiType"`
 	} `json:"nestedStruct"`
-	OptionalMutiType *interface{} `json:"optionalMutiType,omitempty"`
+	OptionalMultiType *interface{} `json:"optionalMultiType,omitempty"`
 }
 -- out/generate/0.0/nil.go --
 package defaultchange
 
 // Generated defines model for Generated.
 type Generated struct {
-	MutiType       interface{}                                    `json:"MutiType"`
-	ListMutiType   []interface{}                                  `json:"listMutiType"`
+	MultiType      interface{}                                    `json:"MultiType"`
+	DoubleList     [][]interface{}                                `json:"doubleList"`
+	EmptyStructs   [][]map[string]interface{}                     `json:"emptyStructs"`
+	ListMultiType  []interface{}                                  `json:"listMultiType"`
 	MapChained     map[string]map[string]interface{}              `json:"mapChained"`
+	MapDoubleList  map[string][][]interface{}                     `json:"mapDoubleList"`
 	MapList        map[string][]interface{}                       `json:"mapList"`
 	MapListChained map[string]map[string]map[string][]interface{} `json:"mapListChained"`
-	MapMutiType    map[string]interface{}                         `json:"mapMutiType"`
+	MapMultiType   map[string]interface{}                         `json:"mapMultiType"`
+	MapTripeList   map[string][][][]interface{}                   `json:"mapTripeList"`
 	NestedStruct   struct {
-		ListMutiType   []interface{}          `json:"listMutiType"`
-		MapMutiType    map[string]interface{} `json:"mapMutiType"`
-		StructMutiType interface{}            `json:"structMutiType"`
+		ListMultiType   []interface{}          `json:"listMultiType"`
+		MapMultiType    map[string]interface{} `json:"mapMultiType"`
+		StructMultiType interface{}            `json:"structMultiType"`
 	} `json:"nestedStruct"`
-	OptionalMutiType *interface{} `json:"optionalMutiType,omitempty"`
+	OptionalMultiType *interface{} `json:"optionalMultiType,omitempty"`
 }
 
 // Defaultchange defines model for defaultchange.
@@ -73,18 +85,22 @@ package defaultchange
 
 // Generated defines model for Generated.
 type Generated struct {
-	MutiType       interface{}                                    `json:"MutiType"`
-	ListMutiType   []interface{}                                  `json:"listMutiType"`
+	MultiType      interface{}                                    `json:"MultiType"`
+	DoubleList     [][]interface{}                                `json:"doubleList"`
+	EmptyStructs   [][]map[string]interface{}                     `json:"emptyStructs"`
+	ListMultiType  []interface{}                                  `json:"listMultiType"`
 	MapChained     map[string]map[string]interface{}              `json:"mapChained"`
+	MapDoubleList  map[string][][]interface{}                     `json:"mapDoubleList"`
 	MapList        map[string][]interface{}                       `json:"mapList"`
 	MapListChained map[string]map[string]map[string][]interface{} `json:"mapListChained"`
-	MapMutiType    map[string]interface{}                         `json:"mapMutiType"`
+	MapMultiType   map[string]interface{}                         `json:"mapMultiType"`
+	MapTripeList   map[string][][][]interface{}                   `json:"mapTripeList"`
 	NestedStruct   struct {
-		ListMutiType   []interface{}          `json:"listMutiType"`
-		MapMutiType    map[string]interface{} `json:"mapMutiType"`
-		StructMutiType interface{}            `json:"structMutiType"`
+		ListMultiType   []interface{}          `json:"listMultiType"`
+		MapMultiType    map[string]interface{} `json:"mapMultiType"`
+		StructMultiType interface{}            `json:"structMultiType"`
 	} `json:"nestedStruct"`
-	OptionalMutiType interface{} `json:"optionalMutiType,omitempty"`
+	OptionalMultiType interface{} `json:"optionalMultiType,omitempty"`
 }
 
 // Defaultchange defines model for defaultchange.
@@ -94,18 +110,22 @@ package defaultchange
 
 // Generated defines model for Generated.
 type Generated struct {
-	MutiType       interface{}                                    `json:"MutiType"`
-	ListMutiType   []interface{}                                  `json:"listMutiType"`
+	MultiType      interface{}                                    `json:"MultiType"`
+	DoubleList     [][]interface{}                                `json:"doubleList"`
+	EmptyStructs   [][]map[string]interface{}                     `json:"emptyStructs"`
+	ListMultiType  []interface{}                                  `json:"listMultiType"`
 	MapChained     map[string]map[string]interface{}              `json:"mapChained"`
+	MapDoubleList  map[string][][]interface{}                     `json:"mapDoubleList"`
 	MapList        map[string][]interface{}                       `json:"mapList"`
 	MapListChained map[string]map[string]map[string][]interface{} `json:"mapListChained"`
-	MapMutiType    map[string]interface{}                         `json:"mapMutiType"`
+	MapMultiType   map[string]interface{}                         `json:"mapMultiType"`
+	MapTripeList   map[string][][][]interface{}                   `json:"mapTripeList"`
 	NestedStruct   struct {
-		ListMutiType   []interface{}          `json:"listMutiType"`
-		MapMutiType    map[string]interface{} `json:"mapMutiType"`
-		StructMutiType interface{}            `json:"structMutiType"`
+		ListMultiType   []interface{}          `json:"listMultiType"`
+		MapMultiType    map[string]interface{} `json:"mapMultiType"`
+		StructMultiType interface{}            `json:"structMultiType"`
 	} `json:"nestedStruct"`
-	OptionalMutiType *interface{} `json:"optionalMutiType,omitempty"`
+	OptionalMultiType *interface{} `json:"optionalMultiType,omitempty"`
 }
 
 // Defaultchange defines model for defaultchange.
