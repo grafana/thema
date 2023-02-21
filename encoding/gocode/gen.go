@@ -80,9 +80,7 @@ func GenerateTypesOpenAPI(sch thema.Schema, cfg *TypeConfigOpenAPI) ([]byte, err
 	if !cfg.UseGoDeclInComments {
 		applyFuncs = append(applyFuncs, fixTODOComments())
 	}
-
 	applyFuncs = append(applyFuncs, cfg.ApplyFuncs...)
-	}
 
 	f, err := openapi.GenerateSchema(sch, cfg.Config)
 	if err != nil {
