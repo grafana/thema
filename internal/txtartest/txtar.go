@@ -392,8 +392,8 @@ func Load(a *txtar.Archive, dir string, args ...string) ([]*build.Instance, erro
 		mfs[f.Name] = &fstest.MapFile{Data: f.Data}
 	}
 
-	if _, has := mfs[filepath.Join("cue.mod", "module.cue")]; !has {
-		mfs[filepath.Join("cue.mod", "module.cue")] = &fstest.MapFile{Data: []byte(fmt.Sprintf("module: %q", testPath))}
+	if _, has := mfs["cue.mod/module.cue"]; !has {
+		mfs["cue.mod/module.cue"] = &fstest.MapFile{Data: []byte(fmt.Sprintf("module: %q", testPath))}
 	}
 
 	var insts []*build.Instance

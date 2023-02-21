@@ -30,6 +30,14 @@ type Rename struct {
 	Before    string `json:"before"`
 	Unchanged string `json:"unchanged"`
 }
+-- out/generate/0.0/expandref.go --
+package defaultchange
+
+// Rename defines model for rename.
+type Rename struct {
+	Before    string `json:"before"`
+	Unchanged string `json:"unchanged"`
+}
 -- out/generate/1.0/group.go --
 package defaultchange
 
@@ -55,6 +63,14 @@ type Rename struct {
 	Unchanged string `json:"unchanged"`
 }
 -- out/generate/1.0/godeclincomments.go --
+package defaultchange
+
+// Rename defines model for rename.
+type Rename struct {
+	After     string `json:"after"`
+	Unchanged string `json:"unchanged"`
+}
+-- out/generate/1.0/expandref.go --
 package defaultchange
 
 // Rename defines model for rename.

@@ -75,7 +75,7 @@ func GenerateTypesOpenAPI(sch thema.Schema, cfg *TypeConfigOpenAPI) ([]byte, err
 	if cfg.NoOptionalPointers {
 		depointer = depointerizer(true)
 	}
-	cfg.ApplyFuncs = append(cfg.ApplyFuncs, depointer, fixRawData())
+	cfg.ApplyFuncs = append(cfg.ApplyFuncs, depointer, fixRawData(), fixUnderscoreInTypeName())
 
 	if !cfg.UseGoDeclInComments {
 		cfg.ApplyFuncs = append(cfg.ApplyFuncs, fixTODOComments())
