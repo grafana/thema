@@ -176,6 +176,38 @@ func fixRawData() dstutil.ApplyFunc {
 	}
 }
 
+// Fixes type name containing underscores in the generated Go files
+func fixUnderscoreInTypeName() dstutil.ApplyFunc {
+	return func(c *dstutil.Cursor) bool {
+		switch x := c.Node().(type) {
+		case *dst.GenDecl:
+			specs, isType := x.Specs[0].(*dst.TypeSpec)
+			if isType && strings.Contains(specs.Name.Name, "_") {
+				oldName := specs.Name.Name
+				specs.Name.Name = withoutUnderscore(specs.Name.Name)
+				x.Decs.Start[0] = strings.ReplaceAll(x.Decs.Start[0], oldName, specs.Name.Name)
+			}
+		case *dst.Field:
+			switch t := x.Type.(type) {
+			case *dst.Ident:
+				if strings.Contains(t.Name, "_") {
+					t.Name = withoutUnderscore(t.Name)
+				}
+			case *dst.StarExpr:
+				i, is := t.X.(*dst.Ident)
+				if is && strings.Contains(i.Name, "_") {
+					i.Name = withoutUnderscore(i.Name)
+				}
+			}
+		}
+		return true
+	}
+}
+
+func withoutUnderscore(name string) string {
+	return strings.ReplaceAll(name, "_", "")
+}
+
 func iterateStruct(s *dst.StructType, existingRawFields map[string]bool) {
 	for _, f := range s.Fields.List {
 		star := setStar(f.Type)

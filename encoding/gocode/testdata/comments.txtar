@@ -157,3 +157,41 @@ type Defaultchange struct {
 	} `json:"nested"`
 	S Struct `json:"s"`
 }
+-- out/generate/0.0/expandref.go --
+package defaultchange
+
+// Defaultchange defines model for defaultchange.
+type Defaultchange struct {
+	// TODO docs
+	Astring *string `json:"astring,omitempty"`
+	N       struct {
+		// nested struct comment
+		Nested struct {
+			// AString struct comment
+			Astring *string `json:"astring,omitempty"`
+		} `json:"nested"`
+
+		// TODO docs
+		Test string `json:"test"`
+	} `json:"n"`
+	Nested struct {
+		N struct {
+			// nested struct comment
+			Nested struct {
+				// AString struct comment
+				Astring *string `json:"astring,omitempty"`
+			} `json:"nested"`
+
+			// TODO docs
+			Test string `json:"test"`
+		} `json:"n"`
+		S struct {
+			// AString struct comment
+			Astring *string `json:"astring,omitempty"`
+		} `json:"s"`
+	} `json:"nested"`
+	S struct {
+		// AString struct comment
+		Astring *string `json:"astring,omitempty"`
+	} `json:"s"`
+}

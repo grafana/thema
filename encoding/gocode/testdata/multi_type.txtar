@@ -130,3 +130,28 @@ type Generated struct {
 
 // Defaultchange defines model for defaultchange.
 type Defaultchange = map[string]interface{}
+-- out/generate/0.0/expandref.go --
+package defaultchange
+
+// Generated defines model for Generated.
+type Generated struct {
+	MultiType      interface{}                                    `json:"MultiType"`
+	DoubleList     [][]interface{}                                `json:"doubleList"`
+	EmptyStructs   [][]map[string]interface{}                     `json:"emptyStructs"`
+	ListMultiType  []interface{}                                  `json:"listMultiType"`
+	MapChained     map[string]map[string]interface{}              `json:"mapChained"`
+	MapDoubleList  map[string][][]interface{}                     `json:"mapDoubleList"`
+	MapList        map[string][]interface{}                       `json:"mapList"`
+	MapListChained map[string]map[string]map[string][]interface{} `json:"mapListChained"`
+	MapMultiType   map[string]interface{}                         `json:"mapMultiType"`
+	MapTripeList   map[string][][][]interface{}                   `json:"mapTripeList"`
+	NestedStruct   struct {
+		ListMultiType   []interface{}          `json:"listMultiType"`
+		MapMultiType    map[string]interface{} `json:"mapMultiType"`
+		StructMultiType interface{}            `json:"structMultiType"`
+	} `json:"nestedStruct"`
+	OptionalMultiType *interface{} `json:"optionalMultiType,omitempty"`
+}
+
+// Defaultchange defines model for defaultchange.
+type Defaultchange = map[string]interface{}
