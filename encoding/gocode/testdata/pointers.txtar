@@ -62,3 +62,13 @@ type Defaultchange struct {
 	Anint   *int     `json:"anint,omitempty"`
 	Astring *string  `json:"astring,omitempty"`
 }
+-- out/generate/0.0/expandref.go --
+package defaultchange
+
+// Defaultchange defines model for defaultchange.
+type Defaultchange struct {
+	Abool   *bool    `json:"abool,omitempty"`
+	Alist   []string `json:"alist,omitempty"`
+	Anint   *int     `json:"anint,omitempty"`
+	Astring *string  `json:"astring,omitempty"`
+}

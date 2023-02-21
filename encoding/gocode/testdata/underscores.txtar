@@ -1,0 +1,157 @@
+-- in.cue --
+package generate
+
+import "github.com/grafana/thema"
+
+thema.#Lineage
+name: "defaultchange"
+seqs: [
+        {
+            schemas: [
+                {
+				    #AType: {
+                        nestedType: #MultiNestedType
+                        optionalNestedType?: #MultiNestedType
+                    }
+
+                    #MultiNestedType: #SomeType | #SomeOtherType
+
+                    #SomeType: {
+                        astring: string
+                    }
+
+                    #SomeOtherType: {
+                        abool: bool
+                    }
+				},
+			]
+		},
+	]
+
+-- out/generate/0.0/group.go --
+package defaultchange
+
+// AType defines model for AType.
+type AType struct {
+	NestedType         interface{}  `json:"nestedType"`
+	OptionalNestedType *interface{} `json:"optionalNestedType,omitempty"`
+}
+
+// SomeOtherType defines model for SomeOtherType.
+type SomeOtherType struct {
+	Abool bool `json:"abool"`
+}
+
+// SomeType defines model for SomeType.
+type SomeType struct {
+	Astring string `json:"astring"`
+}
+-- out/generate/0.0/nil.go --
+package defaultchange
+
+// AType defines model for AType.
+type AType struct {
+	NestedType         interface{}  `json:"nestedType"`
+	OptionalNestedType *interface{} `json:"optionalNestedType,omitempty"`
+}
+
+// SomeOtherType defines model for SomeOtherType.
+type SomeOtherType struct {
+	Abool bool `json:"abool"`
+}
+
+// SomeType defines model for SomeType.
+type SomeType struct {
+	Astring string `json:"astring"`
+}
+
+// Defaultchange defines model for defaultchange.
+type Defaultchange = map[string]interface{}
+-- out/generate/0.0/depointerized.go --
+package defaultchange
+
+// AType defines model for AType.
+type AType struct {
+	NestedType         interface{} `json:"nestedType"`
+	OptionalNestedType interface{} `json:"optionalNestedType,omitempty"`
+}
+
+// SomeOtherType defines model for SomeOtherType.
+type SomeOtherType struct {
+	Abool bool `json:"abool"`
+}
+
+// SomeType defines model for SomeType.
+type SomeType struct {
+	Astring string `json:"astring"`
+}
+
+// Defaultchange defines model for defaultchange.
+type Defaultchange = map[string]interface{}
+-- out/generate/0.0/godeclincomments.go --
+package defaultchange
+
+// AType defines model for AType.
+type AType struct {
+	NestedType         interface{}  `json:"nestedType"`
+	OptionalNestedType *interface{} `json:"optionalNestedType,omitempty"`
+}
+
+// SomeOtherType defines model for SomeOtherType.
+type SomeOtherType struct {
+	Abool bool `json:"abool"`
+}
+
+// SomeType defines model for SomeType.
+type SomeType struct {
+	Astring string `json:"astring"`
+}
+
+// Defaultchange defines model for defaultchange.
+type Defaultchange = map[string]interface{}
+-- out/generate/0.0/expandref.go --
+package defaultchange
+
+import (
+	"encoding/json"
+)
+
+// AType defines model for AType.
+type AType struct {
+	NestedType         ATypeNestedType          `json:"nestedType"`
+	OptionalNestedType *ATypeOptionalNestedType `json:"optionalNestedType,omitempty"`
+}
+
+// ATypeNestedType defines model for AType.NestedType.
+type ATypeNestedType struct {
+	Abool   *bool   `json:"abool,omitempty"`
+	Astring *string `json:"astring,omitempty"`
+	union   json.RawMessage
+}
+
+// ATypeOptionalNestedType defines model for AType.OptionalNestedType.
+type ATypeOptionalNestedType struct {
+	Abool   *bool   `json:"abool,omitempty"`
+	Astring *string `json:"astring,omitempty"`
+	union   json.RawMessage
+}
+
+// MultiNestedType defines model for MultiNestedType.
+type MultiNestedType struct {
+	Abool   *bool   `json:"abool,omitempty"`
+	Astring *string `json:"astring,omitempty"`
+	union   json.RawMessage
+}
+
+// SomeOtherType defines model for SomeOtherType.
+type SomeOtherType struct {
+	Abool bool `json:"abool"`
+}
+
+// SomeType defines model for SomeType.
+type SomeType struct {
+	Astring string `json:"astring"`
+}
+
+// Defaultchange defines model for defaultchange.
+type Defaultchange = map[string]interface{}
