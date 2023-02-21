@@ -75,11 +75,12 @@ func GenerateTypesOpenAPI(sch thema.Schema, cfg *TypeConfigOpenAPI) ([]byte, err
 	if cfg.NoOptionalPointers {
 		depointer = depointerizer(true)
 	}
-	cfg.ApplyFuncs = append(cfg.ApplyFuncs, depointer, fixRawData(), fixUnderscoreInTypeName())
 
+	applyFuncs := []dstutil.ApplyFunc{depointer, fixRawData(), fixUnderscoreInTypeName()}
 	if !cfg.UseGoDeclInComments {
-		cfg.ApplyFuncs = append(cfg.ApplyFuncs, fixTODOComments())
+		applyFuncs = append(applyFuncs, fixTODOComments())
 	}
+	applyFuncs = append(applyFuncs, cfg.ApplyFuncs...)
 
 	f, err := openapi.GenerateSchema(sch, cfg.Config)
 	if err != nil {
@@ -126,7 +127,7 @@ func GenerateTypesOpenAPI(sch thema.Schema, cfg *TypeConfigOpenAPI) ([]byte, err
 
 	return postprocessGoFile(genGoFile{
 		path:     fmt.Sprintf("%s_type_gen.go", sch.Lineage().Name()),
-		appliers: cfg.ApplyFuncs,
+		appliers: applyFuncs,
 		in:       []byte(gostr),
 		errifadd: !cfg.IgnoreDiscoveredImports,
 	})
