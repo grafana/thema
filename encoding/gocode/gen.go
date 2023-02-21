@@ -81,8 +81,7 @@ func GenerateTypesOpenAPI(sch thema.Schema, cfg *TypeConfigOpenAPI) ([]byte, err
 		applyFuncs = append(applyFuncs, fixTODOComments())
 	}
 
-	for _, fn := range cfg.ApplyFuncs {
-		applyFuncs = append(applyFuncs, fn)
+	applyFuncs = append(applyFuncs, cfg.ApplyFuncs...)
 	}
 
 	f, err := openapi.GenerateSchema(sch, cfg.Config)
