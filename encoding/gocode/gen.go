@@ -76,7 +76,7 @@ func GenerateTypesOpenAPI(sch thema.Schema, cfg *TypeConfigOpenAPI) ([]byte, err
 		depointer = depointerizer(true)
 	}
 
-	applyFuncs := []dstutil.ApplyFunc{depointer, fixRawData()}
+	applyFuncs := []dstutil.ApplyFunc{depointer, fixRawData(), fixUnderscoreInTypeName()}
 	if !cfg.UseGoDeclInComments {
 		applyFuncs = append(applyFuncs, fixTODOComments())
 	}

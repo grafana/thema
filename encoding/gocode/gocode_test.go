@@ -3,6 +3,7 @@ package gocode
 import (
 	"testing"
 
+	copenapi "cuelang.org/go/encoding/openapi"
 	"github.com/grafana/thema"
 	"github.com/grafana/thema/encoding/openapi"
 	cuetxtar "github.com/grafana/thema/internal/txtartest"
@@ -43,6 +44,16 @@ func TestGenerate(t *testing.T) {
 			name: "godeclincomments",
 			cfg: &TypeConfigOpenAPI{
 				UseGoDeclInComments: true,
+			},
+		},
+		{
+			name: "expandref",
+			cfg: &TypeConfigOpenAPI{
+				Config: &openapi.Config{
+					Config: &copenapi.Config{
+						ExpandReferences: true,
+					},
+				},
 			},
 		},
 	}

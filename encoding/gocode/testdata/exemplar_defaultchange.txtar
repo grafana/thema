@@ -61,6 +61,23 @@ type Defaultchange struct {
 
 // DefaultchangeAunion defines model for Defaultchange.Aunion.
 type DefaultchangeAunion string
+-- out/generate/0.0/expandref.go --
+package defaultchange
+
+// Defines values for DefaultchangeAunion.
+const (
+	DefaultchangeAunionBar DefaultchangeAunion = "bar"
+	DefaultchangeAunionBaz DefaultchangeAunion = "baz"
+	DefaultchangeAunionFoo DefaultchangeAunion = "foo"
+)
+
+// Defaultchange defines model for defaultchange.
+type Defaultchange struct {
+	Aunion DefaultchangeAunion `json:"aunion"`
+}
+
+// DefaultchangeAunion defines model for Defaultchange.Aunion.
+type DefaultchangeAunion string
 -- out/generate/1.0/group.go --
 package defaultchange
 
@@ -108,6 +125,23 @@ type Defaultchange struct {
 // DefaultchangeAunion defines model for Defaultchange.Aunion.
 type DefaultchangeAunion string
 -- out/generate/1.0/godeclincomments.go --
+package defaultchange
+
+// Defines values for DefaultchangeAunion.
+const (
+	DefaultchangeAunionBar DefaultchangeAunion = "bar"
+	DefaultchangeAunionBaz DefaultchangeAunion = "baz"
+	DefaultchangeAunionFoo DefaultchangeAunion = "foo"
+)
+
+// Defaultchange defines model for defaultchange.
+type Defaultchange struct {
+	Aunion DefaultchangeAunion `json:"aunion"`
+}
+
+// DefaultchangeAunion defines model for Defaultchange.Aunion.
+type DefaultchangeAunion string
+-- out/generate/1.0/expandref.go --
 package defaultchange
 
 // Defines values for DefaultchangeAunion.
