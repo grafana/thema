@@ -13,7 +13,7 @@ require (
 	github.com/deepmap/oapi-codegen v1.12.4
 	github.com/getkin/kin-openapi v0.112.0
 	github.com/google/go-cmp v0.5.8
-	github.com/grafana/cuetsy v0.1.5
+	github.com/grafana/cuetsy v0.1.6
 	github.com/spf13/cobra v1.4.0
 	github.com/stretchr/testify v1.8.1
 	github.com/xeipuuv/gojsonschema v1.2.0
