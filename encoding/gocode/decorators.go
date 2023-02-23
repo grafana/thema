@@ -213,10 +213,35 @@ func findFieldsWithUnderscores(x *dst.Field) {
 			i.Name = withoutUnderscore(i.Name)
 		}
 	case *dst.ArrayType:
-		i, is := t.Elt.(*dst.Ident)
-		if is && strings.Contains(i.Name, "_") {
-			i.Name = withoutUnderscore(i.Name)
+		iterateArrayWithUnderscores(t)
+	case *dst.MapType:
+		iterateMapWithUnderscores(t)
+	}
+}
+
+func iterateArrayWithUnderscores(x *dst.ArrayType) {
+	switch mx := x.Elt.(type) {
+	case *dst.Ident:
+		if strings.Contains(mx.Name, "_") {
+			mx.Name = withoutUnderscore(mx.Name)
 		}
+	case *dst.ArrayType:
+		iterateArrayWithUnderscores(mx)
+	case *dst.MapType:
+		iterateMapWithUnderscores(mx)
+	}
+}
+
+func iterateMapWithUnderscores(x *dst.MapType) {
+	switch mx := x.Value.(type) {
+	case *dst.Ident:
+		if strings.Contains(mx.Name, "_") {
+			mx.Name = withoutUnderscore(mx.Name)
+		}
+	case *dst.ArrayType:
+		iterateArrayWithUnderscores(mx)
+	case *dst.MapType:
+		iterateMapWithUnderscores(mx)
 	}
 }
 
