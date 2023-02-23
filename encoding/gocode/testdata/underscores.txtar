@@ -12,6 +12,11 @@ seqs: [
 				    #AType: {
                         nestedType: #MultiNestedType
                         optionalNestedType?: #MultiNestedType
+                        listNestedType?: [...#MultiNestedType]
+                        doubleListNestedType?: [...[...#MultiNestedType]]
+                        mapNestedType: [string]: #MultiNestedType
+                        mapListNestedType: [string]: [...#MultiNestedType]
+                        mapDoubleListNestedType: [string]: [...[...#MultiNestedType]]
                     }
 
                     #MultiNestedType: #SomeType | #SomeOtherType
@@ -33,8 +38,13 @@ package defaultchange
 
 // AType defines model for AType.
 type AType struct {
-	NestedType         interface{}  `json:"nestedType"`
-	OptionalNestedType *interface{} `json:"optionalNestedType,omitempty"`
+	DoubleListNestedType    [][]interface{}            `json:"doubleListNestedType,omitempty"`
+	ListNestedType          []interface{}              `json:"listNestedType,omitempty"`
+	MapDoubleListNestedType map[string][][]interface{} `json:"mapDoubleListNestedType"`
+	MapListNestedType       map[string][]interface{}   `json:"mapListNestedType"`
+	MapNestedType           map[string]interface{}     `json:"mapNestedType"`
+	NestedType              interface{}                `json:"nestedType"`
+	OptionalNestedType      *interface{}               `json:"optionalNestedType,omitempty"`
 }
 
 // SomeOtherType defines model for SomeOtherType.
@@ -51,8 +61,13 @@ package defaultchange
 
 // AType defines model for AType.
 type AType struct {
-	NestedType         interface{}  `json:"nestedType"`
-	OptionalNestedType *interface{} `json:"optionalNestedType,omitempty"`
+	DoubleListNestedType    [][]interface{}            `json:"doubleListNestedType,omitempty"`
+	ListNestedType          []interface{}              `json:"listNestedType,omitempty"`
+	MapDoubleListNestedType map[string][][]interface{} `json:"mapDoubleListNestedType"`
+	MapListNestedType       map[string][]interface{}   `json:"mapListNestedType"`
+	MapNestedType           map[string]interface{}     `json:"mapNestedType"`
+	NestedType              interface{}                `json:"nestedType"`
+	OptionalNestedType      *interface{}               `json:"optionalNestedType,omitempty"`
 }
 
 // SomeOtherType defines model for SomeOtherType.
@@ -72,8 +87,13 @@ package defaultchange
 
 // AType defines model for AType.
 type AType struct {
-	NestedType         interface{} `json:"nestedType"`
-	OptionalNestedType interface{} `json:"optionalNestedType,omitempty"`
+	DoubleListNestedType    [][]interface{}            `json:"doubleListNestedType,omitempty"`
+	ListNestedType          []interface{}              `json:"listNestedType,omitempty"`
+	MapDoubleListNestedType map[string][][]interface{} `json:"mapDoubleListNestedType"`
+	MapListNestedType       map[string][]interface{}   `json:"mapListNestedType"`
+	MapNestedType           map[string]interface{}     `json:"mapNestedType"`
+	NestedType              interface{}                `json:"nestedType"`
+	OptionalNestedType      interface{}                `json:"optionalNestedType,omitempty"`
 }
 
 // SomeOtherType defines model for SomeOtherType.
@@ -93,8 +113,13 @@ package defaultchange
 
 // AType defines model for AType.
 type AType struct {
-	NestedType         interface{}  `json:"nestedType"`
-	OptionalNestedType *interface{} `json:"optionalNestedType,omitempty"`
+	DoubleListNestedType    [][]interface{}            `json:"doubleListNestedType,omitempty"`
+	ListNestedType          []interface{}              `json:"listNestedType,omitempty"`
+	MapDoubleListNestedType map[string][][]interface{} `json:"mapDoubleListNestedType"`
+	MapListNestedType       map[string][]interface{}   `json:"mapListNestedType"`
+	MapNestedType           map[string]interface{}     `json:"mapNestedType"`
+	NestedType              interface{}                `json:"nestedType"`
+	OptionalNestedType      *interface{}               `json:"optionalNestedType,omitempty"`
 }
 
 // SomeOtherType defines model for SomeOtherType.
@@ -118,8 +143,48 @@ import (
 
 // AType defines model for AType.
 type AType struct {
-	NestedType         ATypeNestedType          `json:"nestedType"`
-	OptionalNestedType *ATypeOptionalNestedType `json:"optionalNestedType,omitempty"`
+	DoubleListNestedType    [][]ATypeDoubleListNestedTypeItem                 `json:"doubleListNestedType,omitempty"`
+	ListNestedType          []ATypeListNestedTypeItem                         `json:"listNestedType,omitempty"`
+	MapDoubleListNestedType map[string][][]ATypeMapDoubleListNestedTypeItem   `json:"mapDoubleListNestedType"`
+	MapListNestedType       map[string][]ATypeMapListNestedTypeItem           `json:"mapListNestedType"`
+	MapNestedType           map[string]ATypeMapNestedTypeAdditionalProperties `json:"mapNestedType"`
+	NestedType              ATypeNestedType                                   `json:"nestedType"`
+	OptionalNestedType      *ATypeOptionalNestedType                          `json:"optionalNestedType,omitempty"`
+}
+
+// ATypeDoubleListNestedTypeItem defines model for AType.doubleListNestedType.Item.
+type ATypeDoubleListNestedTypeItem struct {
+	Abool   *bool   `json:"abool,omitempty"`
+	Astring *string `json:"astring,omitempty"`
+	union   json.RawMessage
+}
+
+// ATypeListNestedTypeItem defines model for AType.listNestedType.Item.
+type ATypeListNestedTypeItem struct {
+	Abool   *bool   `json:"abool,omitempty"`
+	Astring *string `json:"astring,omitempty"`
+	union   json.RawMessage
+}
+
+// ATypeMapDoubleListNestedTypeItem defines model for AType.mapDoubleListNestedType.Item.
+type ATypeMapDoubleListNestedTypeItem struct {
+	Abool   *bool   `json:"abool,omitempty"`
+	Astring *string `json:"astring,omitempty"`
+	union   json.RawMessage
+}
+
+// ATypeMapListNestedTypeItem defines model for AType.mapListNestedType.Item.
+type ATypeMapListNestedTypeItem struct {
+	Abool   *bool   `json:"abool,omitempty"`
+	Astring *string `json:"astring,omitempty"`
+	union   json.RawMessage
+}
+
+// ATypeMapNestedTypeAdditionalProperties defines model for AType.mapNestedType.AdditionalProperties.
+type ATypeMapNestedTypeAdditionalProperties struct {
+	Abool   *bool   `json:"abool,omitempty"`
+	Astring *string `json:"astring,omitempty"`
+	union   json.RawMessage
 }
 
 // ATypeNestedType defines model for AType.NestedType.

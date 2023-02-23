@@ -181,26 +181,44 @@ func fixUnderscoreInTypeName() dstutil.ApplyFunc {
 	return func(c *dstutil.Cursor) bool {
 		switch x := c.Node().(type) {
 		case *dst.GenDecl:
-			specs, isType := x.Specs[0].(*dst.TypeSpec)
-			if isType && strings.Contains(specs.Name.Name, "_") {
-				oldName := specs.Name.Name
-				specs.Name.Name = withoutUnderscore(specs.Name.Name)
-				x.Decs.Start[0] = strings.ReplaceAll(x.Decs.Start[0], oldName, specs.Name.Name)
+			if specs, isType := x.Specs[0].(*dst.TypeSpec); isType {
+				if strings.Contains(specs.Name.Name, "_") {
+					oldName := specs.Name.Name
+					specs.Name.Name = withoutUnderscore(specs.Name.Name)
+					x.Decs.Start[0] = strings.ReplaceAll(x.Decs.Start[0], oldName, specs.Name.Name)
+				}
+				if st, ok := specs.Type.(*dst.StructType); ok {
+					iterateStruct(st, nil)
+				}
+				if mt, ok := specs.Type.(*dst.MapType); ok {
+					iterateMap(mt, nil)
+				}
+				if at, ok := specs.Type.(*dst.ArrayType); ok {
+					iterateArray(at, nil)
+				}
 			}
 		case *dst.Field:
-			switch t := x.Type.(type) {
-			case *dst.Ident:
-				if strings.Contains(t.Name, "_") {
-					t.Name = withoutUnderscore(t.Name)
-				}
-			case *dst.StarExpr:
-				i, is := t.X.(*dst.Ident)
-				if is && strings.Contains(i.Name, "_") {
-					i.Name = withoutUnderscore(i.Name)
-				}
-			}
+			findFieldsWithUnderscores(x)
 		}
 		return true
+	}
+}
+
+func findFieldsWithUnderscores(x *dst.Field) {
+	switch t := x.Type.(type) {
+	case *dst.Ident:
+		if strings.Contains(t.Name, "_") {
+			t.Name = withoutUnderscore(t.Name)
+		}
+	case *dst.StarExpr:
+		i, is := t.X.(*dst.Ident)
+		if is && strings.Contains(i.Name, "_") {
+			i.Name = withoutUnderscore(i.Name)
+		}
+	case *dst.ArrayType:
+		iterateArray(t, nil)
+	case *dst.MapType:
+		iterateMap(t, nil)
 	}
 }
 
@@ -215,6 +233,8 @@ func iterateStruct(s *dst.StructType, existingRawFields map[string]bool) {
 		case *dst.Ident:
 			if existingRawFields[tx.Name] {
 				f.Type = dst.NewIdent(star + "interface{}")
+			} else if strings.Contains(tx.Name, "_") {
+				tx.Name = withoutUnderscore(tx.Name)
 			}
 		case *dst.ArrayType:
 			iterateArray(tx, existingRawFields)
@@ -231,6 +251,8 @@ func iterateMap(s *dst.MapType, existingRawFields map[string]bool) {
 	case *dst.Ident:
 		if existingRawFields[mx.Name] {
 			mx.Name = setStar(mx) + "interface{}"
+		} else if strings.Contains(mx.Name, "_") {
+			mx.Name = withoutUnderscore(mx.Name)
 		}
 	case *dst.ArrayType:
 		iterateArray(mx, existingRawFields)
@@ -244,6 +266,8 @@ func iterateArray(a *dst.ArrayType, existingRawFields map[string]bool) {
 	case *dst.Ident:
 		if existingRawFields[mx.Name] {
 			mx.Name = setStar(mx) + "interface{}"
+		} else if strings.Contains(mx.Name, "_") {
+			mx.Name = withoutUnderscore(mx.Name)
 		}
 	case *dst.ArrayType:
 		iterateArray(mx, existingRawFields)
