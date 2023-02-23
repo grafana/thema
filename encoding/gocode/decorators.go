@@ -190,18 +190,18 @@ func fixUnderscoreInTypeName() dstutil.ApplyFunc {
 				}
 				if st, ok := specs.Type.(*dst.StructType); ok {
 					for _, field := range st.Fields.List {
-						findFieldsWithUnderscore(field)
+						findFieldsWithUnderscores(field)
 					}
 				}
 			}
 		case *dst.Field:
-			findFieldsWithUnderscore(x)
+			findFieldsWithUnderscores(x)
 		}
 		return true
 	}
 }
 
-func findFieldsWithUnderscore(x *dst.Field) {
+func findFieldsWithUnderscores(x *dst.Field) {
 	switch t := x.Type.(type) {
 	case *dst.Ident:
 		if strings.Contains(t.Name, "_") {
