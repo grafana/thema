@@ -182,25 +182,41 @@ func fixUnderscoreInTypeName() dstutil.ApplyFunc {
 		switch x := c.Node().(type) {
 		case *dst.GenDecl:
 			specs, isType := x.Specs[0].(*dst.TypeSpec)
-			if isType && strings.Contains(specs.Name.Name, "_") {
-				oldName := specs.Name.Name
-				specs.Name.Name = withoutUnderscore(specs.Name.Name)
-				x.Decs.Start[0] = strings.ReplaceAll(x.Decs.Start[0], oldName, specs.Name.Name)
+			if isType {
+				if strings.Contains(specs.Name.Name, "_") {
+					oldName := specs.Name.Name
+					specs.Name.Name = withoutUnderscore(specs.Name.Name)
+					x.Decs.Start[0] = strings.ReplaceAll(x.Decs.Start[0], oldName, specs.Name.Name)
+				}
+				if st, ok := specs.Type.(*dst.StructType); ok {
+					for _, field := range st.Fields.List {
+						findFieldsWithUnderscore(field)
+					}
+				}
 			}
 		case *dst.Field:
-			switch t := x.Type.(type) {
-			case *dst.Ident:
-				if strings.Contains(t.Name, "_") {
-					t.Name = withoutUnderscore(t.Name)
-				}
-			case *dst.StarExpr:
-				i, is := t.X.(*dst.Ident)
-				if is && strings.Contains(i.Name, "_") {
-					i.Name = withoutUnderscore(i.Name)
-				}
-			}
+			findFieldsWithUnderscore(x)
 		}
 		return true
+	}
+}
+
+func findFieldsWithUnderscore(x *dst.Field) {
+	switch t := x.Type.(type) {
+	case *dst.Ident:
+		if strings.Contains(t.Name, "_") {
+			t.Name = withoutUnderscore(t.Name)
+		}
+	case *dst.StarExpr:
+		i, is := t.X.(*dst.Ident)
+		if is && strings.Contains(i.Name, "_") {
+			i.Name = withoutUnderscore(i.Name)
+		}
+	case *dst.ArrayType:
+		i, is := t.Elt.(*dst.Ident)
+		if is && strings.Contains(i.Name, "_") {
+			i.Name = withoutUnderscore(i.Name)
+		}
 	}
 }
 
