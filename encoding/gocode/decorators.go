@@ -158,13 +158,13 @@ func fixRawData() dstutil.ApplyFunc {
 						}
 						// Set types that was using these structs as interface{}
 						if st, ok := tp.Type.(*dst.StructType); ok {
-							iterateStruct(st, existingRawFields)
+							iterateStruct(st, withoutRawData(existingRawFields))
 						}
 						if mt, ok := tp.Type.(*dst.MapType); ok {
-							iterateMap(mt, existingRawFields)
+							iterateMap(mt, withoutRawData(existingRawFields))
 						}
 						if at, ok := tp.Type.(*dst.ArrayType); ok {
-							iterateArray(at, existingRawFields)
+							iterateArray(at, withoutRawData(existingRawFields))
 						}
 					}
 				}
@@ -184,17 +184,17 @@ func fixUnderscoreInTypeName() dstutil.ApplyFunc {
 			if specs, isType := x.Specs[0].(*dst.TypeSpec); isType {
 				if strings.Contains(specs.Name.Name, "_") {
 					oldName := specs.Name.Name
-					specs.Name.Name = withoutUnderscore(specs.Name.Name)
+					specs.Name.Name = strings.ReplaceAll(specs.Name.Name, "_", "")
 					x.Decs.Start[0] = strings.ReplaceAll(x.Decs.Start[0], oldName, specs.Name.Name)
 				}
 				if st, ok := specs.Type.(*dst.StructType); ok {
-					iterateStruct(st, nil)
+					iterateStruct(st, withoutUnderscore)
 				}
 				if mt, ok := specs.Type.(*dst.MapType); ok {
-					iterateMap(mt, nil)
+					iterateMap(mt, withoutUnderscore)
 				}
 				if at, ok := specs.Type.(*dst.ArrayType); ok {
-					iterateArray(at, nil)
+					iterateArray(at, withoutUnderscore)
 				}
 			}
 		case *dst.Field:
@@ -207,71 +207,65 @@ func fixUnderscoreInTypeName() dstutil.ApplyFunc {
 func findFieldsWithUnderscores(x *dst.Field) {
 	switch t := x.Type.(type) {
 	case *dst.Ident:
-		if strings.Contains(t.Name, "_") {
-			t.Name = withoutUnderscore(t.Name)
-		}
+		withoutUnderscore(t)
 	case *dst.StarExpr:
-		i, is := t.X.(*dst.Ident)
-		if is && strings.Contains(i.Name, "_") {
-			i.Name = withoutUnderscore(i.Name)
+		if i, is := t.X.(*dst.Ident); is {
+			withoutUnderscore(i)
 		}
 	case *dst.ArrayType:
-		iterateArray(t, nil)
+		iterateArray(t, withoutUnderscore)
 	case *dst.MapType:
-		iterateMap(t, nil)
+		iterateMap(t, withoutUnderscore)
 	}
 }
 
-func withoutUnderscore(name string) string {
-	return strings.ReplaceAll(name, "_", "")
+func withoutUnderscore(i *dst.Ident) {
+	if strings.Contains(i.Name, "_") {
+		i.Name = strings.ReplaceAll(i.Name, "_", "")
+	}
 }
 
-func iterateStruct(s *dst.StructType, existingRawFields map[string]bool) {
-	for _, f := range s.Fields.List {
-		star := setStar(f.Type)
-		switch tx := depoint(f.Type).(type) {
-		case *dst.Ident:
-			if existingRawFields[tx.Name] {
-				f.Type = dst.NewIdent(star + "interface{}")
-			} else if strings.Contains(tx.Name, "_") {
-				tx.Name = withoutUnderscore(tx.Name)
-			}
-		case *dst.ArrayType:
-			iterateArray(tx, existingRawFields)
-		case *dst.MapType:
-			iterateMap(tx, existingRawFields)
-		case *dst.StructType:
-			iterateStruct(tx, existingRawFields)
+func withoutRawData(existingFields map[string]bool) func(ident *dst.Ident) {
+	return func(i *dst.Ident) {
+		if existingFields[i.Name] {
+			i.Name = setStar(i) + "interface{}"
 		}
 	}
 }
 
-func iterateMap(s *dst.MapType, existingRawFields map[string]bool) {
+func iterateStruct(s *dst.StructType, fn func(i *dst.Ident)) {
+	for _, f := range s.Fields.List {
+		switch mx := depoint(f.Type).(type) {
+		case *dst.Ident:
+			fn(mx)
+		case *dst.ArrayType:
+			iterateArray(mx, fn)
+		case *dst.MapType:
+			iterateMap(mx, fn)
+		case *dst.StructType:
+			iterateStruct(mx, fn)
+		}
+	}
+}
+
+func iterateMap(s *dst.MapType, fn func(i *dst.Ident)) {
 	switch mx := s.Value.(type) {
 	case *dst.Ident:
-		if existingRawFields[mx.Name] {
-			mx.Name = setStar(mx) + "interface{}"
-		} else if strings.Contains(mx.Name, "_") {
-			mx.Name = withoutUnderscore(mx.Name)
-		}
+		fn(mx)
 	case *dst.ArrayType:
-		iterateArray(mx, existingRawFields)
+		iterateArray(mx, fn)
 	case *dst.MapType:
-		iterateMap(mx, existingRawFields)
+		iterateMap(mx, fn)
 	}
 }
 
-func iterateArray(a *dst.ArrayType, existingRawFields map[string]bool) {
+func iterateArray(a *dst.ArrayType, fn func(i *dst.Ident)) {
 	switch mx := a.Elt.(type) {
 	case *dst.Ident:
-		if existingRawFields[mx.Name] {
-			mx.Name = setStar(mx) + "interface{}"
-		} else if strings.Contains(mx.Name, "_") {
-			mx.Name = withoutUnderscore(mx.Name)
-		}
+		fn(mx)
 	case *dst.ArrayType:
-		iterateArray(mx, existingRawFields)
+		iterateArray(mx, fn)
 	case *dst.StructType:
-		iterateStruct(mx, existingRawFields)
+		iterateStruct(mx, fn)
 	}
 }
