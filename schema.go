@@ -98,7 +98,14 @@ func (sch *UnarySchema) predecessor() *UnarySchema {
 // within this Schema's major version. If the receiver Schema is the latest, it
 // will return itself.
 func (sch *UnarySchema) LatestInMajor() Schema {
-	return sch.lin.allsch[searchSynv(sch.lin.allv, SyntacticVersion{sch.v[0] + 1, 0})]
+	n := searchSynv(sch.lin.allv, SyntacticVersion{sch.v[0] + 1, 0})
+
+	// If the next major version doesn't exist, n will be out of bound
+	if n == len(sch.lin.allsch) {
+		n -= 1
+	}
+
+	return sch.lin.allsch[n]
 }
 
 // Underlying returns the cue.Value that represents the underlying CUE schema.

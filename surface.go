@@ -298,7 +298,7 @@ func SV(seqv, schv uint) SyntacticVersion {
 // Less reports whether the receiver [SyntacticVersion] is less than the
 // provided one, consistent with the expectations of the stdlib sort package.
 func (sv SyntacticVersion) Less(osv SyntacticVersion) bool {
-	return sv[0] < osv[0] || sv[1] < osv[1]
+	return sv[0] < osv[0] || (sv[0] == osv[0] && sv[1] < osv[1])
 }
 
 func (sv SyntacticVersion) String() string {
