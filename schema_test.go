@@ -7,9 +7,11 @@ import (
 
 	"cuelang.org/go/cue/cuecontext"
 	"cuelang.org/go/cue/errors"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-var linstr = `name: "single"
+var singleLin = `name: "single"
 joinSchema: {}
 seqs: [
 	{
@@ -22,6 +24,23 @@ seqs: [
 			}
 		]
 	}
+]
+`
+
+var multiLin = `name: "multi"
+joinSchema: {}
+seqs: [
+	{
+		schemas: [
+			{
+				abool:   bool
+			},
+			{
+				abool:   bool
+				astring?: string
+			}
+		]
+	},
 ]
 `
 
@@ -38,7 +57,7 @@ type TestType2 struct {
 	Abool   bool   `json:"abool"`
 }
 
-func testLin() Lineage {
+func testLin(linstr string) Lineage {
 	rt := NewRuntime(cuecontext.New())
 	val := rt.Context().CompileString(linstr)
 	lin, err := BindLineage(val, rt)
@@ -53,7 +72,7 @@ func ptr[T any](t T) *T {
 }
 
 func TestBindType(t *testing.T) {
-	lin := testLin()
+	lin := testLin(singleLin)
 
 	tt := &TestType{Astring: ptr("init"), Anint: 10}
 	ts, err := BindType[*TestType](SchemaP(lin, synv(0, 0)), tt)
@@ -80,6 +99,38 @@ func TestBindType(t *testing.T) {
 	if nt2.Anint != 42 {
 		t.Fatalf("expected schema-specified default of 42 for nt2.Anint, got %v", nt2.Anint)
 	}
+}
+
+func TestSuccessor(t *testing.T) {
+	lin := testLin(multiLin)
+	firstSchema := lin.First()
+
+	secondSchema := firstSchema.Successor()
+	require.NotNil(t, secondSchema)
+	assert.Equal(t, SV(0, 1), secondSchema.Version())
+
+	thirdSchema := secondSchema.Successor()
+	require.Nil(t, thirdSchema)
+}
+
+func TestPredecessor(t *testing.T) {
+	lin := testLin(multiLin)
+	latestSchema := lin.Latest()
+
+	secondSchema := latestSchema.Predecessor()
+	require.NotNil(t, secondSchema)
+	assert.Equal(t, SV(0, 0), secondSchema.Version())
+
+	thirdSchema := secondSchema.Predecessor()
+	require.Nil(t, thirdSchema)
+}
+
+func TestLatestInMajor(t *testing.T) {
+	lin := testLin(multiLin)
+	sch := lin.First()
+	latest := sch.LatestInMajor()
+	require.NotNil(t, latest)
+	assert.Equal(t, SV(0, 1), latest.Version())
 }
 
 // scratch test, preserved only as a simpler sandbox for future playing with pointers, generics, reflect
