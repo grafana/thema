@@ -12,7 +12,7 @@ package thema
 // TODO functionize
 #SearchAndValidate: fn={
 	lin: #Lineage
-	inst: {...}
+	inst: {...} // TODO consistently rename to 'object' or something
 
 	out: #LinkedInstance
 	out: [ for _, sch in fn.lin.schemas if ((inst & sch._#schema) != _|_) {
@@ -26,7 +26,7 @@ package thema
 
 #ValidFor: {
 	lin: #Lineage
-	inst: {...}
+	inst: {...} // TODO consistently rename to 'object' or something
 
 	out: #SyntacticVersion
 	out: [ for _, sch in lin.schemas if ((sch._#schema & inst) != _|_) {sch.version}][0]
@@ -36,12 +36,12 @@ package thema
 // #LinkedInstance represents data that is an instance of some schema, the
 // version of that schema, and the lineage of the schema.
 #LinkedInstance: {
-	inst: {...}
-	lin: #Lineage
-	v:   #SyntacticVersion
+	inst: {...} // TODO consistently rename to 'object' or something
+	lin:        #Lineage
+	v:          #SyntacticVersion // TODO rename to 'version'
 
 	// TODO need proper validation/subsumption check here, not simple unification
-	// _valid: inst & (#Pick & {lin: inlin, v: v}).out
+	//	_valid: inst & (#Pick & {lin: L.lin, v: v}).out
 }
 
 // Latest indicates that traversal should continue until the latest schema in

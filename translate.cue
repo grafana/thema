@@ -2,6 +2,13 @@ package thema
 
 import "list"
 
+// TODO docs
+#TranslatedInstance: {
+	#LinkedInstance
+	from: #SyntacticVersion
+	lacunas: [...#Lacuna]
+}
+
 // Translate takes an instance, a lineage, and a rule for deciding a target
 // schema version. The instance is iteratively transformed through the lineage's
 // list of schemas, starting at the version the instance is valid against, and
@@ -17,107 +24,98 @@ import "list"
 	linst: #LinkedInstance
 	to:    #SyntacticVersion
 
-	//	let VF = linst.v
-	//	let VT = to
+	//		let VF = linst.v
+	//		let VT = to
 	//	let inlinst = linst
 	//	let inlinst = T.linst
-	//	let inlin = inlinst
+
+	//	let inlin = inlinst.lin
+	let inlin = linst.lin
 
 	let cmp = (_cmpSV & {l: T.linst.v, r: T.to}).out
 
 	out: {
-		linst: #LinkedInstance
-		lacunas: [...{
-			v: #SyntacticVersion
-			lacunas: [...#Lacuna]
-		}]
+		steps: [...#TranslatedInstance]
+		result: steps[len(steps)-1]
 	}
-	out: [
-		// FIXME For now, we don't support backwards translation. This must change.
-		if cmp == 1 {_|_},
-		if cmp == 0 { linst: T.linst, lacunas: [] },
-		if cmp == -1 {
-			(_forward & { VF: T.linst.v, VT: T.to, inst: T.linst.inst, lin: T.lin }).out
-		}
-	][0]
+	out: {
+		steps: [
+			// to version same as from version
+			if cmp == 0 {result: T.linst, lacunas: []},
+			// to version older/smaller than from version
+			if cmp == 1 {
+				let hi = (_flatidx & {lin: inlin, v: linst.v}).out
 
-//    _transl: {
-//        schemarange: [...#SchemaDecl]
-//
-//		_#step: {
-////			inst: inlinst.lin.joinSchema
-//			inst: _
-//			v:    #SyntacticVersion
-//			lacunas: [...#Lacuna]
-//		}
-//
-//		// The accumulator holds the results of each translation step.
-//		accum: list.Repeat([_#step], len(schemarange)+1)
-//		accum: [{inst: inlinst.inst, v: VF, lacunas: []}, for i, vsch in schemarange {
-//			let lasti = accum[i]
-//			v: vsch.v
-//
-//			if vsch.v[0] == lasti.v[0] {
-//				// Same sequence. Translation is through the implicit lens;
-//				// simple unification.
-//
-//				// NOTE this unification drags along defaults; it's one of
-//				// the key places where thema is maybe-sorta implicitly assuming
-//				// its inputs are concrete instances, and won't work quite right
-//				// with incomplete CUE structures
-//				inst: lasti.inst & (#Pick & { lin: inlin, v: vsch.v }).out
-//				lacunas: []
-//			}
-//			if vsch.v[0] > lasti.v[0] {
-//				// Crossing sequences. Translate via the explicit lens.
-//
-//				// Feed the lens "from" input with the instance output of the
-//				// last translation
-//				let _lens = {from: lasti.inst} & inlin.seqs[vsch.v[0]].lens.forward
-//				inst:    _lens.translated
-//				lacunas: _lens.lacunas
-//			}
-//		}]
-//
-//		out: {
-//			linst: {
-//				inst: accum[len(accum)-1].inst
-//				v:    accum[len(accum)-1].v
-//				lin:  inlin
-//			}
-//			lacunas: [ for step in accum if len(step.lacunas) > 0 {v: step.v, lacunas: step.lacunas}]
-//		}
-//	}
+				let lo = (_flatidx & {lin: inlin, v: to}).out
 
-//    schrange: {
-//        if cmp == 0 { [] },
-//        if cmp == -1 {
-//            let lo = (_flatidx & { lin: inlin, v: VF }).out
-//            let hi = (_flatidx & { lin: inlin, v: VT }).out
-//            list.Slice(inlin._all, lo+1, hi+1)
-//        },
-//		// FIXME For now, we don't support backwards translation. This must change.
-//        if cmp == 1 { _|_ },
-//    }
+				// schrange is the subset of schemas being traversed in this
+				// translation, inclusive of the starting schema. It is in descending
+				// order, such that iterating the list moves backwards through schema versions.
+				//				let schrange = list.Sort(list.Slice(inlin.schemas, lo, hi),
+				//				{
+				//					x:    #SchemaDef
+				//					y:    #SchemaDef
+				//					less: (_cmpSV & {l: x, r: y}).out == -1
+				//				},
+				//				)
 
-//    schrange: (({
-//    	op: 0
-//    	out: []
-//    } | {
-//    	op: -1
-//		let lo = (_flatidx & { lin: inlin, v: VF }).out
-//		let hi = (_flatidx & { lin: inlin, v: VT }).out
-//    	out: list.Slice(inlin._all, lo+1, hi+1)
-//    } | {
-//    	op: 1
-//		// FIXME For now, we don't support backwards translation. This must change.
-//		out: _|_
-//    }) & (_cmpSV & { l: VF, r: VT })).out
+				// schrange is the subset of schemas being traversed in this
+				// translation, inclusive of the starting schema. It is in descending
+				// order, such that iterating the list moves backwards through schema versions.
+				let schrange = list.Slice(inlin.schemas, lo, hi)
 
-//	out: (_transl & {schemarange: schrange}).out
+				_accum: [linst, for i, pos in list.Repeat(hi, lo-1, -1) {
+					// alias pointing to the previous item in the list we're building
+					let prior = _accum[i]
+
+					// the actual schema def
+					let schdef = schrange[pos]
+
+					// "call" predecessor pseudofunc to process the object through the lens
+					(_predecessor & {
+						lin: inlin
+						VF:  prior.v
+						VT:  schdef.version
+						arg: prior.instance
+					}).out
+				}]
+				list.Slice(_accum, 1, -1)
+			},
+			// to version newer/larger than from version
+			if cmp == -1 {
+				let lo = (_flatidx & {lin: inlin, v: linst.v}).out
+				let hi = (_flatidx & {lin: inlin, v: to}).out
+
+				// _schrange contains the subset of schemas being traversed in this
+				// translation, inclusive of the starting schema.
+				let schrange = list.Slice(inlin.schemas, lo, hi)
+				_accum: [linst, for i, schdef in schrange {
+					// alias pointing to the previous item in the list we're building
+					let prior = _accum[i]
+
+					// "call" predecessor pseudofunc to process the object through the lens
+					(_successor & {
+						lin: inlin
+						VF:  prior.v
+						VT:  schdef.version
+						arg: prior.instance
+					}).out
+				}]
+				list.Slice(_accum, 1, -1)
+
+				//			_accum: list.Repeat([#TranslatedInstance], hi-lo+1)
+				//			_accum: [linst, for i, vsch in list.Slice(inlin.schemas, lo+1, hi+1) {
+				//				let lasti = _accum[i]
+				//			}]
+				//			_accum: [linst, for i in list.Range(1, , 1)]
+				//
+				//			(_forward & {VF: T.linst.v, VT: T.to, inst: T.linst.inst, lin: T.lin}).out
+			},
+		][0]
+	}
 }
 
-_forward: {
+_successor: {
 	// lineage we're operating on
 	lin: #Lineage
 	// version translating from
@@ -125,63 +123,50 @@ _forward: {
 	// version translating to
 	VT: #SyntacticVersion
 	// starting data instance
-	inst: {...}
+	arg: {...}
 
-	let lo = (_flatidx & { lin: lin, v: VF }).out
-	let hi = (_flatidx & { lin: lin, v: VT }).out
-	out: (_fn & { schemarange: list.Slice(lin._all, lo+1, hi+1)}).out
-
-	_fn: {
-        schemarange: [...#SchemaDecl]
-
-		_#step: {
-			inst: _
-			version:    #SyntacticVersion
-			lacunas: [...#Lacuna]
+	out: #TranslatedInstance & {
+		linst: {
+			lin:     lin
+			version: VT
 		}
-
-		// The accumulator holds the results of each translation step.
-		accum: list.Repeat([_#step], len(schemarange)+1)
-		accum: [{inst: inst, version: VF, lacunas: []}, for i, vsch in schemarange {
-			let lasti = accum[i]
-			v: vsch.version
-
-			if vsch.version[0] == lasti.version[0] {
-				// Same major version. Translation is through the implicit lens -
-				// simple unification.
-
-				// NOTE this unification drags along defaults; it's one of
-				// the key places where thema is maybe-sorta implicitly assuming
-				// its inputs are concrete instances, and won't work quite right
-				// with incomplete CUE structures
-				inst: lasti.inst & vsch._#schema
-				lacunas: []
-			}
-			if vsch.version[0] > lasti.version[0] {
-				// Crossing major versions. Translate via the explicit lens transform.
-
-				// Feed the lens "from" input with the instance output of the
-				// last translation
-				let x = { from: lasti.inst } & vsch.lens.forward
-				inst: x.map & x.to
-				lacunas: x.lacunas
-//				let _lens = {from: lasti.inst} & inlin.seqs[vsch.version[0]].lens.forward
-//				inst:    _lens.translated
-//				lacunas: _lens.lacunas
-			}
-		}]
-
+	}
+	let sch = (#Pick & {lin: lin, v: VT}).out
+	if VF[0] < VT[0] {
+		// Crossing a major version. The forward lens explicitly defined in the schema
+		// provides the mapping algorithm.
 		out: {
-			linst: {
-				inst: accum[len(accum)-1].inst
-				version:    accum[len(accum)-1].version
-				lin:  lin
-			}
-			lacunas: [ for step in accum if len(step.lacunas) > 0 {v: step.version, lacunas: step.lacunas}]
+			let L = sch.lenses & {input: prior: arg}
+			inst: L.priorToSelf.result
+			lacunas: [ for lac in L.priorToSelf.lacunas if lac.condition {lac}]
 		}
+	}
+
+	if VF[0] == VT[0] {
+		// Only a minor version. Backwards compatibility rules dictate that the mapping
+		// algorithm for the forward lens is generic: simple unification.
+		out: inst: arg & sch._#schema
 	}
 }
 
-#TranslatedInstance: {
-	linst: #LinkedInstance
+_predecessor: {
+	// lineage we're operating on
+	lin: #Lineage
+	// version translating from
+	VF: #SyntacticVersion
+	// version translating to
+	VT: #SyntacticVersion
+	// starting data instance
+	arg: {...}
+
+	let sch = (#Pick & {lin: lin, v: VT}).out
+	let L = sch.lenses & {input: self: arg}
+
+	out: #TranslatedInstance & {
+		inst: L.selfToPrior.result
+		v:    VT
+		from: VF
+		lacunas: [ for lac in L.selfToPrior.lacunas if lac.condition {lac.lacuna}]
+		lin: lin
+	}
 }

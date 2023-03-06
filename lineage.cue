@@ -20,8 +20,7 @@ import (
 	// In the base case, the joinSchema is unconstrained/top - any value may be
 	// used as a schema.
 	//
-	// A lineage's joinSchema may never change as the lineage evolves.
-	//	joinSchema: {}
+	// A lineage's joinSchema must never change as the lineage evolves.
 	joinSchema: struct.MinFields(0)
 
 	// The name of the thing specified by the schemas in this lineage.
@@ -33,7 +32,8 @@ import (
 
 	// The lineage-local handle for #SchemaDef, into which we have injected this
 	// lineage's joinSchema.
-	let Schema = #SchemaDef & {_join: joinSchema}
+	//	let Schema = #SchemaDef & {_join: joinSchema}
+	let Schema = #SchemaDef
 
 	// schemas is the ordered list of all schemas in the lineage. Each element is a
 	// #SchemaDef.
@@ -42,28 +42,33 @@ import (
 	schemas: S=[ for i, _ in schemas {
 		let cur = S[i]
 		Schema & {
-			//			_#schema: cur.schema & joinSchema
 			examples: [string]: cur._#schema
+			//			_#schema: cur.schema & joinSchema
 			if i != 0 {
 				let pre = S[i-1]
-				lens: reverse: {
-					to:   pre._#schema
-					from: cur._#schema
-				}
-				if schemas[i].version[1] == 0 {
-					lens: forward: {
-						to:   cur._#schema
-						from: pre._#schema
+				lenses: {
+					input: {
+						self:  _
+						prior: _
+						// TODO(must) https://github.com/cue-lang/cue/issues/943
+						_selfMust:  self & cur._#schema
+						_priorMust: prior & pre._#schema
 					}
 				}
 			}
 		}
 	}]
 
+	//	counts: _counts
+	// TODO check subsumption (backwards compat) of each schema with its successor natively in CUE
+
 	// _counts tracks the number of versions in each major version in the lineage.
 	// The index corresponds to the major version number, and the value is the
 	// number of minor versions within that major.
 	_counts: [...uint64]
+	if len(schemas) == 1 {
+		_counts: [0]
+	}
 
 	if len(schemas) > 1 {
 		let pos = [0, for i, sch in list.Drop(schemas, 1) if schemas[i].version[0] < sch.version[0] {i + 1}]
@@ -82,12 +87,6 @@ import (
 		// panic: getNodeContext: nodeContext out of sync [recovered]
 		//	panic: getNodeContext: nodeContext out of sync
 	}
-	if len(schemas) == 1 {
-		_counts: [0]
-	}
-
-	counts: _counts
-	// TODO check subsumption (backwards compat) of each schema with its successor natively in CUE
 }
 
 // #SchemaDef represents a single schema declaration in Thema. In addition to
@@ -117,7 +116,7 @@ import (
 
 	// Thema's internal handle for the user-provided schema definition. This
 	// handle is used by all helpers/operations in the thema package. As a
-	// CUE definition, use of this handle means that all thema schemas are
+	// CUE definition, use of this handle entails that all thema schemas are
 	// always recursively closed by default.
 	//
 	// This handle is also unified with the joinSchema of the containing lineage.
@@ -129,65 +128,73 @@ import (
 	// for use in documentation or other non-functional contexts.
 	examples?: [string]: _
 
-	// lens defines a bidirectional relation between this schema and its
-	// predecessor. These relations describe how instances of the predecessor
-	// schema are to be transformed into instances of this schema ("forward"),
-	// and how instances of this schema are to be transformed into its
-	// predecessor ("reverse").
+	// lenses contains the mappings that define how to translate an instance of
+	// this schema to back and forth between this schema and its
+	// predecessor in the lineage.
 	//
-	// Depending on the version, the lens relation may contain zero, one, or two
-	// transforms:
-	//  - 0.0 - zero transforms. A lineage's first schema has no predecessor.
-	//  - n.(x>0) - reverse transform only. A minor version indicates schema
-	//    changes were backwards compatible, so no explicit transform is necessary.
-	//  - (x>0).0 - forward and reverse transform. A breaking change requires
-	//    explicit changes written in both directions.
-	lens: {
+	// Within this field, there may exist a priorToSelf lens, which
+	//
+	// that take an instance of this schema and transform
+	// them into an instance of the predecessor schema, and vice-versa.
+	//
+	// Within lens definitions, this schema and instances of it are referred to as
+	// "self", and the predecessor schema and instances of it are referred to as "prior".
+	//
+	// Depending on the version, there may be zero, one, or two lenses:
+	//  - 0.0 - zero lenses. A lineage's first schema has no predecessor.
+	//  - n.(x>0) - selfToPrior lens only. A minor version increase entails schema
+	//    changes that were backwards compatible, so no explicit lens is necessary.
+	//  - (x>0).0 - selfToPrior and priorToSelf lenses. Breaking changes in the schema
+	//    require lineage authors to explicitly write lenses in both directions.
+	lenses: {
+		// Inputs to the transforms defined within lenses. These fields may not be directly populated by lineage authors. (TODO verify)
+		// Rather, values are dynamically injected by Thema as part of the translate operation.
+		input: {
+			// If populated, a valid instance of this schema.
+			self: _#schema
+			// If populated, a valid instance of the previous schema in this lineage.
+			prior: _
+		}
+
 		if version[1] == 0 {
 			// First schema has no lens
 			if version[0] == 0 {
 				close({})
 			}
 
-			// First schema in non-0 major has a MajorLens, with two transforms
+			// First schema in non-0 major has the MajorLenses set, with two transforms
 			if version[0] != 0 {
-				#MajorLens
+				#MajorLenses
 			}
 		}
 		if version[1] != 0 {
-			// Schemas with non-zero minor versions have a MinorLens, with one transform
-			#MinorLens
+			// Schemas with non-zero minor versions have the MinorLenses set
+			#MinorLenses
 		}
 	}
 }
 
-// MajorLens is a lens between schemas in different major versions - the higher-versioned schema is not compatible with
+// MajorLenses is a lens between schemas in different major versions - the higher-versioned schema is not compatible with
 // the lower-versioned schema.
-#MajorLens: {
-	forward: #Transform
-	reverse: #Transform
+#MajorLenses: {
+	priorToSelf: #Lens
+	selfToPrior: #Lens
 }
 
-// MinorLens is a lens between schemas in the same major versions - the higher-versioned schema is compatible with
+// MinorLenses is a lens between schemas in the same major versions - the higher-versioned schema is compatible with
 // the lower-versioned schema.
-#MinorLens: {
-	reverse: #Transform
+#MinorLenses: {
+	selfToPrior: #Lens
 }
 
-// Transform defines the mapping from one schema to another schema in a lineage,
-// and the lacunas that may exist for specific objects when moving between these schemas.
-#Transform: {
-	// The schema this transform is mapping to.
-	to: {...}
-
-	// The schema this transform is mapping from. Also where the input instance
-	// is placed as an argument to the map.
-	from: {...}
-
+// Lens defines the a transformation that maps the fields of one schema to the fields of
+// another schema, as well as the lacunas that may exist for specific objects when moving
+// between these schemas.
+#Lens: {
 	// The mapping between the 'from' and 'to' schemas.
 	//
-	// The value must be an instance of the 'to' schema, constructed  be equivalent
-	// to an instance of the 'to' schema, constructed through references to the 'from' schema.
+	// The value must be an instance of the 'to' schema, constructed through
+	// references to the 'from' schema.
 	//
 	// For example, if the 'from' and 'to' schemas are:
 	//   from: { a: string }
@@ -196,10 +203,10 @@ import (
 	// and the goal is to remap the field 'a' to be called 'b'. The following 'map'
 	// accomplishes this goal:
 	//   map: { b: from.a }
-	map: {...}
+	result: struct.MinFields(0)
 
 	// lacunas describe semantic gaps in the transform's mapping. See lacuna docs
-	// (TODO) for more information.
+	// for more information (TODO).
 	lacunas?: [...#Lacuna]
 }
 
@@ -277,9 +284,9 @@ _cmpSV: FN={
 }
 
 // TODO functionize
-_flatidx: {
+_flatidx: L={
 	lin: #Lineage
 	v:   #SyntacticVersion
 	// TODO check what happens when out of bounds
-	out: {for i, sch in lin.schemas if sch.version == v {i}}
+	out: {for i, sch in L.lin.schemas if sch.version == v {i}}
 }
