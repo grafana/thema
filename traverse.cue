@@ -41,19 +41,3 @@ package thema
 	// TODO need proper validation/subsumption check here, not simple unification
 	//	_valid: inst & (#Pick & {lin: L.lin, v: v}).out
 }
-
-// Latest indicates that traversal should continue until the latest schema in
-// the entire lineage is reached.
-//#Latest: {
-//	lin: #Lineage
-//	to:  (#LatestVersion & {lin: lin}).out
-//}
-
-// LatestInMajor indicates that, given a starting schema version, traversal
-// should continue to the latest minor version within for the provided major
-// version.
-//#LatestInMajor: {
-//	lin:  #Lineage
-//	from: #SyntacticVersion
-//	to: [from[0], lin._counts[from[0]] - 1]
-//}

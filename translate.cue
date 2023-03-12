@@ -10,12 +10,15 @@ import "list"
 	lacunas: [...#Lacuna]
 }
 
-// Translate takes an instance, a lineage, and to and from versions. The instance
-// is iteratively transformed through the lineage's
-// list of schemas, starting at the version the instance is valid against, and
+// Translate takes an instance, a lineage, and to and from versions.
+//
+// The provided instance must be a valid instance of the 'from' schema.
+//
+// The instance is iteratively transformed through the lineage's lenses,
+// starting from the version the instance is valid against, and
 // continuing until the target schema version is reached.
 //
-// The out values are the instance in final translated form, the schema versions
+// The result is the instance in final translated form, the schema versions
 // at which the translation started and ended, and any lacunas emitted during
 // translation.
 //
@@ -34,6 +37,7 @@ import "list"
 			from:   FV
 			to:     TV
 			result: *steps[len(steps)-1].result | I
+			//			lacunas: list.Concat([ for ti in steps {ti.lacunas}])
 		}
 	}
 	out: {
