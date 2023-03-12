@@ -19,6 +19,8 @@ import (
 )
 
 // TODO OMG WOULD BE SO AMAZING TO MAKE THIS ALL JUST USE github.com/grafana/thema/load
+var ctx = cuecontext.New()
+var rt = thema.NewRuntime(ctx)
 
 type lineageLoadArgs struct {
 	// fs path to the lineage to load. may be absolute or relative, and point to a

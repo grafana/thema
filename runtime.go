@@ -56,7 +56,10 @@ func NewRuntime(ctx *cue.Context) *Runtime {
 		Dir:     path,
 	}
 
-	rt := ctx.BuildInstance(load.Instances(nil, cfg)[0])
+	fmt.Println("BEFORE instances loaded")
+	instances := load.Instances(nil, cfg)
+	fmt.Println("instances loaded: ", len(instances))
+	rt := ctx.BuildInstance(instances[0])
 	if rt.Validate(cue.All()) != nil {
 		// As with the above, an error means that a problem exists in the
 		// literal CUE code embedded in this version of package (that should
