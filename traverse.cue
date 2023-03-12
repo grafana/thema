@@ -11,15 +11,14 @@ package thema
 // TODO optionally check for concreteness of otherwise valid data
 // TODO functionize
 #SearchAndValidate: fn={
-	lin: #Lineage
+	//	lin: #Lineage
+	lin: _
 	inst: {...} // TODO consistently rename to 'object' or something
 
 	out: #LinkedInstance
 	out: [ for _, sch in fn.lin.schemas if ((inst & sch._#schema) != _|_) {
-		v: sch.version
-		// FIXME using the aliased input lineage actually makes the input lineage show up in output, but also makes `cue export` REALLY slow
-		//		lin: fn.lin
-		lin:  lin
+		v:    sch.version
+		lin:  fn.lin
 		inst: inst & sch._#schema
 	}, _|_][0]
 }
@@ -30,7 +29,6 @@ package thema
 
 	out: #SyntacticVersion
 	out: [ for _, sch in lin.schemas if ((sch._#schema & inst) != _|_) {sch.version}][0]
-	//	out: [ for _, sch in lin.schemas if (((sch._#schema & inst) | *_|_) != _|_) {sch.version}][0]
 }
 
 // #LinkedInstance represents data that is an instance of some schema, the
@@ -46,16 +44,16 @@ package thema
 
 // Latest indicates that traversal should continue until the latest schema in
 // the entire lineage is reached.
-#Latest: {
-	lin: #Lineage
-	to:  (#LatestVersion & {lin: lin}).out
-}
+//#Latest: {
+//	lin: #Lineage
+//	to:  (#LatestVersion & {lin: lin}).out
+//}
 
-// LatestWithinSequence indicates that, given a starting schema version,
-// traversal should continue to the latest version within the starting version's
-// sequence.
-#LatestWithinSequence: {
-	lin:  #Lineage
-	from: #SyntacticVersion
-	to: [from[0], lin._counts[from[0]] - 1]
-}
+// LatestInMajor indicates that, given a starting schema version, traversal
+// should continue to the latest minor version within for the provided major
+// version.
+//#LatestInMajor: {
+//	lin:  #Lineage
+//	from: #SyntacticVersion
+//	to: [from[0], lin._counts[from[0]] - 1]
+//}

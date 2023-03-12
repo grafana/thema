@@ -4,13 +4,14 @@ import "list"
 
 // TODO docs
 #TranslatedInstance: {
-	#LinkedInstance
-	from: #SyntacticVersion
+	from:   #SyntacticVersion
+	to:     #SyntacticVersion
+	result: _
 	lacunas: [...#Lacuna]
 }
 
-// Translate takes an instance, a lineage, and a rule for deciding a target
-// schema version. The instance is iteratively transformed through the lineage's
+// Translate takes an instance, a lineage, and to and from versions. The instance
+// is iteratively transformed through the lineage's
 // list of schemas, starting at the version the instance is valid against, and
 // continuing until the target schema version is reached.
 //
@@ -18,155 +19,96 @@ import "list"
 // at which the translation started and ended, and any lacunas emitted during
 // translation.
 //
-// TODO backwards-translation is not yet supported
 // TODO functionize
-#Translate: T={
-	linst: #LinkedInstance
-	to:    #SyntacticVersion
+#Translate: {
+	L=lin: #Lineage
+	I=inst: {...}
+	FV=from: #SyntacticVersion
+	TV=to:   #SyntacticVersion
 
-	//		let VF = linst.v
-	//		let VT = to
-	//	let inlinst = linst
-	//	let inlinst = T.linst
-
-	//	let inlin = inlinst.lin
-	let inlin = linst.lin
-
-	let cmp = (_cmpSV & {l: T.linst.v, r: T.to}).out
+	let cmp = (_cmpSV & {l: from, r: to}).out
 
 	out: {
 		steps: [...#TranslatedInstance]
-		result: steps[len(steps)-1]
+		result: {
+			from:   FV
+			to:     TV
+			result: *steps[len(steps)-1].result | I
+		}
 	}
 	out: {
 		steps: [
-			// to version same as from version
-			if cmp == 0 {result: T.linst, lacunas: []},
 			// to version older/smaller than from version
 			if cmp == 1 {
-				let hi = (_flatidx & {lin: inlin, v: linst.v}).out
-
-				let lo = (_flatidx & {lin: inlin, v: to}).out
-
 				// schrange is the subset of schemas being traversed in this
-				// translation, inclusive of the starting schema. It is in descending
-				// order, such that iterating the list moves backwards through schema versions.
-				//				let schrange = list.Sort(list.Slice(inlin.schemas, lo, hi),
-				//				{
-				//					x:    #SchemaDef
-				//					y:    #SchemaDef
-				//					less: (_cmpSV & {l: x, r: y}).out == -1
-				//				},
-				//				)
+				// translation, inclusive of the starting schema.
+				let hi = (L._flatidx & {v: FV}).out
+				let lo = (L._flatidx & {v: TV}).out
+				let schrange = list.Slice(L._sortedSchemas, lo, hi)
 
-				// schrange is the subset of schemas being traversed in this
-				// translation, inclusive of the starting schema. It is in descending
-				// order, such that iterating the list moves backwards through schema versions.
-				let schrange = list.Slice(inlin.schemas, lo, hi)
-
-				_accum: [linst, for i, pos in list.Repeat(hi, lo-1, -1) {
+				_accum: [{result: I, to: FV}, for i, pos in list.Repeat(hi, lo-1, -1) {
 					// alias pointing to the previous item in the list we're building
 					let prior = _accum[i]
 
 					// the actual schema def
 					let schdef = schrange[pos]
 
-					// "call" predecessor pseudofunc to process the object through the lens
-					(_predecessor & {
-						lin: inlin
-						VF:  prior.v
-						VT:  schdef.version
-						arg: prior.instance
-					}).out
+					// to-predecessor lens position is the flatidx of the to schema,
+					// plus the major version of the from schema.
+					// TODO does having this field in the result, even hidden, cause a problem? does using an alias cause the computation to run more than once?
+					_lens: L.lenses[(L._flatidx & {v: schdef.version}).out+prior.to[0]] & {input: prior.result, from: prior.to, to: schdef.version}
+
+					from: _lens.from
+					to:   _lens.to
+					// TODO initial input isn't necessarily unified with schema - does that make translated output meaningfully different?
+					result: {_lens.result, schdef._#schema}
+					lacunas: [ for lac in _lens.lacunas if lac.condition {lac.lacuna}]
 				}]
-				list.Slice(_accum, 1, -1)
+
+				// Final value excludes initial element from accum, which was the initial input
+				list.Drop(_accum, 1)
 			},
 			// to version newer/larger than from version
 			if cmp == -1 {
-				let lo = (_flatidx & {lin: inlin, v: linst.v}).out
-				let hi = (_flatidx & {lin: inlin, v: to}).out
-
 				// _schrange contains the subset of schemas being traversed in this
 				// translation, inclusive of the starting schema.
-				let schrange = list.Slice(inlin.schemas, lo, hi)
-				_accum: [linst, for i, schdef in schrange {
+				let lo = (L._flatidx & {v: FV}).out
+				let hi = (L._flatidx & {v: TV}).out
+				let schrange = list.Slice(L._sortedSchemas, lo+1, hi+1)
+
+				_accum: [{result: I, to: FV}, for i, schdef in schrange {
 					// alias pointing to the previous item in the list we're building
 					let prior = _accum[i]
 
-					// "call" predecessor pseudofunc to process the object through the lens
-					(_successor & {
-						lin: inlin
-						VF:  prior.v
-						VT:  schdef.version
-						arg: prior.instance
-					}).out
+					if prior.to[0] == schdef.version[0] {
+						// Only a minor version. Backwards compatibility rules dictate that the mapping
+						// algorithm for the forward lens is generic: simple unification.
+						from: prior.to
+						to:   schdef.version
+						//						result: prior.result & schdef._#schema
+						result: {prior.result, schdef._#schema}
+					}
+
+					if prior.to[0] < schdef.version[0] {
+
+						// to-successor lens position is the flatidx of the from schema, plus one
+						// less than the major version of the to schema.
+						// TODO does having this field in the result, even hidden, cause a problem? does using an alias cause the computation to run more than once?
+						_lens: L.lenses[(L._flatidx & {v: prior.to}).out+schdef.version[0]-1] & {input: prior.result}
+
+						from: prior.to
+						to:   schdef.version
+						result: {_lens.result, schdef._#schema}
+						lacunas: [ for lac in _lens.lacunas if lac.condition {lac.lacuna}]
+						// Crossing a major version. The forward lens explicitly defined in the schema
+						// provides the mapping algorithm.
+					}
 				}]
-				list.Slice(_accum, 1, -1)
 
-				//			_accum: list.Repeat([#TranslatedInstance], hi-lo+1)
-				//			_accum: [linst, for i, vsch in list.Slice(inlin.schemas, lo+1, hi+1) {
-				//				let lasti = _accum[i]
-				//			}]
-				//			_accum: [linst, for i in list.Range(1, , 1)]
-				//
-				//			(_forward & {VF: T.linst.v, VT: T.to, inst: T.linst.inst, lin: T.lin}).out
+				// Final value excludes initial element from accum, which was the initial input
+				list.Drop(_accum, 1)
 			},
+			// to version same as from version is a no-op, no conditional represents it
 		][0]
-	}
-}
-
-_successor: {
-	// lineage we're operating on
-	lin: #Lineage
-	// version translating from
-	VF: #SyntacticVersion
-	// version translating to
-	VT: #SyntacticVersion
-	// starting data instance
-	arg: {...}
-
-	out: #TranslatedInstance & {
-		linst: {
-			lin:     lin
-			version: VT
-		}
-	}
-	let sch = (#Pick & {lin: lin, v: VT}).out
-	if VF[0] < VT[0] {
-		// Crossing a major version. The forward lens explicitly defined in the schema
-		// provides the mapping algorithm.
-		out: {
-			let L = sch.lenses & {input: prior: arg}
-			inst: L.priorToSelf.result
-			lacunas: [ for lac in L.priorToSelf.lacunas if lac.condition {lac}]
-		}
-	}
-
-	if VF[0] == VT[0] {
-		// Only a minor version. Backwards compatibility rules dictate that the mapping
-		// algorithm for the forward lens is generic: simple unification.
-		out: inst: arg & sch._#schema
-	}
-}
-
-_predecessor: {
-	// lineage we're operating on
-	lin: #Lineage
-	// version translating from
-	VF: #SyntacticVersion
-	// version translating to
-	VT: #SyntacticVersion
-	// starting data instance
-	arg: {...}
-
-	let sch = (#Pick & {lin: lin, v: VT}).out
-	let L = sch.lenses & {input: self: arg}
-
-	out: #TranslatedInstance & {
-		inst: L.selfToPrior.result
-		v:    VT
-		from: VF
-		lacunas: [ for lac in L.selfToPrior.lacunas if lac.condition {lac.lacuna}]
-		lin: lin
 	}
 }
