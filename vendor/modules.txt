@@ -1,0 +1,280 @@
+# cuelang.org/go v0.5.0-beta.2
+## explicit; go 1.18
+cuelang.org/go/cue
+cuelang.org/go/cue/ast
+cuelang.org/go/cue/ast/astutil
+cuelang.org/go/cue/build
+cuelang.org/go/cue/cuecontext
+cuelang.org/go/cue/errors
+cuelang.org/go/cue/format
+cuelang.org/go/cue/literal
+cuelang.org/go/cue/load
+cuelang.org/go/cue/parser
+cuelang.org/go/cue/scanner
+cuelang.org/go/cue/stats
+cuelang.org/go/cue/token
+cuelang.org/go/encoding/gocode/gocodec
+cuelang.org/go/encoding/json
+cuelang.org/go/encoding/jsonschema
+cuelang.org/go/encoding/openapi
+cuelang.org/go/encoding/protobuf
+cuelang.org/go/encoding/protobuf/jsonpb
+cuelang.org/go/encoding/protobuf/pbinternal
+cuelang.org/go/encoding/protobuf/textproto
+cuelang.org/go/encoding/yaml
+cuelang.org/go/internal
+cuelang.org/go/internal/astinternal
+cuelang.org/go/internal/cli
+cuelang.org/go/internal/core/adt
+cuelang.org/go/internal/core/compile
+cuelang.org/go/internal/core/convert
+cuelang.org/go/internal/core/debug
+cuelang.org/go/internal/core/dep
+cuelang.org/go/internal/core/eval
+cuelang.org/go/internal/core/export
+cuelang.org/go/internal/core/runtime
+cuelang.org/go/internal/core/subsume
+cuelang.org/go/internal/core/validate
+cuelang.org/go/internal/core/walk
+cuelang.org/go/internal/encoding
+cuelang.org/go/internal/encoding/json
+cuelang.org/go/internal/encoding/yaml
+cuelang.org/go/internal/filetypes
+cuelang.org/go/internal/source
+cuelang.org/go/internal/task
+cuelang.org/go/internal/third_party/yaml
+cuelang.org/go/internal/types
+cuelang.org/go/internal/value
+cuelang.org/go/pkg
+cuelang.org/go/pkg/crypto/ed25519
+cuelang.org/go/pkg/crypto/hmac
+cuelang.org/go/pkg/crypto/md5
+cuelang.org/go/pkg/crypto/sha1
+cuelang.org/go/pkg/crypto/sha256
+cuelang.org/go/pkg/crypto/sha512
+cuelang.org/go/pkg/encoding/base64
+cuelang.org/go/pkg/encoding/csv
+cuelang.org/go/pkg/encoding/hex
+cuelang.org/go/pkg/encoding/json
+cuelang.org/go/pkg/encoding/yaml
+cuelang.org/go/pkg/html
+cuelang.org/go/pkg/internal
+cuelang.org/go/pkg/list
+cuelang.org/go/pkg/math
+cuelang.org/go/pkg/math/bits
+cuelang.org/go/pkg/net
+cuelang.org/go/pkg/path
+cuelang.org/go/pkg/regexp
+cuelang.org/go/pkg/strconv
+cuelang.org/go/pkg/strings
+cuelang.org/go/pkg/struct
+cuelang.org/go/pkg/text/tabwriter
+cuelang.org/go/pkg/text/template
+cuelang.org/go/pkg/time
+cuelang.org/go/pkg/tool
+cuelang.org/go/pkg/tool/cli
+cuelang.org/go/pkg/tool/exec
+cuelang.org/go/pkg/tool/file
+cuelang.org/go/pkg/tool/http
+cuelang.org/go/pkg/tool/os
+cuelang.org/go/pkg/uuid
+# github.com/cockroachdb/apd/v2 v2.0.2
+## explicit
+github.com/cockroachdb/apd/v2
+# github.com/dave/dst v0.27.2
+## explicit; go 1.18
+github.com/dave/dst
+github.com/dave/dst/decorator
+github.com/dave/dst/decorator/resolver
+github.com/dave/dst/decorator/resolver/gopackages
+github.com/dave/dst/decorator/resolver/gotypes
+github.com/dave/dst/dstutil
+# github.com/davecgh/go-spew v1.1.1
+## explicit
+github.com/davecgh/go-spew/spew
+# github.com/deepmap/oapi-codegen v1.12.4
+## explicit; go 1.18
+github.com/deepmap/oapi-codegen/pkg/codegen
+github.com/deepmap/oapi-codegen/pkg/util
+# github.com/emicklei/proto v1.10.0
+## explicit; go 1.12
+github.com/emicklei/proto
+# github.com/getkin/kin-openapi v0.112.0
+## explicit; go 1.16
+github.com/getkin/kin-openapi/jsoninfo
+github.com/getkin/kin-openapi/openapi3
+# github.com/go-openapi/jsonpointer v0.19.5
+## explicit; go 1.13
+github.com/go-openapi/jsonpointer
+# github.com/go-openapi/swag v0.21.1
+## explicit; go 1.11
+github.com/go-openapi/swag
+# github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
+## explicit
+github.com/golang/glog
+# github.com/google/go-cmp v0.5.8
+## explicit; go 1.13
+github.com/google/go-cmp/cmp
+github.com/google/go-cmp/cmp/internal/diff
+github.com/google/go-cmp/cmp/internal/flags
+github.com/google/go-cmp/cmp/internal/function
+github.com/google/go-cmp/cmp/internal/value
+# github.com/google/uuid v1.3.0
+## explicit
+github.com/google/uuid
+# github.com/grafana/cuetsy v0.1.6
+## explicit; go 1.16
+github.com/grafana/cuetsy
+github.com/grafana/cuetsy/ts
+github.com/grafana/cuetsy/ts/ast
+# github.com/inconshreveable/mousetrap v1.0.0
+## explicit
+github.com/inconshreveable/mousetrap
+# github.com/invopop/yaml v0.1.0
+## explicit; go 1.14
+github.com/invopop/yaml
+# github.com/josharian/intern v1.0.0
+## explicit; go 1.5
+github.com/josharian/intern
+# github.com/kr/text v0.2.0
+## explicit
+github.com/kr/text
+# github.com/labstack/echo/v4 v4.9.1
+## explicit; go 1.17
+github.com/labstack/echo/v4
+# github.com/labstack/gommon v0.4.0
+## explicit; go 1.12
+github.com/labstack/gommon/color
+github.com/labstack/gommon/log
+# github.com/liamg/memoryfs v1.6.0
+## explicit; go 1.17
+github.com/liamg/memoryfs
+# github.com/mailru/easyjson v0.7.7
+## explicit; go 1.12
+github.com/mailru/easyjson/buffer
+github.com/mailru/easyjson/jlexer
+github.com/mailru/easyjson/jwriter
+# github.com/mattn/go-colorable v0.1.13
+## explicit; go 1.15
+github.com/mattn/go-colorable
+# github.com/mattn/go-isatty v0.0.16
+## explicit; go 1.15
+github.com/mattn/go-isatty
+# github.com/mitchellh/go-wordwrap v1.0.1
+## explicit; go 1.14
+github.com/mitchellh/go-wordwrap
+# github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
+## explicit
+github.com/mohae/deepcopy
+# github.com/mpvl/unique v0.0.0-20150818121801-cbe035fff7de
+## explicit
+github.com/mpvl/unique
+# github.com/pkg/errors v0.9.1
+## explicit
+github.com/pkg/errors
+# github.com/pmezard/go-difflib v1.0.0
+## explicit
+github.com/pmezard/go-difflib/difflib
+# github.com/protocolbuffers/txtpbfmt v0.0.0-20220428173112-74888fd59c2b
+## explicit; go 1.13
+github.com/protocolbuffers/txtpbfmt/ast
+github.com/protocolbuffers/txtpbfmt/parser
+github.com/protocolbuffers/txtpbfmt/unquote
+# github.com/spf13/cobra v1.4.0
+## explicit; go 1.15
+github.com/spf13/cobra
+# github.com/spf13/pflag v1.0.5
+## explicit; go 1.12
+github.com/spf13/pflag
+# github.com/stretchr/testify v1.8.1
+## explicit; go 1.13
+github.com/stretchr/testify/assert
+github.com/stretchr/testify/require
+# github.com/valyala/bytebufferpool v1.0.0
+## explicit
+github.com/valyala/bytebufferpool
+# github.com/valyala/fasttemplate v1.2.2
+## explicit; go 1.12
+github.com/valyala/fasttemplate
+# github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f
+## explicit
+github.com/xeipuuv/gojsonpointer
+# github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415
+## explicit
+github.com/xeipuuv/gojsonreference
+# github.com/xeipuuv/gojsonschema v1.2.0
+## explicit
+github.com/xeipuuv/gojsonschema
+# github.com/xlab/treeprint v1.1.0
+## explicit; go 1.13
+github.com/xlab/treeprint
+# github.com/yalue/merged_fs v1.2.2
+## explicit; go 1.16
+github.com/yalue/merged_fs
+# golang.org/x/crypto v0.1.0
+## explicit; go 1.17
+golang.org/x/crypto/acme
+golang.org/x/crypto/acme/autocert
+# golang.org/x/mod v0.7.0
+## explicit; go 1.17
+golang.org/x/mod/internal/lazyregexp
+golang.org/x/mod/modfile
+golang.org/x/mod/module
+golang.org/x/mod/semver
+# golang.org/x/net v0.2.0
+## explicit; go 1.17
+golang.org/x/net/http/httpguts
+golang.org/x/net/http2
+golang.org/x/net/http2/h2c
+golang.org/x/net/http2/hpack
+golang.org/x/net/idna
+# golang.org/x/sys v0.2.0
+## explicit; go 1.17
+golang.org/x/sys/execabs
+golang.org/x/sys/unix
+# golang.org/x/text v0.4.0
+## explicit; go 1.17
+golang.org/x/text/cases
+golang.org/x/text/encoding
+golang.org/x/text/encoding/internal
+golang.org/x/text/encoding/internal/identifier
+golang.org/x/text/encoding/unicode
+golang.org/x/text/internal
+golang.org/x/text/internal/language
+golang.org/x/text/internal/language/compact
+golang.org/x/text/internal/tag
+golang.org/x/text/internal/utf8internal
+golang.org/x/text/language
+golang.org/x/text/runes
+golang.org/x/text/secure/bidirule
+golang.org/x/text/transform
+golang.org/x/text/unicode/bidi
+golang.org/x/text/unicode/norm
+# golang.org/x/tools v0.3.0
+## explicit; go 1.18
+golang.org/x/tools/go/ast/astutil
+golang.org/x/tools/go/gcexportdata
+golang.org/x/tools/go/internal/packagesdriver
+golang.org/x/tools/go/packages
+golang.org/x/tools/imports
+golang.org/x/tools/internal/event
+golang.org/x/tools/internal/event/core
+golang.org/x/tools/internal/event/keys
+golang.org/x/tools/internal/event/label
+golang.org/x/tools/internal/fastwalk
+golang.org/x/tools/internal/gcimporter
+golang.org/x/tools/internal/gocommand
+golang.org/x/tools/internal/gopathwalk
+golang.org/x/tools/internal/goroot
+golang.org/x/tools/internal/imports
+golang.org/x/tools/internal/packagesinternal
+golang.org/x/tools/internal/pkgbits
+golang.org/x/tools/internal/typeparams
+golang.org/x/tools/internal/typesinternal
+golang.org/x/tools/txtar
+# gopkg.in/yaml.v2 v2.4.0
+## explicit; go 1.15
+gopkg.in/yaml.v2
+# gopkg.in/yaml.v3 v3.0.1
+## explicit
+gopkg.in/yaml.v3
