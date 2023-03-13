@@ -17,13 +17,14 @@ var rt = thema.NewRuntime(cuecontext.New())
 
 type fn string
 
-const fn_validate fn = "validate"
-const fn_hydrate fn = "hydrade"
+const validateAny fn = "validateAny"
+const hydrate fn = "hydrade"
+const translateToLatest fn = "translateToLatest"
 
 func main() {
 	fmt.Println("Go Web Assembly")
-	js.Global().Set(string(fn_validate), wrapValidate(fn_validate))
-	js.Global().Set(string(fn_hydrate), wrapValidate(fn_hydrate))
+	js.Global().Set(string(validateAny), wrapValidate(validateAny))
+	js.Global().Set(string(translateToLatest), wrapValidate(translateToLatest))
 	<-make(chan bool)
 }
 
@@ -130,37 +131,94 @@ func handle(action fn, lineage string, version string, data string) (string, err
 	}
 
 	switch action {
-	case fn_validate:
-		return runValidate(lin, version, datval)
-	case fn_hydrate:
-		return runHydrate(lin, datval)
+	case validateAny:
+		return runValidateAny(lin, version, datval)
+	case translateToLatest:
+		return runTranslateToLatest(lin, version, datval)
+	//case hydrate:
+	//	return runHydrate(lin, datval)
 	default:
 		return "", fmt.Errorf("undefined action")
 	}
 
 }
 
-func runValidate(lin thema.Lineage, version string, datval cue.Value) (string, error) {
+func runValidateAny(lin thema.Lineage, _ string, datval cue.Value) (string, error) {
 	if !datval.Exists() {
 		panic("datval does not exist")
 	}
 
-	synv, err := thema.ParseSyntacticVersion(version)
-	if err != nil {
-		return "", err
+	// TODO - is this needed?
+	//var reterr error
+	//if dc.lla.dl.sch != nil {
+	//	_, reterr = dc.lla.dl.sch.Validate(dc.datval)
+	//	if reterr == nil {
+	//		fmt.Fprintf(cmd.OutOrStdout(), "%s\n", dc.lla.dl.sch.Version())
+	//		return nil
+	//	}
+	//}
+
+	inst := lin.ValidateAny(datval)
+	if inst != nil {
+		return fmt.Sprintf("%s\n", inst.Schema().Version()), nil
 	}
 
-	sch, err := lin.Schema(synv)
-	if err != nil {
-		return "", err
+	//if reterr != nil {
+	//	return "", reterr
+	//}
+
+	return "", fmt.Errorf("does not match any version")
+}
+
+func runTranslateToLatest(lin thema.Lineage, _ string, datval cue.Value) (string, error) {
+	if !datval.Exists() {
+		panic("datval does not exist")
 	}
 
-	_, err = sch.Validate(datval)
-	if err != nil {
-		return "", err
+	inst := lin.ValidateAny(datval)
+	if inst == nil {
+		return "", errors.New("input data is not valid for any schema in lineage")
 	}
 
-	return "", nil
+	tinst, lac := inst.Translate(lin.Latest().Version())
+	if tinst == nil {
+		panic("unreachable, thema.Translate() should never return a nil instance")
+	}
+
+	raw := tinst.Underlying()
+	if !raw.Exists() {
+		return "", errors.New("should be unreachable - result should at least always exist")
+	}
+
+	if raw.Err() != nil {
+		return "", fmt.Errorf("translated value has errors, should be unreachable: %w", raw.Err())
+	}
+
+	if !raw.IsConcrete() {
+		return "", fmt.Errorf("translated value is not concrete (TODO print non-concrete fields)")
+	}
+
+	// TODO support non-JSON output
+	r := translationResult{
+		From:    inst.Schema().Version().String(),
+		To:      tinst.Schema().Version().String(),
+		Result:  tinst.Underlying(),
+		Lacunas: lac,
+	}
+
+	byt, err := json.MarshalIndent(r, "", "  ")
+	if err != nil {
+		return "", fmt.Errorf("error marshaling translation result to JSON: %w", err)
+	}
+
+	return string(byt), nil
+}
+
+type translationResult struct {
+	From    string                   `json:"from"`
+	To      string                   `json:"to,omitempty"`
+	Result  cue.Value                `json:"result"`
+	Lacunas thema.TranslationLacunas `json:"lacunas"`
 }
 
 func runHydrate(lin thema.Lineage, datval cue.Value) (string, error) {
