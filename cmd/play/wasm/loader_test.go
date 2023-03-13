@@ -11,7 +11,7 @@ seqs: [
 		schemas: [
 			// v0.0
 			{
-				field1: string
+				field1: int
 			},
 			// v0.1
 			{
@@ -23,9 +23,11 @@ seqs: [
 `
 
 func TestValidate(t *testing.T) {
-	_, err := validate(inputLineage, "0.0", `{"field1":"1"}`)
+	res, err := handle(fn_validate, inputLineage, "0.0", `{"field1":"1"}`)
 	assert.NoError(t, err)
+	_ = res
 
-	_, err = validate(inputLineage, "0.0", `{"field1":1}`)
+	res, err = handle(fn_validate, inputLineage, "0.0", `{"field1":1}`)
 	assert.Error(t, err)
+	_ = res
 }
