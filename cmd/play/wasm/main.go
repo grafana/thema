@@ -1,89 +1,117 @@
 package main
 
 import (
-	"cuelang.org/go/cue"
 	"cuelang.org/go/cue/cuecontext"
 	"fmt"
 	"github.com/grafana/thema"
+	"github.com/grafana/thema/load"
 	"github.com/grafana/thema/vmux"
-	"syscall/js"
+	"github.com/liamg/memoryfs"
 )
+
+var rt = thema.NewRuntime(cuecontext.New())
 
 func main() {
 	fmt.Println("Go Web Assembly")
-	var ctx = cuecontext.New()
-	var rt = thema.NewRuntime(ctx)
 	fmt.Println(rt.Underlying().String())
+
 	//js.Global().Set("validate", wrapValidate())
 	<-make(chan bool)
 }
 
-func wrapValidate() js.Func {
-	fn := js.FuncOf(func(this js.Value, args []js.Value) any {
-		if len(args) != 3 {
-			result := map[string]any{
-				"error": "Invalid no of arguments passed",
-			}
-			return result
-		}
+//func wrapValidate() js.Func {
+//	fn := js.FuncOf(func(this js.Value, args []js.Value) any {
+//		if len(args) != 3 {
+//			result := map[string]any{
+//				"error": "Invalid no of arguments passed",
+//			}
+//			return result
+//		}
+//
+//		jsDoc := js.Global().Get("document")
+//		if !jsDoc.Truthy() {
+//			result := map[string]any{
+//				"error": "Unable to get document object",
+//			}
+//			return result
+//		}
+//
+//		jsOutput := jsDoc.Call("getElementById", "output")
+//		if !jsOutput.Truthy() {
+//			result := map[string]any{
+//				"error": "Unable to get output text area",
+//			}
+//			return result
+//		}
+//		fmt.Printf("args %s\n", args)
+//
+//		lineage := args[0].String()
+//		fmt.Printf("input lineage %s\n", lineage)
+//
+//		version := args[1].String()
+//		fmt.Printf("input version %s\n", version)
+//
+//		data := args[2].String()
+//		fmt.Printf("input data %s\n", data)
+//
+//		result, err := validate(lineage, version, data)
+//		if err != nil {
+//			errStr := fmt.Sprintf("validation failed: %s\n", err)
+//			result := map[string]any{
+//				"error": errStr,
+//			}
+//			return result
+//		}
+//
+//		jsOutput.Set("value", result)
+//		return nil
+//	})
+//
+//	return fn
+//}
 
-		jsDoc := js.Global().Get("document")
-		if !jsDoc.Truthy() {
-			result := map[string]any{
-				"error": "Unable to get document object",
-			}
-			return result
-		}
+func loadLineage(lineage []byte) (thema.Lineage, error) {
+	fs := memoryfs.New()
 
-		jsOutput := jsDoc.Call("getElementById", "output")
-		if !jsOutput.Truthy() {
-			result := map[string]any{
-				"error": "Unable to get output text area",
-			}
-			return result
-		}
-		fmt.Printf("args %s\n", args)
+	// Create cue.mod
+	err := fs.MkdirAll("cue.mod", 0777)
+	if err != nil {
+		panic(err)
+	}
 
-		lineage := args[0].String()
-		fmt.Printf("input lineage %s\n", lineage)
+	// Create module.cue
+	err = fs.WriteFile("cue.mod/module.cue", []byte(`module: "github.com/grafana/ship"`), 0777)
+	if err != nil {
+		return nil, err
+	}
 
-		version := args[1].String()
-		fmt.Printf("input version %s\n", version)
+	err = fs.WriteFile("ship.cue", lineage, 0777)
+	if err != nil {
+		return nil, err
+	}
 
-		data := args[2].String()
-		fmt.Printf("input data %s\n", data)
+	inst, err := load.InstanceWithThema(fs, "")
+	if err != nil {
+		return nil, err
+	}
 
-		result, err := validate(lineage, version, data)
-		if err != nil {
-			errStr := fmt.Sprintf("validation failed: %s\n", err)
-			result := map[string]any{
-				"error": errStr,
-			}
-			return result
-		}
+	val := rt.Context().BuildInstance(inst)
+	lin, err := thema.BindLineage(val, rt)
+	if err != nil {
+		return nil, err
+	}
 
-		jsOutput.Set("value", result)
-		return nil
-	})
-
-	return fn
+	return lin, nil
 }
 
-func validate(lineagePath string, version string, data string) (string, error) {
-	lla := new(lineageLoadArgs)
-	var datval cue.Value
-
-	// TODO: make it use bytes, not file path
-	lla.inputLinFilePath = lineagePath
-	lla.verstr = version
-
-	err := lla.validateLineageInput(nil, nil)
+func validate(lineage string, version string, data string) (string, error) {
+	lin, err := loadLineage([]byte(lineage))
 	if err != nil {
-		return "", fmt.Errorf("failed to validate lineagePath input: %v", err)
+		return "", err
 	}
 
 	jd := vmux.NewJSONCodec("stdin")
-	datval, err = jd.Decode(rt.Underlying().Context(), []byte(data))
+	datval, err := jd.Decode(rt.Underlying().Context(), []byte(data))
 	if err != nil {
 		return "", err
 	}
@@ -92,7 +120,17 @@ func validate(lineagePath string, version string, data string) (string, error) {
 		panic("datval does not exist")
 	}
 
-	_, err = lla.dl.sch.Validate(datval)
+	synv, err := thema.ParseSyntacticVersion(version)
+	if err != nil {
+		return "", err
+	}
+
+	sch, err := lin.Schema(synv)
+	if err != nil {
+		return "", err
+	}
+
+	_, err = sch.Validate(datval)
 	if err != nil {
 		return "", err
 	}

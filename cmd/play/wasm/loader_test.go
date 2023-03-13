@@ -5,10 +5,33 @@ import (
 	"testing"
 )
 
+var inputLineage = `
+package ship
+
+import "github.com/grafana/thema"
+
+thema.#Lineage
+name: "ship"
+seqs: [
+	{
+		schemas: [
+			// v0.0
+			{
+				field1: string
+			},
+			// v0.1
+			{
+				field1: string
+			},
+		]
+	},
+]
+`
+
 func TestValidate(t *testing.T) {
-	_, err := validate("/Users/tb/Desktop/ship.cue", "0.0", `{"field1":"1"}`)
+	_, err := validate(inputLineage, "0.0", `{"field1":"1"}`)
 	assert.NoError(t, err)
 
-	_, err = validate("/Users/tb/Desktop/ship.cue", "0.0", `{"field1":1}`)
+	_, err = validate(inputLineage, "0.0", `{"field1":1}`)
 	assert.Error(t, err)
 }
