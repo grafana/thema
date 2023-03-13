@@ -6,12 +6,6 @@ import (
 )
 
 var inputLineage = `
-package ship
-
-import "github.com/grafana/thema"
-
-thema.#Lineage
-name: "ship"
 seqs: [
 	{
 		schemas: [
