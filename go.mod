@@ -14,6 +14,7 @@ require (
 	github.com/getkin/kin-openapi v0.112.0
 	github.com/google/go-cmp v0.5.8
 	github.com/grafana/cuetsy v0.1.6
+	github.com/liamg/memoryfs v1.6.0
 	github.com/spf13/cobra v1.4.0
 	github.com/stretchr/testify v1.8.1
 	github.com/xeipuuv/gojsonschema v1.2.0
