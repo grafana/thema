@@ -7,6 +7,7 @@ import (
 	"github.com/grafana/thema/load"
 	"github.com/grafana/thema/vmux"
 	"github.com/liamg/memoryfs"
+	"syscall/js"
 )
 
 var rt = thema.NewRuntime(cuecontext.New())
@@ -15,60 +16,60 @@ func main() {
 	fmt.Println("Go Web Assembly")
 	fmt.Println(rt.Underlying().String())
 
-	//js.Global().Set("validate", wrapValidate())
+	js.Global().Set("validate", wrapValidate())
 	<-make(chan bool)
 }
 
-//func wrapValidate() js.Func {
-//	fn := js.FuncOf(func(this js.Value, args []js.Value) any {
-//		if len(args) != 3 {
-//			result := map[string]any{
-//				"error": "Invalid no of arguments passed",
-//			}
-//			return result
-//		}
-//
-//		jsDoc := js.Global().Get("document")
-//		if !jsDoc.Truthy() {
-//			result := map[string]any{
-//				"error": "Unable to get document object",
-//			}
-//			return result
-//		}
-//
-//		jsOutput := jsDoc.Call("getElementById", "output")
-//		if !jsOutput.Truthy() {
-//			result := map[string]any{
-//				"error": "Unable to get output text area",
-//			}
-//			return result
-//		}
-//		fmt.Printf("args %s\n", args)
-//
-//		lineage := args[0].String()
-//		fmt.Printf("input lineage %s\n", lineage)
-//
-//		version := args[1].String()
-//		fmt.Printf("input version %s\n", version)
-//
-//		data := args[2].String()
-//		fmt.Printf("input data %s\n", data)
-//
-//		result, err := validate(lineage, version, data)
-//		if err != nil {
-//			errStr := fmt.Sprintf("validation failed: %s\n", err)
-//			result := map[string]any{
-//				"error": errStr,
-//			}
-//			return result
-//		}
-//
-//		jsOutput.Set("value", result)
-//		return nil
-//	})
-//
-//	return fn
-//}
+func wrapValidate() js.Func {
+	fn := js.FuncOf(func(this js.Value, args []js.Value) any {
+		if len(args) != 3 {
+			result := map[string]any{
+				"error": "Invalid no of arguments passed",
+			}
+			return result
+		}
+
+		jsDoc := js.Global().Get("document")
+		if !jsDoc.Truthy() {
+			result := map[string]any{
+				"error": "Unable to get document object",
+			}
+			return result
+		}
+
+		jsOutput := jsDoc.Call("getElementById", "output")
+		if !jsOutput.Truthy() {
+			result := map[string]any{
+				"error": "Unable to get output text area",
+			}
+			return result
+		}
+		fmt.Printf("args %s\n", args)
+
+		lineage := args[0].String()
+		fmt.Printf("input lineage %s\n", lineage)
+
+		version := args[1].String()
+		fmt.Printf("input version %s\n", version)
+
+		data := args[2].String()
+		fmt.Printf("input data %s\n", data)
+
+		result, err := validate(lineage, version, data)
+		if err != nil {
+			errStr := fmt.Sprintf("validation failed: %s\n", err)
+			result := map[string]any{
+				"error": errStr,
+			}
+			return result
+		}
+
+		jsOutput.Set("value", result)
+		return nil
+	})
+
+	return fn
+}
 
 func loadLineage(lineage []byte) (thema.Lineage, error) {
 	fs := memoryfs.New()
