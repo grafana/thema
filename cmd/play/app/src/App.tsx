@@ -10,7 +10,7 @@ const App = () => {
 
     const validateAnyFn = () => {
         // @ts-ignore
-        const res = validateAny(lineage, '', data);
+        const res = validateAny(lineage, data);
         if (res.error !== '') {
             setOutput(`'ValidateAny' failed: ${res.error}`)
         } else {
@@ -20,7 +20,7 @@ const App = () => {
 
     const translateToLatestFn = () => {
         // @ts-ignore
-        const res = translateToLatest(lineage, '', data);
+        const res = translateToLatest(lineage, data);
         if (res.error !== '') {
             setOutput(`'TranslateToLatest' failed: ${res.error}`)
             return

@@ -15,41 +15,92 @@ import (
 
 var rt = thema.NewRuntime(cuecontext.New())
 
-type fn string
-
-const validateAny fn = "validateAny"
-const translateToLatest fn = "translateToLatest"
-const linVersions fn = "linVersions"
-
-//const hydrate fn = "hydrade"
-
 func main() {
 	fmt.Println("Go Web Assembly")
-	js.Global().Set(string(validateAny), wrap(validateAny))
-	js.Global().Set(string(translateToLatest), wrap(translateToLatest))
-	js.Global().Set(string(linVersions), wrap(linVersions))
+	js.Global().Set("validateAny", runValidateAny())
+	js.Global().Set("translateToLatest", runTranslateToLatest())
+	js.Global().Set("getLineageVersions", runGetLineageVersions())
 	<-make(chan bool)
 }
 
-func wrap(action fn) js.Func {
+func runValidateAny() js.Func {
 	fn := js.FuncOf(func(this js.Value, args []js.Value) any {
 		lineage := args[0].String()
-		version := args[1].String()
-		data := args[2].String()
+		inputJSON := args[1].String()
 
-		res, err := handle(action, lineage, version, data)
+		if lineage == "" || inputJSON == "" {
+			return toResult("", errors.New("lineage is missing"))
+		}
 
-		var errStr string
+		datval, err := decodeData(inputJSON)
 		if err != nil {
-			errStr = fmt.Sprintf("%s", err)
+			return toResult("", err)
 		}
-		return map[string]any{
-			"result": res,
-			"error":  errStr,
+
+		lin, err := loadLineage(lineage)
+		if err != nil {
+			return toResult("", err)
 		}
+
+		return toResult(validateAny(lin, datval))
 	})
 
 	return fn
+}
+
+func runTranslateToLatest() js.Func {
+	fn := js.FuncOf(func(this js.Value, args []js.Value) any {
+		lineage := args[0].String()
+		inputJSON := args[1].String()
+
+		if lineage == "" || inputJSON == "" {
+			return toResult("", errors.New("lineage is missing"))
+		}
+
+		datval, err := decodeData(inputJSON)
+		if err != nil {
+			return toResult("", err)
+		}
+
+		lin, err := loadLineage(lineage)
+		if err != nil {
+			return toResult("", err)
+		}
+
+		return toResult(translateToLatest(lin, datval))
+	})
+
+	return fn
+}
+
+func runGetLineageVersions() js.Func {
+	fn := js.FuncOf(func(this js.Value, args []js.Value) any {
+		lineage := args[0].String()
+
+		if lineage == "" {
+			return toResult("", errors.New("lineage is missing"))
+		}
+
+		lin, err := loadLineage(lineage)
+		if err != nil {
+			return toResult("", err)
+		}
+
+		return toResult(lineageVersions(lin))
+	})
+
+	return fn
+}
+
+func toResult(res any, err error) map[string]any {
+	var errStr string
+	if err != nil {
+		errStr = fmt.Sprintf("%s", err)
+	}
+	return map[string]any{
+		"result": res,
+		"error":  errStr,
+	}
 }
 
 const lineageHeader = `package example
@@ -92,55 +143,22 @@ func loadLineage(lineage string) (thema.Lineage, error) {
 	return lin, nil
 }
 
-func handle(action fn, lineage string, version string, data string) (string, error) {
-	if lineage == "" {
-		return "", errors.New("lineage is missing")
-	}
-
-	lin, err := loadLineage(lineage)
-	if err != nil {
-		return "", err
-	}
-
-	switch action {
-	case validateAny:
-		datval, err := decodeData(data)
-		if err != nil {
-			return "", err
-		}
-		return runValidateAny(lin, datval)
-	case translateToLatest:
-		datval, err := decodeData(data)
-		if err != nil {
-			return "", err
-		}
-		return runTranslateToLatest(lin, datval)
-	case linVersions:
-		return lineageVersions(lin)
-	//case hydrate:
-	//	return runHydrate(lin, datval)
-	default:
-		return "", fmt.Errorf("undefined action")
-	}
-
-}
-
-func decodeData(data string) (cue.Value, error) {
-	if data == "" {
+func decodeData(inputJSON string) (cue.Value, error) {
+	if inputJSON == "" {
 		return cue.Value{}, errors.New("data is missing")
 	}
 
 	jd := vmux.NewJSONCodec("stdin")
-	datval, err := jd.Decode(rt.Underlying().Context(), []byte(data))
+	datval, err := jd.Decode(rt.Underlying().Context(), []byte(inputJSON))
 	if err != nil {
-		return cue.Value{}, err
+		return cue.Value{}, fmt.Errorf("failed to decode input data: %w", err)
 	}
-	return datval, err
+	return datval, nil
 }
 
-func runValidateAny(lin thema.Lineage, datval cue.Value) (string, error) {
+func validateAny(lin thema.Lineage, datval cue.Value) (string, error) {
 	if !datval.Exists() {
-		panic("datval does not exist")
+		return "", errors.New("cue value does not exist")
 	}
 
 	// TODO - is this needed?
@@ -155,19 +173,19 @@ func runValidateAny(lin thema.Lineage, datval cue.Value) (string, error) {
 
 	inst := lin.ValidateAny(datval)
 	if inst != nil {
-		return fmt.Sprintf("%s\n", inst.Schema().Version()), nil
+		return fmt.Sprintf("%s", inst.Schema().Version()), nil
 	}
 
 	//if reterr != nil {
 	//	return "", reterr
 	//}
 
-	return "", fmt.Errorf("does not match any version")
+	return "", errors.New("input does not match any version")
 }
 
-func runTranslateToLatest(lin thema.Lineage, datval cue.Value) (string, error) {
+func translateToLatest(lin thema.Lineage, datval cue.Value) (string, error) {
 	if !datval.Exists() {
-		panic("datval does not exist")
+		return "", errors.New("cue value does not exist")
 	}
 
 	inst := lin.ValidateAny(datval)
@@ -177,7 +195,7 @@ func runTranslateToLatest(lin thema.Lineage, datval cue.Value) (string, error) {
 
 	tinst, lac := inst.Translate(lin.Latest().Version())
 	if tinst == nil {
-		panic("unreachable, thema.Translate() should never return a nil instance")
+		return "", errors.New("unreachable, thema.Translate() should never return a nil instance")
 	}
 
 	raw := tinst.Underlying()
@@ -190,7 +208,7 @@ func runTranslateToLatest(lin thema.Lineage, datval cue.Value) (string, error) {
 	}
 
 	if !raw.IsConcrete() {
-		return "", fmt.Errorf("translated value is not concrete (TODO print non-concrete fields)")
+		return "", errors.New("translated value is not concrete (TODO print non-concrete fields)")
 	}
 
 	// TODO support non-JSON output

@@ -22,17 +22,17 @@
 
 <script>
     var validateAnyFunc = function(lineage, data) {
-        var result = validateAny(lineage, '0.0', data)
+        var result = validateAny(lineage, data)
         console.log("Result ", result)
     }
 
     var translateToLatestFunc = function(lineage, data) {
-        var result = translateToLatest(lineage, '0.0', data)
+        var result = translateToLatest(lineage, data)
         console.log("Result ", result)
     }
 
     var versionsFunc = function(lineage) {
-        var result = linVersions(lineage, '0.0', '')
+        var result = getLineageVersions(lineage)
         console.log("Result ", result)
     }
 </script>
