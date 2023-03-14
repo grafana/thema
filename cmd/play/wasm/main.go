@@ -38,7 +38,7 @@ func wrap(action fn) js.Func {
 		data := args[2].String()
 
 		res, err := handle(action, lineage, version, data)
-		fmt.Println("Result from Go:", res)
+		//fmt.Println("Result from Go:", res)
 		var errStr string
 		if err != nil {
 			errStr = fmt.Sprintf("%s failed: %s\n", action, err)
@@ -201,7 +201,7 @@ func runTranslateToLatest(lin thema.Lineage, datval cue.Value) (string, error) {
 		Lacunas: lac,
 	}
 
-	byt, err := json.MarshalIndent(r, "", "  ")
+	byt, err := json.Marshal(r)
 	if err != nil {
 		return "", fmt.Errorf("error marshaling translation result to JSON: %w", err)
 	}
