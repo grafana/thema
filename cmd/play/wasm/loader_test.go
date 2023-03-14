@@ -17,7 +17,7 @@ seqs: [
         ]
     },
     {
-        schemas: [
+		schemas: [
             { // 1.0
                 firstfield: string
                 secondfield: int

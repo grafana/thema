@@ -1,26 +1,33 @@
 package main
 
 import (
-	"cuelang.org/go/cue"
-	"cuelang.org/go/cue/cuecontext"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
+	"syscall/js"
+
 	"github.com/grafana/thema"
 	"github.com/grafana/thema/load"
 	"github.com/grafana/thema/vmux"
+
+	"cuelang.org/go/cue"
+	"cuelang.org/go/cue/cuecontext"
+	"cuelang.org/go/cue/format"
 	"github.com/liamg/memoryfs"
-	"syscall/js"
 )
 
 var rt = thema.NewRuntime(cuecontext.New())
 
 func main() {
 	fmt.Println("Go Web Assembly")
+
 	js.Global().Set("validateAny", runValidateAny())
 	js.Global().Set("validateVersion", runValidateVersion())
 	js.Global().Set("translateToLatest", runTranslateToLatest())
 	js.Global().Set("getLineageVersions", runGetLineageVersions())
+	js.Global().Set("format", runFormat())
+
 	<-make(chan bool)
 }
 
@@ -119,6 +126,27 @@ func runGetLineageVersions() js.Func {
 	return fn
 }
 
+func runFormat() js.Func {
+	fn := js.FuncOf(func(this js.Value, args []js.Value) any {
+		lineage := args[0].String()
+
+		if lineage == "" {
+			return toResult("", errors.New("lineage or input JSON is missing"))
+		}
+
+		inp := themaHeader + lineage
+		res, err := format.Source([]byte(inp), format.TabIndent(true))
+		if err != nil {
+			return toResult("", err)
+		}
+
+		output := strings.TrimPrefix(string(res), themaHeader)
+		return toResult(output, err)
+	})
+
+	return fn
+}
+
 func toResult(res any, err error) map[string]any {
 	var errStr string
 	if err != nil {
@@ -130,8 +158,10 @@ func toResult(res any, err error) map[string]any {
 	}
 }
 
-const lineageHeader = `package example
+const themaHeader = `package example
+
 import "github.com/grafana/thema"
+
 thema.#Lineage
 name: "example"
 `
@@ -151,7 +181,7 @@ func loadLineage(lineage string) (thema.Lineage, error) {
 		return nil, err
 	}
 
-	err = fs.WriteFile("example.cue", []byte(lineageHeader+lineage), 0777)
+	err = fs.WriteFile("example.cue", []byte(themaHeader+lineage), 0777)
 	if err != nil {
 		return nil, err
 	}
