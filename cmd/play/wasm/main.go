@@ -38,10 +38,10 @@ func wrap(action fn) js.Func {
 		data := args[2].String()
 
 		res, err := handle(action, lineage, version, data)
-		//fmt.Println("Result from Go:", res)
+
 		var errStr string
 		if err != nil {
-			errStr = fmt.Sprintf("%s failed: %s\n", action, err)
+			errStr = fmt.Sprintf("%s", err)
 		}
 		return map[string]any{
 			"result": res,
