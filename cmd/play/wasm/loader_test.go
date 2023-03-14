@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"testing"
 )
 
@@ -47,28 +48,45 @@ seqs: [
 ]
 `
 
-func TestValidate(t *testing.T) {
-	res, err := handle(validateAny, inputLineage, "", `{"firstfield":"1"}`)
+func TestValidateAny(t *testing.T) {
+	lin, err := loadLineage(inputLineage)
+	require.NoError(t, err)
+
+	datval, err := decodeData(`{"firstfield":"1"}`)
+	require.NoError(t, err)
+	res, err := validateAny(lin, datval)
 	assert.NoError(t, err)
 	_ = res
 
-	res, err = handle(validateAny, inputLineage, "", `{"firstfield":1}`)
+	datval, err = decodeData(`{"firstfield":1}`)
+	require.NoError(t, err)
+	res, err = validateAny(lin, datval)
 	assert.Error(t, err)
 	_ = res
 }
 
 func TestTranslateToLatest(t *testing.T) {
-	res, err := handle(translateToLatest, inputLineage, "", `{"firstfield":"1"}`)
+	lin, err := loadLineage(inputLineage)
+	require.NoError(t, err)
+
+	datval, err := decodeData(`{"firstfield":"1"}`)
+	require.NoError(t, err)
+	res, err := translateToLatest(lin, datval)
 	assert.NoError(t, err)
 	assert.True(t, len(res) > 0)
 
-	res, err = handle(translateToLatest, inputLineage, "", `{"secondfield":"1"}`)
+	datval, err = decodeData(`{"secondfield":"1"}`)
+	require.NoError(t, err)
+	res, err = translateToLatest(lin, datval)
 	assert.Error(t, err)
 	_ = res
 }
 
 func TestGetLineageVersions(t *testing.T) {
-	res, err := handle(linVersions, inputLineage, "", "")
+	lin, err := loadLineage(inputLineage)
+	require.NoError(t, err)
+
+	res, err := lineageVersions(lin)
 	assert.NoError(t, err)
 	expected, _ := json.Marshal([]string{"0.0", "1.0"})
 	assert.Equal(t, string(expected), res)
