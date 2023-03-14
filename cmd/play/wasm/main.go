@@ -18,9 +18,36 @@ var rt = thema.NewRuntime(cuecontext.New())
 func main() {
 	fmt.Println("Go Web Assembly")
 	js.Global().Set("validateAny", runValidateAny())
+	js.Global().Set("validateVersion", runValidateVersion())
 	js.Global().Set("translateToLatest", runTranslateToLatest())
 	js.Global().Set("getLineageVersions", runGetLineageVersions())
 	<-make(chan bool)
+}
+
+func runValidateVersion() js.Func {
+	fn := js.FuncOf(func(this js.Value, args []js.Value) any {
+		lineage := args[0].String()
+		inputJSON := args[1].String()
+		version := args[2].String()
+
+		if lineage == "" || inputJSON == "" || version == "" {
+			return toResult("", errors.New("lineage, input JSON or version is missing"))
+		}
+
+		datval, err := decodeData(inputJSON)
+		if err != nil {
+			return toResult("", err)
+		}
+
+		lin, err := loadLineage(lineage)
+		if err != nil {
+			return toResult("", err)
+		}
+
+		return toResult(validateVersion(lin, datval, version))
+	})
+
+	return fn
 }
 
 func runValidateAny() js.Func {
@@ -29,7 +56,7 @@ func runValidateAny() js.Func {
 		inputJSON := args[1].String()
 
 		if lineage == "" || inputJSON == "" {
-			return toResult("", errors.New("lineage is missing"))
+			return toResult("", errors.New("lineage or input JSON is missing"))
 		}
 
 		datval, err := decodeData(inputJSON)
@@ -54,7 +81,7 @@ func runTranslateToLatest() js.Func {
 		inputJSON := args[1].String()
 
 		if lineage == "" || inputJSON == "" {
-			return toResult("", errors.New("lineage is missing"))
+			return toResult("", errors.New("lineage or input JSON is missing"))
 		}
 
 		datval, err := decodeData(inputJSON)
@@ -154,6 +181,35 @@ func decodeData(inputJSON string) (cue.Value, error) {
 		return cue.Value{}, fmt.Errorf("failed to decode input data: %w", err)
 	}
 	return datval, nil
+}
+
+const latestVersion = "latest"
+
+func validateVersion(lin thema.Lineage, datval cue.Value, version string) (string, error) {
+	if !datval.Exists() {
+		return "", errors.New("cue value does not exist")
+	}
+
+	var sch thema.Schema
+	if version == latestVersion {
+		sch = lin.Latest()
+	} else {
+		synv, err := thema.ParseSyntacticVersion(version)
+		if err != nil {
+			return "", err
+		}
+		sch, err = lin.Schema(synv)
+		if err != nil {
+			return "", fmt.Errorf("schema version %v does not exist in lineage", synv)
+		}
+	}
+
+	_, err := sch.Validate(datval)
+	if err != nil {
+		return "", fmt.Errorf("input does not match version %s", version)
+	}
+
+	return fmt.Sprintf("input matches version %s", version), nil
 }
 
 func validateAny(lin thema.Lineage, datval cue.Value) (string, error) {
