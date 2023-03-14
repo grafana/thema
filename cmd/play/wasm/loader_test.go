@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -64,4 +65,11 @@ func TestTranslateToLatest(t *testing.T) {
 	res, err = handle(translateToLatest, inputLineage, "", `{"secondfield":"1"}`)
 	assert.Error(t, err)
 	_ = res
+}
+
+func TestGetLineageVersions(t *testing.T) {
+	res, err := handle(linVersions, inputLineage, "", "")
+	assert.NoError(t, err)
+	expected, _ := json.Marshal([]string{"0.0", "1.0"})
+	assert.Equal(t, string(expected), res)
 }

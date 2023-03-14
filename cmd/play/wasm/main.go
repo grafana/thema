@@ -18,61 +18,35 @@ var rt = thema.NewRuntime(cuecontext.New())
 type fn string
 
 const validateAny fn = "validateAny"
-const hydrate fn = "hydrade"
 const translateToLatest fn = "translateToLatest"
+const linVersions fn = "linVersions"
+
+//const hydrate fn = "hydrade"
 
 func main() {
 	fmt.Println("Go Web Assembly")
-	js.Global().Set(string(validateAny), wrapValidate(validateAny))
-	js.Global().Set(string(translateToLatest), wrapValidate(translateToLatest))
+	js.Global().Set(string(validateAny), wrap(validateAny))
+	js.Global().Set(string(translateToLatest), wrap(translateToLatest))
+	js.Global().Set(string(linVersions), wrap(linVersions))
 	<-make(chan bool)
 }
 
-func wrapValidate(action fn) js.Func {
+func wrap(action fn) js.Func {
 	fn := js.FuncOf(func(this js.Value, args []js.Value) any {
-		if len(args) != 3 {
-			result := map[string]any{
-				"error": "Invalid no of arguments passed",
-			}
-			return result
-		}
-
-		jsDoc := js.Global().Get("document")
-		if !jsDoc.Truthy() {
-			result := map[string]any{
-				"error": "Unable to get document object",
-			}
-			return result
-		}
-
-		jsOutput := jsDoc.Call("getElementById", "output")
-		if !jsOutput.Truthy() {
-			result := map[string]any{
-				"error": "Unable to get output text area",
-			}
-			return result
-		}
-		//fmt.Printf("args %s\n", args)
-
 		lineage := args[0].String()
 		version := args[1].String()
 		data := args[2].String()
 
 		res, err := handle(action, lineage, version, data)
+		fmt.Println("Result from Go:", res)
+		var errStr string
 		if err != nil {
-			errStr := fmt.Sprintf("%s failed: %s\n", action, err)
-			result := map[string]any{
-				"error": errStr,
-			}
-			return result
+			errStr = fmt.Sprintf("%s failed: %s\n", action, err)
 		}
-
-		// TODO: delete it later
-		if res == "" {
-			res = "action output is empty, so probably success"
+		return map[string]any{
+			"result": res,
+			"error":  errStr,
 		}
-		jsOutput.Set("value", res)
-		return nil
 	})
 
 	return fn
@@ -119,22 +93,30 @@ func loadLineage(lineage string) (thema.Lineage, error) {
 }
 
 func handle(action fn, lineage string, version string, data string) (string, error) {
-	lin, err := loadLineage(lineage)
-	if err != nil {
-		return "", err
+	if lineage == "" {
+		return "", errors.New("lineage is missing")
 	}
 
-	jd := vmux.NewJSONCodec("stdin")
-	datval, err := jd.Decode(rt.Underlying().Context(), []byte(data))
+	lin, err := loadLineage(lineage)
 	if err != nil {
 		return "", err
 	}
 
 	switch action {
 	case validateAny:
-		return runValidateAny(lin, version, datval)
+		datval, err := decodeData(data)
+		if err != nil {
+			return "", err
+		}
+		return runValidateAny(lin, datval)
 	case translateToLatest:
-		return runTranslateToLatest(lin, version, datval)
+		datval, err := decodeData(data)
+		if err != nil {
+			return "", err
+		}
+		return runTranslateToLatest(lin, datval)
+	case linVersions:
+		return lineageVersions(lin)
 	//case hydrate:
 	//	return runHydrate(lin, datval)
 	default:
@@ -143,7 +125,20 @@ func handle(action fn, lineage string, version string, data string) (string, err
 
 }
 
-func runValidateAny(lin thema.Lineage, _ string, datval cue.Value) (string, error) {
+func decodeData(data string) (cue.Value, error) {
+	if data == "" {
+		return cue.Value{}, errors.New("data is missing")
+	}
+
+	jd := vmux.NewJSONCodec("stdin")
+	datval, err := jd.Decode(rt.Underlying().Context(), []byte(data))
+	if err != nil {
+		return cue.Value{}, err
+	}
+	return datval, err
+}
+
+func runValidateAny(lin thema.Lineage, datval cue.Value) (string, error) {
 	if !datval.Exists() {
 		panic("datval does not exist")
 	}
@@ -170,7 +165,7 @@ func runValidateAny(lin thema.Lineage, _ string, datval cue.Value) (string, erro
 	return "", fmt.Errorf("does not match any version")
 }
 
-func runTranslateToLatest(lin thema.Lineage, _ string, datval cue.Value) (string, error) {
+func runTranslateToLatest(lin thema.Lineage, datval cue.Value) (string, error) {
 	if !datval.Exists() {
 		panic("datval does not exist")
 	}
@@ -221,19 +216,40 @@ type translationResult struct {
 	Lacunas thema.TranslationLacunas `json:"lacunas"`
 }
 
-func runHydrate(lin thema.Lineage, datval cue.Value) (string, error) {
-	if !datval.Exists() {
-		panic("datval does not exist")
-	}
-
-	inst := lin.ValidateAny(datval)
-	if inst == nil {
-		return "", errors.New("input data is not valid for any schema in lineage")
-	}
-
-	byt, err := json.MarshalIndent(inst.Hydrate().Underlying(), "", "  ")
+func lineageVersions(lin thema.Lineage) (string, error) {
+	ver := versions(lin.First(), []string{})
+	byt, err := json.Marshal(ver)
 	if err != nil {
-		return "", fmt.Errorf("error marshaling hydrated object to JSON: %w", err)
+		return "", fmt.Errorf("error marshaling versions result to JSON: %w", err)
 	}
-	return string(byt), err
+
+	return string(byt), nil
 }
+
+// versions walks the lineage from the first till the latest schema and adds their versions to a slice
+func versions(sch thema.Schema, ver []string) []string {
+	if sch == nil {
+		return ver
+	}
+
+	ver = append(ver, sch.Version().String())
+
+	return versions(sch.Successor(), ver)
+}
+
+//func runHydrate(lin thema.Lineage, datval cue.Value) (string, error) {
+//	if !datval.Exists() {
+//		panic("datval does not exist")
+//	}
+//
+//	inst := lin.ValidateAny(datval)
+//	if inst == nil {
+//		return "", errors.New("input data is not valid for any schema in lineage")
+//	}
+//
+//	byt, err := json.MarshalIndent(inst.Hydrate().Underlying(), "", "  ")
+//	if err != nil {
+//		return "", fmt.Errorf("error marshaling hydrated object to JSON: %w", err)
+//	}
+//	return string(byt), err
+//}

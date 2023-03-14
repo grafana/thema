@@ -10,25 +10,30 @@
     </script>
 </head>
 <body>
-<p><input id="button" name="button" onclick="validateData(lineageInput.value, dataInput.value)" type="submit" value="Validate"/></p>
+<p><input id="validateAny" name="button" onclick="validateAnyFunc(lineageInput.value, dataInput.value)" type="submit" value="Validate"/></p>
+<p><input id="versions" name="button" onclick="versionsFunc(lineageInput.value)" type="submit" value="Versions"/></p>
+<p><input id="translateToLatest" name="button" onclick="translateToLatestFunc(lineageInput.value, dataInput.value)" type="submit" value="Translate to latest"/></p>
 
 <p><label for="lineageInput">Input lineage path:</label></p>
-<textarea cols="80" id="lineageInput" name="lineageInput" rows="5"></textarea>
+<textarea cols="80" id="lineageInput" name="lineageInput" rows="20"></textarea>
 
 <p><label for="dataInput">Input data to validate:</label></p>
 <textarea cols="80" id="dataInput" name="dataInput" rows="20"></textarea>
 
-<p><label for="output">Output:</label></p>
-<textarea cols="80" id="output" name="output" rows="20"></textarea>
-
 <script>
-    var validateData = function(lineage, data) {
-        var result = validate(lineage, '0.0', data)
-        if (( result != null) && ('error' in result)) {
-            console.log("Error from Go ", result)
-            output.value = result.error
-            // alert(result.error)
-        }
+    var validateAnyFunc = function(lineage, data) {
+        var result = validateAny(lineage, '0.0', data)
+        console.log("Result ", result)
+    }
+
+    var translateToLatestFunc = function(lineage, data) {
+        var result = translateToLatest(lineage, '0.0', data)
+        console.log("Result ", result)
+    }
+
+    var versionsFunc = function(lineage) {
+        var result = linVersions(lineage, '0.0', data)
+        console.log("Result ", result)
     }
 </script>
 </body>
