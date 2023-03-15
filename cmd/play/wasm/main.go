@@ -25,6 +25,7 @@ func main() {
 	js.Global().Set("validateAny", runValidateAny())
 	js.Global().Set("validateVersion", runValidateVersion())
 	js.Global().Set("translateToLatest", runTranslateToLatest())
+	js.Global().Set("translateToVersion", runTranslateVersion())
 	js.Global().Set("getLineageVersions", runGetLineageVersions())
 	js.Global().Set("format", runFormat())
 
@@ -101,7 +102,33 @@ func runTranslateToLatest() js.Func {
 			return toResult("", err)
 		}
 
-		return toResult(translateToLatest(lin, datval))
+		return toResult(translateVersion(lin, datval, latestVersion))
+	})
+
+	return fn
+}
+
+func runTranslateVersion() js.Func {
+	fn := js.FuncOf(func(this js.Value, args []js.Value) any {
+		lineage := args[0].String()
+		inputJSON := args[1].String()
+		version := args[2].String()
+
+		if lineage == "" || inputJSON == "" || version == "" {
+			return toResult("", errors.New("lineage, input JSON or version is missing"))
+		}
+
+		datval, err := decodeData(inputJSON)
+		if err != nil {
+			return toResult("", err)
+		}
+
+		lin, err := loadLineage(lineage)
+		if err != nil {
+			return toResult("", err)
+		}
+
+		return toResult(translateVersion(lin, datval, version))
 	})
 
 	return fn
@@ -136,7 +163,7 @@ func runFormat() js.Func {
 
 		res, err := format.Source([]byte(lineage), format.TabIndent(true))
 
-		return toResult(res, err)
+		return toResult(string(res), err)
 	})
 
 	return fn
@@ -264,7 +291,7 @@ func validateAny(lin thema.Lineage, datval cue.Value) (string, error) {
 	return "", errors.New("input does not match any version")
 }
 
-func translateToLatest(lin thema.Lineage, datval cue.Value) (string, error) {
+func translateVersion(lin thema.Lineage, datval cue.Value, version string) (string, error) {
 	if !datval.Exists() {
 		return "", errors.New("cue value does not exist")
 	}
@@ -274,7 +301,18 @@ func translateToLatest(lin thema.Lineage, datval cue.Value) (string, error) {
 		return "", errors.New("input data is not valid for any schema in lineage")
 	}
 
-	tinst, lac := inst.Translate(lin.Latest().Version())
+	var tinst *thema.Instance
+	var lac thema.TranslationLacunas
+	if version == latestVersion {
+		tinst, lac = inst.Translate(lin.Latest().Version())
+	} else {
+		synv, err := thema.ParseSyntacticVersion(version)
+		if err != nil {
+			return "", err
+		}
+		tinst, lac = inst.Translate(synv)
+	}
+
 	if tinst == nil {
 		return "", errors.New("unreachable, thema.Translate() should never return a nil instance")
 	}
