@@ -134,14 +134,9 @@ func runFormat() js.Func {
 			return toResult("", errors.New("lineage or input JSON is missing"))
 		}
 
-		inp := themaHeader + lineage
-		res, err := format.Source([]byte(inp), format.TabIndent(true))
-		if err != nil {
-			return toResult("", err)
-		}
+		res, err := format.Source([]byte(lineage), format.TabIndent(true))
 
-		output := strings.TrimPrefix(string(res), themaHeader)
-		return toResult(output, err)
+		return toResult(res, err)
 	})
 
 	return fn
@@ -158,15 +153,15 @@ func toResult(res any, err error) map[string]any {
 	}
 }
 
-const themaHeader = `package example
-
-import "github.com/grafana/thema"
-
-thema.#Lineage
-name: "example"
-`
-
 func loadLineage(lineage string) (thema.Lineage, error) {
+	parts := strings.SplitN(lineage, "\n", 2)
+	if !strings.Contains(parts[0], "package") {
+		return nil, errors.New("package name is missing")
+	}
+
+	packageName := strings.Replace(parts[0], "package ", "", 1)
+	moduleContent := `module: "github.com/grafana/` + packageName + `"`
+
 	fs := memoryfs.New()
 
 	// Create cue.mod
@@ -176,12 +171,12 @@ func loadLineage(lineage string) (thema.Lineage, error) {
 	}
 
 	// Create module.cue
-	err = fs.WriteFile("cue.mod/module.cue", []byte(`module: "github.com/grafana/example"`), 0777)
+	err = fs.WriteFile("cue.mod/module.cue", []byte(moduleContent), 0777)
 	if err != nil {
 		return nil, err
 	}
 
-	err = fs.WriteFile("example.cue", []byte(themaHeader+lineage), 0777)
+	err = fs.WriteFile(packageName+".cue", []byte(lineage), 0777)
 	if err != nil {
 		return nil, err
 	}
