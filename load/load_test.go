@@ -2,14 +2,13 @@ package load
 
 import (
 	"embed"
+	"github.com/stretchr/testify/require"
 	"io/fs"
 	"testing"
 
 	"cuelang.org/go/cue"
 	"cuelang.org/go/cue/cuecontext"
 	"cuelang.org/go/encoding/json"
-	cuejson "cuelang.org/go/pkg/encoding/json"
-
 	"github.com/grafana/thema"
 )
 
@@ -24,7 +23,7 @@ func TestInstanceLoadHelper(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	binst, err := InstancesWithThema(tfs, ".")
+	binst, err := InstanceWithThema(tfs, ".")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -50,35 +49,10 @@ func TestInstanceLoadHelper(t *testing.T) {
 	}
 
 	_, err = sch1.Validate(cv)
-	if err != nil {
-		t.Fatal("validation failed:", err)
-	}
+	require.Error(t, err, "Validate version must fail because secondfield is not present in expr")
 
 	inst := lin.ValidateAny(cv)
-	if inst == nil {
-		t.Fatal("No schema validated the inst; should have validated against [0, 0]")
-	}
-
-	to := thema.SV(1, 0)
-	tinst, _ := inst.Translate(to)
-	if tinst.Schema().Version() != to {
-		t.Logf("Expected output schema version %v, got %v", to, tinst.Schema().Version())
-		t.Fail()
-	}
-
-	_, err = cuejson.Marshal(tinst.Underlying())
-	if err != nil {
-		t.Fatalf("Failed to marshal translation output to JSON with err: \n\t%s", err)
-	}
-
-	expr, _ = json.Extract("input", []byte(`{
-		"firstfield": "foo",
-		"secondfield": -1
-	}`))
-	wantval := ctx.BuildExpr(expr)
-	if !wantval.Equals(tinst.Underlying()) {
-		t.Fatalf("Did not receive expected value after translation:\nWANT: %s\nGOT: %s", wantval, inst.Underlying())
-	}
+	require.Nil(t, inst, "ValidateAny must return nil inst because secondfield is not present in expr")
 }
 
 // func printFS(f fs.FS) {
