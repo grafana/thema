@@ -3,15 +3,21 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './components/App';
 import reportWebVitals from './reportWebVitals';
+import {ThemeProvider} from './theme';
+import {StateProvider} from './state';
 
 const root = ReactDOM.createRoot(
-  document.getElementById('root') as HTMLElement
+    document.getElementById('root') as HTMLElement
 );
 
 root.render(
-  <React.StrictMode>
-      <App />
-  </React.StrictMode>
+    <React.StrictMode>
+        <ThemeProvider>
+            <StateProvider>
+                <App/>
+            </StateProvider>
+        </ThemeProvider>
+    </React.StrictMode>
 );
 
 // Now load and run the Go code which will register the Wasm API

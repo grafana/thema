@@ -1,5 +1,11 @@
+body {
+  overflow: hidden;
+}
+
 .App {
+  height: 100vh;
   text-align: center;
+  font-family: Inter, Helvetica, Arial, sans-serif;
 }
 
 .App-logo {
@@ -35,4 +41,118 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+/* Terminal styles */
+
+.react-terminal-wrapper {
+  margin: 0 auto;
+  height: 100% !important;
+  width: 100% !important;
+  text-align: left;
+  font-size: 16px !important;
+  min-height: 100px;
+  padding: 50px 45px 5px !important;
+}
+
+.react-terminal-input {
+  margin-bottom: 20px;
+  overflow: hidden;
+  white-space: nowrap;
+  -webkit-animation: typing 2s steps(180, end);
+  animation: typing 2s steps(180, end);
+}
+
+.react-terminal-line:not(.react-terminal-input) {
+  margin: 5px auto 15px auto;
+}
+
+@keyframes typing {
+  from {
+    width: 0
+  }
+  to {
+    width: 100%
+  }
+}
+
+.react-terminal-input:after {
+  content: '▋';
+  font-family: monospace;
+  margin-left: 0.2em;
+  -webkit-animation: blink 1s infinite;
+  animation: blink 1s infinite;
+}
+
+/* Header styles */
+
+.header h3:before {
+  background-image: url('../../public/grafana.svg');
+  background-size: 20px 20px;
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  content:"";
+  margin-right: 10px;
+}
+
+select {
+  /* for Firefox */
+  -moz-appearance: none;
+  /* for Chrome */
+  -webkit-appearance: none;
+}
+
+/* For IE10 */
+select::-ms-expand {
+  display: none;
+}
+
+/* Themed  styles */
+
+.theme-dark {
+  background-color: #111217;
+}
+
+.theme-light {
+  background-color: #f4f5f5;
+}
+
+.theme-dark h3, .theme-dark h4 {
+  color: rgb(204, 204, 220);
+}
+
+.theme-light h3, .theme-light h4 {
+  color: rgba(36, 41, 46, 0.75);
+}
+
+.theme-dark .header {
+  background-color: #191b1f;
+}
+
+.theme-light .header {
+  background-color: #ffffff;
+  box-shadow: rgba(0, 0, 0, 0.08) 0px 0.6px 1.5px, rgba(0, 0, 0, 0.06) 0px 2px 4px, rgba(0, 0, 0, 0.05) 0px 5px 10px;
+}
+
+.theme-dark .column-contents {
+  background-color: #191b1f;
+}
+
+.theme-light .column-contents {
+  background-color: #ffffff;
+}
+
+.theme-dark select, .theme-dark input {
+  color: rgb(204, 204, 220);
+  background-color: #111217;
+  border: 2px solid rgba(204, 204, 220, 0.15);
+}
+
+.theme-dark .react-terminal-wrapper {
+  background-color: #191b1f !important;
+}
+
+.theme-light .react-terminal-wrapper {
+  background-color: #ffffff !important;
 }

@@ -1,41 +1,31 @@
-import React, {useEffect, useState} from 'react';
+import React, {useContext} from 'react';
 import './App.css';
 import CodeEditor from './CodeEditor';
 import Header from './Header';
 import Column from './Column';
-import {defaultState, State} from './state';
-import {fetchState} from "../services/store";
+import Console from './Console';
+import {ThemeContext} from '../theme';
+import {StateContext} from "../state";
 
 const App = () => {
-    const [state, setState] = useState<State>(defaultState);
-
-    useEffect(() => {
-            const id = window.location.hash.slice(1);
-            if (id === '') {
-                return
-            }
-
-            fetchState(id)
-                .then((s: State) => setState({...s, share: id}))
-                .catch((err: string) => console.log(err));
-        },
-        [setState]
-    );
+    const {theme} = useContext(ThemeContext);
+    const {input, lineage, setInput, setLineage} = useContext(StateContext)
 
     return (
-        <div className="App" style={{display: 'flex', flexWrap: 'wrap'}}>
-            <Header state={state} setState={setState}/>
-            <Column title='Lineage' color='green'>
-                <CodeEditor value={state.lineage}
-                            onChange={(lineage?: string) => setState({...state, lineage: lineage || ''})}/>
+        <div className={`App theme-${theme}`} style={{display: 'flex', flexWrap: 'wrap', alignContent: 'flex-start'}}>
+            <Header/>
+            <Column title='LINEAGE (CUE)' color='green'>
+                <CodeEditor value={lineage} language='go'
+                            onChange={(lineage?: string) => setLineage(lineage || '')}/>
             </Column>
-            <Column title='Input data (JSON)' color='green'>
-                <CodeEditor value={state.input}
-                            onChange={(input?: string) => setState({...state, input: input || ''})}/>
+            <Column title='INPUT DATA (JSON)' color='green'>
+                <CodeEditor value={input} language='json'
+                            onChange={(input?: string) => setInput(input || '')}/>
             </Column>
-            <Column title='Output' color='darkblue'>
-                <CodeEditor isReadOnly={true} value={state.output}/>
+            <Column title='OUTPUT' color='darkblue'>
+                <Console/>
             </Column>
+
         </div>
     );
 }
