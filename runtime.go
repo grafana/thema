@@ -67,6 +67,8 @@ func NewRuntime(ctx *cue.Context) *Runtime {
 		panic(errors.Details(rt.Validate(cue.All()), nil))
 	}
 
+	// FIXME preload all the known funcs into a map[string]cue.Value here to avoid runtime cost
+
 	return &Runtime{
 		val: rt,
 	}

@@ -19,8 +19,29 @@ type UnarySchema struct {
 	// TODO panic button if empty, nil
 	raw    cue.Value
 	defraw cue.Value
-	lin    *UnaryLineage
+	lin    *baseLineage
 	v      SyntacticVersion
+}
+
+// schemaDef represents a single #SchemaDef, with a backlink to its containing
+// #Lineage.
+type schemaDef struct {
+	// ref holds a reference to the entire #SchemaDef object.
+	ref cue.Value
+
+	// def holds a reference to #SchemaDef._#schema. See those docs.
+	def cue.Value
+
+	// v is the version of this schema.
+	v SyntacticVersion
+
+	lin Lineage
+}
+
+// Examples returns the set of examples of this schema defined in the original
+// lineage. The string key is the name given to the example.
+func (sch *schemaDef) Examples() map[string]*Instance {
+	panic("TODO")
 }
 
 func (sch *UnarySchema) rt() *Runtime {
@@ -114,10 +135,6 @@ func (sch *UnarySchema) Version() SyntacticVersion {
 // Lineage returns the lineage that contains this schema.
 func (sch *UnarySchema) Lineage() Lineage {
 	return sch.lin
-}
-
-func (sch *UnarySchema) defPathFor() cue.Path {
-	return defPathFor(sch.lin.Name(), sch.v)
 }
 
 func (sch *UnarySchema) _schema() {}

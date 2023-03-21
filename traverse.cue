@@ -24,11 +24,12 @@ package thema
 }
 
 #ValidFor: {
-	lin: #Lineage
+	//	lin: #Lineage
+	lin: _
 	inst: {...} // TODO consistently rename to 'object' or something
 
 	out: #SyntacticVersion
-	out: [ for _, sch in lin.schemas if ((sch._#schema & inst) != _|_) {sch.version}][0]
+	out: [ for _, sch in lin._sortedSchemas if ((sch._#schema & inst) != _|_) {sch.version}][0]
 }
 
 // #LinkedInstance represents data that is an instance of some schema, the

@@ -128,34 +128,29 @@ func (inst *TypedInstance[T]) ValueP() T {
 	return t
 }
 
-// Translate transforms the Instance so that it's an instance of another schema
-// in the lineage. A new *Instance is returned representing the transformed
-// value, along with any lacunas accumulated along the way.
+// Translate transforms the provided [Instance] to an Instance of a different
+// [Schema] from the same [Lineage]. A new *Instance is returned representing the
+// transformed value, along with any lacunas accumulated along the way.
 //
-// Forward translation within a sequence (e.g. 0.0 to 0.7) is trivial, as
+// Forward translation within a major version (e.g. 0.0 to 0.7) is trivial, as
 // all those schema changes are established as backwards compatible by Thema's
 // lineage invariants. In such cases, the lens is referred to as implicit, as
 // the lineage author does not write it, with translation relying on simple
 // unification. Lacunas cannot be emitted from such translations.
 //
-// Forward translation across sequences (e.g. 0.0 to 1.0), and all reverse
+// Forward translation across major versions (e.g. 0.0 to 1.0), and all reverse
 // translation regardless of sequence boundaries (e.g. 1.1 to either 1.0
 // or 0.0), is nontrivial and relies on explicitly defined lenses, which
 // introduce room for lacunas and author judgment.
 //
-// Thema translation is non-invertible over instances in the general case by
-// design. That is, Thema does not guarantee that translating an instance from
-// 0.0->1.0->0.0 will result in the exact original instance. (Input state
-// preservation can be fully achieved in a wrapping layer, so we avoid introducing
-// complexity into Thema that is not essential for all use cases.)
-//
-// NOTE reverse translation is not yet supported, and attempting it will panic.
+// Thema translation is non-invertible by design. That is, Thema does not seek
+// to generally guarantee that translating an instance from 0.0->1.0->0.0 will
+// result in the exact original data. Input state preservation can be fully
+// achieved in the program depending on Thema, so we avoid introducing
+// complexity into Thema that is not essential for all use cases.
 //
 // TODO define this in terms of AsSuccessor and AsPredecessor, rather than those in terms of this.
 func (i *Instance) Translate(to SyntacticVersion) (*Instance, TranslationLacunas) {
-	if to.Less(i.Schema().Version()) {
-		panic(fmt.Sprintf("FIXME translation of instances from newer to older schema is not yet implemented - %s->%s was requested", i.Schema().Version(), to))
-	}
 	newsch, err := i.Schema().Lineage().Schema(to)
 	if err != nil {
 		panic(fmt.Sprintf("no schema in lineage with version %v, cannot translate", to))

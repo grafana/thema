@@ -31,6 +31,8 @@ import "list"
 
 	let cmp = (_cmpSV & {l: from, r: to}).out
 
+	// TODO validate I is instance of FV schema
+
 	out: {
 		steps: [...#TranslatedInstance]
 		result: {

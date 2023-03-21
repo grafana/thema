@@ -10,19 +10,6 @@ import (
 // ever existed for that object, and the lenses that allow translating between
 // those schema versions.
 #Lineage: L={
-	// joinSchema governs the shape of schema that may be expressed in a
-	// lineage. It is the least upper bound, or join, of the acceptable schema
-	// value space; the schemas defined in this lineage must be instances of the
-	// joinSchema.
-	//
-	// All Thema schemas must be struct-kinded. As such,
-	//
-	// In the base case, the joinSchema is unconstrained/top - any value may be
-	// used as a schema.
-	//
-	// A lineage's joinSchema must never change as the lineage evolves.
-	joinSchema: struct.MinFields(0)
-
 	// The name of the thing specified by the schemas in this lineage.
 	//
 	// A lineage's name must not change as it evolves.
@@ -30,9 +17,24 @@ import (
 	// TODO(must) https://github.com/cue-lang/cue/issues/943
 	// name: must(isconcrete(name), "all lineages must have a name")
 
+	// joinSchema governs the shape of schema that may be expressed in a
+	// lineage. It is the least upper bound, or join, of the acceptable schema
+	// value space; the schemas defined in this lineage must be instances of the
+	// joinSchema.
+	//
+	// All Thema schemas must be struct-kinded. Consequently, if a lineage defines
+	// a joinSchema, it must be a struct containing at least one field.
+	//
+	// A lineage's joinSchema must never change as the lineage evolves.
+	joinSchema?: struct.MinFields(1)
+
 	// The lineage-local handle for #SchemaDef, into which we have injected this
 	// lineage's joinSchema.
-	let Schema = #SchemaDef & {_join: joinSchema}
+	let Schema = #SchemaDef & {
+		if joinSchema != _|_ {
+			_join: joinSchema
+		}
+	}
 
 	// schemas is the ordered list of all schemas in the lineage.
 	//
@@ -43,7 +45,7 @@ import (
 	// definitions may produce schemas sorted in ascending order, rather than original
 	// source order.
 	// TODO switch to descending order - newest on top is nicer to read
-	schemas: [...Schema]
+	schemas: [#SchemaDef, ...#SchemaDef]
 
 	// lenses contains all the mappings between all the schemas in the lineage.
 	//
@@ -106,18 +108,6 @@ import (
 		}
 	}]
 
-	// internal, indexable representation of schemas with lens transitions attached
-	_schemas: [ for maj, count in _counts {
-		[ for min in list.Range(0, count, 1) {
-			SS[_basis[maj]+min] & {
-				// Basically just an assertion that the version numbers line up.
-				// Probably redundant with other checks, investigate removing if
-				// there are confusing errors or performance issues.
-				version: [maj, min]
-			}
-		}]
-	}]
-
 	// _counts tracks the number of versions in each major version in the lineage.
 	// The index corresponds to the major version number, and the value is the
 	// number of minor versions within that major.
@@ -125,11 +115,11 @@ import (
 
 	//	counts: _counts
 	// TODO check subsumption (backwards compat) of each schema with its successor natively in CUE
-	if len(schemas) == 1 {
+	if len(SS) == 1 {
 		_counts: [0]
 	}
 
-	if len(schemas) > 1 {
+	if len(SS) > 1 {
 		let pos = [0, for i, sch in list.Drop(SS, 1) if SS[i].version[0] < sch.version[0] {i + 1}]
 		_counts: [ for i, idx in list.Slice(pos, 0, len(pos)-1) {
 			pos[i+1] - list.Sum(list.Slice(pos, 0, i+1))
@@ -137,17 +127,19 @@ import (
 
 		// The following approach to the above:
 		//
-		//		let pos = [0, for i, sch in schemas[1:] if schemas[i].version[0] < sch.version[0] { i+1 }]
+		//		let pos = [0, for i, sch in SS[1:] if SS[i].version[0] < sch.version[0] { i+1 }]
 		//		_counts: [for i, idx in pos[:len(pos)-1] {
 		//			pos[i+1]-list.Sum(pos[:i+1])
-		//		}, len(schemas)-pos[len(pos)-1]]
+		//		}, len(SS)-pos[len(pos)-1]]
 		//
 		// causes the following cue internals panic:
 		// panic: getNodeContext: nodeContext out of sync [recovered]
 		//	panic: getNodeContext: nodeContext out of sync
 	}
 
-	// _basis tracks the overall index of the first schema in each major version.
+	// _basis keeps the index of the first schema in each major version
+	// within the overall canonical schema sort ordering. This allows trivial
+	// schema retrieval from a syntactic version.
 	_basis: [0, for maj, _ in list.Drop(_counts, len(_counts)-1) {
 		list.Sum(list.Take(_counts, maj+1))
 	}]
@@ -166,7 +158,7 @@ import (
 		// TODO(must) https://github.com/cue-lang/cue/issues/943
 		// must(isconcrete(v[0]), "must specify a concrete major version")
 
-		out: L._schemas[v[0]][v[1]]._#schema
+		out: SS[_basis[v[0]]+v[1]]._#schema
 	}
 
 	// PickDef takes the same arguments as Pick, but returns the entire
@@ -177,7 +169,8 @@ import (
 		// TODO(must) https://github.com/cue-lang/cue/issues/943
 		// must(isconcrete(v[0]), "must specify a concrete sequence number")
 
-		out: L._schemas[v[0]][v[1]]
+		out: Schema
+		out: SS[_basis[v[0]]+v[1]]
 	}
 
 	// latestVersion always contains the SyntacticVersion of the lineage's
