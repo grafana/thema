@@ -1,0 +1,17 @@
+-- cue.mod/module.cue --
+module: "example.tld/simple"
+
+-- in.cue --
+package simple
+
+subpath: string
+
+#A: {
+    subpath: string
+}
+#A
+
+-- out/rootpath --
+ID: :simple
+ROOT OP: &
+FIELDS: subpath #A 

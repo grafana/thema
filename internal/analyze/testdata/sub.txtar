@@ -1,0 +1,25 @@
+#subinst: ./sub
+#subpath: arglebargle
+-- cue.mod/module.cue --
+module: "example.tld/simple"
+
+-- in.cue --
+package simple
+
+subpath: string
+
+#A: {
+    subpath: string
+    arglebargle: int32
+}
+#A
+
+-- sub/in.cue --
+package simple
+
+arglebargle: int32
+
+-- out/rootpath --
+ID: example.tld/simple/sub:simple
+ROOT OP: &
+FIELDS: subpath #A arglebargle 
