@@ -87,6 +87,20 @@ basic: #Lineage & {
 			}
 		},
 		{
+			from: [0, 3]
+			to: [1, 0]
+			input: _
+			result: {
+				init: input.init
+				all:  input.all
+				if (input.optional != _|_) {
+					optional: input.optional
+				}
+
+				withDefault: input.withDefault
+			}
+		},
+		{
 			from: [1, 0]
 			to: [0, 3]
 			input: _

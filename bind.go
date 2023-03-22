@@ -12,16 +12,28 @@ import (
 )
 
 func (ml *maybeLineage) checkGoValidity() error {
-	schiter, err := ml.uni.LookupPath(cue.MakePath(cue.Hid("_sortedSchemas", "thema"))).List()
+	schiter, err := ml.uni.LookupPath(cue.MakePath(cue.Hid("_sortedSchemas", "github.com/grafana/thema"))).List()
 	if err != nil {
 		panic(fmt.Sprintf("unreachable - should have already verified schemas field exists and is list: %+v", err))
 	}
-	schpath := cue.MakePath(cue.Hid("_#schema", "thema"))
+	schpath := cue.MakePath(cue.Hid("_#schema", "github.com/grafana/thema"))
+	vpath := cue.MakePath(cue.Str("version"))
 
 	var previous *schemaDef
 	for schiter.Next() {
+		// Only thing not natively enforced in CUE is that the #SchemaDef.version field is concrete
+		svval := schiter.Value().LookupPath(vpath)
+		iter, err := svval.List()
+		if err != nil {
+			panic(fmt.Sprintf("unreachable - should have already verified #SchemaDef.version field exists and is list: %+v", err))
+		}
+		for iter.Next() {
+			if !iter.Value().IsConcrete() {
+				return errors.Mark(mkerror(iter.Value(), "#SchemaDef.version must have concrete major and minor versions"), terrors.ErrInvalidLineage)
+			}
+		}
 		sch := &schemaDef{}
-		err = schiter.Value().Decode(&sch.v)
+		err = svval.Decode(&sch.v)
 		if err != nil {
 			panic(fmt.Sprintf("unreachable - could not decode syntactic version: %+v", err))
 		}
@@ -41,7 +53,7 @@ func (ml *maybeLineage) checkGoValidity() error {
 
 		ml.schlist = append(ml.schlist, sch)
 		ml.allv = append(ml.allv, sch.v)
-		*previous = *sch
+		previous = sch
 	}
 
 	return nil
@@ -109,8 +121,8 @@ func (ml *maybeLineage) checkLineageShape() error {
 	// The candidate lineage must be an instance of #Lineage.
 	dlin := ml.rt.linDef()
 	if err := dlin.Subsume(ml.uni, cue.Raw(), cue.Schema(), cue.Final()); err != nil {
+		return errors.Mark(cerrors.Promote(err, "not an instance of thema.#Lineage"), terrors.ErrInvalidLineage)
 		// return errors.Mark(errors.Wrapf(err, "%s not an instance of thema.#Lineage", p), terrors.ErrInvalidLineage)
-		return errors.Mark(cerrors.Promote(err, "not an instance of thema.#Lineage"), terrors.ErrValueNotALineage)
 	}
 
 	return nil
@@ -121,6 +133,9 @@ func (ml *maybeLineage) checkNativeValidity() error {
 	// The candidate lineage must be error-free.
 	// TODO replace this with Err, this check isn't actually what we want up here. Only schemas themselves must be cycle-free
 	if err := ml.raw.Validate(cue.Concrete(false)); err != nil {
+		return errors.Mark(cerrors.Promote(err, "lineage is invalid"), terrors.ErrInvalidLineage)
+	}
+	if err := ml.uni.Validate(cue.Concrete(false)); err != nil {
 		return errors.Mark(cerrors.Promote(err, "lineage is invalid"), terrors.ErrInvalidLineage)
 	}
 

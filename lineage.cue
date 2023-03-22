@@ -28,14 +28,6 @@ import (
 	// A lineage's joinSchema must never change as the lineage evolves.
 	joinSchema?: struct.MinFields(1)
 
-	// The lineage-local handle for #SchemaDef, into which we have injected this
-	// lineage's joinSchema.
-	let Schema = #SchemaDef & {
-		if joinSchema != _|_ {
-			_join: joinSchema
-		}
-	}
-
 	// schemas is the ordered list of all schemas in the lineage.
 	//
 	// Each element is a #SchemaDef, injected with the joinSchema for this lineage.
@@ -46,6 +38,10 @@ import (
 	// source order.
 	// TODO switch to descending order - newest on top is nicer to read
 	schemas: [#SchemaDef, ...#SchemaDef]
+
+	if joinSchema != _|_ {
+		schemas: [{_join: joinSchema}, ...{{join: joinSchema}}]
+	}
 
 	// lenses contains all the mappings between all the schemas in the lineage.
 	//
@@ -96,6 +92,9 @@ import (
 		less: (_cmpSV & {l: x.from, r: y.from}).out == -1 || (_cmpSV & {l: x.to, r: y.to}).out == -1
 	})
 
+	//	_lensVersions: [...{from: #SyntacticVersion, to: #SyntacticVersion}]
+	//	_lensVersions: [for]
+
 	_schemasAreOrdered: [ for i, sch in SS {
 		if i > 0 {
 			[
@@ -120,10 +119,10 @@ import (
 	}
 
 	if len(SS) > 1 {
-		let pos = [0, for i, sch in list.Drop(SS, 1) if SS[i].version[0] < sch.version[0] {i + 1}]
-		_counts: [ for i, idx in list.Slice(pos, 0, len(pos)-1) {
-			pos[i+1] - list.Sum(list.Slice(pos, 0, i+1))
-		}, len(SS) - pos[len(pos)-1]]
+		_pos: [0, for i, sch in list.Drop(SS, 1) if SS[i].version[0] < sch.version[0] {i + 1}]
+		_counts: [ for i, idx in list.Slice(_pos, 0, len(_pos)-1) {
+			_pos[i+1] - list.Sum(list.Slice(_pos, 0, i+1))
+		}, len(SS) - _pos[len(_pos)-1]]
 
 		// The following approach to the above:
 		//
@@ -169,7 +168,6 @@ import (
 		// TODO(must) https://github.com/cue-lang/cue/issues/943
 		// must(isconcrete(v[0]), "must specify a concrete sequence number")
 
-		out: Schema
 		out: SS[_basis[v[0]]+v[1]]
 	}
 
@@ -234,7 +232,7 @@ import (
 
 	// examples is an optional set of named examples of the schema, intended
 	// for use in documentation or other non-functional contexts.
-	examples?: [string]: _
+	examples?: [string]: _#schema
 }
 
 // Lens defines a transformation that maps the fields of one schema in a lineage to the

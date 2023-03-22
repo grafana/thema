@@ -16,12 +16,6 @@ var (
 // A baseLineage is a Go facade over a valid CUE lineage that does not compose
 // other lineage.
 type baseLineage struct {
-	// validated bool
-	// name      string
-	// raw       cue.Value
-	// rt        *Runtime
-	// allv      []SyntacticVersion
-	// allsch    []*UnarySchema
 	rt *Runtime
 
 	// internal flag to ensure BindLineage is only mechanism to create
@@ -54,10 +48,6 @@ type baseLineage struct {
 //
 // This function is the only way to create (non-nil) Lineage objects. As a result,
 // all non-nil instances of Lineage in a Go program provide these guarantees.
-//
-// The primary use case for this function is in creating a LineageFactory.
-//
-//nolint:funlen
 func BindLineage(raw cue.Value, rt *Runtime, opts ...BindOption) (Lineage, error) {
 	// We could be more selective than this, but this isn't supposed to be forever, soooooo
 	rt.l()
@@ -93,12 +83,13 @@ func BindLineage(raw cue.Value, rt *Runtime, opts ...BindOption) (Lineage, error
 	nam, _ := raw.LookupPath(cue.MakePath(cue.Str("name"))).String()
 
 	return &baseLineage{
-		rt:     rt,
-		name:   nam,
-		raw:    ml.raw,
-		uni:    ml.uni,
-		allsch: ml.schlist,
-		allv:   ml.allv,
+		validated: true,
+		rt:        rt,
+		name:      nam,
+		raw:       ml.raw,
+		uni:       ml.uni,
+		allsch:    ml.schlist,
+		allv:      ml.allv,
 	}, nil
 }
 
@@ -136,7 +127,7 @@ func BindLineage(raw cue.Value, rt *Runtime, opts ...BindOption) (Lineage, error
 // 			if defsch.Validate() != nil {
 // 				panic(defsch.Validate())
 // 			}
-// 			lin.allsch = append(lin.allsch, &UnarySchema{
+// 			lin.allsch = append(lin.allsch, &schemaDef{
 // 				raw:    sch,
 // 				defraw: defsch,
 // 				lin:    lin,
@@ -276,7 +267,11 @@ func (lin *baseLineage) Schema(v SyntacticVersion) (Schema, error) {
 	return lin.schema(v), nil
 }
 
-func (lin *baseLineage) schema(v SyntacticVersion) *UnarySchema {
+func (lin *baseLineage) allVersions() versionList {
+	return lin.allv
+}
+
+func (lin *baseLineage) schema(v SyntacticVersion) *schemaDef {
 	return lin.allsch[searchSynv(lin.allv, v)]
 }
 

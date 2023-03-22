@@ -9,19 +9,9 @@ import (
 )
 
 var (
-	_ Schema                = &UnarySchema{}
+	_ Schema                = &schemaDef{}
 	_ TypedSchema[Assignee] = &unaryTypedSchema[Assignee]{}
 )
-
-// A UnarySchema is a Go facade over a Thema schema that does not compose any
-// schemas from any other lineages.
-type UnarySchema struct {
-	// TODO panic button if empty, nil
-	raw    cue.Value
-	defraw cue.Value
-	lin    *baseLineage
-	v      SyntacticVersion
-}
 
 // schemaDef represents a single #SchemaDef, with a backlink to its containing
 // #Lineage.
@@ -35,7 +25,7 @@ type schemaDef struct {
 	// v is the version of this schema.
 	v SyntacticVersion
 
-	lin Lineage
+	lin *baseLineage
 }
 
 // Examples returns the set of examples of this schema defined in the original
@@ -44,7 +34,7 @@ func (sch *schemaDef) Examples() map[string]*Instance {
 	panic("TODO")
 }
 
-func (sch *UnarySchema) rt() *Runtime {
+func (sch *schemaDef) rt() *Runtime {
 	return sch.Lineage().Runtime()
 }
 
@@ -57,9 +47,7 @@ func (sch *UnarySchema) rt() *Runtime {
 // the translation internally; input values must be concrete. To use
 // incomplete CUE values with Thema schemas, prefer working directly in CUE,
 // or if you must, rely on Underlying().
-//
-// TODO should this instead be interface{} (ugh ugh wish Go had discriminated unions) like FillPath?
-func (sch *UnarySchema) Validate(data cue.Value) (*Instance, error) {
+func (sch *schemaDef) Validate(data cue.Value) (*Instance, error) {
 	sch.rt().rl()
 	defer sch.rt().ru()
 	// TODO which approach is actually the right one, unify or subsume? ugh
@@ -69,7 +57,7 @@ func (sch *UnarySchema) Validate(data cue.Value) (*Instance, error) {
 	// 	// return nil, mungeValidateErr(err, sch)
 	// }
 
-	x := sch.defraw.Unify(data)
+	x := sch.def.Unify(data)
 	if err := x.Validate(cue.Final(), cue.All()); err != nil {
 		return nil, mungeValidateErr(err, sch)
 	}
@@ -82,14 +70,14 @@ func (sch *UnarySchema) Validate(data cue.Value) (*Instance, error) {
 }
 
 // Successor returns the next schema in the lineage, or nil if it is the last schema.
-func (sch *UnarySchema) Successor() Schema {
+func (sch *schemaDef) Successor() Schema {
 	if s := sch.successor(); s != nil {
 		return s
 	}
 	return nil
 }
 
-func (sch *UnarySchema) successor() *UnarySchema {
+func (sch *schemaDef) successor() *schemaDef {
 	if sch.lin.allv[len(sch.lin.allv)-1] == sch.v {
 		return nil
 	}
@@ -99,14 +87,14 @@ func (sch *UnarySchema) successor() *UnarySchema {
 }
 
 // Predecessor returns the previous schema in the lineage, or nil if it is the first schema.
-func (sch *UnarySchema) Predecessor() Schema {
+func (sch *schemaDef) Predecessor() Schema {
 	if s := sch.predecessor(); s != nil {
 		return s
 	}
 	return nil
 }
 
-func (sch *UnarySchema) predecessor() *UnarySchema {
+func (sch *schemaDef) predecessor() *schemaDef {
 	if sch.v == synv() {
 		return nil
 	}
@@ -118,26 +106,26 @@ func (sch *UnarySchema) predecessor() *UnarySchema {
 // LatestInMajor returns the Schema with the newest (largest) minor version
 // within this Schema's major version. If the receiver Schema is the latest, it
 // will return itself.
-func (sch *UnarySchema) LatestInMajor() Schema {
+func (sch *schemaDef) LatestInMajor() Schema {
 	return sch.lin.allsch[searchSynv(sch.lin.allv, SyntacticVersion{sch.v[0] + 1, 0})]
 }
 
-// Underlying returns the cue.Value that represents the underlying CUE schema.
-func (sch *UnarySchema) Underlying() cue.Value {
-	return sch.raw
+// Underlying returns the cue.Value that represents the underlying CUE #SchemaDef.
+func (sch *schemaDef) Underlying() cue.Value {
+	return sch.ref
 }
 
 // Version returns the schema's version number.
-func (sch *UnarySchema) Version() SyntacticVersion {
+func (sch *schemaDef) Version() SyntacticVersion {
 	return sch.v
 }
 
 // Lineage returns the lineage that contains this schema.
-func (sch *UnarySchema) Lineage() Lineage {
+func (sch *schemaDef) Lineage() Lineage {
 	return sch.lin
 }
 
-func (sch *UnarySchema) _schema() {}
+func (sch *schemaDef) _schema() {}
 
 // BindType produces a [TypedSchema], given a [Schema] that is [AssignableTo]
 // the [Assignee] type parameter T. T must be struct-kinded, and at most one
@@ -204,8 +192,8 @@ func BindType[T Assignee](sch Schema, t T) (TypedSchema[T], error) {
 
 func schemaIs(s1, s2 Schema) bool {
 	// TODO will need something smarter here if/when we have more types representing schema
-	vs1, is1 := s1.(*UnarySchema)
-	vs2, is2 := s2.(*UnarySchema)
+	vs1, is1 := s1.(*schemaDef)
+	vs2, is2 := s2.(*schemaDef)
 	if !is1 || !is2 {
 		panic(fmt.Sprintf("TODO implement schema comparison handler for types %T and %T", s1, s2))
 		return false
