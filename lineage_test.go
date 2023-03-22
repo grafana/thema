@@ -2,14 +2,14 @@ package thema
 
 import (
 	"bytes"
+	"fmt"
 	"testing"
 
 	"cuelang.org/go/cue"
 	"cuelang.org/go/cue/build"
 	"cuelang.org/go/cue/cuecontext"
 	"cuelang.org/go/cue/load"
-	"github.com/cockroachdb/errors"
-	terrors "github.com/grafana/thema/errors"
+	"github.com/grafana/thema/internal/txtartest/vanilla"
 )
 
 var themaInst *build.Instance
@@ -19,68 +19,6 @@ func init() {
 		Package: "thema",
 	})
 	themaInst = bi[0]
-}
-
-func TestBindLineage(t *testing.T) {
-	table := map[string]struct {
-		in       string
-		path     string
-		noimport bool
-		err      error
-	}{
-		"empty": {
-			err:      terrors.ErrValueNotALineage,
-			noimport: true,
-		},
-		"badpath": {
-			err:  terrors.ErrValueNotExist,
-			path: "notexist",
-		},
-		"defonly": {
-			err: terrors.ErrInvalidLineage,
-			in: `
-thema.#Lineage
-`,
-		},
-		"schemaless": {
-			err: terrors.ErrInvalidLineage,
-			in: `
-thema.#Lineage
-name: "something"
-`,
-		},
-		"empty-schemas-array": {
-			err: terrors.ErrInvalidLineage,
-			in: `
-thema.#Lineage
-name: "something"
-schemas: []
-`,
-		},
-	}
-
-	ctx := cuecontext.New()
-	rt := NewRuntime(ctx)
-
-	for name, itt := range table {
-		tt := itt
-		t.Run(name, func(t *testing.T) {
-			valstr := tt.in
-			if !tt.noimport {
-				valstr = "import \"github.com/grafana/thema\"\n" + tt.in
-			}
-
-			val := compileStringWithThema(ctx, valstr)
-			if tt.path != "" {
-				val = val.LookupPath(cue.ParsePath(tt.path))
-			}
-			_, err := BindLineage(val, rt)
-			if !errors.Is(err, tt.err) {
-				t.Fatalf("expected error %q, got %q", tt.err, err)
-			}
-			t.Logf("%+v\n", err)
-		})
-	}
 }
 
 func compileStringWithThema(ctx *cue.Context, src string) cue.Value {
@@ -94,4 +32,65 @@ func compileStringWithThema(ctx *cue.Context, src string) cue.Value {
 
 	val := ctx.BuildInstance(bi[0])
 	return val
+}
+
+func TestBindLineage(t *testing.T) {
+	test := vanilla.TxTarTest{
+		Root: "./testdata/lineage",
+		Name: "bind",
+	}
+
+	ctx := cuecontext.New()
+	rt := NewRuntime(ctx)
+
+	test.Run(t, func(tc *vanilla.Test) {
+		v := ctx.BuildInstance(tc.Instance())
+		lin, err := BindLineage(v, rt)
+		if testing.Short() && tc.HasTag("slow") {
+			t.Skip("case is tagged #slow, skipping for -short")
+		}
+
+		if err != nil {
+			tc.Fatalf("error binding lineage: %+v", err)
+		}
+
+		sspath := cue.MakePath(cue.Hid("_sortedSchemas", "github.com/grafana/thema"))
+		slen, err := lin.Underlying().LookupPath(sspath).Len().Int64()
+		if err != nil {
+			tc.Fatal("error getting schemas len", err)
+		}
+		fmt.Fprintf(tc, "Schema count: %v\n", slen)
+		fmt.Fprintf(tc, "Schema versions: %s\n", lin.allVersions())
+
+		slpath := cue.MakePath(cue.Hid("_sortedLenses", "github.com/grafana/thema"))
+		llen, err := lin.Underlying().LookupPath(slpath).Len().Int64()
+		if err != nil {
+			tc.Fatal("error getting schemas len", err)
+		}
+		fmt.Fprintf(tc, "Lenses count: %v\n", llen)
+	})
+}
+
+func TestInvalidLineages(t *testing.T) {
+	test := vanilla.TxTarTest{
+		Root: "./testdata/invalidlineage",
+		Name: "bindfail",
+	}
+
+	ctx := cuecontext.New()
+	rt := NewRuntime(ctx)
+
+	test.Run(t, func(tc *vanilla.Test) {
+		v := ctx.BuildInstance(tc.Instance())
+		_, err := BindLineage(v, rt)
+		if testing.Short() && tc.HasTag("slow") {
+			t.Skip("case is tagged #slow, skipping for -short")
+		}
+
+		if err == nil {
+			tc.Fatal("expected error from known-invalid lineage")
+		}
+
+		fmt.Fprintf(tc, "%+v\n", err)
+	})
 }

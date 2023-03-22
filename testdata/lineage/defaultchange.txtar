@@ -1,0 +1,55 @@
+-- in.cue --
+
+import "github.com/grafana/thema"
+
+thema.#Lineage
+name: "defaultchange"
+schemas: [
+    {
+        version: [0, 0]
+		schema: {
+		    aunion: "foo" | "bar" | "baz"
+        }
+    },
+    {
+        version: [0, 1]
+		schema: {
+		    aunion: *"foo" | "bar" | "baz"
+        }
+    },
+    {
+        version: [1, 0]
+		schema: {
+		    aunion: "foo" | *"bar" | "baz"
+        }
+    }
+]
+
+lenses: [
+    {
+        from: [0, 1]
+        to: [0, 0]
+        input: _
+        result: {
+            aunion: input.aunion
+        }
+    },
+    {
+        from: [1, 0]
+        to: [0, 1]
+        input: _
+        result: {
+            aunion: input.aunion
+        }
+    },
+    {
+        from: [0, 1]
+        to: [1, 0]
+        input: _
+        result: {
+            if input.aunion != "foo" {
+                aunion: input.aunion
+            }
+        }
+    }
+]

@@ -1,0 +1,39 @@
+#slow
+-- in.cue --
+
+import "github.com/grafana/thema"
+
+thema.#Lineage
+name: "second-schema-versionless"
+schemas: [
+	{
+		version: [0, 0]
+		schema: {
+			firstfield: string
+		}
+	},
+	{
+		schema: {
+			firstfield: string
+			secondfield?: int32
+		}
+	}
+]
+
+lenses: [
+	{
+		from: [0, 1]
+		to: [0, 0]
+		input: _
+		result: {
+			firstfield: input.firstfield
+		}
+	}
+]
+-- out/bindfail --
+value not an instance
+(1) forced error mark
+  | "invalid lineage"
+  | github.com/cockroachdb/errors/withstack/*withstack.withStack::
+Wraps: (2) value not an instance
+Error types: (1) *markers.withMark (2) *adt.ValueError
