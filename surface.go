@@ -70,6 +70,10 @@ type Lineage interface {
 	// Otherwise, it is probably preferable to pick an explicit version number.
 	Latest() Schema
 
+	// All returns all Schemas in the lineage. Thema requires that all valid lineages
+	// contain at least one schema, so this is guaranteed to contain at least one element.
+	All() []Schema
+
 	// Runtime returns the thema.Runtime instance with which this lineage was built.
 	Runtime() *Runtime
 

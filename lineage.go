@@ -6,6 +6,7 @@ import (
 
 	"cuelang.org/go/cue"
 	terrors "github.com/grafana/thema/errors"
+	"github.com/grafana/thema/internal/cuetil"
 	"github.com/grafana/thema/internal/util"
 )
 
@@ -167,6 +168,16 @@ func (lin *UnaryLineage) First() Schema {
 	return lin.allsch[0]
 }
 
+// All returns all Schemas in the lineage. Thema requires that all valid lineages
+// contain at least one schema, so this is guaranteed to contain at least one element.
+func (lin *UnaryLineage) All() []Schema {
+	schemas := make([]Schema, len(lin.allsch))
+	for i, s := range lin.allsch {
+		schemas[i] = s
+	}
+	return schemas
+}
+
 func isValidLineage(lin Lineage) {
 	switch tlin := lin.(type) {
 	case nil:
@@ -267,4 +278,24 @@ type unaryConvLineage[T Assignee] struct {
 
 func (lin *unaryConvLineage[T]) TypedSchema() TypedSchema[T] {
 	return lin.tsch
+}
+
+func IsAppendOnly(oldLineage Lineage, newLineage Lineage) bool {
+	oldSchemas := oldLineage.All()
+	newSchemas := newLineage.All()
+
+	if len(newSchemas) < len(oldSchemas) {
+		return false
+	}
+
+	for i, schema := range oldSchemas {
+		x := schema.Underlying()
+		y := newSchemas[i].Underlying()
+
+		if !cuetil.Equal(x, y) {
+			return false
+		}		
+	}
+
+	return true
 }
