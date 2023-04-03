@@ -23,14 +23,18 @@ func toString(val cue.Value) (string, error) {
 		return "", err
 	}
 
+	// Need to remove whitespace because sometimes it's wrapped in {}
+	// adding one tab level
 	regWhitespace := regexp.MustCompile("\\s+")
 	res := regWhitespace.ReplaceAllString(string(bytes), "")
 	
+	// If there is no import, the lineage is wrapped into this
 	regDef := regexp.MustCompile(`{_#def_#def:(.*)}`)
 	matches := regDef.FindStringSubmatch(res)
 	if len(matches) > 1 {
 		res = matches[1]
 	} else {
+		// Else it's just prefixed with this
 		res = strings.Replace(res, "_#def_#def:", "", 1)
 	}
 
