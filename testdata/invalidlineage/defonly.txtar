@@ -5,8 +5,3 @@ import "github.com/grafana/thema"
 thema.#Lineage
 -- out/bindfail --
 invalid lineage, #Lineage.name must be concrete
-(1) forced error mark
-  | "invalid lineage"
-  | github.com/cockroachdb/errors/withstack/*withstack.withStack::
-Wraps: (2) invalid lineage, #Lineage.name must be concrete
-Error types: (1) *markers.withMark (2) *errors.posError

@@ -37,17 +37,13 @@ type baseLineage struct {
 	allsch []*schemaDef
 }
 
-// BindLineage takes a raw cue.Value, checks that it is a valid lineage (that it
-// upholds the invariants necessary for Thema's translatability guarantees),
-// and returns the cue.Value wrapped in a Lineage, iff validity checks succeed.
-// The Lineage type provides access to all the types and functions for working
-// with Thema in Go.
+// BindLineage takes a raw [cue.Value], checks that it correctly follows Thema's
+// invariants, such as translatability and backwards compatibility version
+// numbering. If checks succeed, a [Lineage] is returned.
 //
-// It is expected that the cue.Value provided to this function has already been
-// unified with thema.#Lineage.
-//
-// This function is the only way to create (non-nil) Lineage objects. As a result,
-// all non-nil instances of Lineage in a Go program provide these guarantees.
+// This function is the only way to create non-nil Lineage objects. As a result,
+// all non-nil instances of Lineage in any Go program are guaranteed to follow
+// Thema invariants.
 func BindLineage(raw cue.Value, rt *Runtime, opts ...BindOption) (Lineage, error) {
 	// We could be more selective than this, but this isn't supposed to be forever, soooooo
 	rt.l()

@@ -11,7 +11,6 @@ package thema
 // TODO optionally check for concreteness of otherwise valid data
 // TODO functionize
 #SearchAndValidate: fn={
-	//	lin: #Lineage
 	lin: _
 	inst: {...} // TODO consistently rename to 'object' or something
 
@@ -24,7 +23,6 @@ package thema
 }
 
 #ValidFor: {
-	//	lin: #Lineage
 	lin: _
 	inst: {...} // TODO consistently rename to 'object' or something
 
@@ -36,8 +34,8 @@ package thema
 // version of that schema, and the lineage of the schema.
 #LinkedInstance: {
 	inst: {...} // TODO consistently rename to 'object' or something
-	lin:        #Lineage
-	v:          #SyntacticVersion // TODO rename to 'version'
+	lin:        #Lineage & {_atLeastOneSchema: true}
+	v:          #SyntacticVersion              // TODO rename to 'version'
 
 	// TODO need proper validation/subsumption check here, not simple unification
 	//	_valid: inst & (#Pick & {lin: L.lin, v: v}).out

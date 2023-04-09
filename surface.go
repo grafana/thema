@@ -16,10 +16,12 @@ type CUEWrapper interface {
 	Underlying() cue.Value
 }
 
-// A Lineage is the top-level container in thema, holding the complete
+// A Lineage is the top-level container in Thema, holding the complete
 // evolutionary history of a particular kind of object: every schema that has
 // ever existed for that object, and the lenses that allow translating between
 // those schema versions.
+//
+// Lineages may only be produced by calling [BindLineage].
 type Lineage interface {
 	CUEWrapper
 

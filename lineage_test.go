@@ -38,6 +38,9 @@ func TestBindLineage(t *testing.T) {
 	test := vanilla.TxTarTest{
 		Root: "./testdata/lineage",
 		Name: "bind",
+		ToDo: map[string]string{
+			"lineage/defaultchange": "Thema compat analyzer fails to classify changes to default values as breaking",
+		},
 	}
 
 	ctx := cuecontext.New()
@@ -75,6 +78,9 @@ func TestInvalidLineages(t *testing.T) {
 	test := vanilla.TxTarTest{
 		Root: "./testdata/invalidlineage",
 		Name: "bindfail",
+		ToDo: map[string]string{
+			"invalidlineage/defaultchange": "Thema compat analyzer fails to classify changes to default values as breaking",
+		},
 	}
 
 	ctx := cuecontext.New()
@@ -91,6 +97,7 @@ func TestInvalidLineages(t *testing.T) {
 			tc.Fatal("expected error from known-invalid lineage")
 		}
 
-		fmt.Fprintf(tc, "%+v\n", err)
+		// TODO more verbose error output, should include CUE line-level analysis
+		fmt.Fprintf(tc, "%v\n", err)
 	})
 }

@@ -38,6 +38,7 @@ import (
 	// source order.
 	// TODO switch to descending order - newest on top is nicer to read
 	schemas: [#SchemaDef, ...#SchemaDef]
+	//			schemas: [...#SchemaDef]
 
 	if joinSchema != _|_ {
 		schemas: [{_join: joinSchema}, ...{{join: joinSchema}}]
@@ -76,10 +77,20 @@ import (
 	// list. Thema tooling that modifies and emits lineages definitions may produce lenses
 	// sorted in ascending order, rather than original source order.
 	// TODO switch to descending order - newest on top is nicer to read
-	//
 	lenses: [...#Lens]
 
-	SS=_sortedSchemas: list.Sort(schemas, {
+	//	 TODO this is horrible. Remove ASAP.
+	_atLeastOneSchema: len(schemas) > 0
+
+	_schemas: [...]
+	if _atLeastOneSchema == true {
+		_schemas: schemas
+	}
+	if _atLeastOneSchema == false {
+		_schemas: [#SchemaDef & {version: [0, 0]}]
+	}
+
+	SS=_sortedSchemas: list.Sort(_schemas, {
 		x:    #SchemaDef
 		y:    #SchemaDef
 		less: (_cmpSV & {l: x.version, r: y.version}).out == -1
@@ -216,7 +227,7 @@ import (
 	//
 	// The entire lineage is considered invalid if the version number in this field
 	// is inconsistent with the algorithmically determined set of [non-]breaking changes.
-	version: #SyntacticVersion
+	version: #SyntacticVersion | *[0, 0]
 
 	schema: _
 

@@ -11,10 +11,42 @@ import (
 	"github.com/grafana/thema/internal/compat"
 )
 
+// maybeLineage is an intermediate processing structure used to validate
+// inputs as actual lineages
+//
+// it's important that these flags are populated in order to avoid false negatives.
+// no system ensures this, it's all human reasoning
+type maybeLineage struct {
+	// original raw input cue.Value
+	raw cue.Value
+
+	// input cue.Value, unified with thema.#Lineage
+	uni cue.Value
+
+	rt *Runtime
+
+	// pos of the original input for the lineage
+	pos token.Pos
+
+	// bind options passed by the caller
+	cfg *bindConfig
+
+	schlist []*schemaDef
+
+	allv []SyntacticVersion
+
+	// thema.#Lineage was unified with the raw input prior to it being passed to
+	// BindLineage
+	// rawUnifiesLineage bool
+
+	// The raw input value is the root of a package instance
+	// rawIsPackage bool
+}
+
 func (ml *maybeLineage) checkGoValidity() error {
 	schiter, err := ml.uni.LookupPath(cue.MakePath(cue.Hid("_sortedSchemas", "github.com/grafana/thema"))).List()
 	if err != nil {
-		panic(fmt.Sprintf("unreachable - should have already verified schemas field exists and is list: %+v", err))
+		panic(fmt.Sprintf("unreachable - should have already verified schemas field exists and is list: %+v", cerrors.Details(err, nil)))
 	}
 	schpath := cue.MakePath(cue.Hid("_#schema", "github.com/grafana/thema"))
 	vpath := cue.MakePath(cue.Str("version"))
@@ -59,38 +91,6 @@ func (ml *maybeLineage) checkGoValidity() error {
 	return nil
 }
 
-// maybeLineage is an intermediate processing structure used to validate
-// inputs as actual lineages
-//
-// it's important that these flags are populated in order to avoid false negatives.
-// no system ensures this, it's all human reasoning
-type maybeLineage struct {
-	// original raw input cue.Value
-	raw cue.Value
-
-	// input cue.Value, unified with thema.#Lineage
-	uni cue.Value
-
-	rt *Runtime
-
-	// pos of the original input for the lineage
-	pos token.Pos
-
-	// bind options passed by the caller
-	cfg *bindConfig
-
-	schlist []*schemaDef
-
-	allv []SyntacticVersion
-
-	// thema.#Lineage was unified with the raw input prior to it being passed to
-	// BindLineage
-	// rawUnifiesLineage bool
-
-	// The raw input value is the root of a package instance
-	// rawIsPackage bool
-}
-
 func (ml *maybeLineage) checkExists() error {
 	p := ml.raw.Path().String()
 	// The candidate lineage must exist.
@@ -118,11 +118,19 @@ func (ml *maybeLineage) checkLineageShape() error {
 		}
 	}
 
-	// The candidate lineage must be an instance of #Lineage.
-	dlin := ml.rt.linDef()
-	if err := dlin.Subsume(ml.uni, cue.Raw(), cue.Schema(), cue.Final()); err != nil {
+	// The candidate lineage must be an instance of #Lineage. However, we can't validate the whole
+	// structure, because lenses will fail validation. This is because we currently expect them to be written:
+	//
+	// {
+	// 		input: _
+	// 		result: {
+	// 			foo: input.foo
+	// 		}
+	// }
+	//
+	// means that those structures won't pass Validate until we've injected an actual object there.
+	if err := ml.uni.Validate(cue.Final()); err != nil {
 		return errors.Mark(cerrors.Promote(err, "not an instance of thema.#Lineage"), terrors.ErrInvalidLineage)
-		// return errors.Mark(errors.Wrapf(err, "%s not an instance of thema.#Lineage", p), terrors.ErrInvalidLineage)
 	}
 
 	return nil

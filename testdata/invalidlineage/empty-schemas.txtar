@@ -6,9 +6,4 @@ thema.#Lineage
 name: "empty-schemas"
 schemas: []
 -- out/bindfail --
-schemas: incompatible list lengths (0 and 1) (and 8 more errors)
-(1) forced error mark
-  | "invalid lineage"
-  | github.com/cockroachdb/errors/withstack/*withstack.withStack::
-Wraps: (2) schemas: incompatible list lengths (0 and 1) (and 8 more errors)
-Error types: (1) *markers.withMark (2) errors.list
+#Lineage.schemas: incompatible list lengths (0 and 1) (and 32 more errors)

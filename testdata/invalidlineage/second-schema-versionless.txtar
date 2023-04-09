@@ -31,9 +31,4 @@ lenses: [
 	}
 ]
 -- out/bindfail --
-value not an instance
-(1) forced error mark
-  | "invalid lineage"
-  | github.com/cockroachdb/errors/withstack/*withstack.withStack::
-Wraps: (2) value not an instance
-Error types: (1) *markers.withMark (2) *adt.ValueError
+#Lineage._schemasAreOrdered.1: conflicting values true and false (and 577 more errors)

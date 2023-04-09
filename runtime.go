@@ -57,14 +57,14 @@ func NewRuntime(ctx *cue.Context) *Runtime {
 	}
 
 	rt := ctx.BuildInstance(load.Instances(nil, cfg)[0])
-	if rt.Validate(cue.All()) != nil {
+	if err := rt.Validate(cue.All()); err != nil {
 		// As with the above, an error means that a problem exists in the
 		// literal CUE code embedded in this version of package (that should
 		// have trivially been caught with CI), so the caller can't fix anything
 		// without changing the version of the thema Go library they're
 		// depending on. It's a hard failure that should be unreachable outside
 		// thema internal testing, so just panic.
-		panic(errors.Details(rt.Validate(cue.All()), nil))
+		panic(errors.Details(err, nil))
 	}
 
 	// FIXME preload all the known funcs into a map[string]cue.Value here to avoid runtime cost
@@ -108,9 +108,6 @@ func (rt *Runtime) Context() *cue.Context {
 // SURROUND CALLS TO THIS IN rl()/ru()
 func (rt *Runtime) linDef() cue.Value {
 	dlin := rt.val.LookupPath(cue.MakePath(cue.Def("#Lineage")))
-	if dlin.Err() != nil {
-		panic(dlin.Err())
-	}
 	return dlin
 }
 
