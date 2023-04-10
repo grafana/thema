@@ -1,0 +1,28 @@
+-- in.cue --
+import "github.com/grafana/thema"
+
+thema.#Lineage
+name: "expand"
+seqs: [
+	{
+		schemas: [
+			{
+				init: string // 0.0
+			},
+			{
+				init:      string
+				optional?: int // 0.1
+			},
+			{
+				init:         string
+				optional?:    int
+				withDefault?: *"foo" | "bar" // 0.2
+			},
+			{
+				init:         string
+				optional?:    int
+				withDefault?: *"foo" | "bar" | "baz" // 0.3
+			},
+		]
+	},
+]

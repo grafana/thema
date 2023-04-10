@@ -1,0 +1,36 @@
+-- in.cue --
+import "github.com/grafana/thema"
+
+thema.#Lineage
+name: "disjunct"
+seqs: [
+	{
+		schemas: [
+			{
+				rootfield: {
+					branch:    1
+					branchone: string
+				} | {
+					branch:    2
+					branchtwo: string
+				} // 0.0
+			},
+			{
+				rootfield: {
+					branch:    1
+					branchone: string
+				} | {
+					branch:    2
+					branchtwo: string
+				} | {
+					branch:      3
+					branchthree: {
+						branchthreeinner: int
+					} | {
+						branchthreeinner: string
+					}
+				} // 0.1
+			},
+		]
+	},
+]
