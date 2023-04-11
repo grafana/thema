@@ -4,13 +4,11 @@ import "github.com/grafana/thema"
 
 thema.#Lineage
 name: "one-schema-versionless"
-schemas: [
-	{
-		schema: {
-			firstfield: string
-		}
-	}
-]
+schemas: [{
+    schema: {
+        firstfield: string
+    }
+}]
 -- out/bind --
 Schema count: 1
 Schema versions: 0.0
