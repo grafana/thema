@@ -8,7 +8,6 @@ import (
 	"cuelang.org/go/cue/ast"
 	"cuelang.org/go/cue/build"
 	"cuelang.org/go/cue/cuecontext"
-	"cuelang.org/go/cue/format"
 	tastutil "github.com/grafana/thema/internal/astutil"
 	"github.com/grafana/thema/internal/txtartest/vanilla"
 )
@@ -27,11 +26,7 @@ func TestRewriteLegacyLineage(t *testing.T) {
 			tc.Fatal(err)
 		}
 
-		b, err := format.Node(f, format.Simplify())
-		if err != nil {
-			t.Fatal(err)
-		}
-		tc.Write(b)
+		tc.Write(tastutil.FmtNodeP(f))
 	})
 }
 

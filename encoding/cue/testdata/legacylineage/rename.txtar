@@ -62,20 +62,20 @@ schemas: [{
 }]
 lenses: [{
 	to: [0, 0]
-	"from": [1, 0]
+	from: [1, 0]
 	input: _
 	result: {
-		before:    from.after
-		unchanged: from.unchanged
+		before:    input.after
+		unchanged: input.unchanged
 	}
 	lacunas: []
 }, {
 	to: [0, 0]
-	"from": [1, 0]
+	from: [1, 0]
 	input: _
 	result: {
-		after:     from.before
-		unchanged: from.unchanged
+		after:     input.before
+		unchanged: input.unchanged
 	}
 	lacunas: []
 }]

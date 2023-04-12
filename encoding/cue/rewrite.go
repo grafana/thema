@@ -34,7 +34,7 @@ func RewriteLegacyLineage(inst cue.Value, path cue.Path) (*ast.File, error) {
 	// literal contains a field named seqs.
 	if found := findSeqsVal(v); found != nil {
 		v = *found
-	} else {
+	} else if len(path.Selectors()) != 0 {
 		return nil, fmt.Errorf("could not find parent of seqs field in AST")
 	}
 
@@ -146,6 +146,28 @@ type legacyLens struct {
 	mapper, lacunas cue.Value
 }
 
+// Rewrite the bodies of the lenses and any lacunas to have selectors using the
+// new field names
+func (ll legacyLens) rewriteFromTo(cursor astutil.Cursor) bool {
+	switch x := cursor.Node().(type) {
+	case *ast.SelectorExpr:
+		if id, is := x.X.(*ast.Ident); is {
+			switch id.Name {
+			case "from":
+				x.X = ast.NewLit(token.STRING, "input")
+			case "to":
+				x.X = ast.NewLit(token.STRING, "result")
+			default:
+				return false
+			}
+		}
+		// ONLY want to change the first element in any chain of selectors. So
+		// always stop searching once we've encountered a single one of these
+		return false
+	}
+	return true
+}
+
 func (ll legacyLens) toAST() (ast.Expr, error) {
 	var mapsrc ast.Expr
 	if !ll.mapper.Exists() {
@@ -168,12 +190,14 @@ func (ll legacyLens) toAST() (ast.Expr, error) {
 			return nil, fmt.Errorf("lens %s->%s mapper is not a struct literal", ll.from, ll.to)
 		}
 		existing.Lbrace = token.NoPos
+		astutil.Apply(existing, ll.rewriteFromTo, nil)
 		mapsrc = existing
 	}
 
 	var lacsrc ast.Expr = ast.NewList()
 	if ll.lacunas.Exists() && ll.lacunas.Source() != nil {
 		src := ll.lacunas.Source().(*ast.Field).Value.(*ast.ListLit)
+		astutil.Apply(src, ll.rewriteFromTo, nil)
 		lacsrc = src
 	}
 	return ast.NewStruct(
@@ -225,22 +249,6 @@ func isStructLiteral(v cue.Value) bool {
 	}
 	return is
 }
-
-// func isSeqsStructContainer(v cue.Value) bool {
-// 	var is bool
-// 	switch x := v.Source().(type) {
-// 	case *ast.StructLit:
-// 		_, err := tastutil.GetFieldByLabel(x, "seqs")
-// 		is = err == nil
-// 	case *ast.Field:
-// 		_, is = x.Value.(*ast.StructLit)
-// 		if is {
-// 			_, err := tastutil.GetFieldByLabel(x, "seqs")
-// 			is = err == nil
-// 		}
-// 	}
-// 	return is
-// }
 
 func extractParts(raw cue.Value) ([]legacySchema, []legacyLens, error) {
 	schlist := make([]legacySchema, 0)
