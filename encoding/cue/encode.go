@@ -105,12 +105,13 @@ var emptyLineage = template.Must(template.New("newlin").Parse(`
 
 thema.#Lineage
 name: "{{ .Name }}"
-seqs: [
+schemas: [
     {
-        schemas: [
-            {{ .Sch }},
-        ]
-    },
+        version: [0, 0]
+        schema: {
+            {{ .Sch }}
+        }
+    }
 ]
 `))
 
@@ -127,7 +128,7 @@ func Append(lin thema.Lineage, sch cue.Value) (ast.Node, error) {
 	lv := thema.LatestVersion(lin)
 	lsch := thema.SchemaP(lin, lv)
 	if err := compat.ThemaCompatible(lsch.Underlying(), sch); err == nil {
-		// Is compatible, append to same sequence
+		// Is compatible, bump minor version
 		tgtv := thema.SyntacticVersion{lv[0], lv[1] + 1}
 		ast.AddComment(schnode, versionComment(tgtv))
 
@@ -139,7 +140,7 @@ func Append(lin thema.Lineage, sch cue.Value) (ast.Node, error) {
 		schl.Elts = append(schl.Elts, schnode)
 		// TODO add boilerplate lenses, etc.
 	} else {
-		// Not compatible, start a new sequence
+		// Not compatible, bump major version
 		tgtv := thema.SyntacticVersion{lv[0] + 1, 0}
 		ast.AddComment(schnode, versionComment(tgtv))
 
@@ -171,7 +172,7 @@ func versionComment(v thema.SyntacticVersion) *ast.CommentGroup {
 		Doc:  true,
 		Line: true,
 		List: []*ast.Comment{
-			&ast.Comment{
+			{
 				Text: fmt.Sprint("// v", v.String()),
 			},
 		},

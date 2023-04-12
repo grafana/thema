@@ -1,11 +1,13 @@
 package cue
 
 import (
+	"fmt"
 	"testing"
 
 	"cuelang.org/go/cue/cuecontext"
 	"github.com/grafana/thema"
 	"github.com/grafana/thema/exemplars"
+	"github.com/grafana/thema/internal/astutil"
 )
 
 var ctx = cuecontext.New()

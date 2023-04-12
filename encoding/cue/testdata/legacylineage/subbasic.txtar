@@ -1,0 +1,22 @@
+#sub: lin
+-- in.cue --
+
+lin: {
+    name: "single"
+    seqs: [{
+        schemas: [
+            {
+                astring: string
+            },
+        ]
+    }]
+}
+-- out/rewrite-legacy-lineage --
+lin: {
+	name: "single"
+	schemas: [{
+		version: [0, 0]
+		schema: astring: string
+	}]
+	lenses: []
+}

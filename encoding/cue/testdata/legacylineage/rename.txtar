@@ -42,3 +42,40 @@ seqs: [
 		}
 	},
 ]
+-- out/rewrite-legacy-lineage --
+import "github.com/grafana/thema"
+
+thema.#Lineage
+name: "rename"
+schemas: [{
+	version: [0, 0]
+	schema: {
+		before:    string
+		unchanged: string
+	}
+}, {
+	version: [1, 0]
+	schema: {
+		after:     string
+		unchanged: string
+	}
+}]
+lenses: [{
+	to: [0, 0]
+	"from": [1, 0]
+	input: _
+	result: {
+		before:    from.after
+		unchanged: from.unchanged
+	}
+	lacunas: []
+}, {
+	to: [0, 0]
+	"from": [1, 0]
+	input: _
+	result: {
+		after:     from.before
+		unchanged: from.unchanged
+	}
+	lacunas: []
+}]
