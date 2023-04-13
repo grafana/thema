@@ -39,7 +39,6 @@ import "list"
 			from:   FV
 			to:     TV
 			result: *steps[len(steps)-1].result | I
-			//			lacunas: list.Concat([ for ti in steps {ti.lacunas}])
 		}
 	}
 	out: {
@@ -50,19 +49,28 @@ import "list"
 				// translation, inclusive of the starting schema.
 				let hi = (L._flatidx & {v: FV}).out
 				let lo = (L._flatidx & {v: TV}).out
-				let schrange = list.Slice(L._sortedSchemas, lo, hi)
 
-				_accum: [{result: I, to: FV}, for i, pos in list.Repeat(hi, lo-1, -1) {
+				_accum: [{result: I, to: FV}, for i, pos in list.Range(hi-1, lo-1, -1) {
 					// alias pointing to the previous item in the list we're building
 					let prior = _accum[i]
 
 					// the actual schema def
-					let schdef = schrange[pos]
+					let schdef = L._sortedSchemas[pos]
 
-					// to-predecessor lens position is the flatidx of the to schema,
+					// sorted index of the to-predecessor lens is the flatidx of the to schema,
 					// plus the major version of the from schema.
 					// TODO does having this field in the result, even hidden, cause a problem? does using an alias cause the computation to run more than once?
-					_lens: L.lenses[(L._flatidx & {v: schdef.version}).out+prior.to[0]] & {input: prior.result, from: prior.to, to: schdef.version}
+					let lensidx = (L._flatidx & {v: schdef.version}).out + prior.to[0]
+
+					_lens: L._sortedLenses[lensidx] & {
+						// pass the prior result along as the input to this lens
+						input: prior.result
+
+						// guard against bugs in this impl - these are already concretely specified
+						// on the lens itself by the user, so these version numbers must be correct
+						from: prior.to
+						to:   schdef.version
+					}
 
 					from: _lens.from
 					to:   _lens.to
@@ -71,12 +79,12 @@ import "list"
 					lacunas: [ for lac in _lens.lacunas if lac.condition {lac.lacuna}]
 				}]
 
-				// Final value excludes initial element from accum, which was the initial input
+				// Final value excludes first element (initial input) from accum
 				list.Drop(_accum, 1)
 			},
 			// to version newer/larger than from version
 			if cmp == -1 {
-				// _schrange contains the subset of schemas being traversed in this
+				// schrange contains the subset of schemas being traversed in this
 				// translation, inclusive of the starting schema.
 				let lo = (L._flatidx & {v: FV}).out
 				let hi = (L._flatidx & {v: TV}).out
@@ -96,14 +104,24 @@ import "list"
 					}
 
 					if prior.to[0] < schdef.version[0] {
-
-						// to-successor lens position is the flatidx of the from schema, plus one
-						// less than the major version of the to schema.
+						// sorted index of the to-successor explicit lens is the flatidx of the from schema,
+						// plus the major version of the to schema.
 						// TODO does having this field in the result, even hidden, cause a problem? does using an alias cause the computation to run more than once?
-						_lens: L.lenses[(L._flatidx & {v: prior.to}).out+schdef.version[0]-1] & {input: prior.result}
+						let lensidx = (L._flatidx & {v: prior.to}).out + schdef.version[0]
+
+						_lens: L._sortedLenses[lensidx] & {
+							// pass the prior result along as the input to this next lens
+							input: prior.result
+
+							// guard against bugs in this impl - these are already concretely specified
+							// on the lens itself by the user, so these version numbers must be correct
+							from: prior.to
+							to:   schdef.version
+						}
 
 						from: prior.to
 						to:   schdef.version
+						//						result: {_lens.result, schdef._#schema, {lidx: lensidx}}
 						result: {_lens.result, schdef._#schema}
 						lacunas: [ for lac in _lens.lacunas if lac.condition {lac.lacuna}]
 						// Crossing a major version. The forward lens explicitly defined in the schema
@@ -111,10 +129,11 @@ import "list"
 					}
 				}]
 
-				// Final value excludes initial element from accum, which was the initial input
+				// Final value excludes first element (initial input) from accum
 				list.Drop(_accum, 1)
 			},
-			// to version same as from version is a no-op, no conditional represents it
+			// to version same as from version is a no-op
+			if cmp == 0 {},
 		][0]
 	}
 }
