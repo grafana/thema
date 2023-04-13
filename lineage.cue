@@ -41,7 +41,7 @@ import (
 	//			schemas: [...#SchemaDef]
 
 	if joinSchema != _|_ {
-		schemas: [{_join: joinSchema}, ...{{join: joinSchema}}]
+		schemas: [{_join: joinSchema}, ...{{_join: joinSchema}}]
 	}
 
 	// lenses contains all the mappings between all the schemas in the lineage.
@@ -49,24 +49,24 @@ import (
 	// For a lineage to be valid, it must contain lenses such that an instance of
 	// each schema can be translated into both its predecessor and successor schemas.
 	//
-	// Because minor version changes are backwards compatible by definition, no lens
-	// need be defined by the lineage author. However, all other version transitions
-	// require an explicit lens definition:
+	// Because minor version changes are backwards compatible by definition, a lens
+	// implicitly exists, and no lens definition may be defined by the lineage author.
+	// However, all other version transitions require an explicit lens definition:
 	//
 	//  - A lens mapping forward across every breaking change/new major version
 	//  - A lens mapping backward across every change
 	//
-	// Thus, for a lineage with schema versions [0, 0], [0, 1], [1, 0], [2, 0], [2, 1],
+	// Thus, for a lineage with schema versions [0,0], [0,1], [1,0], [2,0], [2,1],
 	// the following lenses must exist (implicit lenses are wrapped in parentheses):
 	//
-	// ([0, 0] -> [0, 1])
-	//  [0, 1] -> [0, 0]
-	//  [0, 1] -> [1, 0]
-	//  [1, 0] -> [0, 1]
-	//  [1, 0] -> [2, 0]
-	//  [2, 0] -> [1, 0]
-	// ([2, 0] -> [2, 1])
-	//  [2, 1] -> [2, 0]
+	// ([0,0] -> [0,1])
+	//  [0,1] -> [0,0]
+	//  [0,1] -> [1,0]
+	//  [1,0] -> [0,1]
+	//  [1,0] -> [2,0]
+	//  [2,0] -> [1,0]
+	// ([2,0] -> [2,1])
+	//  [2,1] -> [2,0]
 	//
 	// To be valid, a lineage must define the exact set of explicit lenses entailed by its
 	// set of schema versions. It is not permitted to explicitly define a lens across
@@ -100,11 +100,15 @@ import (
 	_sortedLenses: list.Sort(lenses, {
 		x:    #Lens
 		y:    #Lens
-		less: (_cmpSV & {l: x.from, r: y.from}).out == -1 || (_cmpSV & {l: x.to, r: y.to}).out == -1
+		less: ((_cmpSV & {l: x.to, r: y.to}).out == -1 || (x.to == y.to && x.from[0] < y.from[0]))
 	})
 
-	//	_lensVersions: [...{from: #SyntacticVersion, to: #SyntacticVersion}]
-	//	_lensVersions: [for]
+	// for debugging
+	//	lensVersions: {
+	//		both: [ for lens in _sortedLenses {"v\(lens.to[0]).\(lens.to[1])<-v\(lens.from[0]).\(lens.from[1])"}]
+	//		to: [ for lens in _sortedLenses {"v\(lens.to[0]).\(lens.to[1])"}]
+	//		from: [ for lens in _sortedLenses {"v\(lens.from[0]).\(lens.from[1])"}]
+	//	}
 
 	_schemasAreOrdered: [ for i, sch in SS {
 		if i > 0 {

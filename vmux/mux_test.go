@@ -21,7 +21,7 @@ type Else[R any] struct {
 func (e Else[R]) Fatalf(t *testing.T, format string, args ...any) R {
 	t.Helper()
 	if e.err != nil {
-		t.Fatalf(format, append(args, e.err)...)
+		t.Fatalf(format+": %s", append(args, e.err)...)
 	}
 	return e.r
 }
@@ -194,7 +194,6 @@ func TestMuxers(t *testing.T) {
 }
 
 func checkSpectrumAcrossMuxers[T thema.Assignee](t *testing.T, clin thema.ConvergentLineage[T], spec spectrum) {
-	t.Parallel()
 	sch := clin.First()
 	vmap := make(map[thema.SyntacticVersion]bool)
 	for ; sch != nil; sch = sch.Successor() {
@@ -221,7 +220,8 @@ func checkSpectrumAcrossMuxers[T thema.Assignee](t *testing.T, clin thema.Conver
 
 	concctx := cuecontext.New()
 	tsch := clin.TypedSchema()
-	for v, img := range spec.out {
+	for iv, iimg := range spec.out {
+		v, img := iv, iimg
 		if v == spec.in.v {
 			continue
 		}
@@ -230,27 +230,26 @@ func checkSpectrumAcrossMuxers[T thema.Assignee](t *testing.T, clin thema.Conver
 			Fatalf(t, "could not decode bytes in image for normalization")
 
 		img.str = string(e(spec.codec.Encode(normal)).
-			Fatalf(t, "could no re-encode bytes in image"))
+			Fatalf(t, "could not re-encode bytes in image"))
 
 		t.Run(fmt.Sprintf("%v->%v", spec.in.v, v), func(t *testing.T) {
-			t.Parallel()
 			if !envvars.ReverseTranslate && v.Less(spec.in.v) {
 				t.Skip("thema does not yet support reverse translation")
 			}
 
 			// Always do the untyped muxers
-			t.Run("UntypedMux", func(T *testing.T) {
-				um := NewUntypedMux(thema.SchemaP(clin, v), spec.codec)
-				inst, lac, err := um([]byte(spec.in.str))
+			t.Run("UntypedMux", func(t *testing.T) {
+				mux := NewUntypedMux(thema.SchemaP(clin, v), spec.codec)
+				inst, lac, err := mux([]byte(spec.in.str))
 				handleLE(t, img, lac, err)
 
 				final := e(spec.codec.Encode(inst.Underlying())).
-					Fatalf(t, "foo")
+					Fatalf(t, "encoding of translated instance failed")
 				require.Equal(t, img.str, string(final))
 			})
-			t.Run("ByteMux", func(T *testing.T) {
-				um := NewByteMux(thema.SchemaP(clin, v), spec.codec)
-				final, lac, err := um([]byte(spec.in.str))
+			t.Run("ByteMux", func(t *testing.T) {
+				mux := NewByteMux(thema.SchemaP(clin, v), spec.codec)
+				final, lac, err := mux([]byte(spec.in.str))
 				handleLE(t, img, lac, err)
 
 				require.Equal(t, img.str, string(final))
@@ -259,22 +258,22 @@ func checkSpectrumAcrossMuxers[T thema.Assignee](t *testing.T, clin thema.Conver
 			// Do the typed muxers only if this is the convergent schema for the lineage
 			if v == tsch.Version() {
 				t.Run("TypedMux", func(t *testing.T) {
-					um := NewTypedMux(tsch, spec.codec)
-					inst, lac, err := um([]byte(spec.in.str))
+					mux := NewTypedMux(tsch, spec.codec)
+					inst, lac, err := mux([]byte(spec.in.str))
 					handleLE(t, img, lac, err)
 
 					final := e(spec.codec.Encode(inst.Underlying())).Err(t)
 					require.Equal(t, img.str, string(final))
 				})
-				t.Run("TypedMux", func(t *testing.T) {
+				t.Run("ValueMux", func(t *testing.T) {
 					// No easy way to go from a pure Go type back to CUE, so
 					// just hardcode to the builtin JSON codec and skip otherwise
 					if _, is := spec.codec.(jsonCodec); !is {
-						t.Skipf("generic testing of TypedMux only works with the jsonCodec, got %T", spec.codec)
+						t.Skipf("generic testing of ValueMux only works with the jsonCodec, got %T", spec.codec)
 					}
 
-					um := NewValueMux(tsch, spec.codec)
-					inst, lac, err := um([]byte(spec.in.str))
+					mux := NewValueMux(tsch, spec.codec)
+					inst, lac, err := mux([]byte(spec.in.str))
 					handleLE(t, img, lac, err)
 
 					final := e(gjson.Marshal(inst)).Err(t)

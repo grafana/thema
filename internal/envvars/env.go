@@ -11,9 +11,12 @@ var ForceVerify = os.Getenv("THEMA_FORCEVERIFY") != ""
 
 // ReverseTranslate indicates whether reverse translation is supported.
 //
-// Used primarily as a single point of control for testing. Will be set
-// permanently to true once support is finalized.
-var ReverseTranslate = os.Getenv("THEMA_REVERSETRANSLATE") != ""
+// Used primarily as a single point of control for testing.
+//
+// Permanently set to true, as reverse translation is now supported.
+var ReverseTranslate = true
+
+// var ReverseTranslate = os.Getenv("THEMA_REVERSETRANSLATE") != ""
 
 // UpdateGoldenFiles determines whether testscript scripts should update txtar
 // archives in the event of cmp failures.

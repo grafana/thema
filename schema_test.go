@@ -10,18 +10,14 @@ import (
 )
 
 var linstr = `name: "single"
-joinSchema: {}
-seqs: [
-	{
-		schemas: [
-			{
-				astring?: string
-				anint:   int64 | *42
-				abool:   bool
-			}
-		]
+schemas: [{
+	version: [0, 0]
+	schema: {
+		astring?: string
+		anint:   int64 | *42
+		abool:   bool
 	}
-]
+}]
 `
 
 type TestType struct {

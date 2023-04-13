@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"cuelang.org/go/cue"
+	"cuelang.org/go/cue/errors"
 )
 
 // BindInstanceType produces a TypedInstance, given an Instance and a
@@ -148,34 +149,37 @@ func (inst *TypedInstance[T]) ValueP() T {
 // result in the exact original data. Input state preservation can be fully
 // achieved in the program depending on Thema, so we avoid introducing
 // complexity into Thema that is not essential for all use cases.
-//
-// TODO define this in terms of AsSuccessor and AsPredecessor, rather than those in terms of this.
 func (i *Instance) Translate(to SyntacticVersion) (*Instance, TranslationLacunas) {
+	// TODO define this in terms of AsSuccessor and AsPredecessor, rather than those in terms of this.
 	newsch, err := i.Schema().Lineage().Schema(to)
 	if err != nil {
 		panic(fmt.Sprintf("no schema in lineage with version %v, cannot translate", to))
 	}
 
 	out, err := cueArgs{
-		"linst": i.asLinkedInstance(),
-		"to":    to,
+		"inst": i.raw,
+		"to":   to,
+		"from": i.Schema().Version(),
+		"lin":  i.Schema().Lineage().Underlying(),
 	}.call("#Translate", i.rt())
 	if err != nil {
 		// This can't happen without a name change or an invariant violation
 		panic(err)
 	}
 
+	if out.Err() != nil {
+		panic(errors.Details(out.Err(), nil))
+	}
+
 	lac := make(multiTranslationLacunas, 0)
 	out.LookupPath(cue.MakePath(cue.Str("lacunas"))).Decode(&lac)
 
 	return &Instance{
-		raw:  out.LookupPath(cue.MakePath(cue.Str("linst"), cue.Str("inst"))),
+		raw:  out.LookupPath(cue.MakePath(cue.Str("result"), cue.Str("result"))),
 		name: i.name,
 		sch:  newsch,
 	}, lac
 }
-
-// TODO generic-typed Translation
 
 type multiTranslationLacunas []struct {
 	V   SyntacticVersion `json:"v"`
@@ -194,17 +198,3 @@ func (lac multiTranslationLacunas) AsList() []Lacuna {
 // func TranslateComposed(lin ComposedLineage) {
 
 // }
-
-func (i *Instance) asLinkedInstance() cue.Value {
-	li, err := cueArgs{
-		"inst": i.raw,
-		"lin":  i.Schema().Lineage().Underlying(),
-		"v":    i.Schema().Version(),
-	}.make("#LinkedInstance", i.rt())
-	if err != nil {
-		// This can't happen without a name change or an invariant violation
-		panic(err)
-	}
-
-	return li
-}

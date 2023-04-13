@@ -110,8 +110,14 @@ func (sch *schemaDef) LatestInMajor() Schema {
 	return sch.lin.allsch[searchSynv(sch.lin.allv, SyntacticVersion{sch.v[0] + 1, 0})]
 }
 
-// Underlying returns the cue.Value that represents the underlying CUE #SchemaDef.
+// Underlying returns the cue.Value that represents the defined schema as a CUE definition
+// (closed), and unified with the lineage's joinSchema.
 func (sch *schemaDef) Underlying() cue.Value {
+	return sch.def
+}
+
+// UnderlyingDef returns the cue.Value that represents the underlying CUE #SchemaDef.
+func (sch *schemaDef) UnderlyingDef() cue.Value {
 	return sch.ref
 }
 

@@ -78,7 +78,7 @@ func BindLineage(raw cue.Value, rt *Runtime, opts ...BindOption) (Lineage, error
 	// previously verified that this value is concrete
 	nam, _ := raw.LookupPath(cue.MakePath(cue.Str("name"))).String()
 
-	return &baseLineage{
+	lin := &baseLineage{
 		validated: true,
 		rt:        rt,
 		name:      nam,
@@ -86,79 +86,13 @@ func BindLineage(raw cue.Value, rt *Runtime, opts ...BindOption) (Lineage, error
 		uni:       ml.uni,
 		allsch:    ml.schlist,
 		allv:      ml.allv,
-	}, nil
-}
+	}
 
-// {
-//
-// 	lin := &baseLineage{
-// 		validated: true,
-// 		raw:       ml.raw,
-// 		rt:        rt,
-// 		name:      nam,
-// 	}
-//
-// 	// Populate the version list and enforce compat/subsumption invariants
-// 	seqiter, _ := raw.LookupPath(cue.MakePath(cue.Str("seqs"))).List()
-// 	var seqv uint
-// 	var predecessor cue.Value
-// 	var predsv SyntacticVersion
-// 	for seqiter.Next() {
-// 		var schv uint
-// 		schemas := seqiter.Value().LookupPath(cue.MakePath(cue.Str("schemas")))
-//
-// 		schiter, _ := schemas.List()
-// 		for schiter.Next() {
-// 			v := synv(seqv, schv)
-// 			lin.allv = append(lin.allv, v)
-//
-// 			sch := schiter.Value()
-//
-// 			defname := fmt.Sprintf("%s%v%v", util.SanitizeLabelString(nam), v[0], v[1])
-// 			defpath := cue.MakePath(cue.Def(defname))
-// 			defsch := rt.Context().
-// 				CompileString(fmt.Sprintf("#%s: _", defname)).
-// 				FillPath(defpath, sch).
-// 				LookupPath(defpath)
-// 			if defsch.Validate() != nil {
-// 				panic(defsch.Validate())
-// 			}
-// 			lin.allsch = append(lin.allsch, &schemaDef{
-// 				raw:    sch,
-// 				defraw: defsch,
-// 				lin:    lin,
-// 				v:      v,
-// 			})
-//
-// 			// No predecessor to compare against with the very first schema
-// 			if !(schv == 0 && seqv == 0) {
-// 				// TODO Marked as buggy until we figure out how to both _not_ require
-// 				// schema to be closed in the .cue file, _and_ how to detect default changes
-// 				if !cfg.skipbuggychecks {
-// 					// The sequences and schema in the candidate lineage must follow
-// 					// backwards [in]compatibility rules.
-// 					// TODO Subsumption may not be what we actually want to check here,
-// 					// as it does not allow the addition of required fields with defaults
-// 					bcompat := sch.Subsume(predecessor, cue.Raw(), cue.Schema(), cue.Definitions(true), cue.All(), cue.Final())
-// 					if (schv == 0 && bcompat == nil) || (schv != 0 && bcompat != nil) {
-// 						return nil, &compatInvariantError{
-// 							rawlin:    raw,
-// 							violation: [2]SyntacticVersion{predsv, v},
-// 							detail:    bcompat,
-// 						}
-// 					}
-// 				}
-// 			}
-//
-// 			predecessor = sch
-// 			predsv = v
-// 			schv++
-// 		}
-// 		seqv++
-// 	}
-//
-// 	return lin, nil
-// }
+	for _, sch := range lin.allsch {
+		sch.lin = lin
+	}
+	return lin, nil
+}
 
 func isValidLineage(lin Lineage) {
 	switch tlin := lin.(type) {
