@@ -6,6 +6,7 @@ import (
 	"cuelang.org/go/cue"
 	"cuelang.org/go/cue/ast"
 	"cuelang.org/go/cue/ast/astutil"
+	"cuelang.org/go/cue/errors"
 	"cuelang.org/go/cue/token"
 	"github.com/grafana/thema"
 )
@@ -18,7 +19,7 @@ import (
 // package instance. If the entire package instance is the thema lineage, the
 // provided path may be empty.
 //
-// Lineage definitions implicity unified across multiple files in the same package
+// Lineage definitions implicitly unified across multiple files in the same package
 // cannot be rewritten by this function.
 func RewriteLegacyLineage(inst cue.Value, path cue.Path) (*ast.File, error) {
 	// TODO preserve the old #Lineage and do just a basic validity check of the input against it
@@ -26,6 +27,15 @@ func RewriteLegacyLineage(inst cue.Value, path cue.Path) (*ast.File, error) {
 		return nil, fmt.Errorf("provided cue.Value must be the root of a CUE package instance")
 	}
 	v := inst.LookupPath(path)
+	if !v.Exists() {
+		return nil, fmt.Errorf("no value exists at CUE path %q", path)
+	}
+	if !v.LookupPath(cue.ParsePath("seqs")).Exists() {
+		if inst.Source() == nil {
+			return nil, errors.New("value does not contain a 'seqs' field")
+		}
+		return nil, errors.Newf(inst.Source().Pos(), "value does not contain a 'seqs' field")
+	}
 
 	// If the input imports and unifies thema.#Lineage, it will fail here because
 	// this version of thema has changed that definition. So, walk down the
@@ -271,8 +281,8 @@ func extractParts(raw cue.Value) ([]legacySchema, []legacyLens, error) {
 
 		if majv != uint(0) {
 			forward := legacyLens{
-				to:      thema.SV(majv-1, lastminv-1),
-				from:    thema.SV(majv, 0),
+				to:      thema.SV(majv, 0),
+				from:    thema.SV(majv-1, lastminv-1),
 				mapper:  seq.LookupPath(cue.ParsePath("lens.forward.rel")),
 				lacunas: seq.LookupPath(cue.ParsePath("lens.forward.lacunas")),
 			}
