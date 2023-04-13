@@ -38,6 +38,10 @@ type lineageLoadArgs struct {
 	// String argument of a version
 	verstr string
 
+	// skip binding the lineage - useful when operating on values that are known to be
+	// invalid lineages
+	skipBindLineage bool
+
 	// only do all the loading once
 	once sync.Once
 
@@ -91,7 +95,7 @@ func (lla *lineageLoadArgs) dynLoad() (*dynamicLoader, error) {
 	var err error
 	lla.absInput, err = filepath.Abs(lla.inputLinFilePath)
 	if err != nil {
-		fmt.Errorf("error getting absolute filepath for %s: %w", lla.inputLinFilePath, err)
+		return nil, fmt.Errorf("error getting absolute filepath for %s: %w", lla.inputLinFilePath, err)
 	}
 
 	var binsts []*build.Instance
@@ -102,7 +106,11 @@ func (lla *lineageLoadArgs) dynLoad() (*dynamicLoader, error) {
 	// cfg.Module is the name of the module, real or virtual
 	// cfg.Dir is the RELATIVE path, from module root to what we actually want to load, less filename
 
-	info, _ := os.Stat(lla.absInput)
+	var info os.FileInfo
+	info, err = os.Stat(lla.absInput)
+	if err != nil {
+		return nil, fmt.Errorf("error statting path %q: %w", lla.absInput, err)
+	}
 	lla.pathIsDir = info.IsDir()
 	dl.cm, err = findCueMod(lla.absInput)
 	if err != nil {
@@ -159,6 +167,12 @@ func (lla *lineageLoadArgs) dynLoad() (*dynamicLoader, error) {
 			// Package:    "*",
 		}
 		binsts = load.Instances(args, cfg)
+	}
+
+	if lla.skipBindLineage {
+		// just take the first one, ooof
+		dl.binst = binsts[0]
+		return dl, nil
 	}
 
 	dl.lin, dl.binst, err = buildInsts(rt, binsts, func(binst *build.Instance) string {
@@ -253,7 +267,7 @@ func findCueMod(path string) (*parentCueMod, error) {
 	return nil, os.ErrNotExist
 }
 
-var themamodpath string = filepath.Join("cue.mod", "pkg", "github.com", "grafana", "thema")
+var themamodpath = filepath.Join("cue.mod", "pkg", "github.com", "grafana", "thema")
 
 type ppathf func(*build.Instance) string
 
