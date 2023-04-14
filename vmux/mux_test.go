@@ -99,6 +99,7 @@ type codomain map[thema.SyntacticVersion]image
 func TestMuxers(t *testing.T) {
 	ctx := cuecontext.New()
 	rt := thema.NewRuntime(ctx)
+	t.Parallel()
 
 	table := map[string]spectrum{
 		"00good": {

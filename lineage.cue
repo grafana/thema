@@ -103,11 +103,21 @@ import (
 		less: ((_cmpSV & {l: x.to, r: y.to}).out == -1 || (x.to == y.to && x.from[0] < y.from[0]))
 	})
 
-	// for debugging
+	_forwardLenses: [ for lens in _sortedLenses if {lens.to[0] > lens.from[0]} {lens}]
+	_backwardLenses: [ for lens in _sortedLenses if {lens.to[0] <= lens.from[0]} {lens}]
+
+	// preserved for debugging
 	//	lensVersions: {
-	//		both: [ for lens in _sortedLenses {"v\(lens.to[0]).\(lens.to[1])<-v\(lens.from[0]).\(lens.from[1])"}]
-	//		to: [ for lens in _sortedLenses {"v\(lens.to[0]).\(lens.to[1])"}]
-	//		from: [ for lens in _sortedLenses {"v\(lens.from[0]).\(lens.from[1])"}]
+	//		backward: {
+	//			both: [ for lens in _backwardLenses {"\(lens.from[0]).\(lens.from[1])->v\(lens.to[0]).\(lens.to[1])"}]
+	//			to: [ for lens in _backwardLenses {"v\(lens.to[0]).\(lens.to[1])"}]
+	//			from: [ for lens in _backwardLenses {"v\(lens.from[0]).\(lens.from[1])"}]
+	//		}
+	//		forward: {
+	//			both: [ for lens in _forwardLenses {"\(lens.from[0]).\(lens.from[1])->v\(lens.to[0]).\(lens.to[1])"}]
+	//			to: [ for lens in _forwardLenses {"v\(lens.to[0]).\(lens.to[1])"}]
+	//			from: [ for lens in _forwardLenses {"v\(lens.from[0]).\(lens.from[1])"}]
+	//		}
 	//	}
 
 	_schemasAreOrdered: [ for i, sch in SS {

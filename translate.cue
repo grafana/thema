@@ -29,7 +29,7 @@ import "list"
 	FV=from: #SyntacticVersion
 	TV=to:   #SyntacticVersion
 
-	let cmp = (_cmpSV & {l: from, r: to}).out
+	let cmp = (_cmpSV & {l: FV, r: TV}).out
 
 	// TODO validate I is instance of FV schema
 
@@ -57,12 +57,8 @@ import "list"
 					// the actual schema def
 					let schdef = L._sortedSchemas[pos]
 
-					// sorted index of the to-predecessor lens is the flatidx of the to schema,
-					// plus the major version of the from schema.
 					// TODO does having this field in the result, even hidden, cause a problem? does using an alias cause the computation to run more than once?
-					let lensidx = (L._flatidx & {v: schdef.version}).out + prior.to[0]
-
-					_lens: L._sortedLenses[lensidx] & {
+					_lens: L._backwardLenses[(L._flatidx & {v: schdef.version}).out] & {
 						// pass the prior result along as the input to this lens
 						input: prior.result
 
@@ -104,12 +100,8 @@ import "list"
 					}
 
 					if prior.to[0] < schdef.version[0] {
-						// sorted index of the to-successor explicit lens is the flatidx of the from schema,
-						// plus the major version of the to schema.
 						// TODO does having this field in the result, even hidden, cause a problem? does using an alias cause the computation to run more than once?
-						let lensidx = (L._flatidx & {v: prior.to}).out + schdef.version[0]
-
-						_lens: L._sortedLenses[lensidx] & {
+						_lens: L._forwardLenses[schdef.version[0]-1] & {
 							// pass the prior result along as the input to this next lens
 							input: prior.result
 
