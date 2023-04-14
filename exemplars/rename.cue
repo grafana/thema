@@ -5,37 +5,44 @@ import "github.com/grafana/thema"
 rename: {
 	description: "A field is renamed - a breaking change, necessitating a new sequence."
 	l:           thema.#Lineage & {
-		schemas: [{
-			version: [0, 0]
-			schema: {
-				before:    string
-				unchanged: string
-			}
-		}, {
-			version: [1, 0]
-			schema: {
-				after:     string
-				unchanged: string
-			}
-		}]
-		lenses: [{
-			to: [0, 0]
-			from: [1, 0]
-			input: _
-			result: {
-				before:    input.after
-				unchanged: input.unchanged
-			}
-			lacunas: []
-		}, {
-			to: [1, 0]
-			from: [0, 0]
-			input: _
-			result: {
-				after:     input.before
-				unchanged: input.unchanged
-			}
-			lacunas: []
-		}]
+		seqs: [
+			{
+				schemas: [
+					{
+						before:    string
+						unchanged: string
+					},
+				]
+			},
+			{
+				schemas: [
+					{
+						after:     string
+						unchanged: string
+					},
+				]
+
+				lens: forward: {
+					to:         seqs[1].schemas[0]
+					from:       seqs[0].schemas[0]
+					translated: to & rel
+					rel: {
+						after:     from.before
+						unchanged: from.unchanged
+					}
+					lacunas: []
+				}
+				lens: reverse: {
+					to:         seqs[0].schemas[0]
+					from:       seqs[1].schemas[0]
+					translated: to & rel
+					rel: {
+						before:    from.after
+						unchanged: from.unchanged
+					}
+					lacunas: []
+				}
+			},
+		]
 	}
 }
