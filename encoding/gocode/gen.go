@@ -16,10 +16,10 @@ import (
 	"github.com/dave/dst"
 	"github.com/dave/dst/decorator"
 	"github.com/dave/dst/dstutil"
-	"github.com/deepmap/oapi-codegen/pkg/codegen"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/grafana/thema"
 	"github.com/grafana/thema/encoding/openapi"
+	"github.com/grafana/thema/internal/deepmap/oapi-codegen/pkg/codegen"
 	"golang.org/x/tools/imports"
 )
 
