@@ -188,9 +188,9 @@ func (ll legacyLens) toAST() (ast.Expr, error) {
 					Text: "// TODO implement this lens",
 				},
 			},
-			Position: 4, //nolint:gomnd
+			Position: 3, //nolint:gomnd
 		})
-		mapsrc = missing
+		mapsrc = ast.NewStruct(ast.Embed(missing))
 	} else if ll.mapper.Source() == nil {
 		return nil, fmt.Errorf("lens %s->%s returns nil for source, cannot migrate", ll.from, ll.to)
 	} else {
