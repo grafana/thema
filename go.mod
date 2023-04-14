@@ -8,12 +8,12 @@ go 1.19
 // replace cuelang.org/go => github.com/sdboyer/cue v0.5.0-beta.2.0.20221218111347-341999f48bdb
 
 require (
-	cuelang.org/go v0.5.0-beta.2
+	cuelang.org/go v0.5.0
 	github.com/dave/dst v0.27.2
 	github.com/deepmap/oapi-codegen v1.12.4
 	github.com/getkin/kin-openapi v0.112.0
 	github.com/google/go-cmp v0.5.8
-	github.com/grafana/cuetsy v0.1.6
+	github.com/grafana/cuetsy v0.1.8
 	github.com/spf13/cobra v1.4.0
 	github.com/stretchr/testify v1.8.1
 	github.com/xeipuuv/gojsonschema v1.2.0
@@ -30,6 +30,7 @@ require (
 	github.com/go-openapi/swag v0.21.1 // indirect
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b // indirect
 	github.com/google/uuid v1.3.0 // indirect
+	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/invopop/yaml v0.1.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
