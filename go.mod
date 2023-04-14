@@ -8,12 +8,12 @@ go 1.19
 // replace cuelang.org/go => github.com/sdboyer/cue v0.5.0-beta.2.0.20221218111347-341999f48bdb
 
 require (
-	cuelang.org/go v0.5.0-beta.2
+	cuelang.org/go v0.5.0
 	github.com/dave/dst v0.27.2
 	github.com/getkin/kin-openapi v0.115.0
 	github.com/golangci/lint-1 v0.0.0-20181222135242-d2cdd8c08219
 	github.com/google/go-cmp v0.5.8
-	github.com/grafana/cuetsy v0.1.6
+	github.com/grafana/cuetsy v0.1.8
 	github.com/labstack/echo/v4 v4.9.1
 	github.com/matryer/moq v0.2.7
 	github.com/spf13/cobra v1.4.0
