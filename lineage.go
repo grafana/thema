@@ -62,16 +62,16 @@ func BindLineage(raw cue.Value, rt *Runtime, opts ...BindOption) (Lineage, error
 		cfg: cfg,
 	}
 
-	if err := ml.checkExists(); err != nil {
+	if err := ml.checkExists(cfg); err != nil {
 		return nil, err
 	}
-	if err := ml.checkLineageShape(); err != nil {
+	if err := ml.checkLineageShape(cfg); err != nil {
 		return nil, err
 	}
-	if err := ml.checkNativeValidity(); err != nil {
+	if err := ml.checkNativeValidity(cfg); err != nil {
 		return nil, err
 	}
-	if err := ml.checkGoValidity(); err != nil {
+	if err := ml.checkGoValidity(cfg); err != nil {
 		return nil, err
 	}
 

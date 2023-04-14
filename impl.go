@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"cuelang.org/go/cue"
+	"cuelang.org/go/cue/errors"
 )
 
 // ErrValueNotExist indicates that an operation failed because a provided
@@ -36,7 +37,7 @@ type compatInvariantError struct {
 func (e *compatInvariantError) Error() string {
 	if e.violation[0][0] == e.violation[1][0] {
 		// TODO better
-		return e.detail.Error()
+		return errors.Details(e.detail, nil)
 	}
 	return fmt.Sprintf("schema %s must be backwards incompatible with schema %s", e.violation[1], e.violation[0])
 }

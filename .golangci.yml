@@ -24,7 +24,6 @@ linters:
     - gocritic
     - goconst
     - gocyclo
-    - gofumpt
     - goimports
     - revive
     - gomnd

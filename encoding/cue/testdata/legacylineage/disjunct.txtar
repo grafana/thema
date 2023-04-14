@@ -72,7 +72,9 @@ schemas: [{
 lenses: [{
 	to: [0, 0]
 	from: [0, 1]
-	input:  _
-	result: _|_ // TODO implement this lens
+	input: _
+	result: {
+		_|_// TODO implement this lens
+	}
 	lacunas: []
 }]

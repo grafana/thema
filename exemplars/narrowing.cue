@@ -12,6 +12,7 @@ narrowing: {
 			version: [1, 0]
 			schema: properbool: bool
 		}]
+
 		lenses: [{
 			to: [0, 0]
 			from: [1, 0]

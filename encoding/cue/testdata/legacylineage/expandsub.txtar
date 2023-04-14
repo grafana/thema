@@ -61,20 +61,26 @@ lin: thema.#Lineage & {
 	lenses: [{
 		to: [0, 0]
 		from: [0, 1]
-		input:  _
-		result: _|_ // TODO implement this lens
+		input: _
+		result: {
+			_|_// TODO implement this lens
+		}
 		lacunas: []
 	}, {
 		to: [0, 1]
 		from: [0, 2]
-		input:  _
-		result: _|_ // TODO implement this lens
+		input: _
+		result: {
+			_|_// TODO implement this lens
+		}
 		lacunas: []
 	}, {
 		to: [0, 2]
 		from: [0, 3]
-		input:  _
-		result: _|_ // TODO implement this lens
+		input: _
+		result: {
+			_|_// TODO implement this lens
+		}
 		lacunas: []
 	}]
 }

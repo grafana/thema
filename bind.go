@@ -43,7 +43,7 @@ type maybeLineage struct {
 	// rawIsPackage bool
 }
 
-func (ml *maybeLineage) checkGoValidity() error {
+func (ml *maybeLineage) checkGoValidity(cfg *bindConfig) error {
 	schiter, err := ml.uni.LookupPath(cue.MakePath(cue.Hid("_sortedSchemas", "github.com/grafana/thema"))).List()
 	if err != nil {
 		panic(fmt.Sprintf("unreachable - should have already verified schemas field exists and is list: %+v", cerrors.Details(err, nil)))
@@ -72,7 +72,7 @@ func (ml *maybeLineage) checkGoValidity() error {
 
 		sch.ref = schiter.Value()
 		sch.def = sch.ref.LookupPath(schpath)
-		if previous != nil {
+		if previous != nil && !cfg.skipbuggychecks {
 			compaterr := compat.ThemaCompatible(sch.def, previous.def)
 			if (sch.v[1] == 0 && compaterr == nil) || (sch.v[1] != 0 && compaterr != nil) {
 				return &compatInvariantError{
@@ -91,7 +91,7 @@ func (ml *maybeLineage) checkGoValidity() error {
 	return nil
 }
 
-func (ml *maybeLineage) checkExists() error {
+func (ml *maybeLineage) checkExists(cfg *bindConfig) error {
 	p := ml.raw.Path().String()
 	// The candidate lineage must exist.
 	// TODO can we do any better with contextualizing these errors?
@@ -105,7 +105,7 @@ func (ml *maybeLineage) checkExists() error {
 	return nil
 }
 
-func (ml *maybeLineage) checkLineageShape() error {
+func (ml *maybeLineage) checkLineageShape(cfg *bindConfig) error {
 	// Check certain paths specifically, because these are common getting started errors of just arranging
 	// CUE statements in the right way that deserve more targeted guidance
 	for _, path := range []string{"name", "schemas"} {
@@ -137,7 +137,7 @@ func (ml *maybeLineage) checkLineageShape() error {
 }
 
 // Checks the validity properties of lineages that are expressible natively in CUE.
-func (ml *maybeLineage) checkNativeValidity() error {
+func (ml *maybeLineage) checkNativeValidity(cfg *bindConfig) error {
 	// The candidate lineage must be error-free.
 	// TODO replace this with Err, this check isn't actually what we want up here. Only schemas themselves must be cycle-free
 	if err := ml.raw.Validate(cue.Concrete(false)); err != nil {

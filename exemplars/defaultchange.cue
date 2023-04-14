@@ -12,6 +12,7 @@ defaultchange: {
 			version: [1, 0]
 			schema: aunion: "foo" | *"bar" | "baz"
 		}]
+
 		lenses: [{
 			to: [0, 0]
 			from: [1, 0]
