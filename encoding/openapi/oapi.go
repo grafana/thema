@@ -5,6 +5,7 @@ import (
 
 	"cuelang.org/go/cue"
 	"cuelang.org/go/cue/ast"
+	"cuelang.org/go/cue/errors"
 	"cuelang.org/go/encoding/openapi"
 	"cuelang.org/go/pkg/strings"
 	"github.com/grafana/thema"
@@ -57,6 +58,9 @@ func GenerateSchema(sch thema.Schema, cfg *Config) (*ast.File, error) {
 	under := sch.Underlying()
 	hasSubpath := len(cfg.Subpath.Selectors()) > 0
 	if !cfg.Group && hasSubpath {
+		if err := pathAllowed(under, cfg.Subpath); err != nil {
+			return nil, err
+		}
 		under = under.LookupPath(cfg.Subpath)
 	}
 	bpath := under.Path()
@@ -68,7 +72,7 @@ func GenerateSchema(sch thema.Schema, cfg *Config) (*ast.File, error) {
 		if tpath.String() == defpath.String() {
 			return name
 		}
-		if cuetil.LastSelectorEq(tpath, cue.Str("joinSchema")) {
+		if cuetil.LastSelectorEq(tpath, cue.Hid("_join", "github.com/grafana/thema")) || cuetil.LastSelectorEq(tpath, cue.Str("schema")) {
 			return ""
 		}
 		if onf != nil {
@@ -123,13 +127,13 @@ func GenerateSchema(sch thema.Schema, cfg *Config) (*ast.File, error) {
 			return nil, fmt.Errorf("failed generation for grouped field %s: %w", sel, err)
 		}
 
-
 		elems := orp(astutil.GetFieldByLabel(
 			orp(astutil.GetFieldByLabel(part, "components")).Value, "schemas")).
-				Value.(*ast.StructLit).Elts
+			Value.(*ast.StructLit).Elts
 		decls = append(decls, elems...)
 	}
 
+	// TODO recursively sort output to improve stability of output
 	return &ast.File{
 		Decls: []ast.Decl{
 			ast.NewStruct(
@@ -140,11 +144,21 @@ func GenerateSchema(sch thema.Schema, cfg *Config) (*ast.File, error) {
 				),
 				"path", ast.NewStruct(),
 				"components", ast.NewStruct(
-				"schemas", &ast.StructLit{ Elts: decls },
+					"schemas", &ast.StructLit{Elts: decls},
 				),
 			),
 		},
 	}, nil
+}
+
+func pathAllowed(v cue.Value, path cue.Path) error {
+	for i, sel := range path.Selectors() {
+		if !v.Allows(sel) {
+			return errors.Newf(v.Pos(), "subpath %q not present in schema", cue.MakePath(path.Selectors()[:i+1]...))
+		}
+	}
+
+	return nil
 }
 
 func orp[T any](t T, err error) T {
