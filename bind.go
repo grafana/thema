@@ -17,11 +17,15 @@ import (
 // it's important that these flags are populated in order to avoid false negatives.
 // no system ensures this, it's all human reasoning
 type maybeLineage struct {
-	// original raw input cue.Value
+	// user lineage definition, NOT unified with thema.#Lineage
 	raw cue.Value
 
-	// input cue.Value, unified with thema.#Lineage
+	// user lineage definition, unified with thema.#Lineage
 	uni cue.Value
+
+	// original input cue.Value representing the lineage. May or may not be unified
+	// with thema.#Lineage
+	orig cue.Value
 
 	rt *Runtime
 

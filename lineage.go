@@ -6,6 +6,7 @@ import (
 
 	"cuelang.org/go/cue"
 	cerrors "cuelang.org/go/cue/errors"
+	"github.com/grafana/thema/internal/cuetil"
 )
 
 var (
@@ -44,7 +45,8 @@ type baseLineage struct {
 // This function is the only way to create non-nil Lineage objects. As a result,
 // all non-nil instances of Lineage in any Go program are guaranteed to follow
 // Thema invariants.
-func BindLineage(raw cue.Value, rt *Runtime, opts ...BindOption) (Lineage, error) {
+func BindLineage(v cue.Value, rt *Runtime, opts ...BindOption) (Lineage, error) {
+	orig := v
 	// We could be more selective than this, but this isn't supposed to be forever, soooooo
 	rt.l()
 	defer rt.u()
@@ -53,13 +55,59 @@ func BindLineage(raw cue.Value, rt *Runtime, opts ...BindOption) (Lineage, error
 	for _, opt := range opts {
 		opt(cfg)
 	}
-
 	lindef := rt.linDef()
+
+	var raw, uni cue.Value
+	// don't unify thema.#Lineage again if the input already did it. doing so may
+	// result in noisy extra instances of thema internals, confusing things like
+	// the openapi encoder and likely having performance implications
+	if vlist := cuetil.AppendSplit(orig, cue.AndOp, nil); len(vlist) > 1 {
+		others := make([]cue.Value, 0, len(vlist))
+		for _, av := range vlist {
+			_, path := av.ReferencePath()
+			if path.String() != "#Lineage" {
+				others = append(others, av)
+			}
+		}
+
+		if len(others) == len(vlist) {
+			// input value wasn't unified with thema.#Lineage, though there were other unifications
+			raw = orig
+			uni = lindef.Unify(orig)
+		} else {
+			// input value was unified with thema.#Lineage...
+			if len(others) == 1 {
+				// ...and there was only one other value, probably a struct literal (but don't lean
+				// on that assumption without adding more checks!)
+				raw = orig
+			} else {
+				// ...and there were multiple other values, which we now must unify together
+				raw = others[0].Unify(others[1])
+				for _, v := range others[2:] {
+					raw = raw.Unify(v)
+				}
+			}
+
+			// The key property for the 'uni' value we store in the lineage is that it is
+			// unified exactly once with thema.#Lineage. So, reuse the original input if
+			// there was only one #Lineage unification eliminated. Else, make a new one.
+			if len(others) == len(vlist)-1 {
+				uni = orig
+			} else {
+				uni = lindef.Unify(raw)
+			}
+		}
+	} else {
+		raw = orig
+		uni = lindef.Unify(orig)
+	}
+
 	ml := &maybeLineage{
-		rt:  rt,
-		raw: raw,
-		uni: lindef.Unify(raw),
-		cfg: cfg,
+		rt:   rt,
+		orig: orig,
+		raw:  raw,
+		uni:  uni,
+		cfg:  cfg,
 	}
 
 	if err := ml.checkExists(cfg); err != nil {
@@ -76,7 +124,7 @@ func BindLineage(raw cue.Value, rt *Runtime, opts ...BindOption) (Lineage, error
 	}
 
 	// previously verified that this value is concrete
-	nam, _ := raw.LookupPath(cue.MakePath(cue.Str("name"))).String()
+	nam, _ := orig.LookupPath(cue.MakePath(cue.Str("name"))).String()
 
 	lin := &baseLineage{
 		validated: true,
