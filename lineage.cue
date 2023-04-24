@@ -79,7 +79,6 @@ import (
 	// TODO switch to descending order - newest on top is nicer to read
 	lenses: [...#Lens]
 
-	//	 TODO this is horrible. Remove ASAP.
 	_atLeastOneSchema: len(schemas) > 0
 
 	_schemas: [...]

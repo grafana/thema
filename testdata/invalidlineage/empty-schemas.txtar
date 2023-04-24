@@ -6,4 +6,4 @@ thema.#Lineage
 name: "empty-schemas"
 schemas: []
 -- out/bindfail --
-#Lineage.schemas: incompatible list lengths (0 and 1) (and 32 more errors)
+schemas: incompatible list lengths (0 and 1) (and 12 more errors)

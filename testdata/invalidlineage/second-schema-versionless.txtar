@@ -31,4 +31,4 @@ lenses: [
 	}
 ]
 -- out/bindfail --
-#Lineage._schemasAreOrdered.1: conflicting values true and false (and 577 more errors)
+_schemasAreOrdered.1: conflicting values true and false (and 80 more errors)
