@@ -5,23 +5,21 @@ import "github.com/grafana/thema"
 
 thema.#Lineage
 name: "oneref"
-seqs: [
-    {
-        schemas: [
-            {
-                foo: string
-                Bar: int32
-                baz: #Baz
+schemas: [{
+	version: [0, 0]
+	schema: {
+		foo: string
+		Bar: int32
+		baz: #Baz
 
-                #Baz: {
-                    run: string
-                    tell: bytes
-                    dat: int32
-                }
-            }
-        ]
-    }
-]
+		#Baz: {
+			run:  string
+			tell: bytes
+			dat:  int32
+		}
+	}
+}]
+lenses: []
 -- out/generate/0.0/expandrefs.json --
 {
   "openapi": "3.0.0",
@@ -265,6 +263,8 @@ seqs: [
   }
 }
 -- out/generate/0.0/subpath.json/err --
-#someField: openapi: #someField: field not found: someField
+subpath "someField" not present in schema:
+    ./in.cue:9:10
 -- out/generate/0.0/subpathroot.json/err --
-#overriddenName: openapi: #overriddenName: field not found: someField
+subpath "someField" not present in schema:
+    ./in.cue:9:10

@@ -87,9 +87,11 @@
   }
 }
 -- out/generate/0.0/subpath.json/err --
-#someField: openapi: #someField: field not found: someField
+subpath "someField" not present in schema:
+    ../../github.com/grafana/thema/exemplars/expand.cue:10:12
 -- out/generate/0.0/subpathroot.json/err --
-#overriddenName: openapi: #overriddenName: field not found: someField
+subpath "someField" not present in schema:
+    ../../github.com/grafana/thema/exemplars/expand.cue:10:12
 -- out/generate/0.1/expandrefs.json --
 {
   "openapi": "3.0.0",
@@ -191,9 +193,11 @@
   }
 }
 -- out/generate/0.1/subpath.json/err --
-#someField: openapi: #someField: field not found: someField
+subpath "someField" not present in schema:
+    ../../github.com/grafana/thema/exemplars/expand.cue:16:13
 -- out/generate/0.1/subpathroot.json/err --
-#overriddenName: openapi: #overriddenName: field not found: someField
+subpath "someField" not present in schema:
+    ../../github.com/grafana/thema/exemplars/expand.cue:16:13
 -- out/generate/0.2/expandrefs.json --
 {
   "openapi": "3.0.0",
@@ -327,9 +331,11 @@
   }
 }
 -- out/generate/0.2/subpath.json/err --
-#someField: openapi: #someField: field not found: someField
+subpath "someField" not present in schema:
+    ../../github.com/grafana/thema/exemplars/expand.cue:23:13
 -- out/generate/0.2/subpathroot.json/err --
-#overriddenName: openapi: #overriddenName: field not found: someField
+subpath "someField" not present in schema:
+    ../../github.com/grafana/thema/exemplars/expand.cue:23:13
 -- out/generate/0.3/expandrefs.json --
 {
   "openapi": "3.0.0",
@@ -467,6 +473,8 @@
   }
 }
 -- out/generate/0.3/subpath.json/err --
-#someField: openapi: #someField: field not found: someField
+subpath "someField" not present in schema:
+    ../../github.com/grafana/thema/exemplars/expand.cue:31:13
 -- out/generate/0.3/subpathroot.json/err --
-#overriddenName: openapi: #overriddenName: field not found: someField
+subpath "someField" not present in schema:
+    ../../github.com/grafana/thema/exemplars/expand.cue:31:13

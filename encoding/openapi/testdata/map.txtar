@@ -1,36 +1,28 @@
+#lineagePath: lin
 -- in.cue --
 package generate
 
 import "github.com/grafana/thema"
 
-thema.#Lineage
-name: "basic"
-seqs: [
-    {
-        schemas: [
-            {
-                valPrimitive: [string]: bool
-                valList: [string]: [...string]
-                valStruct: [string]: {
-                    foo: string
-                }
-                optValPrimitive?: [string]: bool
-                optValList?: [string]: [...string]
-                optValStruct?: [string]: {
-                    foo: string
-                }
-                refValue: [string]: aStruct
-                someField: aMap
-            }
-        ]
-    }
-]
+lin: thema.#Lineage
+lin: name: "basic"
+lin: schemas: [{
+	version: [0, 0]
+	schema: {
+		valPrimitive: [string]: bool
+		valList: [string]: [...string]
+		valStruct: [string]: foo: string
+		optValPrimitive?: [string]: bool
+		optValList?: [string]: [...string]
+		optValStruct?: [string]: foo: string
+		refValue: [string]: aStruct
+		someField: aMap
+	}
+}]
+lin: lenses: []
 
 aMap: [string]: bool
-aStruct: {
-    foo: string
-}
-
+aStruct: foo:   string
 -- out/generate/0.0/expandrefs.json --
 {
   "openapi": "3.0.0",

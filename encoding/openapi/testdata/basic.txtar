@@ -5,20 +5,18 @@ import "github.com/grafana/thema"
 
 thema.#Lineage
 name: "basic"
-seqs: [
-    {
-        schemas: [
-            {
-                foo: string
-                someField: {
-                    run: int32
-                    tell: bytes
-                    dat: [...string]
-                }
-            }
-        ]
-    }
-]
+schemas: [{
+	version: [0, 0]
+	schema: {
+		foo: string
+		someField: {
+			run:  int32
+			tell: bytes
+			dat: [...string]
+		}
+	}
+}]
+lenses: []
 -- out/generate/0.0/expandrefs.json --
 {
   "openapi": "3.0.0",
