@@ -7,15 +7,15 @@ name: "defaultchange"
 schemas: [
     {
         version: [0, 0]
-		schema: close({
-		    aunion: *"foo" | "bar" | "baz"
-        })
+		schema: {
+		    aunion: *"foo" | "bar"
+        }
     },
     {
         version: [0, 1]
-		schema: close({
-		    aunion: "foo" | *"bar" | "baz"
-        })
+		schema: {
+		    aunion: "foo" | "bar" | *"baz"
+        }
     },
 ]
 
