@@ -1,3 +1,4 @@
+#subpath
 -- in.cue --
 package generate
 
@@ -73,7 +74,7 @@ lenses: []
     "title": "basic",
     "version": "0.0"
   },
-  "path": {},
+  "paths": {},
   "components": {
     "schemas": {
       "foo": {

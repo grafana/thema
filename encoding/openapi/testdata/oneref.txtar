@@ -8,9 +8,7 @@ name: "oneref"
 schemas: [{
 	version: [0, 0]
 	schema: {
-		foo: string
-		Bar: int32
-		baz: #Baz
+		aBaz: #Baz
 
 		#Baz: {
 			run:  string
@@ -54,19 +52,10 @@ lenses: []
       "oneref": {
         "type": "object",
         "required": [
-          "foo",
-          "Bar",
-          "baz"
+          "aBaz"
         ],
         "properties": {
-          "foo": {
-            "type": "string"
-          },
-          "Bar": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "baz": {
+          "aBaz": {
             "type": "object",
             "required": [
               "run",
@@ -99,17 +88,10 @@ lenses: []
     "title": "oneref",
     "version": "0.0"
   },
-  "path": {},
+  "paths": {},
   "components": {
     "schemas": {
-      "foo": {
-        "type": "string"
-      },
-      "Bar": {
-        "type": "integer",
-        "format": "int32"
-      },
-      "baz": {
+      "aBaz": {
         "type": "object",
         "required": [
           "run",
@@ -188,19 +170,10 @@ lenses: []
       "oneref": {
         "type": "object",
         "required": [
-          "foo",
-          "Bar",
-          "baz"
+          "aBaz"
         ],
         "properties": {
-          "foo": {
-            "type": "string"
-          },
-          "Bar": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "baz": {
+          "aBaz": {
             "$ref": "#/components/schemas/Baz"
           }
         }
@@ -242,19 +215,10 @@ lenses: []
       "oneref": {
         "type": "object",
         "required": [
-          "foo",
-          "Bar",
-          "baz"
+          "aBaz"
         ],
         "properties": {
-          "foo": {
-            "type": "string"
-          },
-          "Bar": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "baz": {
+          "aBaz": {
             "$ref": "#/components/schemas/Baz"
           }
         }
@@ -262,9 +226,3 @@ lenses: []
     }
   }
 }
--- out/generate/0.0/subpath.json/err --
-subpath "someField" not present in schema:
-    ./in.cue:9:10
--- out/generate/0.0/subpathroot.json/err --
-subpath "someField" not present in schema:
-    ./in.cue:9:10

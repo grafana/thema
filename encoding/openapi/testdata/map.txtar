@@ -1,4 +1,5 @@
 #lineagePath: lin
+#subpath
 -- in.cue --
 package generate
 
@@ -133,7 +134,7 @@ aStruct: foo:   string
     "title": "basic",
     "version": "0.0"
   },
-  "path": {},
+  "paths": {},
   "components": {
     "schemas": {
       "valPrimitive": {

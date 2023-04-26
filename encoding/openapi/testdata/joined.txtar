@@ -1,15 +1,21 @@
-#subpath
 -- in.cue --
 package generate
 
 import "github.com/grafana/thema"
 
 thema.#Lineage
-name: "basic"
+name: "joined"
+joinSchema: {
+    deflit: #DefLiteral
+    reflist: #DefRef
+    #DefLiteral: {
+        defLitField: string
+    }
+    #DefRef: EmbedRef
+}
 schemas: [{
 	version: [0, 0]
 	schema: {
-		EmbedRef
 		foo: string
 		someField: {
 			EmbedRef
@@ -29,25 +35,80 @@ EmbedRef: {
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "basic",
+    "title": "joined",
     "version": "0.0"
   },
   "paths": {},
   "components": {
     "schemas": {
-      "basic": {
+      "DefLiteral": {
         "type": "object",
         "required": [
-          "foo",
+          "defLitField"
+        ],
+        "properties": {
+          "defLitField": {
+            "type": "string"
+          }
+        }
+      },
+      "DefRef": {
+        "type": "object",
+        "required": [
           "refField1",
-          "someField",
           "refField2"
         ],
         "properties": {
-          "foo": {
+          "refField1": {
             "type": "string"
           },
-          "refField1": {
+          "refField2": {
+            "type": "integer",
+            "enum": [
+              42
+            ]
+          }
+        }
+      },
+      "joined": {
+        "type": "object",
+        "required": [
+          "deflit",
+          "reflist",
+          "foo",
+          "someField"
+        ],
+        "properties": {
+          "deflit": {
+            "type": "object",
+            "required": [
+              "defLitField"
+            ],
+            "properties": {
+              "defLitField": {
+                "type": "string"
+              }
+            }
+          },
+          "reflist": {
+            "type": "object",
+            "required": [
+              "refField1",
+              "refField2"
+            ],
+            "properties": {
+              "refField1": {
+                "type": "string"
+              },
+              "refField2": {
+                "type": "integer",
+                "enum": [
+                  42
+                ]
+              }
+            }
+          },
+          "foo": {
             "type": "string"
           },
           "someField": {
@@ -84,12 +145,6 @@ EmbedRef: {
                 ]
               }
             }
-          },
-          "refField2": {
-            "type": "integer",
-            "enum": [
-              42
-            ]
           }
         }
       }
@@ -100,17 +155,72 @@ EmbedRef: {
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "basic",
+    "title": "joined",
     "version": "0.0"
   },
-  "path": {},
+  "paths": {},
   "components": {
     "schemas": {
+      "deflit": {
+        "type": "object",
+        "required": [
+          "defLitField"
+        ],
+        "properties": {
+          "defLitField": {
+            "type": "string"
+          }
+        }
+      },
+      "reflist": {
+        "type": "object",
+        "required": [
+          "refField1",
+          "refField2"
+        ],
+        "properties": {
+          "refField1": {
+            "type": "string"
+          },
+          "refField2": {
+            "type": "integer",
+            "enum": [
+              42
+            ]
+          }
+        }
+      },
+      "DefLiteral": {
+        "type": "object",
+        "required": [
+          "defLitField"
+        ],
+        "properties": {
+          "defLitField": {
+            "type": "string"
+          }
+        }
+      },
       "foo": {
         "type": "string"
       },
-      "refField1": {
-        "type": "string"
+      "DefRef": {
+        "type": "object",
+        "required": [
+          "refField1",
+          "refField2"
+        ],
+        "properties": {
+          "refField1": {
+            "type": "string"
+          },
+          "refField2": {
+            "type": "integer",
+            "enum": [
+              42
+            ]
+          }
+        }
       },
       "EmbedRef": {
         "type": "object",
@@ -160,12 +270,6 @@ EmbedRef: {
             ]
           }
         ]
-      },
-      "refField2": {
-        "type": "integer",
-        "enum": [
-          42
-        ]
       }
     }
   }
@@ -174,12 +278,26 @@ EmbedRef: {
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "basic",
+    "title": "joined",
     "version": "0.0"
   },
   "paths": {},
   "components": {
     "schemas": {
+      "DefLiteral": {
+        "type": "object",
+        "required": [
+          "defLitField"
+        ],
+        "properties": {
+          "defLitField": {
+            "type": "string"
+          }
+        }
+      },
+      "DefRef": {
+        "$ref": "#/components/schemas/EmbedRef"
+      },
       "EmbedRef": {
         "type": "object",
         "required": [
@@ -198,9 +316,15 @@ EmbedRef: {
           }
         }
       },
-      "basic": {
+      "joined": {
         "type": "object",
         "properties": {
+          "deflit": {
+            "$ref": "#/components/schemas/DefLiteral"
+          },
+          "reflist": {
+            "$ref": "#/components/schemas/DefRef"
+          },
           "foo": {
             "type": "string"
           },
@@ -238,7 +362,10 @@ EmbedRef: {
         },
         "allOf": [
           {
-            "$ref": "#/components/schemas/EmbedRef"
+            "required": [
+              "deflit",
+              "reflist"
+            ]
           },
           {
             "required": [
@@ -255,12 +382,26 @@ EmbedRef: {
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "basic",
+    "title": "joined",
     "version": "0.0"
   },
   "paths": {},
   "components": {
     "schemas": {
+      "DefLiteral": {
+        "type": "object",
+        "required": [
+          "defLitField"
+        ],
+        "properties": {
+          "defLitField": {
+            "type": "string"
+          }
+        }
+      },
+      "DefRef": {
+        "$ref": "#/components/schemas/EmbedRef"
+      },
       "EmbedRef": {
         "type": "object",
         "required": [
@@ -279,9 +420,15 @@ EmbedRef: {
           }
         }
       },
-      "basic": {
+      "joined": {
         "type": "object",
         "properties": {
+          "deflit": {
+            "$ref": "#/components/schemas/DefLiteral"
+          },
+          "reflist": {
+            "$ref": "#/components/schemas/DefRef"
+          },
           "foo": {
             "type": "string"
           },
@@ -319,136 +466,15 @@ EmbedRef: {
         },
         "allOf": [
           {
-            "$ref": "#/components/schemas/EmbedRef"
+            "required": [
+              "deflit",
+              "reflist"
+            ]
           },
           {
             "required": [
               "foo",
               "someField"
-            ]
-          }
-        ]
-      }
-    }
-  }
-}
--- out/generate/0.0/subpath.json --
-{
-  "openapi": "3.0.0",
-  "info": {
-    "title": "someField",
-    "version": "0.0"
-  },
-  "paths": {},
-  "components": {
-    "schemas": {
-      "EmbedRef": {
-        "type": "object",
-        "required": [
-          "refField1",
-          "refField2"
-        ],
-        "properties": {
-          "refField1": {
-            "type": "string"
-          },
-          "refField2": {
-            "type": "integer",
-            "enum": [
-              42
-            ]
-          }
-        }
-      },
-      "someField": {
-        "type": "object",
-        "properties": {
-          "run": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "tell": {
-            "type": "string",
-            "format": "binary"
-          },
-          "dat": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        },
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/EmbedRef"
-          },
-          {
-            "required": [
-              "run",
-              "tell",
-              "dat"
-            ]
-          }
-        ]
-      }
-    }
-  }
-}
--- out/generate/0.0/subpathroot.json --
-{
-  "openapi": "3.0.0",
-  "info": {
-    "title": "overriddenName",
-    "version": "0.0"
-  },
-  "paths": {},
-  "components": {
-    "schemas": {
-      "EmbedRef": {
-        "type": "object",
-        "required": [
-          "refField1",
-          "refField2"
-        ],
-        "properties": {
-          "refField1": {
-            "type": "string"
-          },
-          "refField2": {
-            "type": "integer",
-            "enum": [
-              42
-            ]
-          }
-        }
-      },
-      "overriddenName": {
-        "type": "object",
-        "properties": {
-          "run": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "tell": {
-            "type": "string",
-            "format": "binary"
-          },
-          "dat": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        },
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/EmbedRef"
-          },
-          {
-            "required": [
-              "run",
-              "tell",
-              "dat"
             ]
           }
         ]

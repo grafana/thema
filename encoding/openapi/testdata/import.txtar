@@ -38,11 +38,147 @@ Aliasish: {
 Embedder: {
     embedderField: bytes
 }
--- out/generate/0.0/expandrefs.json/err --
-#import.baz: unsupported op . for object type ({
-	fieldInDef: int32 | string
-}):
-    ./in.cue:20:9
+-- out/generate/0.0/expandrefs.json --
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "import",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "AsRef": {
+        "type": "object",
+        "required": [
+          "run",
+          "tell",
+          "dat"
+        ],
+        "properties": {
+          "run": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tell": {
+            "type": "string",
+            "format": "binary"
+          },
+          "dat": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "Baz": {
+        "type": "object",
+        "required": [
+          "fieldInDef"
+        ],
+        "properties": {
+          "fieldInDef": {
+            "oneOf": [
+              {
+                "minimum": -2147483648,
+                "maximum": 2147483647
+              },
+              {}
+            ]
+          }
+        }
+      },
+      "import": {
+        "type": "object",
+        "required": [
+          "foo",
+          "baz",
+          "someField",
+          "embedderField"
+        ],
+        "properties": {
+          "foo": {
+            "type": "string"
+          },
+          "bar": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "baz": {
+            "type": "object",
+            "required": [
+              "fieldInDef"
+            ],
+            "properties": {
+              "fieldInDef": {
+                "oneOf": [
+                  {
+                    "minimum": -2147483648,
+                    "maximum": 2147483647
+                  },
+                  {}
+                ]
+              }
+            }
+          },
+          "quark": {
+            "type": "object",
+            "required": [
+              "run",
+              "tell",
+              "dat"
+            ],
+            "properties": {
+              "run": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "tell": {
+                "type": "string",
+                "format": "binary"
+              },
+              "dat": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "someField": {
+            "type": "object",
+            "required": [
+              "run",
+              "tell",
+              "dat"
+            ],
+            "properties": {
+              "run": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "tell": {
+                "type": "string",
+                "format": "binary"
+              },
+              "dat": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "embedderField": {
+            "type": "string",
+            "format": "binary"
+          }
+        }
+      }
+    }
+  }
+}
 -- out/generate/0.0/group.json --
 {
   "openapi": "3.0.0",
@@ -50,7 +186,7 @@ Embedder: {
     "title": "import",
     "version": "0.0"
   },
-  "path": {},
+  "paths": {},
   "components": {
     "schemas": {
       "foo": {
@@ -239,21 +375,13 @@ Embedder: {
           }
         }
       },
-      "Embedder": {
+      "import": {
         "type": "object",
-        "required": [
-          "embedderField"
-        ],
         "properties": {
           "embedderField": {
             "type": "string",
             "format": "binary"
-          }
-        }
-      },
-      "import": {
-        "type": "object",
-        "properties": {
+          },
           "foo": {
             "type": "string"
           },
@@ -273,7 +401,9 @@ Embedder: {
         },
         "allOf": [
           {
-            "$ref": "#/components/schemas/Embedder"
+            "required": [
+              "embedderField"
+            ]
           },
           {
             "required": [
@@ -347,21 +477,13 @@ Embedder: {
           }
         }
       },
-      "Embedder": {
+      "import": {
         "type": "object",
-        "required": [
-          "embedderField"
-        ],
         "properties": {
           "embedderField": {
             "type": "string",
             "format": "binary"
-          }
-        }
-      },
-      "import": {
-        "type": "object",
-        "properties": {
+          },
           "foo": {
             "type": "string"
           },
@@ -381,7 +503,9 @@ Embedder: {
         },
         "allOf": [
           {
-            "$ref": "#/components/schemas/Embedder"
+            "required": [
+              "embedderField"
+            ]
           },
           {
             "required": [
@@ -391,80 +515,6 @@ Embedder: {
             ]
           }
         ]
-      }
-    }
-  }
-}
--- out/generate/0.0/subpath.json --
-{
-  "openapi": "3.0.0",
-  "info": {
-    "title": "someField",
-    "version": "0.0"
-  },
-  "paths": {},
-  "components": {
-    "schemas": {
-      "someField": {
-        "type": "object",
-        "required": [
-          "run",
-          "tell",
-          "dat"
-        ],
-        "properties": {
-          "run": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "tell": {
-            "type": "string",
-            "format": "binary"
-          },
-          "dat": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      }
-    }
-  }
-}
--- out/generate/0.0/subpathroot.json --
-{
-  "openapi": "3.0.0",
-  "info": {
-    "title": "overriddenName",
-    "version": "0.0"
-  },
-  "paths": {},
-  "components": {
-    "schemas": {
-      "overriddenName": {
-        "type": "object",
-        "required": [
-          "run",
-          "tell",
-          "dat"
-        ],
-        "properties": {
-          "run": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "tell": {
-            "type": "string",
-            "format": "binary"
-          },
-          "dat": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
       }
     }
   }
