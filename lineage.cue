@@ -26,6 +26,7 @@ import (
 	// a joinSchema, it must be a struct containing at least one field.
 	//
 	// A lineage's joinSchema must never change as the lineage evolves.
+
 	joinSchema?: struct.MinFields(1)
 
 	// schemas is the ordered list of all schemas in the lineage.
@@ -244,7 +245,7 @@ import (
 
 	schema: _
 
-	_join: struct.MinFields(0)
+	_join: _
 
 	// Thema's internal handle for the user-provided schema definition. This
 	// handle is used by all helpers/operations in the thema package. As a
@@ -252,7 +253,10 @@ import (
 	// always recursively closed by default.
 	//
 	// This handle is also unified with the joinSchema of the containing lineage.
-	_#schema: struct.MinFields(1) & _join & schema
+
+	_#schema: _join & schema
+
+	_schemaIsNonEmpty: struct.MinFields(1) & _#schema
 
 	// examples is an optional set of named examples of the schema, intended
 	// for use in documentation or other non-functional contexts.

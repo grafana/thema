@@ -39,10 +39,6 @@ type maybeLineage struct {
 
 	allv []SyntacticVersion
 
-	// thema.#Lineage was unified with the raw input prior to it being passed to
-	// BindLineage
-	// rawUnifiesLineage bool
-
 	// The raw input value is the root of a package instance
 	// rawIsPackage bool
 }

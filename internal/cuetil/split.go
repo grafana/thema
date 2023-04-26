@@ -2,8 +2,10 @@ package cuetil
 
 import (
 	"fmt"
+	"strings"
 
 	"cuelang.org/go/cue"
+	"cuelang.org/go/cue/token"
 )
 
 // AppendSplit recursively splits an expression in a single cue.Value by a
@@ -51,3 +53,40 @@ func PrintPosList(v cue.Value) {
 		fmt.Println(i, dval.Pos())
 	}
 }
+
+// PoslistWithoutThema returns all token.Pos associated with a given cue.Value, omitting
+// any token.Pos that point to thema.
+func PoslistWithoutThema(v cue.Value) []token.Pos {
+	vals := AppendSplit(v, cue.AndOp, nil)
+	poslist := make([]token.Pos, 0, len(vals))
+	for _, dval := range vals {
+		// TODO not sure if we should expect os-sensitive path separators here or not
+		if pos := dval.Pos(); pos != token.NoPos && !strings.Contains(pos.Filename(), "github.com/grafana/thema") {
+			poslist = append(poslist, pos)
+		}
+	}
+	return poslist
+}
+
+// FirstNonThemaPos returns the first [token.Pos] in the slice returned by
+// PoslistWithoutThema, or [token.NoPos] if no such pos exists.
+func FirstNonThemaPos(v cue.Value) token.Pos {
+	pl := PoslistWithoutThema(v)
+	if len(pl) == 0 {
+		return token.NoPos
+	}
+	return pl[0]
+}
+
+//
+// func RemoveThemaValues(v cue.Value) []cue.Value {
+// 	if vlist := AppendSplit(v, cue.AndOp, nil); len(vlist) > 1 {
+// 		others := make([]cue.Value, 0, len(vlist))
+// 		for _, av := range vlist {
+// 			_, path := av.ReferencePath()
+// 			if path.String() != "#Lineage" {
+// 				others = append(others, av)
+// 			}
+// 		}
+// 	}
+// }

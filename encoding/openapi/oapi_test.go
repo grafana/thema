@@ -1,6 +1,7 @@
 package openapi
 
 import (
+	"strings"
 	"testing"
 
 	"cuelang.org/go/cue"
@@ -70,9 +71,13 @@ func TestGenerate(t *testing.T) {
 		cuetxtar.ForEachSchema(t, lin, func(t *cuetxtar.LineageTest, sch thema.Schema) {
 			for _, tc := range vars {
 				itest := tc
-				t.T.Run(itest.name, func(gt *testing.T) {
-					t.WriteFileOrErr(itest.name + ".json")(GenerateSchema(sch, itest.cfg))
-				})
+				if strings.HasPrefix(itest.name, "subpath") && !t.HasTag("subpath") {
+					continue
+				}
+				t.WriteFileOrErr(itest.name + ".json")(GenerateSchema(sch, itest.cfg))
+				// t.T.Run(itest.name, func(gt *testing.T) {
+				// 	t.WriteFileOrErr(itest.name + ".json")(GenerateSchema(sch, itest.cfg))
+				// })
 			}
 		})
 	})
