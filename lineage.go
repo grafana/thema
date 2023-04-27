@@ -280,22 +280,22 @@ func (lin *unaryConvLineage[T]) TypedSchema() TypedSchema[T] {
 	return lin.tsch
 }
 
-func IsAppendOnly(oldLineage Lineage, newLineage Lineage) bool {
+func IsAppendOnly(oldLineage Lineage, newLineage Lineage) error {
 	oldSchemas := oldLineage.All()
 	newSchemas := newLineage.All()
 
 	if len(newSchemas) < len(oldSchemas) {
-		return false
+		return fmt.Errorf("schemas can't be deleted once published")
 	}
 
 	for i, schema := range oldSchemas {
 		x := schema.Underlying()
 		y := newSchemas[i].Underlying()
 
-		if !cuetil.Equal(x, y) {
-			return false
-		}		
+		if err := cuetil.Equal(x, y); err != nil {
+			return err
+		}
 	}
 
-	return true
+	return nil
 }
