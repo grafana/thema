@@ -5,7 +5,7 @@ package generate
 import "github.com/grafana/thema"
 
 thema.#Lineage
-name: "basic"
+name: "embed"
 schemas: [{
 	version: [0, 0]
 	schema: {
@@ -29,13 +29,13 @@ EmbedRef: {
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "basic",
+    "title": "embed",
     "version": "0.0"
   },
   "paths": {},
   "components": {
     "schemas": {
-      "basic": {
+      "embed": {
         "type": "object",
         "required": [
           "foo",
@@ -100,10 +100,10 @@ EmbedRef: {
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "basic",
+    "title": "embed",
     "version": "0.0"
   },
-  "path": {},
+  "paths": {},
   "components": {
     "schemas": {
       "foo": {
@@ -174,7 +174,7 @@ EmbedRef: {
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "basic",
+    "title": "embed",
     "version": "0.0"
   },
   "paths": {},
@@ -198,9 +198,18 @@ EmbedRef: {
           }
         }
       },
-      "basic": {
+      "embed": {
         "type": "object",
         "properties": {
+          "refField1": {
+            "type": "string"
+          },
+          "refField2": {
+            "type": "integer",
+            "enum": [
+              42
+            ]
+          },
           "foo": {
             "type": "string"
           },
@@ -238,7 +247,10 @@ EmbedRef: {
         },
         "allOf": [
           {
-            "$ref": "#/components/schemas/EmbedRef"
+            "required": [
+              "refField1",
+              "refField2"
+            ]
           },
           {
             "required": [
@@ -255,7 +267,7 @@ EmbedRef: {
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "basic",
+    "title": "embed",
     "version": "0.0"
   },
   "paths": {},
@@ -279,9 +291,18 @@ EmbedRef: {
           }
         }
       },
-      "basic": {
+      "embed": {
         "type": "object",
         "properties": {
+          "refField1": {
+            "type": "string"
+          },
+          "refField2": {
+            "type": "integer",
+            "enum": [
+              42
+            ]
+          },
           "foo": {
             "type": "string"
           },
@@ -319,7 +340,10 @@ EmbedRef: {
         },
         "allOf": [
           {
-            "$ref": "#/components/schemas/EmbedRef"
+            "required": [
+              "refField1",
+              "refField2"
+            ]
           },
           {
             "required": [
