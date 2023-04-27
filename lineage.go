@@ -280,6 +280,8 @@ func (lin *unaryConvLineage[T]) TypedSchema() TypedSchema[T] {
 	return lin.tsch
 }
 
+// IsAppenOnly returns nil if the new lineage only contains new schemas compared to the old one.
+// It returns an error if old schemas are updated or deleted.
 func IsAppendOnly(oldLineage Lineage, newLineage Lineage) error {
 	oldSchemas := oldLineage.All()
 	newSchemas := newLineage.All()

@@ -4,6 +4,7 @@ import (
 	"cuelang.org/go/cue"
 )
 
+// Equal reports nil when the two cue values subsume each other or an error otherwise
 func Equal(val1 cue.Value, val2 cue.Value) error {
 	if err := val1.Subsume(val2, cue.Raw(), cue.Schema(), cue.Definitions(true), cue.All(), cue.Final()); err != nil {
 		return err
