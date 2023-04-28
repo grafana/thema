@@ -289,7 +289,7 @@ func GenerateLineageBinding(lin thema.Lineage, cfg *BindingConfig) ([]byte, erro
 		CueModName:          cfg.CueModName,
 		LoadDir:             cfg.LoadDir,
 		EmbedPath:           cfg.EmbedPath,
-		CUEPath:             cfg.CuePath.String(),
+		CUEPath:             fmt.Sprintf("%q", cfg.CuePath.String()),
 		BaseFactoryFuncName: "Lineage",
 		FactoryFuncName:     "Lineage",
 		IsConvergent:        cfg.Assignee != nil,

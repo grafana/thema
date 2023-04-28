@@ -309,6 +309,11 @@ func (gc *genCommand) runGoBindings(cmd *cobra.Command, args []string) error {
 		TargetSchemaVersion: gc.sch.Version(),
 		PackageName:         gc.pkgname,
 	}
+
+	if gc.lla.lincuepath != "" {
+		cfg.CuePath = cue.ParsePath(gc.lla.lincuepath)
+	}
+
 	// emitting on stdout just skips all the complicated conditional gen bits
 	if !gc.stdout {
 		if !gc.noembed {

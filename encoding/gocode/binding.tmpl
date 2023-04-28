@@ -5,7 +5,8 @@ import (
 	"io/fs"
 	"path/filepath"
 
-    "cuelang.org/go/cue/build"
+	{{ if .CUEPath }}"cuelang.org/go/cue"{{ end }}
+	"cuelang.org/go/cue/build"
 	"github.com/grafana/thema"
 	"github.com/grafana/thema/load"
 )
