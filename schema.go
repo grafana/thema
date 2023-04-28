@@ -31,7 +31,6 @@ type schemaDef struct {
 // Examples returns the set of examples of this schema defined in the original
 // lineage. The string key is the name given to the example.
 func (sch *schemaDef) Examples() map[string]*Instance {
-	panic("TODO")
 }
 
 func (sch *schemaDef) rt() *Runtime {
