@@ -97,6 +97,10 @@ type Test struct {
 	Dir string
 
 	hasGold bool
+
+	// lin     thema.Lineage
+	// linErr  error
+	// linOnce sync.Once
 }
 
 // Write implements [io.Writer] by writing to the output for the test,
@@ -237,6 +241,42 @@ func (t *Test) Instances(args ...string) []*build.Instance {
 	return a
 }
 
+// Lineage attempts to bind a lineage from the CUE package instance at the txtar
+// fs root. By default, it will assume the entire instance is intended to be a
+// lineage. However, if a #lineagePath key exists with a value, that path will
+// be used instead.
+//
+// A centrally initialized thema.Runtime is always used in the call to
+// thema.BindLineage, and the results of the thema.BindLineage call are cached
+// in memory.
+//
+// TODO move this to somewhere else so root thema package doesnt' have import cycle
+//
+// func (t *Test) Lineage() thema.Lineage {
+// 	t.Helper()
+// 	// TODO fix this so it actually works - maybe put it on the TxTarTest?
+// 	t.linOnce.Do(func() {
+// 		inst := t.Instance()
+// 		val := _ctx.BuildInstance(inst)
+// 		if p, ok := t.Value("lineagePath"); ok {
+// 			pp := cue.ParsePath(p)
+// 			if len(pp.Selectors()) == 0 {
+// 				t.Fatalf("%q is not a valid value for the #lineagePath key", p)
+// 			}
+// 			val = val.LookupPath(pp)
+// 			if !val.Exists() {
+// 				t.Fatalf("path %q specified in #lineagePath does not exist in input cue instance", p)
+// 			}
+// 		}
+//
+// 		t.lin, t.linErr = thema.BindLineage(val, _rt)
+// 	})
+// 	if t.linErr != nil {
+// 		t.Fatal(t.linErr)
+// 	}
+// 	return t.lin
+// }
+
 func formatVanillaNode(t *testing.T, n ast.Node) []byte {
 	t.Helper()
 
@@ -328,7 +368,6 @@ func (x *TxTarTest) Run(t *testing.T, f func(tc *Test)) {
 			update := false
 
 			for i, f := range a.Files {
-
 				if strings.HasPrefix(f.Name, tc.prefix) && (f.Name == tc.prefix || f.Name[len(tc.prefix)] == '/') {
 					// It's either "\(tc.prefix)" or "\(tc.prefix)/..." but not some other name
 					// that happens to start with tc.prefix.

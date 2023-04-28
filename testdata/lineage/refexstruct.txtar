@@ -1,0 +1,144 @@
+# schema contains a reference to an external type of struct kind
+-- in.cue --
+import "github.com/grafana/thema"
+
+thema.#Lineage
+name: "refexstruct"
+schemas: [{
+	version: [0, 0]
+	schema: {
+		aBaz: #Baz
+	}
+}]
+lenses: []
+
+#Baz: {
+    run:  string
+    tell: bytes
+    dat:  int32
+}
+-- out/encoding/openapi/TestGenerateVanilla/nilcfg --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "refexstruct"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"Baz": {
+				"type": "object", "required": ["run", "tell", "dat"]
+				"properties": {
+					"run": {
+						"type": "string"
+					}
+					"tell": {
+						"type": "string", "format": "binary"
+					}
+					"dat": {
+						"type": "integer", "format": "int32"
+					}
+				}
+			}
+			"refexstruct": {
+				"type": "object", "required": ["aBaz"]
+				"properties": {
+					"aBaz": {
+						"$ref": "#/components/schemas/Baz"
+					}
+				}
+			}
+		}
+	}
+}
+-- out/encoding/openapi/TestGenerateVanilla/group --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "refexstruct"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"aBaz": {
+				"type": "object", "required": ["run", "tell", "dat"]
+				"properties": {
+					"run": {
+						"type": "string"
+					}
+					"tell": {
+						"type": "string", "format": "binary"
+					}
+					"dat": {
+						"type": "integer", "format": "int32"
+					}
+				}
+			}
+		}
+	}
+}
+-- out/encoding/openapi/TestGenerateVanilla/expandrefs --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "refexstruct"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"refexstruct": {
+				"type": "object", "required": ["aBaz"]
+				"properties": {
+					"aBaz": {
+						"type": "object", "required": ["run", "tell", "dat"]
+						"properties": {
+							"run": {
+								"type": "string"
+							}
+							"tell": {
+								"type": "string", "format": "binary"
+							}
+							"dat": {
+								"type": "integer", "format": "int32"
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+-- out/encoding/openapi/TestGenerateVanilla/selfcontained --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "refexstruct"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"refexstruct": {
+				"type": "object", "$ref": "#/components/schemas/refscalar"
+			}
+			"refscalar": {}
+		}
+	}
+}
+-- out/encoding/openapi/TestGenerateVanilla/subpath --
+subpath "someField" not present in schema:
+    ../../lineage.cue:246:2
+-- out/encoding/openapi/TestGenerateVanilla/subpathroot --
+subpath "someField" not present in schema:
+    ../../lineage.cue:246:2
+-- out/bind --
+Schema count: 1
+Schema versions: 0.0
+Lenses count: 0

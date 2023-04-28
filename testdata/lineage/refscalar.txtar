@@ -1,0 +1,113 @@
+# schema contains reference to a definition that is a scalar kind
+-- in.cue --
+import "github.com/grafana/thema"
+
+thema.#Lineage
+name: "refscalar"
+schemas: [{
+	version: [0, 0]
+	schema: {
+		aBaz: #Baz
+
+		#Baz: string
+	}
+}]
+lenses: []
+-- out/encoding/openapi/TestGenerateVanilla/nilcfg --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "refscalar"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"Baz": {
+				"type": "string"
+			}
+			"refscalar": {
+				"type": "object", "required": ["aBaz"]
+				"properties": {
+					"aBaz": {
+						"$ref": "#/components/schemas/Baz"
+					}
+				}
+			}
+		}
+	}
+}
+-- out/encoding/openapi/TestGenerateVanilla/group --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "refscalar"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"aBaz": {
+				"type": "string"
+			}
+			"Baz": {
+				"type": "string"
+			}
+		}
+	}
+}
+-- out/encoding/openapi/TestGenerateVanilla/expandrefs --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "refscalar"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"Baz": {
+				"type": "string"
+			}
+			"refscalar": {
+				"type": "object", "required": ["aBaz"]
+				"properties": {
+					"aBaz": {
+						"type": "string"
+					}
+				}
+			}
+		}
+	}
+}
+-- out/encoding/openapi/TestGenerateVanilla/selfcontained --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "refscalar"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"refexstruct": {}
+			"refscalar": {
+				"type": "object", "$ref": "#/components/schemas/refexstruct"
+			}
+		}
+	}
+}
+-- out/encoding/openapi/TestGenerateVanilla/subpath --
+subpath "someField" not present in schema:
+    ../../lineage.cue:246:2
+-- out/encoding/openapi/TestGenerateVanilla/subpathroot --
+subpath "someField" not present in schema:
+    ../../lineage.cue:246:2
+-- out/bind --
+Schema count: 1
+Schema versions: 0.0
+Lenses count: 0

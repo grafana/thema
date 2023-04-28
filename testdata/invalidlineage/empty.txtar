@@ -1,3 +1,4 @@
 -- in.cue --
 -- out/bindfail --
-not a lineage, missing #Lineage.name
+bind fail: not a lineage, missing #Lineage.name:
+    ./in.cue:1:1

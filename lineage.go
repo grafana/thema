@@ -193,7 +193,7 @@ func (lin *baseLineage) First() Schema {
 func (lin *baseLineage) Underlying() cue.Value {
 	isValidLineage(lin)
 
-	return lin.raw
+	return lin.uni
 }
 
 // Name returns the name of the object schematized by the lineage, as declared in

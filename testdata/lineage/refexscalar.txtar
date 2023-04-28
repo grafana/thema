@@ -1,0 +1,136 @@
+# schema contains a reference to an external type of a scalar kind
+#subpath
+-- in.cue --
+import "github.com/grafana/thema"
+
+thema.#Lineage
+name: "refscalar"
+schemas: [{
+	version: [0, 0]
+	schema: {
+		someField: #Baz
+	}
+}]
+lenses: []
+
+#Baz: string
+-- out/encoding/openapi/TestGenerateVanilla/nilcfg --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "refscalar"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"Baz": {
+				"type": "string"
+			}
+			"refscalar": {
+				"type": "object", "required": ["someField"]
+				"properties": {
+					"someField": {
+						"$ref": "#/components/schemas/Baz"
+					}
+				}
+			}
+		}
+	}
+}
+-- out/encoding/openapi/TestGenerateVanilla/group --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "refscalar"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"someField": {
+				"type": "string"
+			}
+		}
+	}
+}
+-- out/encoding/openapi/TestGenerateVanilla/expandrefs --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "refscalar"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"refscalar": {
+				"type": "object", "required": ["someField"]
+				"properties": {
+					"someField": {
+						"type": "string"
+					}
+				}
+			}
+		}
+	}
+}
+-- out/encoding/openapi/TestGenerateVanilla/selfcontained --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "refscalar"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"oneschemaversionless": {}
+			"refscalar": {
+				"type": "object", "$ref": "#/components/schemas/oneschemaversionless"
+			}
+		}
+	}
+}
+-- out/encoding/openapi/TestGenerateVanilla/subpath --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "someField"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"someField": {
+				"type": "string"
+			}
+		}
+	}
+}
+-- out/encoding/openapi/TestGenerateVanilla/subpathroot --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "overriddenName"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"overriddenName": {
+				"type": "string"
+			}
+		}
+	}
+}
+-- out/bind --
+Schema count: 1
+Schema versions: 0.0
+Lenses count: 0

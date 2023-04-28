@@ -8,6 +8,7 @@ import (
 	"cuelang.org/go/cue"
 	"cuelang.org/go/cue/build"
 	"cuelang.org/go/cue/cuecontext"
+	"cuelang.org/go/cue/errors"
 	"cuelang.org/go/cue/load"
 	"github.com/grafana/thema/internal/txtartest/vanilla"
 )
@@ -47,8 +48,7 @@ func TestBindLineage(t *testing.T) {
 	rt := NewRuntime(ctx)
 
 	test.Run(t, func(tc *vanilla.Test) {
-		v := ctx.BuildInstance(tc.Instance())
-		lin, err := BindLineage(v, rt)
+		lin, err := bindTxtarLineage(tc, rt)
 		if testing.Short() && tc.HasTag("slow") {
 			t.Skip("case is tagged #slow, skipping for -short")
 		}
@@ -80,6 +80,7 @@ func TestInvalidLineages(t *testing.T) {
 		Name: "bindfail",
 		ToDo: map[string]string{
 			"invalidlineage/defaultchange": "Thema compat analyzer fails to classify changes to default values as breaking",
+			"invalidlineage/joindef":       "no invariant checker written to disallow definitions from joinSchema",
 		},
 	}
 
@@ -96,8 +97,31 @@ func TestInvalidLineages(t *testing.T) {
 		if err == nil {
 			tc.Fatal("expected error from known-invalid lineage")
 		}
-
 		// TODO more verbose error output, should include CUE line-level analysis
-		fmt.Fprintf(tc, "%v\n", err)
+		tc.WriteErrors(errors.Promote(err, "bind fail"))
 	})
+}
+
+func bindTxtarLineage(t *vanilla.Test, rt *Runtime) (Lineage, error) {
+	if rt == nil {
+		rt = NewRuntime(cuecontext.New())
+	}
+	ctx := rt.Context()
+
+	t.Helper()
+	inst := t.Instance()
+	val := ctx.BuildInstance(inst)
+	if p, ok := t.Value("lineagePath"); ok {
+		t.Log(p)
+		pp := cue.ParsePath(p)
+		if len(pp.Selectors()) == 0 {
+			t.Fatalf("%q is not a valid value for the #lineagePath key", p)
+		}
+		val = val.LookupPath(pp)
+		if !val.Exists() {
+			t.Fatalf("path %q specified in #lineagePath does not exist in input cue instance", p)
+		}
+	}
+
+	return BindLineage(val, rt)
 }

@@ -13,3 +13,195 @@ schemas: [{
 Schema count: 1
 Schema versions: 0.0
 Lenses count: 0
+-- out/oapi-generate/nil --
+== 0.0
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "oneschemaversionless"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"oneschemaversionless": {
+				"type": "object", "required": ["firstfield"]
+				"properties": {
+					"firstfield": {
+						"type": "string"
+					}
+				}
+			}
+		}
+	}
+}
+-- out/oapi-generate/group --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "oneschemaversionless"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"firstfield": {
+				"type": "string"
+			}
+		}
+	}
+}
+-- out/oapi-generate/expandrefs --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "oneschemaversionless"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"oneschemaversionless": {
+				"type": "object", "required": ["firstfield"]
+				"properties": {
+					"firstfield": {
+						"type": "string"
+					}
+				}
+			}
+		}
+	}
+}
+-- out/oapi-generate/selfcontained --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "oneschemaversionless"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"map": {}
+			"oneschemaversionless": {
+				"type": "object", "$ref": "#/components/schemas/map"
+			}
+		}
+	}
+}
+-- out/oapi-generate/subpath --
+subpath "someField" not present in schema:
+    ../../lineage.cue:246:2
+-- out/oapi-generate/subpathroot --
+subpath "someField" not present in schema:
+    ../../lineage.cue:246:2
+-- out/oapi-generate/nilconfig --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "oneschemaversionless"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"oneschemaversionless": {
+				"type": "object", "required": ["firstfield"]
+				"properties": {
+					"firstfield": {
+						"type": "string"
+					}
+				}
+			}
+		}
+	}
+}
+-- out/encoding/openapi/TestGenerateVanilla/nilcfg --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "oneschemaversionless"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"oneschemaversionless": {
+				"type": "object", "required": ["firstfield"]
+				"properties": {
+					"firstfield": {
+						"type": "string"
+					}
+				}
+			}
+		}
+	}
+}
+-- out/encoding/openapi/TestGenerateVanilla/group --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "oneschemaversionless"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"firstfield": {
+				"type": "string"
+			}
+		}
+	}
+}
+-- out/encoding/openapi/TestGenerateVanilla/expandrefs --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "oneschemaversionless"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"oneschemaversionless": {
+				"type": "object", "required": ["firstfield"]
+				"properties": {
+					"firstfield": {
+						"type": "string"
+					}
+				}
+			}
+		}
+	}
+}
+-- out/encoding/openapi/TestGenerateVanilla/selfcontained --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "oneschemaversionless"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"map": {}
+			"oneschemaversionless": {
+				"type": "object", "$ref": "#/components/schemas/map"
+			}
+		}
+	}
+}
+-- out/encoding/openapi/TestGenerateVanilla/subpath --
+subpath "someField" not present in schema:
+    ../../lineage.cue:246:2
+-- out/encoding/openapi/TestGenerateVanilla/subpathroot --
+subpath "someField" not present in schema:
+    ../../lineage.cue:246:2

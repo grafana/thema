@@ -1,0 +1,618 @@
+# a schema containing various different combinations of map-ish structures
+
+#lineagePath: lin
+#subpath
+-- in.cue --
+import "github.com/grafana/thema"
+
+lin: thema.#Lineage
+lin: name: "map"
+lin: schemas: [{
+	version: [0, 0]
+	schema: {
+		valPrimitive: [string]: bool
+		valList: [string]: [...string]
+		valStruct: [string]: foo: string
+		optValPrimitive?: [string]: bool
+		optValList?: [string]: [...string]
+		optValStruct?: [string]: foo: string
+		refValue: [string]: aStruct
+		someField: aMap
+	}
+}]
+lin: lenses: []
+
+aMap: [string]: bool
+aStruct: foo:   string
+-- out/oapi-generate/nilcfg --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "map"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"aMap": {
+				"type": "object", "additionalProperties": {
+					"type": "boolean"
+				}
+			}
+			"aStruct": {
+				"type": "object", "required": ["foo"]
+				"properties": {
+					"foo": {
+						"type": "string"
+					}
+				}
+			}
+			"map": {
+				"type": "object", "required": ["valPrimitive", "valList", "valStruct", "refValue", "someField"]
+				"properties": {
+					"valPrimitive": {
+						"type": "object", "additionalProperties": {
+							"type": "boolean"
+						}
+					}
+					"valList": {
+						"type": "object", "additionalProperties": {
+							"type": "array", "items": {
+								"type": "string"
+							}
+						}
+					}
+					"valStruct": {
+						"type": "object", "additionalProperties": {
+							"type": "object", "required": ["foo"]
+							"properties": {
+								"foo": {
+									"type": "string"
+								}
+							}
+						}
+					}
+					"optValPrimitive": {
+						"type": "object", "additionalProperties": {
+							"type": "boolean"
+						}
+					}
+					"optValList": {
+						"type": "object", "additionalProperties": {
+							"type": "array", "items": {
+								"type": "string"
+							}
+						}
+					}
+					"optValStruct": {
+						"type": "object", "additionalProperties": {
+							"type": "object", "required": ["foo"]
+							"properties": {
+								"foo": {
+									"type": "string"
+								}
+							}
+						}
+					}
+					"refValue": {
+						"type": "object", "additionalProperties": {
+							"$ref": "#/components/schemas/aStruct"
+						}
+					}
+					"someField": {
+						"$ref": "#/components/schemas/aMap"
+					}
+				}
+			}
+		}
+	}
+}
+-- out/oapi-generate/group --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "map"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"valPrimitive": {
+				"type": "object", "additionalProperties": {
+					"type": "boolean"
+				}
+			}
+			"valList": {
+				"type": "object", "additionalProperties": {
+					"type": "array", "items": {
+						"type": "string"
+					}
+				}
+			}
+			"valStruct": {
+				"type": "object", "additionalProperties": {
+					"type": "object", "required": ["foo"]
+					"properties": {
+						"foo": {
+							"type": "string"
+						}
+					}
+				}
+			}
+			"optValPrimitive": {
+				"type": "object", "additionalProperties": {
+					"type": "boolean"
+				}
+			}
+			"optValList": {
+				"type": "object", "additionalProperties": {
+					"type": "array", "items": {
+						"type": "string"
+					}
+				}
+			}
+			"optValStruct": {
+				"type": "object", "additionalProperties": {
+					"type": "object", "required": ["foo"]
+					"properties": {
+						"foo": {
+							"type": "string"
+						}
+					}
+				}
+			}
+			"aStruct": {
+				"type": "object", "required": ["foo"]
+				"properties": {
+					"foo": {
+						"type": "string"
+					}
+				}
+			}
+			"refValue": {
+				"type": "object", "additionalProperties": {
+					"$ref": "#/components/schemas/aStruct"
+				}
+			}
+			"someField": {
+				"type": "object", "additionalProperties": {
+					"type": "boolean"
+				}
+			}
+		}
+	}
+}
+-- out/oapi-generate/expandrefs --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "map"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"map": {
+				"type": "object", "required": ["valPrimitive", "valList", "valStruct", "refValue", "someField"]
+				"properties": {
+					"valPrimitive": {
+						"type": "object", "additionalProperties": {
+							"type": "boolean"
+						}
+					}
+					"valList": {
+						"type": "object", "additionalProperties": {
+							"type": "array", "items": {
+								"type": "string"
+							}
+						}
+					}
+					"valStruct": {
+						"type": "object", "additionalProperties": {
+							"type": "object", "required": ["foo"]
+							"properties": {
+								"foo": {
+									"type": "string"
+								}
+							}
+						}
+					}
+					"optValPrimitive": {
+						"type": "object", "additionalProperties": {
+							"type": "boolean"
+						}
+					}
+					"optValList": {
+						"type": "object", "additionalProperties": {
+							"type": "array", "items": {
+								"type": "string"
+							}
+						}
+					}
+					"optValStruct": {
+						"type": "object", "additionalProperties": {
+							"type": "object", "required": ["foo"]
+							"properties": {
+								"foo": {
+									"type": "string"
+								}
+							}
+						}
+					}
+					"refValue": {
+						"type": "object", "additionalProperties": {
+							"type": "object", "required": ["foo"]
+							"properties": {
+								"foo": {
+									"type": "string"
+								}
+							}
+						}
+					}
+					"someField": {
+						"type": "object", "additionalProperties": {
+							"type": "boolean"
+						}
+					}
+				}
+			}
+		}
+	}
+}
+-- out/oapi-generate/selfcontained --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "map"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"expand": {}
+			"map": {
+				"type": "object", "$ref": "#/components/schemas/expand"
+			}
+		}
+	}
+}
+-- out/oapi-generate/subpath --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "someField"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"someField": {
+				"type": "object", "additionalProperties": {
+					"type": "boolean"
+				}
+			}
+		}
+	}
+}
+-- out/oapi-generate/subpathroot --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "overriddenName"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"overriddenName": {
+				"type": "object", "additionalProperties": {
+					"type": "boolean"
+				}
+			}
+		}
+	}
+}
+-- out/encoding/openapi/TestGenerateVanilla/nilcfg --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "map"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"aMap": {
+				"type": "object", "additionalProperties": {
+					"type": "boolean"
+				}
+			}
+			"aStruct": {
+				"type": "object", "required": ["foo"]
+				"properties": {
+					"foo": {
+						"type": "string"
+					}
+				}
+			}
+			"map": {
+				"type": "object", "required": ["valPrimitive", "valList", "valStruct", "refValue", "someField"]
+				"properties": {
+					"valPrimitive": {
+						"type": "object", "additionalProperties": {
+							"type": "boolean"
+						}
+					}
+					"valList": {
+						"type": "object", "additionalProperties": {
+							"type": "array", "items": {
+								"type": "string"
+							}
+						}
+					}
+					"valStruct": {
+						"type": "object", "additionalProperties": {
+							"type": "object", "required": ["foo"]
+							"properties": {
+								"foo": {
+									"type": "string"
+								}
+							}
+						}
+					}
+					"optValPrimitive": {
+						"type": "object", "additionalProperties": {
+							"type": "boolean"
+						}
+					}
+					"optValList": {
+						"type": "object", "additionalProperties": {
+							"type": "array", "items": {
+								"type": "string"
+							}
+						}
+					}
+					"optValStruct": {
+						"type": "object", "additionalProperties": {
+							"type": "object", "required": ["foo"]
+							"properties": {
+								"foo": {
+									"type": "string"
+								}
+							}
+						}
+					}
+					"refValue": {
+						"type": "object", "additionalProperties": {
+							"$ref": "#/components/schemas/aStruct"
+						}
+					}
+					"someField": {
+						"$ref": "#/components/schemas/aMap"
+					}
+				}
+			}
+		}
+	}
+}
+-- out/encoding/openapi/TestGenerateVanilla/group --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "map"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"valPrimitive": {
+				"type": "object", "additionalProperties": {
+					"type": "boolean"
+				}
+			}
+			"valList": {
+				"type": "object", "additionalProperties": {
+					"type": "array", "items": {
+						"type": "string"
+					}
+				}
+			}
+			"valStruct": {
+				"type": "object", "additionalProperties": {
+					"type": "object", "required": ["foo"]
+					"properties": {
+						"foo": {
+							"type": "string"
+						}
+					}
+				}
+			}
+			"optValPrimitive": {
+				"type": "object", "additionalProperties": {
+					"type": "boolean"
+				}
+			}
+			"optValList": {
+				"type": "object", "additionalProperties": {
+					"type": "array", "items": {
+						"type": "string"
+					}
+				}
+			}
+			"optValStruct": {
+				"type": "object", "additionalProperties": {
+					"type": "object", "required": ["foo"]
+					"properties": {
+						"foo": {
+							"type": "string"
+						}
+					}
+				}
+			}
+			"aStruct": {
+				"type": "object", "required": ["foo"]
+				"properties": {
+					"foo": {
+						"type": "string"
+					}
+				}
+			}
+			"refValue": {
+				"type": "object", "additionalProperties": {
+					"$ref": "#/components/schemas/aStruct"
+				}
+			}
+			"someField": {
+				"type": "object", "additionalProperties": {
+					"type": "boolean"
+				}
+			}
+		}
+	}
+}
+-- out/encoding/openapi/TestGenerateVanilla/expandrefs --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "map"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"map": {
+				"type": "object", "required": ["valPrimitive", "valList", "valStruct", "refValue", "someField"]
+				"properties": {
+					"valPrimitive": {
+						"type": "object", "additionalProperties": {
+							"type": "boolean"
+						}
+					}
+					"valList": {
+						"type": "object", "additionalProperties": {
+							"type": "array", "items": {
+								"type": "string"
+							}
+						}
+					}
+					"valStruct": {
+						"type": "object", "additionalProperties": {
+							"type": "object", "required": ["foo"]
+							"properties": {
+								"foo": {
+									"type": "string"
+								}
+							}
+						}
+					}
+					"optValPrimitive": {
+						"type": "object", "additionalProperties": {
+							"type": "boolean"
+						}
+					}
+					"optValList": {
+						"type": "object", "additionalProperties": {
+							"type": "array", "items": {
+								"type": "string"
+							}
+						}
+					}
+					"optValStruct": {
+						"type": "object", "additionalProperties": {
+							"type": "object", "required": ["foo"]
+							"properties": {
+								"foo": {
+									"type": "string"
+								}
+							}
+						}
+					}
+					"refValue": {
+						"type": "object", "additionalProperties": {
+							"type": "object", "required": ["foo"]
+							"properties": {
+								"foo": {
+									"type": "string"
+								}
+							}
+						}
+					}
+					"someField": {
+						"type": "object", "additionalProperties": {
+							"type": "boolean"
+						}
+					}
+				}
+			}
+		}
+	}
+}
+-- out/encoding/openapi/TestGenerateVanilla/selfcontained --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "map"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"map": {
+				"type": "object", "$ref": "#/components/schemas/struct"
+			}
+			"struct": {}
+		}
+	}
+}
+-- out/encoding/openapi/TestGenerateVanilla/subpath --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "someField"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"someField": {
+				"type": "object", "additionalProperties": {
+					"type": "boolean"
+				}
+			}
+		}
+	}
+}
+-- out/encoding/openapi/TestGenerateVanilla/subpathroot --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "overriddenName"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"overriddenName": {
+				"type": "object", "additionalProperties": {
+					"type": "boolean"
+				}
+			}
+		}
+	}
+}
+-- out/bind --
+Schema count: 1
+Schema versions: 0.0
+Lenses count: 0

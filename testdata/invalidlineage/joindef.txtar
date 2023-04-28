@@ -1,0 +1,19 @@
+# Definitions are not allowed in joinSchema
+-- in.cue --
+import "github.com/grafana/thema"
+
+thema.#Lineage
+name: "joindef"
+joinSchema: {
+    reflit: #DefLiteral
+    #DefLiteral: {
+        defLitField: string
+    }
+}
+schemas: [{
+	version: [0, 0]
+	schema: {
+		foo: string
+	}
+}]
+lenses: []

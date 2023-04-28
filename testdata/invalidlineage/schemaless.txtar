@@ -5,4 +5,4 @@ import "github.com/grafana/thema"
 thema.#Lineage
 name: "schemaless"
 -- out/bindfail --
-invalid lineage, #Lineage.schemas must be concrete
+bind fail: invalid lineage, #Lineage.schemas must be concrete

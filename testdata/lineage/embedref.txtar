@@ -1,0 +1,234 @@
+# schema is an embedded struct, where struct is a def within the schema
+-- in.cue --
+import "github.com/grafana/thema"
+
+thema.#Lineage
+name: "embedref"
+schemas: [{
+	version: [0, 0]
+	schema: {
+		#EmbedRef
+
+        #EmbedRef: {
+            refField1: string
+            refField2: 42
+        }
+	}
+}]
+lenses: []
+
+-- out/encoding/openapi/TestGenerateVanilla/nilcfg --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "embedref"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"EmbedRef": {
+				"type": "object", "required": ["refField1", "refField2"]
+				"properties": {
+					"refField1": {
+						"type": "string"
+					}
+					"refField2": {
+						"type": "integer", "enum": [42]
+					}
+				}
+			}
+			"embedref": {
+				"type": "object", "required": ["refField1", "refField2"]
+				"properties": {
+					"refField1": {
+						"type": "string"
+					}
+					"refField2": {
+						"type": "integer", "enum": [42]
+					}
+				}
+			}
+		}
+	}
+}
+-- out/encoding/openapi/TestGenerateVanilla/group --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "embedref"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"EmbedRef": {
+				"type": "object", "required": ["refField1", "refField2"]
+				"properties": {
+					"refField1": {
+						"type": "string"
+					}
+					"refField2": {
+						"type": "integer", "enum": [42]
+					}
+				}
+			}
+			"refField1": {
+				"type": "string"
+			}
+			"refField2": {
+				"type": "integer", "enum": [42]
+			}
+		}
+	}
+}
+-- out/encoding/openapi/TestGenerateVanilla/expandrefs --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "embedref"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"EmbedRef": {
+				"type": "object", "required": ["refField1", "refField2"]
+				"properties": {
+					"refField1": {
+						"type": "string"
+					}
+					"refField2": {
+						"type": "integer", "enum": [42]
+					}
+				}
+			}
+			"embedref": {
+				"type": "object", "required": ["refField1", "refField2"]
+				"properties": {
+					"refField1": {
+						"type": "string"
+					}
+					"refField2": {
+						"type": "integer", "enum": [42]
+					}
+				}
+			}
+		}
+	}
+}
+-- out/encoding/openapi/TestGenerateVanilla/selfcontained --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "embedref"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"embedexref": {}
+			"embedref": {
+				"type": "object", "$ref": "#/components/schemas/embedexref"
+			}
+		}
+	}
+}
+-- out/encoding/openapi/TestGenerateVanilla/subpath --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "someField"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"EmbedRef": {
+				"type": "object", "required": ["refField1", "refField2"]
+				"properties": {
+					"refField1": {
+						"type": "string"
+					}
+					"refField2": {
+						"type": "integer", "enum": [42]
+					}
+				}
+			}
+			"someField": {
+				"type": "object", "properties": {
+					"run": {
+						"type": "integer", "format": "int32"
+					}
+					"tell": {
+						"type": "string", "format": "binary"
+					}
+					"dat": {
+						"type": "array", "items": {
+							"type": "string"
+						}
+					}
+				}
+				"allOf": [{
+					"$ref": "#/components/schemas/EmbedRef"
+				}, {
+					"required": ["run", "tell", "dat"]
+				}]
+			}
+		}
+	}
+}
+-- out/encoding/openapi/TestGenerateVanilla/subpathroot --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "overriddenName"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"EmbedRef": {
+				"type": "object", "required": ["refField1", "refField2"]
+				"properties": {
+					"refField1": {
+						"type": "string"
+					}
+					"refField2": {
+						"type": "integer", "enum": [42]
+					}
+				}
+			}
+			"overriddenName": {
+				"type": "object", "properties": {
+					"run": {
+						"type": "integer", "format": "int32"
+					}
+					"tell": {
+						"type": "string", "format": "binary"
+					}
+					"dat": {
+						"type": "array", "items": {
+							"type": "string"
+						}
+					}
+				}
+				"allOf": [{
+					"$ref": "#/components/schemas/EmbedRef"
+				}, {
+					"required": ["run", "tell", "dat"]
+				}]
+			}
+		}
+	}
+}
+-- out/bind --
+Schema count: 1
+Schema versions: 0.0
+Lenses count: 0

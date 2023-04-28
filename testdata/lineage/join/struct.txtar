@@ -1,0 +1,146 @@
+# joinSchema contains a field that is a struct
+-- in.cue --
+import "github.com/grafana/thema"
+
+thema.#Lineage
+name: "struct"
+joinSchema: {
+    aField: {
+        defLitField: string
+    }
+}
+schemas: [{
+	version: [0, 0]
+	schema: {
+		foo: string
+	}
+}]
+lenses: []
+
+-- out/encoding/openapi/TestGenerateVanilla/nilcfg --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "struct"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"struct": {
+				"type": "object", "properties": {
+					"aField": {
+						"type": "object", "required": ["defLitField"]
+						"properties": {
+							"defLitField": {
+								"type": "string"
+							}
+						}
+					}
+					"foo": {
+						"type": "string"
+					}
+				}
+				"allOf": [{
+					"required": ["aField"]
+				}, {
+					"required": ["foo"]
+				}]
+			}
+		}
+	}
+}
+-- out/encoding/openapi/TestGenerateVanilla/group --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "struct"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"aField": {
+				"type": "object", "required": ["defLitField"]
+				"properties": {
+					"defLitField": {
+						"type": "string"
+					}
+				}
+			}
+			"foo": {
+				"type": "string"
+			}
+		}
+	}
+}
+-- out/encoding/openapi/TestGenerateVanilla/expandrefs --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "struct"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"struct": {
+				"type": "object", "required": ["aField", "foo"]
+				"properties": {
+					"aField": {
+						"type": "object", "required": ["defLitField"]
+						"properties": {
+							"defLitField": {
+								"type": "string"
+							}
+						}
+					}
+					"foo": {
+						"type": "string"
+					}
+				}
+			}
+		}
+	}
+}
+-- out/encoding/openapi/TestGenerateVanilla/selfcontained --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "struct"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"joinSchema": {
+				"type": "object", "required": ["aField"]
+				"properties": {
+					"aField": {
+						"type": "object", "required": ["defLitField"]
+						"properties": {
+							"defLitField": {
+								"type": "string"
+							}
+						}
+					}
+				}
+				"minProperties": 1
+			}
+			"repeat": {
+				"type": "object", "$ref": "#/components/schemas/joinSchema"
+			}
+			"struct": {
+				"type": "object", "$ref": "#/components/schemas/repeat"
+			}
+		}
+	}
+}
+-- out/bind --
+Schema count: 1
+Schema versions: 0.0
+Lenses count: 0

@@ -1,0 +1,230 @@
+# joinSchema is a reference to an embedded struct
+-- in.cue --
+import "github.com/grafana/thema"
+
+thema.#Lineage
+name: "embedref"
+joinSchema: {
+    EmbedRef
+}
+schemas: [{
+	version: [0, 0]
+	schema: {
+		foo: string
+	}
+}]
+lenses: []
+
+EmbedRef: {
+	refField1: string
+	refField2: 42
+}
+-- out/encoding/openapi/TestGenerateVanilla/nilcfg --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "embedref"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"embedref": {
+				"type": "object", "properties": {
+					"refField1": {
+						"type": "string"
+					}
+					"refField2": {
+						"type": "integer", "enum": [42]
+					}
+					"foo": {
+						"type": "string"
+					}
+				}
+				"allOf": [{
+					"required": ["refField1", "refField2"]
+				}, {
+					"required": ["foo"]
+				}]
+			}
+		}
+	}
+}
+-- out/encoding/openapi/TestGenerateVanilla/group --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "embedref"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"refField1": {
+				"type": "string"
+			}
+			"foo": {
+				"type": "string"
+			}
+			"refField2": {
+				"type": "integer", "enum": [42]
+			}
+		}
+	}
+}
+-- out/encoding/openapi/TestGenerateVanilla/expandrefs --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "embedref"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"embedref": {
+				"type": "object", "required": ["refField1", "foo", "refField2"]
+				"properties": {
+					"refField1": {
+						"type": "string"
+					}
+					"foo": {
+						"type": "string"
+					}
+					"refField2": {
+						"type": "integer", "enum": [42]
+					}
+				}
+			}
+		}
+	}
+}
+-- out/encoding/openapi/TestGenerateVanilla/selfcontained --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "embedref"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"embedref": {
+				"type": "object", "$ref": "#/components/schemas/expand"
+			}
+			"expand": {
+				"type": "object", "$ref": "#/components/schemas/joinSchema"
+			}
+			"joinSchema": {
+				"type": "object", "required": ["refField1", "refField2"]
+				"properties": {
+					"refField1": {
+						"type": "string"
+					}
+					"refField2": {
+						"type": "integer", "enum": [42]
+					}
+				}
+				"minProperties": 1
+			}
+		}
+	}
+}
+-- out/encoding/openapi/TestGenerateVanilla/subpath --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "someField"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"EmbedRef": {
+				"type": "object", "required": ["refField1", "refField2"]
+				"properties": {
+					"refField1": {
+						"type": "string"
+					}
+					"refField2": {
+						"type": "integer", "enum": [42]
+					}
+				}
+			}
+			"someField": {
+				"type": "object", "properties": {
+					"run": {
+						"type": "integer", "format": "int32"
+					}
+					"tell": {
+						"type": "string", "format": "binary"
+					}
+					"dat": {
+						"type": "array", "items": {
+							"type": "string"
+						}
+					}
+				}
+				"allOf": [{
+					"$ref": "#/components/schemas/EmbedRef"
+				}, {
+					"required": ["run", "tell", "dat"]
+				}]
+			}
+		}
+	}
+}
+-- out/encoding/openapi/TestGenerateVanilla/subpathroot --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "overriddenName"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"EmbedRef": {
+				"type": "object", "required": ["refField1", "refField2"]
+				"properties": {
+					"refField1": {
+						"type": "string"
+					}
+					"refField2": {
+						"type": "integer", "enum": [42]
+					}
+				}
+			}
+			"overriddenName": {
+				"type": "object", "properties": {
+					"run": {
+						"type": "integer", "format": "int32"
+					}
+					"tell": {
+						"type": "string", "format": "binary"
+					}
+					"dat": {
+						"type": "array", "items": {
+							"type": "string"
+						}
+					}
+				}
+				"allOf": [{
+					"$ref": "#/components/schemas/EmbedRef"
+				}, {
+					"required": ["run", "tell", "dat"]
+				}]
+			}
+		}
+	}
+}
+-- out/bind --
+Schema count: 1
+Schema versions: 0.0
+Lenses count: 0

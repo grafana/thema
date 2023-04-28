@@ -1,0 +1,286 @@
+# joinSchema contains references to external definitions
+-- in.cue --
+import "github.com/grafana/thema"
+
+thema.#Lineage
+name: "joined"
+joinSchema: {
+    ref: ExRef
+    refdef: #ExRefDef
+}
+schemas: [{
+	version: [0, 0]
+	schema: {
+		foo: string
+	}
+}]
+lenses: []
+
+ExRef: {
+	normalField: string
+}
+
+#ExRefDef: {
+	defField: string
+}
+-- out/encoding/openapi/TestGenerateVanilla/nilcfg --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "joined"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"ExRef": {
+				"type": "object", "required": ["normalField"]
+				"properties": {
+					"normalField": {
+						"type": "string"
+					}
+				}
+			}
+			"ExRefDef": {
+				"type": "object", "required": ["defField"]
+				"properties": {
+					"defField": {
+						"type": "string"
+					}
+				}
+			}
+			"joined": {
+				"type": "object", "properties": {
+					"ref": {
+						"$ref": "#/components/schemas/ExRef"
+					}
+					"refdef": {
+						"$ref": "#/components/schemas/ExRefDef"
+					}
+					"foo": {
+						"type": "string"
+					}
+				}
+				"allOf": [{
+					"required": ["ref", "refdef"]
+				}, {
+					"required": ["foo"]
+				}]
+			}
+		}
+	}
+}
+-- out/encoding/openapi/TestGenerateVanilla/group --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "joined"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"ref": {
+				"type": "object", "required": ["normalField"]
+				"properties": {
+					"normalField": {
+						"type": "string"
+					}
+				}
+			}
+			"foo": {
+				"type": "string"
+			}
+			"refdef": {
+				"type": "object", "required": ["defField"]
+				"properties": {
+					"defField": {
+						"type": "string"
+					}
+				}
+			}
+		}
+	}
+}
+-- out/encoding/openapi/TestGenerateVanilla/expandrefs --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "joined"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"joined": {
+				"type": "object", "required": ["ref", "foo", "refdef"]
+				"properties": {
+					"ref": {
+						"type": "object", "required": ["normalField"]
+						"properties": {
+							"normalField": {
+								"type": "string"
+							}
+						}
+					}
+					"foo": {
+						"type": "string"
+					}
+					"refdef": {
+						"type": "object", "required": ["defField"]
+						"properties": {
+							"defField": {
+								"type": "string"
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+-- out/encoding/openapi/TestGenerateVanilla/selfcontained --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "joined"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"ExRef": {
+				"type": "object", "required": ["normalField"]
+				"properties": {
+					"normalField": {
+						"type": "string"
+					}
+				}
+			}
+			"ExRefDef": {
+				"type": "object", "required": ["defField"]
+				"properties": {
+					"defField": {
+						"type": "string"
+					}
+				}
+			}
+			"embedref": {
+				"type": "object", "$ref": "#/components/schemas/joinSchema"
+			}
+			"joinSchema": {
+				"type": "object", "required": ["ref", "refdef"]
+				"properties": {
+					"ref": {
+						"$ref": "#/components/schemas/ExRef"
+					}
+					"refdef": {
+						"$ref": "#/components/schemas/ExRefDef"
+					}
+				}
+				"minProperties": 1
+			}
+			"joined": {
+				"type": "object", "$ref": "#/components/schemas/embedref"
+			}
+		}
+	}
+}
+-- out/encoding/openapi/TestGenerateVanilla/subpath --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "someField"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"EmbedRef": {
+				"type": "object", "required": ["refField1", "refField2"]
+				"properties": {
+					"refField1": {
+						"type": "string"
+					}
+					"refField2": {
+						"type": "integer", "enum": [42]
+					}
+				}
+			}
+			"someField": {
+				"type": "object", "properties": {
+					"run": {
+						"type": "integer", "format": "int32"
+					}
+					"tell": {
+						"type": "string", "format": "binary"
+					}
+					"dat": {
+						"type": "array", "items": {
+							"type": "string"
+						}
+					}
+				}
+				"allOf": [{
+					"$ref": "#/components/schemas/EmbedRef"
+				}, {
+					"required": ["run", "tell", "dat"]
+				}]
+			}
+		}
+	}
+}
+-- out/encoding/openapi/TestGenerateVanilla/subpathroot --
+== 0.0.json
+{
+	"openapi": "3.0.0"
+	"info": {
+		"title":   "overriddenName"
+		"version": "0.0"
+	}
+	"paths": {}
+	"components": {
+		"schemas": {
+			"EmbedRef": {
+				"type": "object", "required": ["refField1", "refField2"]
+				"properties": {
+					"refField1": {
+						"type": "string"
+					}
+					"refField2": {
+						"type": "integer", "enum": [42]
+					}
+				}
+			}
+			"overriddenName": {
+				"type": "object", "properties": {
+					"run": {
+						"type": "integer", "format": "int32"
+					}
+					"tell": {
+						"type": "string", "format": "binary"
+					}
+					"dat": {
+						"type": "array", "items": {
+							"type": "string"
+						}
+					}
+				}
+				"allOf": [{
+					"$ref": "#/components/schemas/EmbedRef"
+				}, {
+					"required": ["run", "tell", "dat"]
+				}]
+			}
+		}
+	}
+}
+-- out/bind --
+Schema count: 1
+Schema versions: 0.0
+Lenses count: 0

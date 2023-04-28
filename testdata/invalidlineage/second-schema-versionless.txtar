@@ -31,4 +31,9 @@ lenses: [
 	}
 ]
 -- out/bindfail --
-_schemasAreOrdered.1: conflicting values true and false (and 80 more errors)
+_schemasAreOrdered.1: conflicting values true and false:
+    ../../lineage.cue:124:3
+    ../../lineage.cue:125:4
+    ../../lineage.cue:130:5
+    ../../lineage.cue:131:11
+    ./in.cue:4:1

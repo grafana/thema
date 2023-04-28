@@ -5,7 +5,7 @@ go 1.19
 // contains openapi encoder fixes. commented out because impact for
 // most thema CLI uses is minimal, and others (e.g. grafana/grafana)
 // can hoist this themselves if they need it
-// replace cuelang.org/go => github.com/sdboyer/cue v0.5.0-beta.2.0.20221218111347-341999f48bdb
+replace cuelang.org/go => github.com/sdboyer/cue v0.5.0-beta.2.0.20221218111347-341999f48bdb
 
 require (
 	cuelang.org/go v0.5.0
