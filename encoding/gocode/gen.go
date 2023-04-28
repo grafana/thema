@@ -16,10 +16,10 @@ import (
 	"github.com/dave/dst"
 	"github.com/dave/dst/decorator"
 	"github.com/dave/dst/dstutil"
-	"github.com/deepmap/oapi-codegen/pkg/codegen"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/grafana/thema"
 	"github.com/grafana/thema/encoding/openapi"
+	"github.com/grafana/thema/internal/deepmap/oapi-codegen/pkg/codegen"
 	"golang.org/x/tools/imports"
 )
 
@@ -58,6 +58,9 @@ type TypeConfigOpenAPI struct {
 	// for Go files.
 	NoOptionalPointers bool
 
+	// UseGoDeclInComments sets the name of the fields and structs at the beginning of each comment.
+	UseGoDeclInComments bool
+
 	// Config is passed through to the Thema OpenAPI encoder, [openapi.GenerateSchema].
 	Config *openapi.Config
 }
@@ -68,11 +71,16 @@ func GenerateTypesOpenAPI(sch thema.Schema, cfg *TypeConfigOpenAPI) ([]byte, err
 		cfg = new(TypeConfigOpenAPI)
 	}
 
-	depointer := depointerizer(&dst.MapType{}, &dst.ArrayType{})
+	depointer := depointerizer(false)
 	if cfg.NoOptionalPointers {
-		depointer = depointerizer()
+		depointer = depointerizer(true)
 	}
-	cfg.ApplyFuncs = append(cfg.ApplyFuncs, decoderCompactor(), depointer)
+
+	applyFuncs := []dstutil.ApplyFunc{depointer, fixRawData(), fixUnderscoreInTypeName()}
+	if !cfg.UseGoDeclInComments {
+		applyFuncs = append(applyFuncs, fixTODOComments())
+	}
+	applyFuncs = append(applyFuncs, cfg.ApplyFuncs...)
 
 	f, err := openapi.GenerateSchema(sch, cfg.Config)
 	if err != nil {
@@ -93,23 +101,33 @@ func GenerateTypesOpenAPI(sch thema.Schema, cfg *TypeConfigOpenAPI) ([]byte, err
 		cfg.PackageName = sch.Lineage().Name()
 	}
 
-	ccfg := codegen.Options{
-		GenerateTypes: true,
-		SkipFmt:       true,
-		SkipPrune:     true,
-		UserTemplates: map[string]string{
-			"imports.tmpl": importstmpl,
+	ccfg := codegen.Configuration{
+		PackageName: cfg.PackageName,
+		Compatibility: codegen.CompatibilityOptions{
+			AlwaysPrefixEnumValues: true,
 		},
+		Generate: codegen.GenerateOptions{
+			Models: true,
+		},
+		OutputOptions: codegen.OutputOptions{
+			SkipFmt:   true,
+			SkipPrune: true,
+			UserTemplates: map[string]string{
+				"imports.tmpl": importstmpl,
+			},
+		},
+		ImportMapping:     nil,
+		AdditionalImports: nil,
 	}
 
-	gostr, err := codegen.Generate(oT, cfg.PackageName, ccfg)
+	gostr, err := codegen.Generate(oT, ccfg)
 	if err != nil {
 		return nil, fmt.Errorf("openapi generation failed: %w", err)
 	}
 
 	return postprocessGoFile(genGoFile{
 		path:     fmt.Sprintf("%s_type_gen.go", sch.Lineage().Name()),
-		appliers: cfg.ApplyFuncs,
+		appliers: applyFuncs,
 		in:       []byte(gostr),
 		errifadd: !cfg.IgnoreDiscoveredImports,
 	})

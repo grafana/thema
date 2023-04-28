@@ -1,10 +1,28 @@
 -- out/generate/0.0/group.go --
 package defaultchange
-
-// Boolish defines model for boolish.
-type Boolish interface{}
 -- out/generate/0.0/nil.go --
 package narrowing
+
+// Narrowing defines model for narrowing.
+type Narrowing struct {
+	Boolish interface{} `json:"boolish"`
+}
+-- out/generate/0.0/depointerized.go --
+package defaultchange
+
+// Narrowing defines model for narrowing.
+type Narrowing struct {
+	Boolish interface{} `json:"boolish"`
+}
+-- out/generate/0.0/godeclincomments.go --
+package defaultchange
+
+// Narrowing defines model for narrowing.
+type Narrowing struct {
+	Boolish interface{} `json:"boolish"`
+}
+-- out/generate/0.0/expandref.go --
+package defaultchange
 
 // Narrowing defines model for narrowing.
 type Narrowing struct {
@@ -14,9 +32,30 @@ type Narrowing struct {
 package defaultchange
 
 // Properbool defines model for properbool.
-type Properbool bool
+type Properbool = bool
 -- out/generate/1.0/nil.go --
 package narrowing
+
+// Narrowing defines model for narrowing.
+type Narrowing struct {
+	Properbool bool `json:"properbool"`
+}
+-- out/generate/1.0/depointerized.go --
+package defaultchange
+
+// Narrowing defines model for narrowing.
+type Narrowing struct {
+	Properbool bool `json:"properbool"`
+}
+-- out/generate/1.0/godeclincomments.go --
+package defaultchange
+
+// Narrowing defines model for narrowing.
+type Narrowing struct {
+	Properbool bool `json:"properbool"`
+}
+-- out/generate/1.0/expandref.go --
+package defaultchange
 
 // Narrowing defines model for narrowing.
 type Narrowing struct {

@@ -3,6 +3,7 @@ package gocode
 import (
 	"testing"
 
+	copenapi "cuelang.org/go/encoding/openapi"
 	"github.com/grafana/thema"
 	"github.com/grafana/thema/encoding/openapi"
 	cuetxtar "github.com/grafana/thema/internal/txtartest"
@@ -14,7 +15,8 @@ func TestGenerate(t *testing.T) {
 		Name:             "generate",
 		IncludeExemplars: true,
 		ToDo: map[string]string{
-			"embed": "struct embeddings and inlined fields not rendered properly",
+			"embed":       "struct embeddings and inlined fields not rendered properly",
+			"map_pointer": "group doesn't render maps",
 		},
 	}
 
@@ -30,6 +32,28 @@ func TestGenerate(t *testing.T) {
 			name: "group",
 			cfg: &TypeConfigOpenAPI{
 				Config: &openapi.Config{Group: true},
+			},
+		},
+		{
+			name: "depointerized",
+			cfg: &TypeConfigOpenAPI{
+				NoOptionalPointers: true,
+			},
+		},
+		{
+			name: "godeclincomments",
+			cfg: &TypeConfigOpenAPI{
+				UseGoDeclInComments: true,
+			},
+		},
+		{
+			name: "expandref",
+			cfg: &TypeConfigOpenAPI{
+				Config: &openapi.Config{
+					Config: &copenapi.Config{
+						ExpandReferences: true,
+					},
+				},
 			},
 		},
 	}

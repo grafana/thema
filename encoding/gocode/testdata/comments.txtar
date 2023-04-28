@@ -1,0 +1,197 @@
+-- in.cue --
+package generate
+
+import "github.com/grafana/thema"
+
+thema.#Lineage
+name: "defaultchange"
+seqs: [
+        {
+            schemas: [
+                {
+                    // TODO docs
+				    astring?: string
+				    s: Struct
+				    n: NestedStruct
+				    nested: {
+				        s: Struct
+				        n: NestedStruct
+				    }
+				},
+			]
+		},
+	]
+
+Struct: {
+    // AString struct comment
+    astring?: string
+}
+
+NestedStruct: {
+	// nested struct comment
+	nested: Struct
+	// TODO docs
+	test: string
+}
+
+-- out/generate/0.0/group.go --
+package defaultchange
+
+// NestedStruct defines model for NestedStruct.
+type NestedStruct struct {
+	Nested Struct `json:"nested"`
+
+	// TODO docs
+	Test string `json:"test"`
+}
+
+// Struct defines model for Struct.
+type Struct struct {
+	// AString struct comment
+	Astring *string `json:"astring,omitempty"`
+}
+
+// TODO docs
+type Astring = string
+
+// N defines model for n.
+type N struct {
+	Nested Struct `json:"nested"`
+
+	// TODO docs
+	Test string `json:"test"`
+}
+
+// Nested defines model for nested.
+type Nested struct {
+	N NestedStruct `json:"n"`
+	S Struct       `json:"s"`
+}
+
+// S defines model for s.
+type S struct {
+	// AString struct comment
+	Astring *string `json:"astring,omitempty"`
+}
+-- out/generate/0.0/nil.go --
+package defaultchange
+
+// NestedStruct defines model for NestedStruct.
+type NestedStruct struct {
+	Nested Struct `json:"nested"`
+
+	// TODO docs
+	Test string `json:"test"`
+}
+
+// Struct defines model for Struct.
+type Struct struct {
+	// AString struct comment
+	Astring *string `json:"astring,omitempty"`
+}
+
+// Defaultchange defines model for defaultchange.
+type Defaultchange struct {
+	// TODO docs
+	Astring *string      `json:"astring,omitempty"`
+	N       NestedStruct `json:"n"`
+	Nested  struct {
+		N NestedStruct `json:"n"`
+		S Struct       `json:"s"`
+	} `json:"nested"`
+	S Struct `json:"s"`
+}
+-- out/generate/0.0/depointerized.go --
+package defaultchange
+
+// NestedStruct defines model for NestedStruct.
+type NestedStruct struct {
+	Nested Struct `json:"nested"`
+
+	// TODO docs
+	Test string `json:"test"`
+}
+
+// Struct defines model for Struct.
+type Struct struct {
+	// AString struct comment
+	Astring string `json:"astring,omitempty"`
+}
+
+// Defaultchange defines model for defaultchange.
+type Defaultchange struct {
+	// TODO docs
+	Astring string       `json:"astring,omitempty"`
+	N       NestedStruct `json:"n"`
+	Nested  struct {
+		N NestedStruct `json:"n"`
+		S Struct       `json:"s"`
+	} `json:"nested"`
+	S Struct `json:"s"`
+}
+-- out/generate/0.0/godeclincomments.go --
+package defaultchange
+
+// NestedStruct defines model for NestedStruct.
+type NestedStruct struct {
+	Nested Struct `json:"nested"`
+
+	// Test TODO docs
+	Test string `json:"test"`
+}
+
+// Struct defines model for Struct.
+type Struct struct {
+	// Astring AString struct comment
+	Astring *string `json:"astring,omitempty"`
+}
+
+// Defaultchange defines model for defaultchange.
+type Defaultchange struct {
+	// Astring TODO docs
+	Astring *string      `json:"astring,omitempty"`
+	N       NestedStruct `json:"n"`
+	Nested  struct {
+		N NestedStruct `json:"n"`
+		S Struct       `json:"s"`
+	} `json:"nested"`
+	S Struct `json:"s"`
+}
+-- out/generate/0.0/expandref.go --
+package defaultchange
+
+// Defaultchange defines model for defaultchange.
+type Defaultchange struct {
+	// TODO docs
+	Astring *string `json:"astring,omitempty"`
+	N       struct {
+		// nested struct comment
+		Nested struct {
+			// AString struct comment
+			Astring *string `json:"astring,omitempty"`
+		} `json:"nested"`
+
+		// TODO docs
+		Test string `json:"test"`
+	} `json:"n"`
+	Nested struct {
+		N struct {
+			// nested struct comment
+			Nested struct {
+				// AString struct comment
+				Astring *string `json:"astring,omitempty"`
+			} `json:"nested"`
+
+			// TODO docs
+			Test string `json:"test"`
+		} `json:"n"`
+		S struct {
+			// AString struct comment
+			Astring *string `json:"astring,omitempty"`
+		} `json:"s"`
+	} `json:"nested"`
+	S struct {
+		// AString struct comment
+		Astring *string `json:"astring,omitempty"`
+	} `json:"s"`
+}
