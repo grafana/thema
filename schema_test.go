@@ -50,7 +50,7 @@ func TestBindType(t *testing.T) {
 	lin := testLin()
 
 	tt := &TestType{Astring: ptr("init"), Anint: 10}
-	ts, err := BindType[*TestType](SchemaP(lin, synv(0, 0)), tt)
+	ts, err := BindType[*TestType](lin.First(), tt)
 	if err != nil {
 		t.Fatal(errors.Details(err, nil))
 	}

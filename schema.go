@@ -13,6 +13,12 @@ var (
 	_ TypedSchema[Assignee] = &unaryTypedSchema[Assignee]{}
 )
 
+var (
+	pathSchDef = cue.MakePath(cue.Hid("_#schema", "github.com/grafana/thema"))
+	pathSch    = cue.MakePath(cue.Str("schema"))
+	pathJoin   = cue.MakePath(cue.Hid("_join", "github.com/grafana/thema"))
+)
+
 // schemaDef represents a single #SchemaDef, with a backlink to its containing
 // #Lineage.
 type schemaDef struct {
@@ -148,7 +154,7 @@ func BindType[T Assignee](sch Schema, t T) (TypedSchema[T], error) {
 	}
 
 	// Verify that there are no problematic errors emitted from decoding.
-	if err := sch.Underlying().Decode(t); err != nil {
+	if err := sch.Underlying().LookupPath(pathSchDef).Decode(t); err != nil {
 		// Because assignability has already been established, the only errors here
 		// _should_ be those arising from schema fields without concrete defaults. But
 		// to avoid swallowing other error types, try to filter out those from the list
@@ -182,7 +188,7 @@ func BindType[T Assignee](sch Schema, t T) (TypedSchema[T], error) {
 	tsch.newfn = func() T {
 		nt := new(T)
 		rt.rl()
-		sch.Underlying().Decode(nt) //nolint:errcheck
+		sch.Underlying().LookupPath(pathSchDef).Decode(nt) //nolint:errcheck
 		rt.ru()
 		return *nt
 	}
