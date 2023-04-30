@@ -232,3 +232,315 @@ lenses: []
 Schema count: 1
 Schema versions: 0.0
 Lenses count: 0
+-- out/encoding/gocode/TestGenerate/nil --
+== embedref_type_gen.go
+package embedref
+
+// Defines values for EmbedRefRefField2.
+const (
+	EmbedRefRefField2N42 EmbedRefRefField2 = 42
+)
+
+// Defines values for EmbedrefRefField2.
+const (
+	EmbedrefRefField2N42 EmbedrefRefField2 = 42
+)
+
+// EmbedRef defines model for EmbedRef.
+type EmbedRef struct {
+	RefField1 string            `json:"refField1"`
+	RefField2 EmbedRefRefField2 `json:"refField2"`
+}
+
+// EmbedRefRefField2 defines model for EmbedRef.RefField2.
+type EmbedRefRefField2 int
+
+// Embedref defines model for embedref.
+type Embedref struct {
+	RefField1 string            `json:"refField1"`
+	RefField2 EmbedrefRefField2 `json:"refField2"`
+}
+
+// EmbedrefRefField2 defines model for Embedref.RefField2.
+type EmbedrefRefField2 int
+-- out/encoding/gocode/TestGenerate/group --
+== embedref_type_gen.go
+package embedref
+
+// Defines values for EmbedRefRefField2.
+const (
+	EmbedRefRefField2N42 EmbedRefRefField2 = 42
+)
+
+// Defines values for RefField2.
+const (
+	RefField2N42 RefField2 = 42
+)
+
+// EmbedRef defines model for EmbedRef.
+type EmbedRef struct {
+	RefField1 string            `json:"refField1"`
+	RefField2 EmbedRefRefField2 `json:"refField2"`
+}
+
+// EmbedRefRefField2 defines model for EmbedRef.RefField2.
+type EmbedRefRefField2 int
+
+// RefField1 defines model for refField1.
+type RefField1 = string
+
+// RefField2 defines model for refField2.
+type RefField2 int
+-- out/encoding/gocode/TestGenerate/depointerized --
+== embedref_type_gen.go
+package embedref
+
+// Defines values for EmbedRefRefField2.
+const (
+	EmbedRefRefField2N42 EmbedRefRefField2 = 42
+)
+
+// Defines values for EmbedrefRefField2.
+const (
+	EmbedrefRefField2N42 EmbedrefRefField2 = 42
+)
+
+// EmbedRef defines model for EmbedRef.
+type EmbedRef struct {
+	RefField1 string            `json:"refField1"`
+	RefField2 EmbedRefRefField2 `json:"refField2"`
+}
+
+// EmbedRefRefField2 defines model for EmbedRef.RefField2.
+type EmbedRefRefField2 int
+
+// Embedref defines model for embedref.
+type Embedref struct {
+	RefField1 string            `json:"refField1"`
+	RefField2 EmbedrefRefField2 `json:"refField2"`
+}
+
+// EmbedrefRefField2 defines model for Embedref.RefField2.
+type EmbedrefRefField2 int
+-- out/encoding/gocode/TestGenerate/godeclincomments --
+== embedref_type_gen.go
+package embedref
+
+// Defines values for EmbedRefRefField2.
+const (
+	EmbedRefRefField2N42 EmbedRefRefField2 = 42
+)
+
+// Defines values for EmbedrefRefField2.
+const (
+	EmbedrefRefField2N42 EmbedrefRefField2 = 42
+)
+
+// EmbedRef defines model for EmbedRef.
+type EmbedRef struct {
+	RefField1 string            `json:"refField1"`
+	RefField2 EmbedRefRefField2 `json:"refField2"`
+}
+
+// EmbedRefRefField2 defines model for EmbedRef.RefField2.
+type EmbedRefRefField2 int
+
+// Embedref defines model for embedref.
+type Embedref struct {
+	RefField1 string            `json:"refField1"`
+	RefField2 EmbedrefRefField2 `json:"refField2"`
+}
+
+// EmbedrefRefField2 defines model for Embedref.RefField2.
+type EmbedrefRefField2 int
+-- out/encoding/gocode/TestGenerate/expandref --
+== embedref_type_gen.go
+package embedref
+
+// Defines values for EmbedRefRefField2.
+const (
+	EmbedRefRefField2N42 EmbedRefRefField2 = 42
+)
+
+// Defines values for EmbedrefRefField2.
+const (
+	EmbedrefRefField2N42 EmbedrefRefField2 = 42
+)
+
+// EmbedRef defines model for EmbedRef.
+type EmbedRef struct {
+	RefField1 string            `json:"refField1"`
+	RefField2 EmbedRefRefField2 `json:"refField2"`
+}
+
+// EmbedRefRefField2 defines model for EmbedRef.RefField2.
+type EmbedRefRefField2 int
+
+// Embedref defines model for embedref.
+type Embedref struct {
+	RefField1 string            `json:"refField1"`
+	RefField2 EmbedrefRefField2 `json:"refField2"`
+}
+
+// EmbedrefRefField2 defines model for Embedref.RefField2.
+type EmbedrefRefField2 int
+-- out/encoding/openapi/TestGenerate/nilcfg --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "embedref",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "EmbedRef": {
+        "type": "object",
+        "required": [
+          "refField1",
+          "refField2"
+        ],
+        "properties": {
+          "refField1": {
+            "type": "string"
+          },
+          "refField2": {
+            "type": "integer",
+            "enum": [
+              42
+            ]
+          }
+        }
+      },
+      "embedref": {
+        "type": "object",
+        "required": [
+          "refField1",
+          "refField2"
+        ],
+        "properties": {
+          "refField1": {
+            "type": "string"
+          },
+          "refField2": {
+            "type": "integer",
+            "enum": [
+              42
+            ]
+          }
+        }
+      }
+    }
+  }
+}
+-- out/encoding/openapi/TestGenerate/group --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "embedref",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "EmbedRef": {
+        "type": "object",
+        "required": [
+          "refField1",
+          "refField2"
+        ],
+        "properties": {
+          "refField1": {
+            "type": "string"
+          },
+          "refField2": {
+            "type": "integer",
+            "enum": [
+              42
+            ]
+          }
+        }
+      },
+      "refField1": {
+        "type": "string"
+      },
+      "refField2": {
+        "type": "integer",
+        "enum": [
+          42
+        ]
+      }
+    }
+  }
+}
+-- out/encoding/openapi/TestGenerate/expandrefs --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "embedref",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "EmbedRef": {
+        "type": "object",
+        "required": [
+          "refField1",
+          "refField2"
+        ],
+        "properties": {
+          "refField1": {
+            "type": "string"
+          },
+          "refField2": {
+            "type": "integer",
+            "enum": [
+              42
+            ]
+          }
+        }
+      },
+      "embedref": {
+        "type": "object",
+        "required": [
+          "refField1",
+          "refField2"
+        ],
+        "properties": {
+          "refField1": {
+            "type": "string"
+          },
+          "refField2": {
+            "type": "integer",
+            "enum": [
+              42
+            ]
+          }
+        }
+      }
+    }
+  }
+}
+-- out/encoding/openapi/TestGenerate/selfcontained --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "embedref",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "embedexref": {},
+      "embedref": {
+        "type": "object",
+        "$ref": "#/components/schemas/embedexref"
+      }
+    }
+  }
+}

@@ -1,39 +1,14 @@
 package thema
 
 import (
-	"bytes"
 	"fmt"
 	"testing"
 
 	"cuelang.org/go/cue"
-	"cuelang.org/go/cue/build"
 	"cuelang.org/go/cue/cuecontext"
 	"cuelang.org/go/cue/errors"
-	"cuelang.org/go/cue/load"
 	"github.com/grafana/thema/internal/txtartest/vanilla"
 )
-
-var themaInst *build.Instance
-
-func init() {
-	bi := load.Instances(nil, &load.Config{
-		Package: "thema",
-	})
-	themaInst = bi[0]
-}
-
-func compileStringWithThema(ctx *cue.Context, src string) cue.Value {
-	b := new(bytes.Buffer)
-	b.WriteString(src)
-
-	bi := load.Instances([]string{"-"}, &load.Config{
-		Context: themaInst.Context(),
-		Stdin:   b,
-	})
-
-	val := ctx.BuildInstance(bi[0])
-	return val
-}
 
 func TestBindLineage(t *testing.T) {
 	test := vanilla.TxTarTest{

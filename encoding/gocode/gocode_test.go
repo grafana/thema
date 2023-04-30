@@ -1,26 +1,31 @@
 package gocode
 
 import (
+	"fmt"
 	"testing"
 
+	"cuelang.org/go/cue/cuecontext"
 	copenapi "cuelang.org/go/encoding/openapi"
 	"github.com/grafana/thema"
 	"github.com/grafana/thema/encoding/openapi"
-	cuetxtar "github.com/grafana/thema/internal/txtartest"
+	"github.com/grafana/thema/internal/txtartest/bindlin"
+	"github.com/grafana/thema/internal/txtartest/vanilla"
+	"github.com/grafana/thema/internal/util"
 )
 
 func TestGenerate(t *testing.T) {
-	test := cuetxtar.LineageSuite{
-		Root:             "./testdata",
-		Name:             "generate",
-		IncludeExemplars: true,
+	test := vanilla.TxTarTest{
+		Root: "../../testdata/lineage",
+		Name: "encoding/gocode/TestGenerate",
 		ToDo: map[string]string{
-			"embed":       "struct embeddings and inlined fields not rendered properly",
-			"map_pointer": "group doesn't render maps",
+			"lineage/defaultchange": "default backcompat invariants not working properly yet",
 		},
 	}
 
-	vars := []struct {
+	ctx := cuecontext.New()
+	rt := thema.NewRuntime(ctx)
+
+	table := []struct {
 		name string
 		cfg  *TypeConfigOpenAPI
 	}{
@@ -58,16 +63,38 @@ func TestGenerate(t *testing.T) {
 		},
 	}
 
-	test.Run(t, func(t *cuetxtar.LineageTest) {
-		lin := t.BindLineage(nil)
+	for _, cfg := range table {
+		tcfg := cfg
+		t.Run(tcfg.name, func(t *testing.T) {
+			// TODO parallelize
+			testcpy := test
+			testcpy.Name += "/" + tcfg.name
+			testcpy.Run(t, func(tc *vanilla.Test) {
+				if testing.Short() && tc.HasTag("slow") {
+					t.Skip("case is tagged #slow, skipping for -short")
+				}
 
-		cuetxtar.ForEachSchema(t, lin, func(t *cuetxtar.LineageTest, sch thema.Schema) {
-			for _, tc := range vars {
-				itc := tc
-				t.Run(itc.name, func(gt *testing.T) {
-					t.WriteFileOrErrBytes(itc.name + ".go")(GenerateTypesOpenAPI(sch, itc.cfg))
-				})
-			}
+				lin, err := bindlin.BindTxtarLineage(tc, rt)
+				if err != nil {
+					tc.Fatal(err)
+				}
+				cfg := tcfg.cfg
+				if cfg == nil {
+					cfg = &TypeConfigOpenAPI{}
+				}
+				saniname := util.SanitizeLabelString(lin.Name())
+				cfg.PackageName = saniname
+				for sch := lin.First(); sch != nil; sch = sch.Successor() {
+					f, err := GenerateTypesOpenAPI(sch, cfg)
+					if err != nil {
+						tc.Fatal(err)
+					}
+
+					// TODO add support for file name writing more generically
+					fmt.Fprintf(tc, "== %s_type_gen.go\n", saniname)
+					tc.Write(f) //nolint:gosec,errcheck
+				}
+			})
 		})
-	})
+	}
 }

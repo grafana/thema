@@ -9,13 +9,14 @@ import (
 	"cuelang.org/go/cue/errors"
 	"cuelang.org/go/encoding/openapi"
 	"github.com/grafana/thema"
+	"github.com/grafana/thema/internal/txtartest/bindlin"
 	"github.com/grafana/thema/internal/txtartest/vanilla"
 )
 
-func TestGenerateVanilla(t *testing.T) {
+func TestGenerate(t *testing.T) {
 	test := vanilla.TxTarTest{
 		Root: "../../testdata/lineage",
-		Name: "encoding/openapi/TestGenerateVanilla",
+		Name: "encoding/openapi/TestGenerate",
 		ToDo: map[string]string{
 			"lineage/defaultchange": "default backcompat invariants not working properly yet",
 		},
@@ -89,19 +90,7 @@ func TestGenerateVanilla(t *testing.T) {
 					t.Skip("case is tagged #slow, skipping for -short")
 				}
 
-				val := ctx.BuildInstance(tc.Instance())
-				if p, ok := tc.Value("lineagePath"); ok {
-					pp := cue.ParsePath(p)
-					if len(pp.Selectors()) == 0 {
-						tc.Fatalf("%q is not a valid value for the #lineagePath key", p)
-					}
-					val = val.LookupPath(pp)
-					if !val.Exists() {
-						tc.Fatalf("path %q specified in #lineagePath does not exist in input cue instance", p)
-					}
-				}
-
-				lin, err := thema.BindLineage(val, rt)
+				lin, err := bindlin.BindTxtarLineage(tc, rt)
 				if err != nil {
 					t.Fatal(err)
 				}

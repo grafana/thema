@@ -113,3 +113,142 @@ subpath "someField" not present in schema:
 Schema count: 1
 Schema versions: 0.0
 Lenses count: 0
+-- out/encoding/gocode/TestGenerate/nil --
+== oneone_type_gen.go
+package oneone
+
+// Oneone defines model for oneone.
+type Oneone struct {
+	Foo string `json:"foo"`
+}
+-- out/encoding/gocode/TestGenerate/group --
+== oneone_type_gen.go
+package oneone
+
+// Foo defines model for foo.
+type Foo = string
+-- out/encoding/gocode/TestGenerate/depointerized --
+== oneone_type_gen.go
+package oneone
+
+// Oneone defines model for oneone.
+type Oneone struct {
+	Foo string `json:"foo"`
+}
+-- out/encoding/gocode/TestGenerate/godeclincomments --
+== oneone_type_gen.go
+package oneone
+
+// Oneone defines model for oneone.
+type Oneone struct {
+	Foo string `json:"foo"`
+}
+-- out/encoding/gocode/TestGenerate/expandref --
+== oneone_type_gen.go
+package oneone
+
+// Oneone defines model for oneone.
+type Oneone struct {
+	Foo string `json:"foo"`
+}
+-- out/encoding/openapi/TestGenerate/nilcfg --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "oneone",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "oneone": {
+        "type": "object",
+        "required": [
+          "foo"
+        ],
+        "properties": {
+          "foo": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
+-- out/encoding/openapi/TestGenerate/group --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "oneone",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "foo": {
+        "type": "string"
+      }
+    }
+  }
+}
+-- out/encoding/openapi/TestGenerate/expandrefs --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "oneone",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "oneone": {
+        "type": "object",
+        "required": [
+          "foo"
+        ],
+        "properties": {
+          "foo": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
+-- out/encoding/openapi/TestGenerate/selfcontained --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "oneone",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "joinSchema": {
+        "type": "object",
+        "required": [
+          "foo"
+        ],
+        "properties": {
+          "foo": {
+            "type": "string"
+          }
+        },
+        "minProperties": 1
+      },
+      "joined": {
+        "type": "object",
+        "$ref": "#/components/schemas/joinSchema"
+      },
+      "oneone": {
+        "type": "object",
+        "$ref": "#/components/schemas/joined"
+      }
+    }
+  }
+}

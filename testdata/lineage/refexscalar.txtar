@@ -134,3 +134,173 @@ lenses: []
 Schema count: 1
 Schema versions: 0.0
 Lenses count: 0
+-- out/encoding/gocode/TestGenerate/nil --
+== refscalar_type_gen.go
+package refscalar
+
+// Baz defines model for Baz.
+type Baz = string
+
+// Refscalar defines model for refscalar.
+type Refscalar struct {
+	SomeField Baz `json:"someField"`
+}
+-- out/encoding/gocode/TestGenerate/group --
+== refscalar_type_gen.go
+package refscalar
+
+// SomeField defines model for someField.
+type SomeField = string
+-- out/encoding/gocode/TestGenerate/depointerized --
+== refscalar_type_gen.go
+package refscalar
+
+// Baz defines model for Baz.
+type Baz = string
+
+// Refscalar defines model for refscalar.
+type Refscalar struct {
+	SomeField Baz `json:"someField"`
+}
+-- out/encoding/gocode/TestGenerate/godeclincomments --
+== refscalar_type_gen.go
+package refscalar
+
+// Baz defines model for Baz.
+type Baz = string
+
+// Refscalar defines model for refscalar.
+type Refscalar struct {
+	SomeField Baz `json:"someField"`
+}
+-- out/encoding/gocode/TestGenerate/expandref --
+== refscalar_type_gen.go
+package refscalar
+
+// Refscalar defines model for refscalar.
+type Refscalar struct {
+	SomeField string `json:"someField"`
+}
+-- out/encoding/openapi/TestGenerate/nilcfg --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "refscalar",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "Baz": {
+        "type": "string"
+      },
+      "refscalar": {
+        "type": "object",
+        "required": [
+          "someField"
+        ],
+        "properties": {
+          "someField": {
+            "$ref": "#/components/schemas/Baz"
+          }
+        }
+      }
+    }
+  }
+}
+-- out/encoding/openapi/TestGenerate/group --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "refscalar",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "someField": {
+        "type": "string"
+      }
+    }
+  }
+}
+-- out/encoding/openapi/TestGenerate/expandrefs --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "refscalar",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "refscalar": {
+        "type": "object",
+        "required": [
+          "someField"
+        ],
+        "properties": {
+          "someField": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
+-- out/encoding/openapi/TestGenerate/selfcontained --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "refscalar",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "oneschemaversionless": {},
+      "refscalar": {
+        "type": "object",
+        "$ref": "#/components/schemas/oneschemaversionless"
+      }
+    }
+  }
+}
+-- out/encoding/openapi/TestGenerate/subpath --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "someField",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "someField": {
+        "type": "string"
+      }
+    }
+  }
+}
+-- out/encoding/openapi/TestGenerate/subpathroot --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "overriddenName",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "overriddenName": {
+        "type": "string"
+      }
+    }
+  }
+}

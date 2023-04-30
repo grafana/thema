@@ -28,9 +28,12 @@ import (
 
 	"cuelang.org/go/cue/ast"
 	"cuelang.org/go/cue/build"
+	"cuelang.org/go/cue/cuecontext"
 	"cuelang.org/go/cue/errors"
 	"cuelang.org/go/cue/format"
 	"cuelang.org/go/cue/load"
+	"cuelang.org/go/pkg/encoding/json"
+	"cuelang.org/go/pkg/encoding/yaml"
 	"github.com/google/go-cmp/cmp"
 	"github.com/grafana/thema/internal/envvars"
 	"golang.org/x/tools/txtar"
@@ -76,7 +79,7 @@ type TxTarTest struct {
 // The #noformat tag causes the $THEMA_FORMAT_TXTAR value
 // to be ignored.
 //
-// If the output differs and $THEMA_UPDATE is non-empty, the txtar file will be
+// If the output differs and $THEMA_UPDATE_GOLDEN is non-empty, the txtar file will be
 // updated and written to disk with the actual output data replacing the
 // out files.
 //
@@ -241,50 +244,41 @@ func (t *Test) Instances(args ...string) []*build.Instance {
 	return a
 }
 
-// Lineage attempts to bind a lineage from the CUE package instance at the txtar
-// fs root. By default, it will assume the entire instance is intended to be a
-// lineage. However, if a #lineagePath key exists with a value, that path will
-// be used instead.
-//
-// A centrally initialized thema.Runtime is always used in the call to
-// thema.BindLineage, and the results of the thema.BindLineage call are cached
-// in memory.
-//
-// TODO move this to somewhere else so root thema package doesnt' have import cycle
-//
-// func (t *Test) Lineage() thema.Lineage {
-// 	t.Helper()
-// 	// TODO fix this so it actually works - maybe put it on the TxTarTest?
-// 	t.linOnce.Do(func() {
-// 		inst := t.Instance()
-// 		val := _ctx.BuildInstance(inst)
-// 		if p, ok := t.Value("lineagePath"); ok {
-// 			pp := cue.ParsePath(p)
-// 			if len(pp.Selectors()) == 0 {
-// 				t.Fatalf("%q is not a valid value for the #lineagePath key", p)
-// 			}
-// 			val = val.LookupPath(pp)
-// 			if !val.Exists() {
-// 				t.Fatalf("path %q specified in #lineagePath does not exist in input cue instance", p)
-// 			}
-// 		}
-//
-// 		t.lin, t.linErr = thema.BindLineage(val, _rt)
-// 	})
-// 	if t.linErr != nil {
-// 		t.Fatal(t.linErr)
-// 	}
-// 	return t.lin
-// }
-
 func formatVanillaNode(t *testing.T, n ast.Node) []byte {
 	t.Helper()
 
-	b, err := format.Node(n)
+	var byt []byte
+	var err error
+	ctx := cuecontext.New()
+	if f, is := n.(*ast.File); is {
+		switch filepath.Ext(f.Filename) {
+		case ".json":
+			jbyt, err := ctx.BuildFile(f).MarshalJSON()
+			if err != nil {
+				t.Fatal(err)
+			}
+			str, err := json.Indent(jbyt, "", "  ")
+			if err != nil {
+				t.Fatal(err)
+			}
+			byt = []byte(str)
+		case ".yaml", ".yml":
+			str, err := yaml.Marshal(ctx.BuildFile(f))
+			if err != nil {
+				t.Fatal(err)
+			}
+			byt = []byte(str)
+		default:
+			byt, err = format.Node(f)
+		}
+	} else {
+		byt, err = format.Node(f)
+	}
+
 	if err != nil {
 		t.Fatal(err)
 	}
-	return b
+	return byt
 }
 
 // RawInstances returns the instances represented by this .txtar file. The
@@ -366,7 +360,6 @@ func (x *TxTarTest) Run(t *testing.T, f func(tc *Test)) {
 			}
 
 			update := false
-
 			for i, f := range a.Files {
 				if strings.HasPrefix(f.Name, tc.prefix) && (f.Name == tc.prefix || f.Name[len(tc.prefix)] == '/') {
 					// It's either "\(tc.prefix)" or "\(tc.prefix)/..." but not some other name

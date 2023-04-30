@@ -284,3 +284,304 @@ ExRef: {
 Schema count: 1
 Schema versions: 0.0
 Lenses count: 0
+-- out/encoding/gocode/TestGenerate/nil --
+== joined_type_gen.go
+package joined
+
+// ExRef defines model for ExRef.
+type ExRef struct {
+	NormalField string `json:"normalField"`
+}
+
+// ExRefDef defines model for ExRefDef.
+type ExRefDef struct {
+	DefField string `json:"defField"`
+}
+
+// Joined defines model for joined.
+type Joined struct {
+	Foo    string   `json:"foo"`
+	Ref    ExRef    `json:"ref"`
+	Refdef ExRefDef `json:"refdef"`
+}
+-- out/encoding/gocode/TestGenerate/group --
+== joined_type_gen.go
+package joined
+
+// Foo defines model for foo.
+type Foo = string
+
+// Ref defines model for ref.
+type Ref struct {
+	NormalField string `json:"normalField"`
+}
+
+// Refdef defines model for refdef.
+type Refdef struct {
+	DefField string `json:"defField"`
+}
+-- out/encoding/gocode/TestGenerate/depointerized --
+== joined_type_gen.go
+package joined
+
+// ExRef defines model for ExRef.
+type ExRef struct {
+	NormalField string `json:"normalField"`
+}
+
+// ExRefDef defines model for ExRefDef.
+type ExRefDef struct {
+	DefField string `json:"defField"`
+}
+
+// Joined defines model for joined.
+type Joined struct {
+	Foo    string   `json:"foo"`
+	Ref    ExRef    `json:"ref"`
+	Refdef ExRefDef `json:"refdef"`
+}
+-- out/encoding/gocode/TestGenerate/godeclincomments --
+== joined_type_gen.go
+package joined
+
+// ExRef defines model for ExRef.
+type ExRef struct {
+	NormalField string `json:"normalField"`
+}
+
+// ExRefDef defines model for ExRefDef.
+type ExRefDef struct {
+	DefField string `json:"defField"`
+}
+
+// Joined defines model for joined.
+type Joined struct {
+	Foo    string   `json:"foo"`
+	Ref    ExRef    `json:"ref"`
+	Refdef ExRefDef `json:"refdef"`
+}
+-- out/encoding/gocode/TestGenerate/expandref --
+== joined_type_gen.go
+package joined
+
+// Joined defines model for joined.
+type Joined struct {
+	Foo string `json:"foo"`
+	Ref struct {
+		NormalField string `json:"normalField"`
+	} `json:"ref"`
+	Refdef struct {
+		DefField string `json:"defField"`
+	} `json:"refdef"`
+}
+-- out/encoding/openapi/TestGenerate/nilcfg --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "joined",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "ExRef": {
+        "type": "object",
+        "required": [
+          "normalField"
+        ],
+        "properties": {
+          "normalField": {
+            "type": "string"
+          }
+        }
+      },
+      "ExRefDef": {
+        "type": "object",
+        "required": [
+          "defField"
+        ],
+        "properties": {
+          "defField": {
+            "type": "string"
+          }
+        }
+      },
+      "joined": {
+        "type": "object",
+        "properties": {
+          "ref": {
+            "$ref": "#/components/schemas/ExRef"
+          },
+          "refdef": {
+            "$ref": "#/components/schemas/ExRefDef"
+          },
+          "foo": {
+            "type": "string"
+          }
+        },
+        "allOf": [
+          {
+            "required": [
+              "ref",
+              "refdef"
+            ]
+          },
+          {
+            "required": [
+              "foo"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}
+-- out/encoding/openapi/TestGenerate/group --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "joined",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "ref": {
+        "type": "object",
+        "required": [
+          "normalField"
+        ],
+        "properties": {
+          "normalField": {
+            "type": "string"
+          }
+        }
+      },
+      "foo": {
+        "type": "string"
+      },
+      "refdef": {
+        "type": "object",
+        "required": [
+          "defField"
+        ],
+        "properties": {
+          "defField": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
+-- out/encoding/openapi/TestGenerate/expandrefs --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "joined",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "joined": {
+        "type": "object",
+        "required": [
+          "ref",
+          "foo",
+          "refdef"
+        ],
+        "properties": {
+          "ref": {
+            "type": "object",
+            "required": [
+              "normalField"
+            ],
+            "properties": {
+              "normalField": {
+                "type": "string"
+              }
+            }
+          },
+          "foo": {
+            "type": "string"
+          },
+          "refdef": {
+            "type": "object",
+            "required": [
+              "defField"
+            ],
+            "properties": {
+              "defField": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+-- out/encoding/openapi/TestGenerate/selfcontained --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "joined",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "ExRef": {
+        "type": "object",
+        "required": [
+          "normalField"
+        ],
+        "properties": {
+          "normalField": {
+            "type": "string"
+          }
+        }
+      },
+      "ExRefDef": {
+        "type": "object",
+        "required": [
+          "defField"
+        ],
+        "properties": {
+          "defField": {
+            "type": "string"
+          }
+        }
+      },
+      "embedref": {
+        "type": "object",
+        "$ref": "#/components/schemas/joinSchema"
+      },
+      "joinSchema": {
+        "type": "object",
+        "required": [
+          "ref",
+          "refdef"
+        ],
+        "properties": {
+          "ref": {
+            "$ref": "#/components/schemas/ExRef"
+          },
+          "refdef": {
+            "$ref": "#/components/schemas/ExRefDef"
+          }
+        },
+        "minProperties": 1
+      },
+      "joined": {
+        "type": "object",
+        "$ref": "#/components/schemas/embedref"
+      }
+    }
+  }
+}

@@ -13,195 +13,127 @@ schemas: [{
 Schema count: 1
 Schema versions: 0.0
 Lenses count: 0
--- out/oapi-generate/nil --
-== 0.0
-{
-	"openapi": "3.0.0"
-	"info": {
-		"title":   "oneschemaversionless"
-		"version": "0.0"
-	}
-	"paths": {}
-	"components": {
-		"schemas": {
-			"oneschemaversionless": {
-				"type": "object", "required": ["firstfield"]
-				"properties": {
-					"firstfield": {
-						"type": "string"
-					}
-				}
-			}
-		}
-	}
-}
--- out/oapi-generate/group --
+-- out/encoding/openapi/TestGenerate/nilcfg --
 == 0.0.json
 {
-	"openapi": "3.0.0"
-	"info": {
-		"title":   "oneschemaversionless"
-		"version": "0.0"
-	}
-	"paths": {}
-	"components": {
-		"schemas": {
-			"firstfield": {
-				"type": "string"
-			}
-		}
-	}
+  "openapi": "3.0.0",
+  "info": {
+    "title": "oneschemaversionless",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "oneschemaversionless": {
+        "type": "object",
+        "required": [
+          "firstfield"
+        ],
+        "properties": {
+          "firstfield": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
 }
--- out/oapi-generate/expandrefs --
+-- out/encoding/openapi/TestGenerate/group --
 == 0.0.json
 {
-	"openapi": "3.0.0"
-	"info": {
-		"title":   "oneschemaversionless"
-		"version": "0.0"
-	}
-	"paths": {}
-	"components": {
-		"schemas": {
-			"oneschemaversionless": {
-				"type": "object", "required": ["firstfield"]
-				"properties": {
-					"firstfield": {
-						"type": "string"
-					}
-				}
-			}
-		}
-	}
+  "openapi": "3.0.0",
+  "info": {
+    "title": "oneschemaversionless",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "firstfield": {
+        "type": "string"
+      }
+    }
+  }
 }
--- out/oapi-generate/selfcontained --
+-- out/encoding/openapi/TestGenerate/expandrefs --
 == 0.0.json
 {
-	"openapi": "3.0.0"
-	"info": {
-		"title":   "oneschemaversionless"
-		"version": "0.0"
-	}
-	"paths": {}
-	"components": {
-		"schemas": {
-			"map": {}
-			"oneschemaversionless": {
-				"type": "object", "$ref": "#/components/schemas/map"
-			}
-		}
-	}
+  "openapi": "3.0.0",
+  "info": {
+    "title": "oneschemaversionless",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "oneschemaversionless": {
+        "type": "object",
+        "required": [
+          "firstfield"
+        ],
+        "properties": {
+          "firstfield": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
 }
--- out/oapi-generate/subpath --
-subpath "someField" not present in schema:
-    ../../lineage.cue:246:2
--- out/oapi-generate/subpathroot --
-subpath "someField" not present in schema:
-    ../../lineage.cue:246:2
--- out/oapi-generate/nilconfig --
+-- out/encoding/openapi/TestGenerate/selfcontained --
 == 0.0.json
 {
-	"openapi": "3.0.0"
-	"info": {
-		"title":   "oneschemaversionless"
-		"version": "0.0"
-	}
-	"paths": {}
-	"components": {
-		"schemas": {
-			"oneschemaversionless": {
-				"type": "object", "required": ["firstfield"]
-				"properties": {
-					"firstfield": {
-						"type": "string"
-					}
-				}
-			}
-		}
-	}
+  "openapi": "3.0.0",
+  "info": {
+    "title": "oneschemaversionless",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "map": {},
+      "oneschemaversionless": {
+        "type": "object",
+        "$ref": "#/components/schemas/map"
+      }
+    }
+  }
 }
--- out/encoding/openapi/TestGenerateVanilla/nilcfg --
-== 0.0.json
-{
-	"openapi": "3.0.0"
-	"info": {
-		"title":   "oneschemaversionless"
-		"version": "0.0"
-	}
-	"paths": {}
-	"components": {
-		"schemas": {
-			"oneschemaversionless": {
-				"type": "object", "required": ["firstfield"]
-				"properties": {
-					"firstfield": {
-						"type": "string"
-					}
-				}
-			}
-		}
-	}
+-- out/encoding/gocode/TestGenerate/group --
+== one-schema-versionless_type_gen.go
+package oneschemaversionless
+
+// Firstfield defines model for firstfield.
+type Firstfield = string
+-- out/encoding/gocode/TestGenerate/depointerized --
+== one-schema-versionless_type_gen.go
+package oneschemaversionless
+
+// Oneschemaversionless defines model for oneschemaversionless.
+type Oneschemaversionless struct {
+	Firstfield string `json:"firstfield"`
 }
--- out/encoding/openapi/TestGenerateVanilla/group --
-== 0.0.json
-{
-	"openapi": "3.0.0"
-	"info": {
-		"title":   "oneschemaversionless"
-		"version": "0.0"
-	}
-	"paths": {}
-	"components": {
-		"schemas": {
-			"firstfield": {
-				"type": "string"
-			}
-		}
-	}
+-- out/encoding/gocode/TestGenerate/godeclincomments --
+== one-schema-versionless_type_gen.go
+package oneschemaversionless
+
+// Oneschemaversionless defines model for oneschemaversionless.
+type Oneschemaversionless struct {
+	Firstfield string `json:"firstfield"`
 }
--- out/encoding/openapi/TestGenerateVanilla/expandrefs --
-== 0.0.json
-{
-	"openapi": "3.0.0"
-	"info": {
-		"title":   "oneschemaversionless"
-		"version": "0.0"
-	}
-	"paths": {}
-	"components": {
-		"schemas": {
-			"oneschemaversionless": {
-				"type": "object", "required": ["firstfield"]
-				"properties": {
-					"firstfield": {
-						"type": "string"
-					}
-				}
-			}
-		}
-	}
+-- out/encoding/gocode/TestGenerate/expandref --
+== one-schema-versionless_type_gen.go
+package oneschemaversionless
+
+// Oneschemaversionless defines model for oneschemaversionless.
+type Oneschemaversionless struct {
+	Firstfield string `json:"firstfield"`
 }
--- out/encoding/openapi/TestGenerateVanilla/selfcontained --
-== 0.0.json
-{
-	"openapi": "3.0.0"
-	"info": {
-		"title":   "oneschemaversionless"
-		"version": "0.0"
-	}
-	"paths": {}
-	"components": {
-		"schemas": {
-			"map": {}
-			"oneschemaversionless": {
-				"type": "object", "$ref": "#/components/schemas/map"
-			}
-		}
-	}
+-- out/encoding/gocode/TestGenerate/nil --
+== one-schema-versionless_type_gen.go
+package oneschemaversionless
+
+// Oneschemaversionless defines model for oneschemaversionless.
+type Oneschemaversionless struct {
+	Firstfield string `json:"firstfield"`
 }
--- out/encoding/openapi/TestGenerateVanilla/subpath --
-subpath "someField" not present in schema:
-    ../../lineage.cue:246:2
--- out/encoding/openapi/TestGenerateVanilla/subpathroot --
-subpath "someField" not present in schema:
-    ../../lineage.cue:246:2
