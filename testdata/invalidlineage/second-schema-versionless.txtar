@@ -1,0 +1,39 @@
+#slow
+-- in.cue --
+
+import "github.com/grafana/thema"
+
+thema.#Lineage
+name: "second-schema-versionless"
+schemas: [
+	{
+		version: [0, 0]
+		schema: {
+			firstfield: string
+		}
+	},
+	{
+		schema: {
+			firstfield: string
+			secondfield?: int32
+		}
+	}
+]
+
+lenses: [
+	{
+		from: [0, 1]
+		to: [0, 0]
+		input: _
+		result: {
+			firstfield: input.firstfield
+		}
+	}
+]
+-- out/bindfail --
+_schemasAreOrdered.1: conflicting values true and false:
+    ../../lineage.cue:124:3
+    ../../lineage.cue:125:4
+    ../../lineage.cue:130:5
+    ../../lineage.cue:131:11
+    ./in.cue:4:1

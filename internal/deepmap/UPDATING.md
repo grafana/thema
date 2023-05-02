@@ -6,6 +6,7 @@ The contents of the `oapi-codegen` are copied from the latest `deepmap/oapi-code
 * `TestExamplePetStoreCodeGeneration` and `TestExamplePetStoreCodeGenerationWithUserTemplates` have been removed from `pkg/codegen/codegen_test.go`
   * (this is to remove any need to reference the swagger packages, and said tests do not impact the code being used by thema)
 * The contents of [this PR](https://github.com/deepmap/oapi-codegen/pull/717) in deepmap/oapi-codegen have been played onto this fork
+* OpenAPI fields with type `string` and format `binary` are represented in Go as `[]byte`, instead of the custom `github.com/deepmap/oapi-codegen/pkg/types.File` type.
 
 A full diff of changes can be found at [diff.txt].
 

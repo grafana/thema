@@ -5,173 +5,148 @@ import (
 	"sort"
 
 	"cuelang.org/go/cue"
-	terrors "github.com/grafana/thema/errors"
-	"github.com/grafana/thema/internal/util"
+	cerrors "cuelang.org/go/cue/errors"
+	"github.com/grafana/thema/internal/cuetil"
 )
 
 var (
-	_ Lineage                     = &UnaryLineage{}
+	_ Lineage                     = &baseLineage{}
 	_ ConvergentLineage[Assignee] = &unaryConvLineage[Assignee]{}
 )
 
-// A UnaryLineage is a Go facade over a valid CUE lineage that does not compose
+// A baseLineage is a Go facade over a valid CUE lineage that does not compose
 // other lineage.
-type UnaryLineage struct {
+type baseLineage struct {
+	rt *Runtime
+
+	// internal flag to ensure BindLineage is only mechanism to create
 	validated bool
-	name      string
-	raw       cue.Value
-	rt        *Runtime
-	allv      []SyntacticVersion
-	allsch    []*UnarySchema
+
+	// name of the lineage, #Lineage.name
+	name string
+
+	// original raw input cue.Value containing lineage definition
+	raw cue.Value
+
+	// input cue.Value, unified with thema.#Lineage
+	uni cue.Value
+
+	// all schema versions in the lineage
+	allv []SyntacticVersion
+
+	// all the schemas
+	allsch []*schemaDef
 }
 
-func defPathFor(name string, v SyntacticVersion) cue.Path {
-	return cue.MakePath(cue.Def(fmt.Sprintf("%s%v%v", name, v[0], v[1])))
-}
-
-// BindLineage takes a raw cue.Value, checks that it is a valid lineage (that it
-// upholds the invariants which undergird Thema's translatability guarantees),
-// and returns the cue.Value wrapped in a Lineage, iff validity checks succeed.
-// The Lineage type provides access to all the types and functions for working
-// with Thema in Go.
+// BindLineage takes a raw [cue.Value], checks that it correctly follows Thema's
+// invariants, such as translatability and backwards compatibility version
+// numbering. If checks succeed, a [Lineage] is returned.
 //
-// This function is the sole intended mechanism for creating Lineage objects,
-// thereby providing a practical promise that all instances of Lineage uphold
-// Thema's invariants. It is primarily intended for use by authors of lineages
-// in the creation of a LineageFactory.
-func BindLineage(raw cue.Value, rt *Runtime, opts ...BindOption) (Lineage, error) {
+// This function is the only way to create non-nil Lineage objects. As a result,
+// all non-nil instances of Lineage in any Go program are guaranteed to follow
+// Thema invariants.
+func BindLineage(v cue.Value, rt *Runtime, opts ...BindOption) (Lineage, error) {
+	orig := v
 	// We could be more selective than this, but this isn't supposed to be forever, soooooo
 	rt.l()
 	defer rt.u()
-
-	p := raw.Path().String()
-	// The candidate lineage must exist.
-	if !raw.Exists() {
-		if p != "" {
-			return nil, fmt.Errorf("%w: path was %q", terrors.ErrValueNotExist, p)
-		}
-
-		return nil, terrors.ErrValueNotExist
-	}
-	if p == "" {
-		p = "instance root"
-	}
-
-	// The candidate lineage must be error-free.
-	// TODO replace this with Err, this check isn't actually what we want up here. Only schemas themselves must be cycle-free
-	if err := raw.Validate(cue.Concrete(false), cue.DisallowCycles(true)); err != nil {
-		return nil, err
-	}
-
-	// The candidate lineage must be an instance of #Lineage.
-	dlin := rt.linDef()
-	err := dlin.Subsume(raw, cue.Raw(), cue.Schema(), cue.Final())
-	if err != nil {
-		// FIXME figure out how to wrap both the sentinel and CUE error sanely
-		return nil, fmt.Errorf("%w (%s): %s", terrors.ErrValueNotALineage, p, err)
-	}
-
-	nam, err := raw.LookupPath(cue.MakePath(cue.Str("name"))).String()
-	if err != nil {
-		return nil, fmt.Errorf("%w (%s): name field is not concrete", terrors.ErrInvalidLineage, p)
-	}
 
 	cfg := &bindConfig{}
 	for _, opt := range opts {
 		opt(cfg)
 	}
+	lindef := rt.linDef()
 
-	lin := &UnaryLineage{
-		validated: true,
-		raw:       raw,
-		rt:        rt,
-		name:      nam,
-	}
-
-	// Populate the version list and enforce compat/subsumption invariants
-	seqiter, _ := raw.LookupPath(cue.MakePath(cue.Str("seqs"))).List()
-	var seqv uint
-	var predecessor cue.Value
-	var predsv SyntacticVersion
-	for seqiter.Next() {
-		var schv uint
-		schemas := seqiter.Value().LookupPath(cue.MakePath(cue.Str("schemas")))
-
-		schiter, _ := schemas.List()
-		for schiter.Next() {
-			v := synv(seqv, schv)
-			lin.allv = append(lin.allv, v)
-
-			sch := schiter.Value()
-
-			defname := fmt.Sprintf("%s%v%v", util.SanitizeLabelString(nam), v[0], v[1])
-			defpath := cue.MakePath(cue.Def(defname))
-			defsch := rt.Context().
-				CompileString(fmt.Sprintf("#%s: _", defname)).
-				FillPath(defpath, sch).
-				LookupPath(defpath)
-			if defsch.Validate() != nil {
-				panic(defsch.Validate())
+	var raw, uni cue.Value
+	// don't unify thema.#Lineage again if the input already did it. doing so may
+	// result in noisy extra instances of thema internals, confusing things like
+	// the openapi encoder and likely having performance implications
+	if vlist := cuetil.AppendSplit(orig, cue.AndOp, nil); len(vlist) > 1 {
+		others := make([]cue.Value, 0, len(vlist))
+		for _, av := range vlist {
+			_, path := av.ReferencePath()
+			if path.String() != "#Lineage" {
+				others = append(others, av)
 			}
-			lin.allsch = append(lin.allsch, &UnarySchema{
-				raw:    sch,
-				defraw: defsch,
-				lin:    lin,
-				v:      v,
-			})
+		}
 
-			// No predecessor to compare against with the very first schema
-			if !(schv == 0 && seqv == 0) {
-				// TODO Marked as buggy until we figure out how to both _not_ require
-				// schema to be closed in the .cue file, _and_ how to detect default changes
-				if !cfg.skipbuggychecks {
-					// The sequences and schema in the candidate lineage must follow
-					// backwards [in]compatibility rules.
-					// TODO Subsumption may not be what we actually want to check here,
-					// as it does not allow the addition of required fields with defaults
-					bcompat := sch.Subsume(predecessor, cue.Raw(), cue.Schema(), cue.Definitions(true), cue.All(), cue.Final())
-					if (schv == 0 && bcompat == nil) || (schv != 0 && bcompat != nil) {
-						return nil, &compatInvariantError{
-							rawlin:    raw,
-							violation: [2]SyntacticVersion{predsv, v},
-							detail:    bcompat,
-						}
-					}
+		if len(others) == len(vlist) {
+			// input value wasn't unified with thema.#Lineage, though there were other unifications
+			raw = orig
+			uni = lindef.Unify(orig)
+		} else {
+			// input value was unified with thema.#Lineage...
+			if len(others) == 1 {
+				// ...and there was only one other value, probably a struct literal (but don't lean
+				// on that assumption without adding more checks!)
+				raw = orig
+			} else {
+				// ...and there were multiple other values, which we now must unify together
+				raw = others[0].Unify(others[1])
+				for _, v := range others[2:] {
+					raw = raw.Unify(v)
 				}
 			}
 
-			predecessor = sch
-			predsv = v
-			schv++
+			// The key property for the 'uni' value we store in the lineage is that it is
+			// unified exactly once with thema.#Lineage. So, reuse the original input if
+			// there was only one #Lineage unification eliminated. Else, make a new one.
+			if len(others) == len(vlist)-1 {
+				uni = orig
+			} else {
+				uni = lindef.Unify(raw)
+			}
 		}
-		seqv++
+	} else {
+		raw = orig
+		uni = lindef.Unify(orig)
 	}
 
+	ml := &maybeLineage{
+		rt:   rt,
+		orig: orig,
+		raw:  raw,
+		uni:  uni,
+		cfg:  cfg,
+	}
+
+	if err := ml.checkExists(cfg); err != nil {
+		return nil, err
+	}
+	if err := ml.checkLineageShape(cfg); err != nil {
+		return nil, err
+	}
+	if err := ml.checkNativeValidity(cfg); err != nil {
+		return nil, err
+	}
+	if err := ml.checkGoValidity(cfg); err != nil {
+		return nil, err
+	}
+
+	// previously verified that this value is concrete
+	nam, _ := orig.LookupPath(cue.MakePath(cue.Str("name"))).String()
+
+	lin := &baseLineage{
+		validated: true,
+		rt:        rt,
+		name:      nam,
+		raw:       ml.raw,
+		uni:       ml.uni,
+		allsch:    ml.schlist,
+		allv:      ml.allv,
+	}
+
+	for _, sch := range lin.allsch {
+		sch.lin = lin
+	}
 	return lin, nil
-}
-
-// Runtime returns the thema.Runtime instance with which this lineage was built.
-func (lin *UnaryLineage) Runtime() *Runtime {
-	return lin.rt
-}
-
-// Latest returns the newest Schema in the lineage - largest minor version
-// within the largest major version.
-func (lin *UnaryLineage) Latest() Schema {
-	return lin.allsch[len(lin.allsch)-1]
-}
-
-// First returns the first Schema in the lineage (v0.0). Thema requires that all
-// valid lineages contain at least one schema, so this is guaranteed to exist.
-func (lin *UnaryLineage) First() Schema {
-	return lin.allsch[0]
 }
 
 func isValidLineage(lin Lineage) {
 	switch tlin := lin.(type) {
 	case nil:
 		panic("nil lineage")
-	case *UnaryLineage:
+	case *baseLineage:
 		if !tlin.validated {
 			panic("lineage not validated")
 		}
@@ -182,23 +157,48 @@ func isValidLineage(lin Lineage) {
 
 func getLinLib(lin Lineage) *Runtime {
 	switch tlin := lin.(type) {
-	case *UnaryLineage:
+	case *baseLineage:
 		return tlin.rt
 	default:
 		panic("unreachable")
 	}
 }
 
+func mkerror(val cue.Value, format string, args ...any) error {
+	s := val.Source()
+	if s == nil {
+		return fmt.Errorf(format, args...)
+	}
+	return cerrors.Newf(s.Pos(), format, args...)
+}
+
+// Runtime returns the thema.Runtime instance with which this lineage was built.
+func (lin *baseLineage) Runtime() *Runtime {
+	return lin.rt
+}
+
+// Latest returns the newest Schema in the lineage - largest minor version
+// within the largest major version.
+func (lin *baseLineage) Latest() Schema {
+	return lin.allsch[len(lin.allsch)-1]
+}
+
+// First returns the first Schema in the lineage (v0.0). Thema requires that all
+// valid lineages contain at least one schema, so this is guaranteed to exist.
+func (lin *baseLineage) First() Schema {
+	return lin.allsch[0]
+}
+
 // Underlying returns the cue.Value of the entire lineage.
-func (lin *UnaryLineage) Underlying() cue.Value {
+func (lin *baseLineage) Underlying() cue.Value {
 	isValidLineage(lin)
 
-	return lin.raw
+	return lin.uni
 }
 
 // Name returns the name of the object schematized by the lineage, as declared in
 // the lineage's name field.
-func (lin *UnaryLineage) Name() string {
+func (lin *baseLineage) Name() string {
 	isValidLineage(lin)
 
 	if !lin.validated {
@@ -218,7 +218,7 @@ func (lin *UnaryLineage) Name() string {
 // or if you must, rely on Underlying().
 //
 // TODO should this instead be interface{} (ugh ugh wish Go had tagged unions) like FillPath?
-func (lin *UnaryLineage) ValidateAny(data cue.Value) *Instance {
+func (lin *baseLineage) ValidateAny(data cue.Value) *Instance {
 	isValidLineage(lin)
 
 	for sch := lin.schema(synv()); sch != nil; sch = sch.successor() {
@@ -232,7 +232,7 @@ func (lin *UnaryLineage) ValidateAny(data cue.Value) *Instance {
 // Schema returns the schema identified by the provided version, if one exists.
 //
 // Only the [0, 0] schema is guaranteed to exist in all valid lineages.
-func (lin *UnaryLineage) Schema(v SyntacticVersion) (Schema, error) {
+func (lin *baseLineage) Schema(v SyntacticVersion) (Schema, error) {
 	isValidLineage(lin)
 
 	if !synvExists(lin.allv, v) {
@@ -245,11 +245,15 @@ func (lin *UnaryLineage) Schema(v SyntacticVersion) (Schema, error) {
 	return lin.schema(v), nil
 }
 
-func (lin *UnaryLineage) schema(v SyntacticVersion) *UnarySchema {
+func (lin *baseLineage) allVersions() versionList {
+	return lin.allv
+}
+
+func (lin *baseLineage) schema(v SyntacticVersion) *schemaDef {
 	return lin.allsch[searchSynv(lin.allv, v)]
 }
 
-func (lin *UnaryLineage) _lineage() {}
+func (lin *baseLineage) _lineage() {}
 
 func searchSynv(a []SyntacticVersion, x SyntacticVersion) int {
 	return sort.Search(len(a), func(i int) bool { return !a[i].Less(x) })

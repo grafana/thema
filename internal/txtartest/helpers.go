@@ -19,10 +19,10 @@ func ForEachSchema(t *LineageTest, lin thema.Lineage, f func(*LineageTest, thema
 		t.Run(tsch.Version().String(), func(gt *testing.T) {
 			// FIXME this isn't safe for parallel tests
 			mu.Lock()
-			origt, origp := t.T, t.prefix
+			origt, origp, origA := t.T, t.prefix, t.Archive
 			t.T, t.prefix = gt, path.Join(t.prefix, tsch.Version().String())
 			f(t, tsch)
-			t.T, t.prefix = origt, origp
+			t.T, t.prefix, t.Archive = origt, origp, origA
 			mu.Unlock()
 		})
 	}

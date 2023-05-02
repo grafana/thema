@@ -156,6 +156,10 @@ diff oapi-codegen/pkg/codegen/schema.go thema/internal/deepmap/oapi-codegen/pkg/
 < 		mergedSchema, err := MergeSchemas(schema.AllOf, path)
 ---
 > 		mergedSchema, err := MergeSchemas(schema, path)
+576c576
+< 			outSchema.GoType = "openapi_types.File"
+---
+> 			outSchema.GoType = "[]byte"
 diff oapi-codegen/pkg/codegen/template_helpers.go thema/internal/deepmap/oapi-codegen/pkg/codegen/template_helpers.go
 23c23
 < 	"github.com/deepmap/oapi-codegen/pkg/util"
@@ -163,3 +167,10 @@ diff oapi-codegen/pkg/codegen/template_helpers.go thema/internal/deepmap/oapi-co
 > 	"github.com/grafana/thema/internal/deepmap/oapi-codegen/pkg/util"
 Common subdirectories: oapi-codegen/pkg/codegen/templates and thema/internal/deepmap/oapi-codegen/pkg/codegen/templates
 Common subdirectories: oapi-codegen/pkg/codegen/test_specs and thema/internal/deepmap/oapi-codegen/pkg/codegen/test_specs
+diff oapi-codegen/pkg/codegen/utils.go thema/internal/deepmap/oapi-codegen/pkg/codegen/utils.go
+19a20
+> 	"reflect"
+907c908
+< 	return t1.Schema.OAPISchema == t2.Schema.OAPISchema
+---
+> 	return reflect.DeepEqual(t1.Schema.OAPISchema, t2.Schema.OAPISchema)

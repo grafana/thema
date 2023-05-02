@@ -16,10 +16,12 @@ type CUEWrapper interface {
 	Underlying() cue.Value
 }
 
-// A Lineage is the top-level container in thema, holding the complete
+// A Lineage is the top-level container in Thema, holding the complete
 // evolutionary history of a particular kind of object: every schema that has
 // ever existed for that object, and the lenses that allow translating between
 // those schema versions.
+//
+// Lineages may only be produced by calling [BindLineage].
 type Lineage interface {
 	CUEWrapper
 
@@ -73,9 +75,9 @@ type Lineage interface {
 	// Runtime returns the thema.Runtime instance with which this lineage was built.
 	Runtime() *Runtime
 
-	// Lineage must be a private interface in order to restrict their creation
+	// Lineage must be a private interface in order to ensure creation is only possible
 	// through BindLineage().
-	_lineage()
+	allVersions() versionList
 }
 
 // SchemaP returns the schema identified by the provided version. If no schema
@@ -325,4 +327,14 @@ func ParseSyntacticVersion(s string) (SyntacticVersion, error) {
 		return synv(), fmt.Errorf("%w: %q has invalid schema number %q", terrors.ErrMalformedSyntacticVersion, s, parts[1])
 	}
 	return synv(uint(seqv), uint(schv)), nil
+}
+
+type versionList []SyntacticVersion
+
+func (vl versionList) String() string {
+	vstrings := make([]string, 0, len(vl))
+	for _, v := range vl {
+		vstrings = append(vstrings, v.String())
+	}
+	return strings.Join(vstrings, ", ")
 }

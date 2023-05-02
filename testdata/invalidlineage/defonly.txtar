@@ -1,0 +1,8 @@
+-- in.cue --
+
+import "github.com/grafana/thema"
+
+thema.#Lineage
+-- out/bindfail --
+bind fail: invalid lineage, #Lineage.name must be concrete:
+    ../../lineage.cue:16:2

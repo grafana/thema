@@ -150,6 +150,7 @@ func InstanceWithThema(modFS fs.FS, dir string, opts ...Option) (*build.Instance
 		ModuleRoot: modroot,
 		Module:     modname,
 		Dir:        filepath.Join(modroot, dir),
+		DataFiles:  true,
 	}
 	lc := &loadConfig{
 		pkgname: filepath.Base(dir),

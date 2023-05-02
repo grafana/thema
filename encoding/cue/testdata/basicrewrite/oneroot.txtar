@@ -1,0 +1,37 @@
+-- in.cue --
+
+rootfield: string
+nest: {
+    inner1: string
+    inner2: int32
+}
+
+nestmulti: {
+    inner1: string
+    inner2: int32
+}
+
+-- supplement.cue --
+
+otherfile: bytes
+nestmulti: {
+    otherfile: string
+}
+
+-- out/oneroot --
+== in.cue
+rootfield: float64
+nest: {
+	inner1: string
+	inner2: int32
+}
+
+nestmulti: {
+	inner1: string
+	inner2: int32
+}
+== supplement.cue
+otherfile: bytes
+nestmulti: {
+	otherfile: string
+}

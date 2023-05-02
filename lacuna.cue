@@ -11,10 +11,9 @@ package thema
 // A lacuna may be unconditional (the gap exists for all possible instances
 // being translated between the schema pair) or conditional (the gap only exists
 // when certain values appear in the instance being translated between schema).
-// However, the conditionality of lacunas is expected to be expressed at the
-// level of the lens, and determines whether a particular lacuna object is
-// created; the production of a lacuna object as the output of a specific
-// translation indicates the lacuna applies to that specific translation.
+// When translating, the predicate in each lacuna's "condition" field is checked
+// to determine whether the lacuna is applicable to the particular instance
+// being translated.
 #Lacuna: {
 	// A reference to a field and its value in a schema/instance.
 	#FieldRef: {
@@ -23,6 +22,11 @@ package thema
 		value: _
 		path:  string
 	}
+
+	// Indicates whether the lacuna applies to the particular object being translated.
+	// If this field evaluates to false, this lacuna is not emitted for a particular
+	// translation. If unspecified, defaults to true.
+	condition: bool | *true
 
 	// The field path(s) and their value(s) in the pre-translation instance
 	// that are relevant to the lacuna.

@@ -1,0 +1,151 @@
+# basic join schema with just a single scalar field
+-- in.cue --
+import "github.com/grafana/thema"
+
+thema.#Lineage
+name: "oneone"
+joinSchema: {
+    foo: string
+}
+schemas: [{
+	version: [0, 0]
+	schema: {
+	    bar: string
+	}
+}]
+lenses: []
+-- out/bind --
+Schema count: 1
+Schema versions: 0.0
+Lenses count: 0
+-- out/encoding/openapi/TestGenerate/nilcfg --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "oneone",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "oneone": {
+        "type": "object",
+        "properties": {
+          "foo": {
+            "type": "string"
+          },
+          "bar": {
+            "type": "string"
+          }
+        },
+        "allOf": [
+          {
+            "required": [
+              "foo"
+            ]
+          },
+          {
+            "required": [
+              "bar"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}
+-- out/encoding/openapi/TestGenerate/expandrefs --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "oneone",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "oneone": {
+        "type": "object",
+        "required": [
+          "foo",
+          "bar"
+        ],
+        "properties": {
+          "foo": {
+            "type": "string"
+          },
+          "bar": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
+-- out/encoding/openapi/TestGenerate/group --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "oneone",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "foo": {
+        "type": "string"
+      },
+      "bar": {
+        "type": "string"
+      }
+    }
+  }
+}
+-- out/encoding/gocode/TestGenerate/nilcfg --
+== oneone_type_0.0_gen.go
+package oneone
+
+// Oneone defines model for oneone.
+type Oneone struct {
+	Bar string `json:"bar"`
+	Foo string `json:"foo"`
+}
+-- out/encoding/gocode/TestGenerate/group --
+== oneone_type_0.0_gen.go
+package oneone
+
+// Bar defines model for bar.
+type Bar = string
+
+// Foo defines model for foo.
+type Foo = string
+-- out/encoding/gocode/TestGenerate/depointerized --
+== oneone_type_0.0_gen.go
+package oneone
+
+// Oneone defines model for oneone.
+type Oneone struct {
+	Bar string `json:"bar"`
+	Foo string `json:"foo"`
+}
+-- out/encoding/gocode/TestGenerate/godeclincomments --
+== oneone_type_0.0_gen.go
+package oneone
+
+// Oneone defines model for oneone.
+type Oneone struct {
+	Bar string `json:"bar"`
+	Foo string `json:"foo"`
+}
+-- out/encoding/gocode/TestGenerate/expandref --
+== oneone_type_0.0_gen.go
+package oneone
+
+// Oneone defines model for oneone.
+type Oneone struct {
+	Bar string `json:"bar"`
+	Foo string `json:"foo"`
+}

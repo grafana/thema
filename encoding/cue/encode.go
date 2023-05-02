@@ -27,7 +27,6 @@ func NewLineage(sch cue.Value, name, pkgname string) (*ast.File, error) {
 	}
 	b, err := astutil.FmtNode(x)
 	if err != nil {
-
 		return nil, fmt.Errorf("failed to convert input schema to string: %ww", err)
 	}
 
@@ -58,7 +57,7 @@ func NewLineage(sch cue.Value, name, pkgname string) (*ast.File, error) {
 // The provided lineage node is modified in place. Corresponding lenses are not
 // generated. The result is not checked for Thema validity. Behavior is
 // undefined if the provided lineage node is not well-formed.
-func InsertSchemaNodeAs(lin ast.Node, sch ast.Expr, v thema.SyntacticVersion) error {
+func insertSchemaNodeAs(lin ast.Node, sch ast.Expr, v thema.SyntacticVersion) error {
 	seql := astutil.FindSeqs(lin)
 	if seql == nil {
 		return fmt.Errorf("could not find seqs list in input - invalid lineage ast?")
@@ -105,12 +104,13 @@ var emptyLineage = template.Must(template.New("newlin").Parse(`
 
 thema.#Lineage
 name: "{{ .Name }}"
-seqs: [
+schemas: [
     {
-        schemas: [
-            {{ .Sch }},
-        ]
-    },
+        version: [0, 0]
+        schema: {
+            {{ .Sch }}
+        }
+    }
 ]
 `))
 
@@ -120,14 +120,14 @@ seqs: [
 // lineage, the new schema will be appended to the latest sequence (minor
 // version bump). Otherwise, a new sequence will be created with the provided
 // schema as its only element (major version bump).
-func Append(lin thema.Lineage, sch cue.Value) (ast.Node, error) {
+func appendlin(lin thema.Lineage, sch cue.Value) (ast.Node, error) {
 	linf := astutil.Format(lin.Underlying()).(*ast.File)
 	schnode := astutil.ToExpr(astutil.Format(sch))
 
 	lv := thema.LatestVersion(lin)
 	lsch := thema.SchemaP(lin, lv)
 	if err := compat.ThemaCompatible(lsch.Underlying(), sch); err == nil {
-		// Is compatible, append to same sequence
+		// Is compatible, bump minor version
 		tgtv := thema.SyntacticVersion{lv[0], lv[1] + 1}
 		ast.AddComment(schnode, versionComment(tgtv))
 
@@ -139,7 +139,7 @@ func Append(lin thema.Lineage, sch cue.Value) (ast.Node, error) {
 		schl.Elts = append(schl.Elts, schnode)
 		// TODO add boilerplate lenses, etc.
 	} else {
-		// Not compatible, start a new sequence
+		// Not compatible, bump major version
 		tgtv := thema.SyntacticVersion{lv[0] + 1, 0}
 		ast.AddComment(schnode, versionComment(tgtv))
 
@@ -171,7 +171,7 @@ func versionComment(v thema.SyntacticVersion) *ast.CommentGroup {
 		Doc:  true,
 		Line: true,
 		List: []*ast.Comment{
-			&ast.Comment{
+			{
 				Text: fmt.Sprint("// v", v.String()),
 			},
 		},

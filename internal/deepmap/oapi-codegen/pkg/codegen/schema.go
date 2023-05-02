@@ -223,7 +223,7 @@ func GenerateGoSchema(sref *openapi3.SchemaRef, path []string) (Schema, error) {
 	// i.e. the parent schema defines a type:array, but the array has
 	// no items defined. Therefore, we have at least valid Go-Code.
 	if sref == nil {
-		return Schema{GoType: "interface{}"}, nil
+		return Schema{GoType: "any"}, nil
 	}
 
 	schema := sref.Value
@@ -285,11 +285,11 @@ func GenerateGoSchema(sref *openapi3.SchemaRef, path []string) (Schema, error) {
 			if t == "object" {
 				// We have an object with no properties. This is a generic object
 				// expressed as a map.
-				outType = "map[string]interface{}"
+				outType = "map[string]any"
 			} else { // t == ""
 				// If we don't even have the object designator, we're a completely
 				// generic type.
-				outType = "interface{}"
+				outType = "any"
 			}
 			outSchema.GoType = outType
 			outSchema.DefineViaAlias = true
@@ -305,7 +305,7 @@ func GenerateGoSchema(sref *openapi3.SchemaRef, path []string) (Schema, error) {
 			// Until we have a concrete additional properties type, we default to
 			// any schema.
 			outSchema.AdditionalPropertiesType = &Schema{
-				GoType: "interface{}",
+				GoType: "any",
 			}
 
 			// If additional properties are defined, we will override the default
@@ -573,7 +573,7 @@ func oapiSchemaToGoType(schema *openapi3.Schema, path []string, outSchema *Schem
 		case "uuid":
 			outSchema.GoType = "openapi_types.UUID"
 		case "binary":
-			outSchema.GoType = "openapi_types.File"
+			outSchema.GoType = "[]byte"
 		default:
 			// All unrecognized formats are simply a regular string.
 			outSchema.GoType = "string"

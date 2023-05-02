@@ -4,10 +4,11 @@ import "github.com/grafana/thema"
 
 thema.#Lineage
 name: "{{ .Name }}"
-seqs: [
+schemas: [
     {
-        schemas: [
-            {{ .Sch }},
-        ]
-    },
+        version: [0, 0]
+        schema: {
+            {{ .Sch }}
+        }
+    }
 ]

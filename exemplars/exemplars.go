@@ -38,6 +38,7 @@ func All(rt *thema.Runtime) map[string]thema.Lineage {
 
 var nameOpts = map[string][]thema.BindOption{
 	"defaultchange": {thema.SkipBuggyChecks()},
+	"disjunct":      {thema.SkipBuggyChecks()},
 	"narrowing":     {},
 	"rename":        {},
 	"expand":        {},

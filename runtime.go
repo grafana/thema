@@ -6,16 +6,58 @@ import (
 	"sync"
 
 	"cuelang.org/go/cue"
+	"cuelang.org/go/cue/build"
+	"cuelang.org/go/cue/cuecontext"
 	"cuelang.org/go/cue/errors"
 	"cuelang.org/go/cue/load"
 	"github.com/grafana/thema/internal/util"
 )
 
-// Runtime is a gateway to the set of CUE constructs available in the Thema CUE
-// package, allowing Go code to rely on the same functionality.
+var rtOnce sync.Once
+var themaBI *build.Instance
+
+func loadRuntime() *build.Instance {
+	rtOnce.Do(func() {
+		path := filepath.Join(util.Prefix, "github.com", "grafana", "thema")
+
+		overlay := make(map[string]load.Source)
+		if err := util.ToOverlay(path, CueJointFS, overlay); err != nil {
+			// It's impossible for this to fail barring temporary bugs in filesystem
+			// layout within the thema rt itself. These should be trivially
+			// catchable during CI, so avoid forcing meaningless error handling on
+			// dependers and prefer a panic.
+			panic(err)
+		}
+
+		cfg := &load.Config{
+			Overlay: overlay,
+			Package: "thema",
+			Module:  "github.com/grafana/thema",
+			Dir:     path,
+		}
+		themaBI = load.Instances(nil, cfg)[0]
+
+		// proactively check, so we don't have to do it when making a new library
+		rt := cuecontext.New().BuildInstance(themaBI)
+		if err := rt.Validate(cue.All()); err != nil {
+			// As with the above, an error means that a problem exists in the
+			// literal CUE code embedded in this version of package (that should
+			// have trivially been caught with CI), so the caller can't fix anything
+			// without changing the version of the thema Go library they're
+			// depending on. It's a hard failure that should be unreachable outside
+			// thema internal testing, so just panic.
+			panic(errors.Details(err, nil))
+		}
+	})
+
+	return themaBI
+}
+
+// Runtime holds the set of CUE constructs available in the Thema CUE package,
+// allowing Thema's Go code to internally reuse the same native CUE functionality.
 //
-// Each Thema Runtime is bound to a single cue.Context, set at the time
-// of Runtime creation via NewRuntime.
+// Each Thema Runtime is bound to a single cue.Context, determined by the parameter
+// passed to [NewRuntime].
 type Runtime struct {
 	// Value corresponds to loading the whole github.com/grafana/thema:thema
 	// package.
@@ -37,36 +79,9 @@ func NewRuntime(ctx *cue.Context) *Runtime {
 	if ctx == nil {
 		panic("nil context provided")
 	}
+	rt := ctx.BuildInstance(loadRuntime())
 
-	path := filepath.Join(util.Prefix, "github.com", "grafana", "thema")
-
-	overlay := make(map[string]load.Source)
-	if err := util.ToOverlay(path, CueJointFS, overlay); err != nil {
-		// It's impossible for this to fail barring temporary bugs in filesystem
-		// layout within the thema rt itself. These should be trivially
-		// catchable during CI, so avoid forcing meaningless error handling on
-		// dependers and prefer a panic.
-		panic(err)
-	}
-
-	cfg := &load.Config{
-		Overlay: overlay,
-		Package: "thema",
-		Module:  "github.com/grafana/thema",
-		Dir:     path,
-	}
-
-	rt := ctx.BuildInstance(load.Instances(nil, cfg)[0])
-	if rt.Validate(cue.All()) != nil {
-		// As with the above, an error means that a problem exists in the
-		// literal CUE code embedded in this version of package (that should
-		// have trivially been caught with CI), so the caller can't fix anything
-		// without changing the version of the thema Go library they're
-		// depending on. It's a hard failure that should be unreachable outside
-		// thema internal testing, so just panic.
-		panic(errors.Details(rt.Validate(cue.All()), nil))
-	}
-
+	// FIXME preload all the known funcs into a map[string]cue.Value here to avoid runtime cost
 	return &Runtime{
 		val: rt,
 	}
@@ -106,9 +121,6 @@ func (rt *Runtime) Context() *cue.Context {
 // SURROUND CALLS TO THIS IN rl()/ru()
 func (rt *Runtime) linDef() cue.Value {
 	dlin := rt.val.LookupPath(cue.MakePath(cue.Def("#Lineage")))
-	if dlin.Err() != nil {
-		panic(dlin.Err())
-	}
 	return dlin
 }
 
