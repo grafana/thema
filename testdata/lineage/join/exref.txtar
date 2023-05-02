@@ -198,3 +198,19 @@ type Exref struct {
 	Ref    ExRef    `json:"ref"`
 	Refdef ExRefDef `json:"refdef"`
 }
+-- out/encoding/gocode/TestGenerate/group --
+== exref_type_0.0_gen.go
+package exref
+
+// Foo defines model for foo.
+type Foo = string
+
+// Ref defines model for ref.
+type Ref struct {
+	NormalField string `json:"normalField"`
+}
+
+// Refdef defines model for refdef.
+type Refdef struct {
+	DefField string `json:"defField"`
+}

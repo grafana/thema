@@ -133,3 +133,9 @@ type Baz = string
 type Refscalar struct {
 	SomeField Baz `json:"someField"`
 }
+-- out/encoding/gocode/TestGenerate/group --
+== refscalar_type_0.0_gen.go
+package refscalar
+
+// SomeField defines model for someField.
+type SomeField = string

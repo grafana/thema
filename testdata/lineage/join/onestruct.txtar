@@ -141,3 +141,14 @@ type Onestruct struct {
 	} `json:"aField"`
 	Foo string `json:"foo"`
 }
+-- out/encoding/gocode/TestGenerate/group --
+== onestruct_type_0.0_gen.go
+package onestruct
+
+// AField defines model for aField.
+type AField struct {
+	DefLitField string `json:"defLitField"`
+}
+
+// Foo defines model for foo.
+type Foo = string

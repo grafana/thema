@@ -188,3 +188,17 @@ type Trivialtwo struct {
 	Firstfield  string `json:"firstfield"`
 	Secondfield *int32 `json:"secondfield,omitempty"`
 }
+-- out/encoding/gocode/TestGenerate/group --
+== trivialtwo_type_0.0_gen.go
+package trivialtwo
+
+// Firstfield defines model for firstfield.
+type Firstfield = string
+== trivialtwo_type_0.1_gen.go
+package trivialtwo
+
+// Firstfield defines model for firstfield.
+type Firstfield = string
+
+// Secondfield defines model for secondfield.
+type Secondfield = int32

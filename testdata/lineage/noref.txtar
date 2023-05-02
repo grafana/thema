@@ -166,3 +166,16 @@ type Baz struct {
 type Noref struct {
 	SomeField string `json:"someField"`
 }
+-- out/encoding/gocode/TestGenerate/group --
+== noref_type_0.0_gen.go
+package noref
+
+// Baz defines model for Baz.
+type Baz struct {
+	Dat  int32  `json:"dat"`
+	Run  string `json:"run"`
+	Tell []byte `json:"tell"`
+}
+
+// SomeField defines model for someField.
+type SomeField = string

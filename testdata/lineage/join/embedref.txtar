@@ -147,3 +147,20 @@ type Embedref struct {
 
 // EmbedrefRefField2 defines model for Embedref.RefField2.
 type EmbedrefRefField2 int
+-- out/encoding/gocode/TestGenerate/group --
+== embedref_type_0.0_gen.go
+package embedref
+
+// Defines values for RefField2.
+const (
+	RefField2N42 RefField2 = 42
+)
+
+// Foo defines model for foo.
+type Foo = string
+
+// RefField1 defines model for refField1.
+type RefField1 = string
+
+// RefField2 defines model for refField2.
+type RefField2 int

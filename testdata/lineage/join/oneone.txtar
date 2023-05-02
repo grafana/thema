@@ -113,3 +113,12 @@ type Oneone struct {
 	Bar string `json:"bar"`
 	Foo string `json:"foo"`
 }
+-- out/encoding/gocode/TestGenerate/group --
+== oneone_type_0.0_gen.go
+package oneone
+
+// Bar defines model for bar.
+type Bar = string
+
+// Foo defines model for foo.
+type Foo = string

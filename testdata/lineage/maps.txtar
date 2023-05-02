@@ -404,3 +404,39 @@ type Maps struct {
 		Foo string `json:"foo"`
 	} `json:"valStruct"`
 }
+-- out/encoding/gocode/TestGenerate/group --
+== maps_type_0.0_gen.go
+package maps
+
+// AStruct defines model for aStruct.
+type AStruct struct {
+	Foo string `json:"foo"`
+}
+
+// OptValList defines model for optValList.
+type OptValList map[string][]string
+
+// OptValPrimitive defines model for optValPrimitive.
+type OptValPrimitive map[string]bool
+
+// OptValStruct defines model for optValStruct.
+type OptValStruct map[string]struct {
+	Foo string `json:"foo"`
+}
+
+// RefValue defines model for refValue.
+type RefValue map[string]AStruct
+
+// SomeField defines model for someField.
+type SomeField map[string]bool
+
+// ValList defines model for valList.
+type ValList map[string][]string
+
+// ValPrimitive defines model for valPrimitive.
+type ValPrimitive map[string]bool
+
+// ValStruct defines model for valStruct.
+type ValStruct map[string]struct {
+	Foo string `json:"foo"`
+}

@@ -92,3 +92,9 @@ package onenone
 type Onenone struct {
 	Foo string `json:"foo"`
 }
+-- out/encoding/gocode/TestGenerate/group --
+== onenone_type_0.0_gen.go
+package onenone
+
+// Foo defines model for foo.
+type Foo = string

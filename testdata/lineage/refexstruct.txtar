@@ -160,3 +160,13 @@ type Baz struct {
 type Refexstruct struct {
 	ABaz Baz `json:"aBaz"`
 }
+-- out/encoding/gocode/TestGenerate/group --
+== refexstruct_type_0.0_gen.go
+package refexstruct
+
+// ABaz defines model for aBaz.
+type ABaz struct {
+	Dat  int32  `json:"dat"`
+	Run  string `json:"run"`
+	Tell []byte `json:"tell"`
+}

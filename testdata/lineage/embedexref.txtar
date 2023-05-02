@@ -124,3 +124,17 @@ type Embedexref struct {
 
 // EmbedexrefRefField2 defines model for Embedexref.RefField2.
 type EmbedexrefRefField2 int
+-- out/encoding/gocode/TestGenerate/group --
+== embedexref_type_0.0_gen.go
+package embedexref
+
+// Defines values for RefField2.
+const (
+	RefField2N42 RefField2 = 42
+)
+
+// RefField1 defines model for refField1.
+type RefField1 = string
+
+// RefField2 defines model for refField2.
+type RefField2 int
