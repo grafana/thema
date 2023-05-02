@@ -20,3 +20,48 @@ lenses: []
 Schema count: 1
 Schema versions: 0.0
 Lenses count: 0
+-- out/encoding/openapi/TestGenerate/nilcfg --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "onestruct",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "onestruct": {
+        "type": "object",
+        "properties": {
+          "aField": {
+            "type": "object",
+            "required": [
+              "defLitField"
+            ],
+            "properties": {
+              "defLitField": {
+                "type": "string"
+              }
+            }
+          },
+          "foo": {
+            "type": "string"
+          }
+        },
+        "allOf": [
+          {
+            "required": [
+              "aField"
+            ]
+          },
+          {
+            "required": [
+              "foo"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}
