@@ -186,7 +186,7 @@ package trivialtwo
 // Trivialtwo defines model for trivialtwo.
 type Trivialtwo struct {
 	Firstfield  string `json:"firstfield"`
-	Secondfield int32  `json:"secondfield,omitempty"`
+	Secondfield *int32 `json:"secondfield,omitempty"`
 }
 -- out/encoding/gocode/TestGenerate/group --
 == trivialtwo_type_0.0_gen.go
