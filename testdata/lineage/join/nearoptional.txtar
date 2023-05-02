@@ -112,3 +112,167 @@ type Nearoptional struct {
 	} `json:"astruct,omitempty"`
 	Notoptional int32 `json:"notoptional"`
 }
+-- out/bind --
+Schema count: 1
+Schema versions: 0.0
+Lenses count: 0
+-- out/encoding/openapi/TestGenerate/nilcfg --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "nearoptional",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "nearoptional": {
+        "type": "object",
+        "required": [
+          "notoptional"
+        ],
+        "properties": {
+          "notoptional": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "astring": {
+            "type": "string"
+          },
+          "anint": {
+            "type": "integer"
+          },
+          "abool": {
+            "type": "boolean"
+          },
+          "abytes": {
+            "type": "string",
+            "format": "binary"
+          },
+          "alist": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "astruct": {
+            "type": "object",
+            "required": [
+              "nested"
+            ],
+            "properties": {
+              "nested": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+-- out/encoding/openapi/TestGenerate/group --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "nearoptional",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "notoptional": {
+        "type": "integer",
+        "format": "int32"
+      },
+      "astring": {
+        "type": "string"
+      },
+      "anint": {
+        "type": "integer"
+      },
+      "abool": {
+        "type": "boolean"
+      },
+      "abytes": {
+        "type": "string",
+        "format": "binary"
+      },
+      "alist": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "astruct": {
+        "type": "object",
+        "required": [
+          "nested"
+        ],
+        "properties": {
+          "nested": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
+-- out/encoding/openapi/TestGenerate/expandrefs --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "nearoptional",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "nearoptional": {
+        "type": "object",
+        "required": [
+          "notoptional"
+        ],
+        "properties": {
+          "notoptional": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "astring": {
+            "type": "string"
+          },
+          "anint": {
+            "type": "integer"
+          },
+          "abool": {
+            "type": "boolean"
+          },
+          "abytes": {
+            "type": "string",
+            "format": "binary"
+          },
+          "alist": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "astruct": {
+            "type": "object",
+            "required": [
+              "nested"
+            ],
+            "properties": {
+              "nested": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

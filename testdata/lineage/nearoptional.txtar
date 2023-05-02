@@ -223,11 +223,11 @@ type Astruct struct {
 // Notoptional defines model for notoptional.
 type Notoptional = int32
 -- out/encoding/gocode/TestGenerate/depointerized --
-== optional_type_0.0_gen.go
-package optional
+== nearoptional_type_0.0_gen.go
+package nearoptional
 
-// Optional defines model for optional.
-type Optional struct {
+// Nearoptional defines model for nearoptional.
+type Nearoptional struct {
 	Abool   bool     `json:"abool,omitempty"`
 	Abytes  []byte   `json:"abytes,omitempty"`
 	Alist   []string `json:"alist,omitempty"`
@@ -239,11 +239,11 @@ type Optional struct {
 	Notoptional int32 `json:"notoptional"`
 }
 -- out/encoding/gocode/TestGenerate/godeclincomments --
-== optional_type_0.0_gen.go
-package optional
+== nearoptional_type_0.0_gen.go
+package nearoptional
 
-// Optional defines model for optional.
-type Optional struct {
+// Nearoptional defines model for nearoptional.
+type Nearoptional struct {
 	Abool   *bool    `json:"abool,omitempty"`
 	Abytes  []byte   `json:"abytes,omitempty"`
 	Alist   []string `json:"alist,omitempty"`
@@ -255,11 +255,11 @@ type Optional struct {
 	Notoptional int32 `json:"notoptional"`
 }
 -- out/encoding/gocode/TestGenerate/expandref --
-== optional_type_0.0_gen.go
-package optional
+== nearoptional_type_0.0_gen.go
+package nearoptional
 
-// Optional defines model for optional.
-type Optional struct {
+// Nearoptional defines model for nearoptional.
+type Nearoptional struct {
 	Abool   *bool    `json:"abool,omitempty"`
 	Abytes  []byte   `json:"abytes,omitempty"`
 	Alist   []string `json:"alist,omitempty"`
@@ -270,3 +270,7 @@ type Optional struct {
 	} `json:"astruct,omitempty"`
 	Notoptional int32 `json:"notoptional"`
 }
+-- out/bind --
+Schema count: 1
+Schema versions: 0.0
+Lenses count: 0

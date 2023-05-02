@@ -187,3 +187,97 @@ type Trivialtwocomments struct {
 	// Secondfield but clearly this one is a great idea
 	Secondfield *int32 `json:"secondfield,omitempty"`
 }
+-- out/encoding/openapi/TestGenerate/group --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "trivialtwocomments",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "firstfield": {
+        "description": "TODO some thing to be done",
+        "type": "string"
+      }
+    }
+  }
+}== 0.1.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "trivialtwocomments",
+    "version": "0.1"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "firstfield": {
+        "description": "TODO some thing to be done",
+        "type": "string"
+      },
+      "secondfield": {
+        "description": "but clearly this one is a great idea",
+        "type": "integer",
+        "format": "int32"
+      }
+    }
+  }
+}
+-- out/encoding/openapi/TestGenerate/expandrefs --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "trivialtwocomments",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "trivialtwocomments": {
+        "type": "object",
+        "required": [
+          "firstfield"
+        ],
+        "properties": {
+          "firstfield": {
+            "description": "TODO some thing to be done",
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}== 0.1.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "trivialtwocomments",
+    "version": "0.1"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "trivialtwocomments": {
+        "type": "object",
+        "required": [
+          "firstfield"
+        ],
+        "properties": {
+          "firstfield": {
+            "description": "TODO some thing to be done",
+            "type": "string"
+          },
+          "secondfield": {
+            "description": "but clearly this one is a great idea",
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      }
+    }
+  }
+}

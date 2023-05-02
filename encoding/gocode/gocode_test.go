@@ -20,6 +20,7 @@ func TestGenerate(t *testing.T) {
 		ToDo: map[string]string{
 			"lineage/defaultchange": "default backcompat invariants not working properly yet",
 			"lineage/optional":      "Optional fields do not satisfy struct.MinFields(), causing #Lineage constraints to fail",
+			"lineage/union":         "Test is abominably slow, cue evaluator is choking up on disjunctions",
 		},
 	}
 

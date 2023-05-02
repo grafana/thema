@@ -9,7 +9,7 @@ name: "union"
 schemas: [{
 	version: [0, 0]
 	schema: {
-        theUnion:               #UnionDef
+        theUnion:            #UnionDef
         optionalUnion?:      #UnionDef
         mapUnion:            [string]: #UnionDef
         listUnion:           [...#UnionDef]
@@ -264,7 +264,7 @@ type NestedStruct struct {
           }
         ]
       },
-      "Union": {
+      "UnionDef": {
         "oneOf": [
           {
             "type": "string"
@@ -277,13 +277,13 @@ type NestedStruct struct {
       "mapUnion": {
         "type": "object",
         "additionalProperties": {
-          "$ref": "#/components/schemas/Union"
+          "$ref": "#/components/schemas/UnionDef"
         }
       },
       "listUnion": {
         "type": "array",
         "items": {
-          "$ref": "#/components/schemas/Union"
+          "$ref": "#/components/schemas/UnionDef"
         }
       },
       "mapList": {
@@ -291,7 +291,7 @@ type NestedStruct struct {
         "additionalProperties": {
           "type": "array",
           "items": {
-            "$ref": "#/components/schemas/Union"
+            "$ref": "#/components/schemas/UnionDef"
           }
         }
       },
@@ -300,7 +300,7 @@ type NestedStruct struct {
         "additionalProperties": {
           "type": "object",
           "additionalProperties": {
-            "$ref": "#/components/schemas/Union"
+            "$ref": "#/components/schemas/UnionDef"
           }
         }
       },
@@ -313,7 +313,7 @@ type NestedStruct struct {
             "additionalProperties": {
               "type": "array",
               "items": {
-                "$ref": "#/components/schemas/Union"
+                "$ref": "#/components/schemas/UnionDef"
               }
             }
           }
@@ -324,7 +324,7 @@ type NestedStruct struct {
         "items": {
           "type": "array",
           "items": {
-            "$ref": "#/components/schemas/Union"
+            "$ref": "#/components/schemas/UnionDef"
           }
         }
       },
@@ -335,12 +335,12 @@ type NestedStruct struct {
           "items": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Union"
+              "$ref": "#/components/schemas/UnionDef"
             }
           }
         }
       },
-      "mapTripeList": {
+      "mapTripleList": {
         "type": "object",
         "additionalProperties": {
           "type": "array",
@@ -349,7 +349,7 @@ type NestedStruct struct {
             "items": {
               "type": "array",
               "items": {
-                "$ref": "#/components/schemas/Union"
+                "$ref": "#/components/schemas/UnionDef"
               }
             }
           }
@@ -373,18 +373,18 @@ type NestedStruct struct {
         ],
         "properties": {
           "structUnion": {
-            "$ref": "#/components/schemas/Union"
+            "$ref": "#/components/schemas/UnionDef"
           },
           "mapUnion": {
             "type": "object",
             "additionalProperties": {
-              "$ref": "#/components/schemas/Union"
+              "$ref": "#/components/schemas/UnionDef"
             }
           },
           "listUnion": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Union"
+              "$ref": "#/components/schemas/UnionDef"
             }
           }
         }
@@ -403,7 +403,7 @@ type NestedStruct struct {
   "paths": {},
   "components": {
     "schemas": {
-      "Union": {
+      "UnionDef": {
         "oneOf": [
           {},
           {}
@@ -420,7 +420,7 @@ type NestedStruct struct {
           "mapListChained",
           "doubleList",
           "mapDoubleList",
-          "mapTripeList",
+          "mapTripleList",
           "emptyStructs",
           "nestedStruct"
         ],
@@ -524,7 +524,7 @@ type NestedStruct struct {
               }
             }
           },
-          "mapTripeList": {
+          "mapTripleList": {
             "type": "object",
             "additionalProperties": {
               "type": "array",
