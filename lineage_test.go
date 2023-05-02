@@ -16,6 +16,7 @@ func TestBindLineage(t *testing.T) {
 		Name: "bind",
 		ToDo: map[string]string{
 			"lineage/defaultchange": "Thema compat analyzer fails to classify changes to default values as breaking",
+			"lineage/optional":      "Optional fields do not satisfy struct.MinFields(), causing #Lineage constraints to fail",
 		},
 	}
 

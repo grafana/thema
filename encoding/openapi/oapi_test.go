@@ -19,6 +19,7 @@ func TestGenerate(t *testing.T) {
 		Name: "encoding/openapi/TestGenerate",
 		ToDo: map[string]string{
 			"lineage/defaultchange": "default backcompat invariants not working properly yet",
+			"lineage/optional":      "Optional fields do not satisfy struct.MinFields(), causing #Lineage constraints to fail",
 		},
 	}
 	ctx := cuecontext.New()

@@ -1,0 +1,20 @@
+# schema contains optional fields of all cue kinds
+-- in.cue --
+import "github.com/grafana/thema"
+
+thema.#Lineage
+name: "optional"
+schemas: [{
+	version: [0, 0]
+	schema: {
+        astring?: string
+        anint?:   int
+        abool?:   bool
+        abytes?:  bytes
+        alist?:   [...string]
+        astruct?: {
+            nested: string
+        }
+	}
+}]
+lenses: []

@@ -1,0 +1,189 @@
+# lineage containing two trivial schemas
+#lineagePath: lin
+-- in.cue --
+
+import "github.com/grafana/thema"
+
+lin: thema.#Lineage
+lin: name: "trivial-two-comments"
+lin: schemas: [{
+    version: [0, 0]
+
+    // This should be schema/object-level docs
+    schema: {
+        // TODO some thing to be done
+        firstfield: string
+    }
+},
+{
+    version: [0, 1]
+    // Different schema/object-level docs for the next schema
+    schema: {
+        // TODO some thing to be done
+        firstfield: string
+        // but clearly this one is a great idea
+        secondfield?: int32
+    }
+}]
+
+lin: lenses: [{
+    from: [0, 1]
+    to: [0, 0]
+    input: _
+    result: {
+        firstfield: input.firstfield
+    }
+}]
+-- out/bind --
+Schema count: 2
+Schema versions: 0.0, 0.1
+Lenses count: 1
+-- out/encoding/openapi/TestGenerate/nilcfg --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "trivialtwocomments",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "trivialtwocomments": {
+        "type": "object",
+        "required": [
+          "firstfield"
+        ],
+        "properties": {
+          "firstfield": {
+            "description": "TODO some thing to be done",
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}== 0.1.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "trivialtwocomments",
+    "version": "0.1"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "trivialtwocomments": {
+        "type": "object",
+        "required": [
+          "firstfield"
+        ],
+        "properties": {
+          "firstfield": {
+            "description": "TODO some thing to be done",
+            "type": "string"
+          },
+          "secondfield": {
+            "description": "but clearly this one is a great idea",
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      }
+    }
+  }
+}
+-- out/encoding/gocode/TestGenerate/nilcfg --
+== trivialtwocomments_type_0.0_gen.go
+package trivialtwocomments
+
+// Trivialtwocomments defines model for trivialtwocomments.
+type Trivialtwocomments struct {
+	// TODO some thing to be done
+	Firstfield string `json:"firstfield"`
+}
+== trivialtwocomments_type_0.1_gen.go
+package trivialtwocomments
+
+// Trivialtwocomments defines model for trivialtwocomments.
+type Trivialtwocomments struct {
+	// TODO some thing to be done
+	Firstfield string `json:"firstfield"`
+
+	// Secondfield but clearly this one is a great idea
+	Secondfield *int32 `json:"secondfield,omitempty"`
+}
+-- out/encoding/gocode/TestGenerate/group --
+== trivialtwocomments_type_0.0_gen.go
+package trivialtwocomments
+
+// TODO some thing to be done
+type Firstfield = string
+== trivialtwocomments_type_0.1_gen.go
+package trivialtwocomments
+
+// TODO some thing to be done
+type Firstfield = string
+
+// Secondfield but clearly this one is a great idea
+type Secondfield = int32
+-- out/encoding/gocode/TestGenerate/depointerized --
+== trivialtwocomments_type_0.0_gen.go
+package trivialtwocomments
+
+// Trivialtwocomments defines model for trivialtwocomments.
+type Trivialtwocomments struct {
+	// TODO some thing to be done
+	Firstfield string `json:"firstfield"`
+}
+== trivialtwocomments_type_0.1_gen.go
+package trivialtwocomments
+
+// Trivialtwocomments defines model for trivialtwocomments.
+type Trivialtwocomments struct {
+	// TODO some thing to be done
+	Firstfield string `json:"firstfield"`
+
+	// Secondfield but clearly this one is a great idea
+	Secondfield int32 `json:"secondfield,omitempty"`
+}
+-- out/encoding/gocode/TestGenerate/godeclincomments --
+== trivialtwocomments_type_0.0_gen.go
+package trivialtwocomments
+
+// Trivialtwocomments defines model for trivialtwocomments.
+type Trivialtwocomments struct {
+	// Firstfield TODO some thing to be done
+	Firstfield string `json:"firstfield"`
+}
+== trivialtwocomments_type_0.1_gen.go
+package trivialtwocomments
+
+// Trivialtwocomments defines model for trivialtwocomments.
+type Trivialtwocomments struct {
+	// Firstfield TODO some thing to be done
+	Firstfield string `json:"firstfield"`
+
+	// Secondfield but clearly this one is a great idea
+	Secondfield *int32 `json:"secondfield,omitempty"`
+}
+-- out/encoding/gocode/TestGenerate/expandref --
+== trivialtwocomments_type_0.0_gen.go
+package trivialtwocomments
+
+// Trivialtwocomments defines model for trivialtwocomments.
+type Trivialtwocomments struct {
+	// TODO some thing to be done
+	Firstfield string `json:"firstfield"`
+}
+== trivialtwocomments_type_0.1_gen.go
+package trivialtwocomments
+
+// Trivialtwocomments defines model for trivialtwocomments.
+type Trivialtwocomments struct {
+	// TODO some thing to be done
+	Firstfield string `json:"firstfield"`
+
+	// Secondfield but clearly this one is a great idea
+	Secondfield *int32 `json:"secondfield,omitempty"`
+}

@@ -1,0 +1,272 @@
+# schema contains optional fields of all cue kinds.
+# TODO Remove this once the 'optional' corpus case is fixed.
+-- in.cue --
+import "github.com/grafana/thema"
+
+thema.#Lineage
+name: "nearoptional"
+schemas: [{
+	version: [0, 0]
+	schema: {
+        notoptional: int32
+        astring?: string
+        anint?:   int
+        abool?:   bool
+        abytes?:  bytes
+        alist?:   [...string]
+        astruct?: {
+            nested: string
+        }
+	}
+}]
+lenses: []
+-- out/encoding/openapi/TestGenerate/nilcfg --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "nearoptional",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "nearoptional": {
+        "type": "object",
+        "required": [
+          "notoptional"
+        ],
+        "properties": {
+          "notoptional": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "astring": {
+            "type": "string"
+          },
+          "anint": {
+            "type": "integer"
+          },
+          "abool": {
+            "type": "boolean"
+          },
+          "abytes": {
+            "type": "string",
+            "format": "binary"
+          },
+          "alist": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "astruct": {
+            "type": "object",
+            "required": [
+              "nested"
+            ],
+            "properties": {
+              "nested": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+-- out/encoding/openapi/TestGenerate/group --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "nearoptional",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "notoptional": {
+        "type": "integer",
+        "format": "int32"
+      },
+      "astring": {
+        "type": "string"
+      },
+      "anint": {
+        "type": "integer"
+      },
+      "abool": {
+        "type": "boolean"
+      },
+      "abytes": {
+        "type": "string",
+        "format": "binary"
+      },
+      "alist": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "astruct": {
+        "type": "object",
+        "required": [
+          "nested"
+        ],
+        "properties": {
+          "nested": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
+-- out/encoding/openapi/TestGenerate/expandrefs --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "nearoptional",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "nearoptional": {
+        "type": "object",
+        "required": [
+          "notoptional"
+        ],
+        "properties": {
+          "notoptional": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "astring": {
+            "type": "string"
+          },
+          "anint": {
+            "type": "integer"
+          },
+          "abool": {
+            "type": "boolean"
+          },
+          "abytes": {
+            "type": "string",
+            "format": "binary"
+          },
+          "alist": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "astruct": {
+            "type": "object",
+            "required": [
+              "nested"
+            ],
+            "properties": {
+              "nested": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+-- out/encoding/gocode/TestGenerate/nilcfg --
+== nearoptional_type_0.0_gen.go
+package nearoptional
+
+// Nearoptional defines model for nearoptional.
+type Nearoptional struct {
+	Abool   *bool    `json:"abool,omitempty"`
+	Abytes  []byte   `json:"abytes,omitempty"`
+	Alist   []string `json:"alist,omitempty"`
+	Anint   *int     `json:"anint,omitempty"`
+	Astring *string  `json:"astring,omitempty"`
+	Astruct *struct {
+		Nested string `json:"nested"`
+	} `json:"astruct,omitempty"`
+	Notoptional int32 `json:"notoptional"`
+}
+-- out/encoding/gocode/TestGenerate/group --
+== nearoptional_type_0.0_gen.go
+package nearoptional
+
+// Abool defines model for abool.
+type Abool = bool
+
+// Abytes defines model for abytes.
+type Abytes = []byte
+
+// Alist defines model for alist.
+type Alist = []string
+
+// Anint defines model for anint.
+type Anint = int
+
+// Astring defines model for astring.
+type Astring = string
+
+// Astruct defines model for astruct.
+type Astruct struct {
+	Nested string `json:"nested"`
+}
+
+// Notoptional defines model for notoptional.
+type Notoptional = int32
+-- out/encoding/gocode/TestGenerate/depointerized --
+== optional_type_0.0_gen.go
+package optional
+
+// Optional defines model for optional.
+type Optional struct {
+	Abool   bool     `json:"abool,omitempty"`
+	Abytes  []byte   `json:"abytes,omitempty"`
+	Alist   []string `json:"alist,omitempty"`
+	Anint   int      `json:"anint,omitempty"`
+	Astring string   `json:"astring,omitempty"`
+	Astruct struct {
+		Nested string `json:"nested"`
+	} `json:"astruct,omitempty"`
+	Notoptional int32 `json:"notoptional"`
+}
+-- out/encoding/gocode/TestGenerate/godeclincomments --
+== optional_type_0.0_gen.go
+package optional
+
+// Optional defines model for optional.
+type Optional struct {
+	Abool   *bool    `json:"abool,omitempty"`
+	Abytes  []byte   `json:"abytes,omitempty"`
+	Alist   []string `json:"alist,omitempty"`
+	Anint   *int     `json:"anint,omitempty"`
+	Astring *string  `json:"astring,omitempty"`
+	Astruct *struct {
+		Nested string `json:"nested"`
+	} `json:"astruct,omitempty"`
+	Notoptional int32 `json:"notoptional"`
+}
+-- out/encoding/gocode/TestGenerate/expandref --
+== optional_type_0.0_gen.go
+package optional
+
+// Optional defines model for optional.
+type Optional struct {
+	Abool   *bool    `json:"abool,omitempty"`
+	Abytes  []byte   `json:"abytes,omitempty"`
+	Alist   []string `json:"alist,omitempty"`
+	Anint   *int     `json:"anint,omitempty"`
+	Astring *string  `json:"astring,omitempty"`
+	Astruct *struct {
+		Nested string `json:"nested"`
+	} `json:"astruct,omitempty"`
+	Notoptional int32 `json:"notoptional"`
+}

@@ -27,7 +27,6 @@ func NewLineage(sch cue.Value, name, pkgname string) (*ast.File, error) {
 	}
 	b, err := astutil.FmtNode(x)
 	if err != nil {
-
 		return nil, fmt.Errorf("failed to convert input schema to string: %ww", err)
 	}
 
@@ -58,7 +57,7 @@ func NewLineage(sch cue.Value, name, pkgname string) (*ast.File, error) {
 // The provided lineage node is modified in place. Corresponding lenses are not
 // generated. The result is not checked for Thema validity. Behavior is
 // undefined if the provided lineage node is not well-formed.
-func InsertSchemaNodeAs(lin ast.Node, sch ast.Expr, v thema.SyntacticVersion) error {
+func insertSchemaNodeAs(lin ast.Node, sch ast.Expr, v thema.SyntacticVersion) error {
 	seql := astutil.FindSeqs(lin)
 	if seql == nil {
 		return fmt.Errorf("could not find seqs list in input - invalid lineage ast?")
@@ -121,7 +120,7 @@ schemas: [
 // lineage, the new schema will be appended to the latest sequence (minor
 // version bump). Otherwise, a new sequence will be created with the provided
 // schema as its only element (major version bump).
-func Append(lin thema.Lineage, sch cue.Value) (ast.Node, error) {
+func appendlin(lin thema.Lineage, sch cue.Value) (ast.Node, error) {
 	linf := astutil.Format(lin.Underlying()).(*ast.File)
 	schnode := astutil.ToExpr(astutil.Format(sch))
 

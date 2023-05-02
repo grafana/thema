@@ -19,7 +19,6 @@ linters:
     - dogsled
     - errcheck
     - exportloopref
-    - funlen
     - gochecknoinits
     - gocritic
     - goconst
