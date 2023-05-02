@@ -14,6 +14,7 @@ var rt = thema.NewRuntime(ctx)
 func main() {
 	setupDataCommand(rootCmd)
 	setupLineageCommand(rootCmd)
+	setupSrvCommand(rootCmd)
 
 	// Stop cobra from being so "helpful"
 	for _, cmd := range allCmds {

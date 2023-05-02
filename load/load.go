@@ -203,3 +203,28 @@ func Package(name string) Option {
 func ToOverlay(prefix string, vfs fs.FS, overlay map[string]load.Source) error {
 	return util.ToOverlay(prefix, vfs, overlay)
 }
+
+// LineageFromBytes takes bytes from a CUE file and return an instance of thema.Lineage
+func LineageFromBytes(lineage []byte) (thema.Lineage, error) {
+	fs := fstest.MapFS{
+		"tmp.cue": &fstest.MapFile{
+			Data: append([]byte("package tmp\n"), lineage...),
+		},
+		"cue.mod/module.cue": &fstest.MapFile{
+			Data: []byte("module: \"thema.lineage/tmp\""),
+		},
+	}
+
+	inst, err := InstanceWithThema(fs, ".")
+	if err != nil {
+		return nil, err
+	}
+
+	rt := thema.NewRuntime(cuecontext.New())
+	val := rt.Context().BuildInstance(inst)
+	if err = val.Err(); err != nil {
+		return nil, err
+	}
+
+	return thema.BindLineage(val, rt)
+}
