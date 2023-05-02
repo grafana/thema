@@ -139,3 +139,14 @@ package refscalar
 
 // SomeField defines model for someField.
 type SomeField = string
+-- out/encoding/gocode/TestGenerate/depointerized --
+== refscalar_type_0.0_gen.go
+package refscalar
+
+// Baz defines model for Baz.
+type Baz = string
+
+// Refscalar defines model for refscalar.
+type Refscalar struct {
+	SomeField Baz `json:"someField"`
+}

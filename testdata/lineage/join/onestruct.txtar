@@ -152,3 +152,14 @@ type AField struct {
 
 // Foo defines model for foo.
 type Foo = string
+-- out/encoding/gocode/TestGenerate/depointerized --
+== onestruct_type_0.0_gen.go
+package onestruct
+
+// Onestruct defines model for onestruct.
+type Onestruct struct {
+	AField struct {
+		DefLitField string `json:"defLitField"`
+	} `json:"aField"`
+	Foo string `json:"foo"`
+}

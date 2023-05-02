@@ -99,3 +99,11 @@ package repeat
 
 // Foo defines model for foo.
 type Foo = string
+-- out/encoding/gocode/TestGenerate/depointerized --
+== repeat_type_0.0_gen.go
+package repeat
+
+// Repeat defines model for repeat.
+type Repeat struct {
+	Foo string `json:"foo"`
+}

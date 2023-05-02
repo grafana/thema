@@ -122,3 +122,12 @@ type Bar = string
 
 // Foo defines model for foo.
 type Foo = string
+-- out/encoding/gocode/TestGenerate/depointerized --
+== oneone_type_0.0_gen.go
+package oneone
+
+// Oneone defines model for oneone.
+type Oneone struct {
+	Bar string `json:"bar"`
+	Foo string `json:"foo"`
+}

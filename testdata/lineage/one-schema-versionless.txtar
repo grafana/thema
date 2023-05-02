@@ -95,3 +95,11 @@ package oneschemaversionless
 
 // Firstfield defines model for firstfield.
 type Firstfield = string
+-- out/encoding/gocode/TestGenerate/depointerized --
+== oneschemaversionless_type_0.0_gen.go
+package oneschemaversionless
+
+// Oneschemaversionless defines model for oneschemaversionless.
+type Oneschemaversionless struct {
+	Firstfield string `json:"firstfield"`
+}
