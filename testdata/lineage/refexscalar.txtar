@@ -150,3 +150,22 @@ type Baz = string
 type Refscalar struct {
 	SomeField Baz `json:"someField"`
 }
+-- out/encoding/gocode/TestGenerate/godeclincomments --
+== refscalar_type_0.0_gen.go
+package refscalar
+
+// Baz defines model for Baz.
+type Baz = string
+
+// Refscalar defines model for refscalar.
+type Refscalar struct {
+	SomeField Baz `json:"someField"`
+}
+-- out/encoding/gocode/TestGenerate/expandref --
+== refscalar_type_0.0_gen.go
+package refscalar
+
+// Refscalar defines model for refscalar.
+type Refscalar struct {
+	SomeField string `json:"someField"`
+}

@@ -234,3 +234,37 @@ type Exref struct {
 	Ref    ExRef    `json:"ref"`
 	Refdef ExRefDef `json:"refdef"`
 }
+-- out/encoding/gocode/TestGenerate/godeclincomments --
+== exref_type_0.0_gen.go
+package exref
+
+// ExRef defines model for ExRef.
+type ExRef struct {
+	NormalField string `json:"normalField"`
+}
+
+// ExRefDef defines model for ExRefDef.
+type ExRefDef struct {
+	DefField string `json:"defField"`
+}
+
+// Exref defines model for exref.
+type Exref struct {
+	Foo    string   `json:"foo"`
+	Ref    ExRef    `json:"ref"`
+	Refdef ExRefDef `json:"refdef"`
+}
+-- out/encoding/gocode/TestGenerate/expandref --
+== exref_type_0.0_gen.go
+package exref
+
+// Exref defines model for exref.
+type Exref struct {
+	Foo string `json:"foo"`
+	Ref struct {
+		NormalField string `json:"normalField"`
+	} `json:"ref"`
+	Refdef struct {
+		DefField string `json:"defField"`
+	} `json:"refdef"`
+}

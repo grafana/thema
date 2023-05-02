@@ -155,3 +155,37 @@ type Embedexref struct {
 
 // EmbedexrefRefField2 defines model for Embedexref.RefField2.
 type EmbedexrefRefField2 int
+-- out/encoding/gocode/TestGenerate/godeclincomments --
+== embedexref_type_0.0_gen.go
+package embedexref
+
+// Defines values for EmbedexrefRefField2.
+const (
+	EmbedexrefRefField2N42 EmbedexrefRefField2 = 42
+)
+
+// Embedexref defines model for embedexref.
+type Embedexref struct {
+	RefField1 string              `json:"refField1"`
+	RefField2 EmbedexrefRefField2 `json:"refField2"`
+}
+
+// EmbedexrefRefField2 defines model for Embedexref.RefField2.
+type EmbedexrefRefField2 int
+-- out/encoding/gocode/TestGenerate/expandref --
+== embedexref_type_0.0_gen.go
+package embedexref
+
+// Defines values for EmbedexrefRefField2.
+const (
+	EmbedexrefRefField2N42 EmbedexrefRefField2 = 42
+)
+
+// Embedexref defines model for embedexref.
+type Embedexref struct {
+	RefField1 string              `json:"refField1"`
+	RefField2 EmbedexrefRefField2 `json:"refField2"`
+}
+
+// EmbedexrefRefField2 defines model for Embedexref.RefField2.
+type EmbedexrefRefField2 int

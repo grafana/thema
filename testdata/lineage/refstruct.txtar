@@ -234,3 +234,37 @@ type Baz struct {
 type Refstruct struct {
 	ABaz Baz `json:"aBaz"`
 }
+-- out/encoding/gocode/TestGenerate/godeclincomments --
+== refstruct_type_0.0_gen.go
+package refstruct
+
+// Baz defines model for Baz.
+type Baz struct {
+	Dat  int32  `json:"dat"`
+	Run  string `json:"run"`
+	Tell []byte `json:"tell"`
+}
+
+// Refstruct defines model for refstruct.
+type Refstruct struct {
+	ABaz Baz `json:"aBaz"`
+}
+-- out/encoding/gocode/TestGenerate/expandref --
+== refstruct_type_0.0_gen.go
+package refstruct
+
+// Baz defines model for Baz.
+type Baz struct {
+	Dat  int32  `json:"dat"`
+	Run  string `json:"run"`
+	Tell []byte `json:"tell"`
+}
+
+// Refstruct defines model for refstruct.
+type Refstruct struct {
+	ABaz struct {
+		Dat  int32  `json:"dat"`
+		Run  string `json:"run"`
+		Tell []byte `json:"tell"`
+	} `json:"aBaz"`
+}

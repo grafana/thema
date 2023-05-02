@@ -218,3 +218,35 @@ type Trivialtwo struct {
 	Firstfield  string `json:"firstfield"`
 	Secondfield int32  `json:"secondfield,omitempty"`
 }
+-- out/encoding/gocode/TestGenerate/godeclincomments --
+== trivialtwo_type_0.0_gen.go
+package trivialtwo
+
+// Trivialtwo defines model for trivialtwo.
+type Trivialtwo struct {
+	Firstfield string `json:"firstfield"`
+}
+== trivialtwo_type_0.1_gen.go
+package trivialtwo
+
+// Trivialtwo defines model for trivialtwo.
+type Trivialtwo struct {
+	Firstfield  string `json:"firstfield"`
+	Secondfield *int32 `json:"secondfield,omitempty"`
+}
+-- out/encoding/gocode/TestGenerate/expandref --
+== trivialtwo_type_0.0_gen.go
+package trivialtwo
+
+// Trivialtwo defines model for trivialtwo.
+type Trivialtwo struct {
+	Firstfield string `json:"firstfield"`
+}
+== trivialtwo_type_0.1_gen.go
+package trivialtwo
+
+// Trivialtwo defines model for trivialtwo.
+type Trivialtwo struct {
+	Firstfield  string `json:"firstfield"`
+	Secondfield *int32 `json:"secondfield,omitempty"`
+}

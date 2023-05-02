@@ -131,3 +131,21 @@ type Oneone struct {
 	Bar string `json:"bar"`
 	Foo string `json:"foo"`
 }
+-- out/encoding/gocode/TestGenerate/godeclincomments --
+== oneone_type_0.0_gen.go
+package oneone
+
+// Oneone defines model for oneone.
+type Oneone struct {
+	Bar string `json:"bar"`
+	Foo string `json:"foo"`
+}
+-- out/encoding/gocode/TestGenerate/expandref --
+== oneone_type_0.0_gen.go
+package oneone
+
+// Oneone defines model for oneone.
+type Oneone struct {
+	Bar string `json:"bar"`
+	Foo string `json:"foo"`
+}

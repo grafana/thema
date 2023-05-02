@@ -106,3 +106,19 @@ package onenone
 type Onenone struct {
 	Foo string `json:"foo"`
 }
+-- out/encoding/gocode/TestGenerate/godeclincomments --
+== onenone_type_0.0_gen.go
+package onenone
+
+// Onenone defines model for onenone.
+type Onenone struct {
+	Foo string `json:"foo"`
+}
+-- out/encoding/gocode/TestGenerate/expandref --
+== onenone_type_0.0_gen.go
+package onenone
+
+// Onenone defines model for onenone.
+type Onenone struct {
+	Foo string `json:"foo"`
+}

@@ -103,3 +103,19 @@ package oneschemaversionless
 type Oneschemaversionless struct {
 	Firstfield string `json:"firstfield"`
 }
+-- out/encoding/gocode/TestGenerate/godeclincomments --
+== oneschemaversionless_type_0.0_gen.go
+package oneschemaversionless
+
+// Oneschemaversionless defines model for oneschemaversionless.
+type Oneschemaversionless struct {
+	Firstfield string `json:"firstfield"`
+}
+-- out/encoding/gocode/TestGenerate/expandref --
+== oneschemaversionless_type_0.0_gen.go
+package oneschemaversionless
+
+// Oneschemaversionless defines model for oneschemaversionless.
+type Oneschemaversionless struct {
+	Firstfield string `json:"firstfield"`
+}

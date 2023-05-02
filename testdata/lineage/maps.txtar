@@ -467,3 +467,51 @@ type Maps struct {
 		Foo string `json:"foo"`
 	} `json:"valStruct"`
 }
+-- out/encoding/gocode/TestGenerate/godeclincomments --
+== maps_type_0.0_gen.go
+package maps
+
+// AMap defines model for aMap.
+type AMap map[string]bool
+
+// AStruct defines model for aStruct.
+type AStruct struct {
+	Foo string `json:"foo"`
+}
+
+// Maps defines model for maps.
+type Maps struct {
+	OptValList      map[string][]string `json:"optValList,omitempty"`
+	OptValPrimitive map[string]bool     `json:"optValPrimitive,omitempty"`
+	OptValStruct    map[string]struct {
+		Foo string `json:"foo"`
+	} `json:"optValStruct,omitempty"`
+	RefValue     map[string]AStruct  `json:"refValue"`
+	SomeField    AMap                `json:"someField"`
+	ValList      map[string][]string `json:"valList"`
+	ValPrimitive map[string]bool     `json:"valPrimitive"`
+	ValStruct    map[string]struct {
+		Foo string `json:"foo"`
+	} `json:"valStruct"`
+}
+-- out/encoding/gocode/TestGenerate/expandref --
+== maps_type_0.0_gen.go
+package maps
+
+// Maps defines model for maps.
+type Maps struct {
+	OptValList      map[string][]string `json:"optValList,omitempty"`
+	OptValPrimitive map[string]bool     `json:"optValPrimitive,omitempty"`
+	OptValStruct    map[string]struct {
+		Foo string `json:"foo"`
+	} `json:"optValStruct,omitempty"`
+	RefValue map[string]struct {
+		Foo string `json:"foo"`
+	} `json:"refValue"`
+	SomeField    map[string]bool     `json:"someField"`
+	ValList      map[string][]string `json:"valList"`
+	ValPrimitive map[string]bool     `json:"valPrimitive"`
+	ValStruct    map[string]struct {
+		Foo string `json:"foo"`
+	} `json:"valStruct"`
+}

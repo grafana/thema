@@ -107,3 +107,19 @@ package repeat
 type Repeat struct {
 	Foo string `json:"foo"`
 }
+-- out/encoding/gocode/TestGenerate/godeclincomments --
+== repeat_type_0.0_gen.go
+package repeat
+
+// Repeat defines model for repeat.
+type Repeat struct {
+	Foo string `json:"foo"`
+}
+-- out/encoding/gocode/TestGenerate/expandref --
+== repeat_type_0.0_gen.go
+package repeat
+
+// Repeat defines model for repeat.
+type Repeat struct {
+	Foo string `json:"foo"`
+}

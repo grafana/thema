@@ -163,3 +163,25 @@ type Onestruct struct {
 	} `json:"aField"`
 	Foo string `json:"foo"`
 }
+-- out/encoding/gocode/TestGenerate/godeclincomments --
+== onestruct_type_0.0_gen.go
+package onestruct
+
+// Onestruct defines model for onestruct.
+type Onestruct struct {
+	AField struct {
+		DefLitField string `json:"defLitField"`
+	} `json:"aField"`
+	Foo string `json:"foo"`
+}
+-- out/encoding/gocode/TestGenerate/expandref --
+== onestruct_type_0.0_gen.go
+package onestruct
+
+// Onestruct defines model for onestruct.
+type Onestruct struct {
+	AField struct {
+		DefLitField string `json:"defLitField"`
+	} `json:"aField"`
+	Foo string `json:"foo"`
+}
