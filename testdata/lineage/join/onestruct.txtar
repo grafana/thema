@@ -130,3 +130,14 @@ Lenses count: 0
     }
   }
 }
+-- out/encoding/gocode/TestGenerate/nilcfg --
+== onestruct_type_0.0_gen.go
+package onestruct
+
+// Onestruct defines model for onestruct.
+type Onestruct struct {
+	AField struct {
+		DefLitField string `json:"defLitField"`
+	} `json:"aField"`
+	Foo string `json:"foo"`
+}

@@ -178,3 +178,23 @@ Lenses count: 0
     }
   }
 }
+-- out/encoding/gocode/TestGenerate/nilcfg --
+== exref_type_0.0_gen.go
+package exref
+
+// ExRef defines model for ExRef.
+type ExRef struct {
+	NormalField string `json:"normalField"`
+}
+
+// ExRefDef defines model for ExRefDef.
+type ExRefDef struct {
+	DefField string `json:"defField"`
+}
+
+// Exref defines model for exref.
+type Exref struct {
+	Foo    string   `json:"foo"`
+	Ref    ExRef    `json:"ref"`
+	Refdef ExRefDef `json:"refdef"`
+}

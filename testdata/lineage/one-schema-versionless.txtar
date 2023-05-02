@@ -81,3 +81,11 @@ Lenses count: 0
     }
   }
 }
+-- out/encoding/gocode/TestGenerate/nilcfg --
+== oneschemaversionless_type_0.0_gen.go
+package oneschemaversionless
+
+// Oneschemaversionless defines model for oneschemaversionless.
+type Oneschemaversionless struct {
+	Firstfield string `json:"firstfield"`
+}

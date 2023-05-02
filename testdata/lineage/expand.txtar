@@ -402,3 +402,56 @@ Lenses count: 3
     }
   }
 }
+-- out/encoding/gocode/TestGenerate/nilcfg --
+== expand_type_0.0_gen.go
+package expand
+
+// Expand defines model for expand.
+type Expand struct {
+	Init string `json:"init"`
+}
+== expand_type_0.1_gen.go
+package expand
+
+// Expand defines model for expand.
+type Expand struct {
+	Init     string `json:"init"`
+	Optional *int   `json:"optional,omitempty"`
+}
+== expand_type_0.2_gen.go
+package expand
+
+// Defines values for ExpandWithDefault.
+const (
+	ExpandWithDefaultBar ExpandWithDefault = "bar"
+	ExpandWithDefaultFoo ExpandWithDefault = "foo"
+)
+
+// Expand defines model for expand.
+type Expand struct {
+	Init        string             `json:"init"`
+	Optional    *int               `json:"optional,omitempty"`
+	WithDefault *ExpandWithDefault `json:"withDefault,omitempty"`
+}
+
+// ExpandWithDefault defines model for Expand.WithDefault.
+type ExpandWithDefault string
+== expand_type_0.3_gen.go
+package expand
+
+// Defines values for ExpandWithDefault.
+const (
+	ExpandWithDefaultBar ExpandWithDefault = "bar"
+	ExpandWithDefaultBaz ExpandWithDefault = "baz"
+	ExpandWithDefaultFoo ExpandWithDefault = "foo"
+)
+
+// Expand defines model for expand.
+type Expand struct {
+	Init        string             `json:"init"`
+	Optional    *int               `json:"optional,omitempty"`
+	WithDefault *ExpandWithDefault `json:"withDefault,omitempty"`
+}
+
+// ExpandWithDefault defines model for Expand.WithDefault.
+type ExpandWithDefault string

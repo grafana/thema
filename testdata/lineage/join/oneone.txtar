@@ -104,3 +104,12 @@ Lenses count: 0
     }
   }
 }
+-- out/encoding/gocode/TestGenerate/nilcfg --
+== oneone_type_0.0_gen.go
+package oneone
+
+// Oneone defines model for oneone.
+type Oneone struct {
+	Bar string `json:"bar"`
+	Foo string `json:"foo"`
+}

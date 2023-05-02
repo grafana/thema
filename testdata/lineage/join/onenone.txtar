@@ -3,7 +3,7 @@
 import "github.com/grafana/thema"
 
 thema.#Lineage
-name: "oneone"
+name: "onenone"
 joinSchema: {
     foo: string
 }
@@ -22,13 +22,13 @@ Lenses count: 0
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "oneone",
+    "title": "onenone",
     "version": "0.0"
   },
   "paths": {},
   "components": {
     "schemas": {
-      "oneone": {
+      "onenone": {
         "type": "object",
         "required": [
           "foo"
@@ -47,13 +47,13 @@ Lenses count: 0
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "oneone",
+    "title": "onenone",
     "version": "0.0"
   },
   "paths": {},
   "components": {
     "schemas": {
-      "oneone": {
+      "onenone": {
         "type": "object",
         "required": [
           "foo"
@@ -72,7 +72,7 @@ Lenses count: 0
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "oneone",
+    "title": "onenone",
     "version": "0.0"
   },
   "paths": {},
@@ -83,4 +83,12 @@ Lenses count: 0
       }
     }
   }
+}
+-- out/encoding/gocode/TestGenerate/nilcfg --
+== onenone_type_0.0_gen.go
+package onenone
+
+// Onenone defines model for onenone.
+type Onenone struct {
+	Foo string `json:"foo"`
 }
