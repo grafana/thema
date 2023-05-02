@@ -84,3 +84,26 @@ Lenses count: 0
     }
   }
 }
+-- out/encoding/openapi/TestGenerate/group --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "embedexref",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "refField1": {
+        "type": "string"
+      },
+      "refField2": {
+        "type": "integer",
+        "enum": [
+          42
+        ]
+      }
+    }
+  }
+}

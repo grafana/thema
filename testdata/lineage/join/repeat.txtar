@@ -68,3 +68,20 @@ Lenses count: 0
     }
   }
 }
+-- out/encoding/openapi/TestGenerate/group --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "repeat",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "foo": {
+        "type": "string"
+      }
+    }
+  }
+}

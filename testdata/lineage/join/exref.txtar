@@ -139,3 +139,42 @@ Lenses count: 0
     }
   }
 }
+-- out/encoding/openapi/TestGenerate/group --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "exref",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "ref": {
+        "type": "object",
+        "required": [
+          "normalField"
+        ],
+        "properties": {
+          "normalField": {
+            "type": "string"
+          }
+        }
+      },
+      "foo": {
+        "type": "string"
+      },
+      "refdef": {
+        "type": "object",
+        "required": [
+          "defField"
+        ],
+        "properties": {
+          "defField": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
