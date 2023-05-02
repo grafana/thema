@@ -1,13 +1,13 @@
-# schema contains reference to a definition that is of struct kind
+# schema contains a normal field and a definition not referenced by the field
 -- in.cue --
 import "github.com/grafana/thema"
 
 thema.#Lineage
-name: "refstruct"
+name: "noref"
 schemas: [{
 	version: [0, 0]
 	schema: {
-		aBaz: #Baz
+		someField: string
 
 		#Baz: {
 			run:  string
@@ -26,7 +26,7 @@ Lenses count: 0
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "refstruct",
+    "title": "noref",
     "version": "0.0"
   },
   "paths": {},
@@ -53,14 +53,14 @@ Lenses count: 0
           }
         }
       },
-      "refstruct": {
+      "noref": {
         "type": "object",
         "required": [
-          "aBaz"
+          "someField"
         ],
         "properties": {
-          "aBaz": {
-            "$ref": "#/components/schemas/Baz"
+          "someField": {
+            "type": "string"
           }
         }
       }
@@ -72,7 +72,7 @@ Lenses count: 0
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "refstruct",
+    "title": "noref",
     "version": "0.0"
   },
   "paths": {},
@@ -99,32 +99,14 @@ Lenses count: 0
           }
         }
       },
-      "refstruct": {
+      "noref": {
         "type": "object",
         "required": [
-          "aBaz"
+          "someField"
         ],
         "properties": {
-          "aBaz": {
-            "type": "object",
-            "required": [
-              "run",
-              "tell",
-              "dat"
-            ],
-            "properties": {
-              "run": {
-                "type": "string"
-              },
-              "tell": {
-                "type": "string",
-                "format": "binary"
-              },
-              "dat": {
-                "type": "integer",
-                "format": "int32"
-              }
-            }
+          "someField": {
+            "type": "string"
           }
         }
       }

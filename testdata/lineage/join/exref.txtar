@@ -90,3 +90,52 @@ Lenses count: 0
     }
   }
 }
+-- out/encoding/openapi/TestGenerate/expandrefs --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "exref",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "exref": {
+        "type": "object",
+        "required": [
+          "ref",
+          "foo",
+          "refdef"
+        ],
+        "properties": {
+          "ref": {
+            "type": "object",
+            "required": [
+              "normalField"
+            ],
+            "properties": {
+              "normalField": {
+                "type": "string"
+              }
+            }
+          },
+          "foo": {
+            "type": "string"
+          },
+          "refdef": {
+            "type": "object",
+            "required": [
+              "defField"
+            ],
+            "properties": {
+              "defField": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

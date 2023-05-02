@@ -52,3 +52,35 @@ Lenses count: 0
     }
   }
 }
+-- out/encoding/openapi/TestGenerate/expandrefs --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "embedexref",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "embedexref": {
+        "type": "object",
+        "required": [
+          "refField1",
+          "refField2"
+        ],
+        "properties": {
+          "refField1": {
+            "type": "string"
+          },
+          "refField2": {
+            "type": "integer",
+            "enum": [
+              42
+            ]
+          }
+        }
+      }
+    }
+  }
+}

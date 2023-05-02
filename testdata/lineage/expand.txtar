@@ -194,3 +194,123 @@ Lenses count: 3
     }
   }
 }
+-- out/encoding/openapi/TestGenerate/expandrefs --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "expand",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "expand": {
+        "type": "object",
+        "required": [
+          "init"
+        ],
+        "properties": {
+          "init": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}== 0.1.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "expand",
+    "version": "0.1"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "expand": {
+        "type": "object",
+        "required": [
+          "init"
+        ],
+        "properties": {
+          "init": {
+            "type": "string"
+          },
+          "optional": {
+            "type": "integer"
+          }
+        }
+      }
+    }
+  }
+}== 0.2.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "expand",
+    "version": "0.2"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "expand": {
+        "type": "object",
+        "required": [
+          "init"
+        ],
+        "properties": {
+          "init": {
+            "type": "string"
+          },
+          "optional": {
+            "type": "integer"
+          },
+          "withDefault": {
+            "type": "string",
+            "enum": [
+              "foo",
+              "bar"
+            ],
+            "default": "foo"
+          }
+        }
+      }
+    }
+  }
+}== 0.3.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "expand",
+    "version": "0.3"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "expand": {
+        "type": "object",
+        "required": [
+          "init"
+        ],
+        "properties": {
+          "init": {
+            "type": "string"
+          },
+          "optional": {
+            "type": "integer"
+          },
+          "withDefault": {
+            "type": "string",
+            "enum": [
+              "foo",
+              "bar",
+              "baz"
+            ],
+            "default": "foo"
+          }
+        }
+      }
+    }
+  }
+}

@@ -46,3 +46,28 @@ Lenses count: 0
     }
   }
 }
+-- out/encoding/openapi/TestGenerate/expandrefs --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "refscalar",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "refscalar": {
+        "type": "object",
+        "required": [
+          "someField"
+        ],
+        "properties": {
+          "someField": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

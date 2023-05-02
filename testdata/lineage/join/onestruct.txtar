@@ -65,3 +65,40 @@ Lenses count: 0
     }
   }
 }
+-- out/encoding/openapi/TestGenerate/expandrefs --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "onestruct",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "onestruct": {
+        "type": "object",
+        "required": [
+          "aField",
+          "foo"
+        ],
+        "properties": {
+          "aField": {
+            "type": "object",
+            "required": [
+              "defLitField"
+            ],
+            "properties": {
+              "defLitField": {
+                "type": "string"
+              }
+            }
+          },
+          "foo": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

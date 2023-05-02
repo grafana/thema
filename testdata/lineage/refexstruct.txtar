@@ -67,3 +67,46 @@ Lenses count: 0
     }
   }
 }
+-- out/encoding/openapi/TestGenerate/expandrefs --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "refexstruct",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "refexstruct": {
+        "type": "object",
+        "required": [
+          "aBaz"
+        ],
+        "properties": {
+          "aBaz": {
+            "type": "object",
+            "required": [
+              "run",
+              "tell",
+              "dat"
+            ],
+            "properties": {
+              "run": {
+                "type": "string"
+              },
+              "tell": {
+                "type": "string",
+                "format": "binary"
+              },
+              "dat": {
+                "type": "integer",
+                "format": "int32"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

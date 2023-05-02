@@ -1,3 +1,4 @@
+# lineage containing two trivial schemas
 #lineagePath: lin
 -- in.cue --
 
@@ -32,6 +33,58 @@ Schema count: 2
 Schema versions: 0.0, 0.1
 Lenses count: 1
 -- out/encoding/openapi/TestGenerate/nilcfg --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "trivialtwo",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "trivialtwo": {
+        "type": "object",
+        "required": [
+          "firstfield"
+        ],
+        "properties": {
+          "firstfield": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}== 0.1.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "trivialtwo",
+    "version": "0.1"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "trivialtwo": {
+        "type": "object",
+        "required": [
+          "firstfield"
+        ],
+        "properties": {
+          "firstfield": {
+            "type": "string"
+          },
+          "secondfield": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      }
+    }
+  }
+}
+-- out/encoding/openapi/TestGenerate/expandrefs --
 == 0.0.json
 {
   "openapi": "3.0.0",

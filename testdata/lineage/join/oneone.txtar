@@ -55,3 +55,32 @@ Lenses count: 0
     }
   }
 }
+-- out/encoding/openapi/TestGenerate/expandrefs --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "oneone",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "oneone": {
+        "type": "object",
+        "required": [
+          "foo",
+          "bar"
+        ],
+        "properties": {
+          "foo": {
+            "type": "string"
+          },
+          "bar": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
