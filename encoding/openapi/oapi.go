@@ -174,14 +174,21 @@ func genSingle(gen *oapiGen) ([]ast.Decl, error) {
 
 	v := gen.sch.Underlying().Context().CompileString(fmt.Sprintf("#%s: _", name))
 	defpath := cue.MakePath(cue.Def(name))
+	// v, defpath := newEmptyDef(gen.sch.Underlying().Context(), name)
 	defsch := v.FillPath(defpath, gen.schdef)
 
 	gen.cfg.NameFunc = func(val cue.Value, path cue.Path) string {
+		// fmt.Println("NF===", path)
+		// if gen.sch.Lineage().Name() == "maps" {
+		// 	// fmt.Println("NF===", path, p(val))
+		// }
 		return gen.nfSingle(val, path, defpath, name)
 	}
 	gen.cfg.Info = newHeader(name, gen.sch.Version())
 
-	f, err := openapi.Generate(defsch, gen.cfg.Config)
+	// fmt.Println(gen.sch.Lineage().Name(), defsch.Eval())
+	// fmt.Println(gen.sch.Lineage().Name(), defsch)
+	f, err := openapi.Generate(defsch.Eval(), gen.cfg.Config)
 	if err != nil {
 		return nil, err
 	}
@@ -259,3 +266,24 @@ func trimThemaPathPrefix(p, base cue.Path) cue.Path {
 		return cue.MakePath(rest...)
 	}
 }
+
+// func p(val cue.Value) string {
+// 	return string(astutil.FmtNodeP(astutil.Format(val)))
+// }
+//
+// func newEmptyDef(ctx *cue.Context, name string) (cue.Value, cue.Path) {
+// 	rnd := randSeq(20)
+// 	v := ctx.CompileString(fmt.Sprintf("%s: #%s: _", rnd, name))
+// 	return v.LookupPath(cue.MakePath(cue.Str(rnd))), cue.MakePath(cue.Def(name))
+// }
+
+// var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+//
+// // randSeq produces random (basic, not crypto) letters of a given length.
+// func randSeq(n int) string {
+// 	b := make([]rune, n)
+// 	for i := range b {
+// 		b[i] = letters[rand.Intn(len(letters))]
+// 	}
+// 	return string(b)
+// }

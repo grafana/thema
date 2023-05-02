@@ -30,7 +30,7 @@ func TestGenerate(t *testing.T) {
 		cfg  *TypeConfigOpenAPI
 	}{
 		{
-			name: "nil",
+			name: "nilcfg",
 			cfg:  nil,
 		},
 		{
@@ -91,7 +91,7 @@ func TestGenerate(t *testing.T) {
 					}
 
 					// TODO add support for file name writing more generically
-					fmt.Fprintf(tc, "== %s_type_gen.go\n", saniname)
+					fmt.Fprintf(tc, "== %s_type_%s_gen.go\n", saniname, sch.Version())
 					tc.Write(f) //nolint:gosec,errcheck
 				}
 			})

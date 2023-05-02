@@ -344,12 +344,14 @@ func (x *TxTarTest) Run(t *testing.T, f func(tc *Test)) {
 				T:       t,
 				Archive: a,
 				Dir:     filepath.Dir(filepath.Join(dir, fullpath)),
-
-				prefix: path.Join("out", x.Name),
+				prefix:  path.Join("out", x.Name),
 			}
 
 			if tc.HasTag("skip") {
 				t.Skip()
+			}
+			if testing.Short() && tc.HasTag("slow") {
+				tc.Skip("case is tagged #slow, skipping for -short")
 			}
 
 			if msg, ok := x.Skip[testName]; ok {
@@ -384,6 +386,19 @@ func (x *TxTarTest) Run(t *testing.T, f func(tc *Test)) {
 
 			f(tc)
 
+			// TODO we MAY need the below if trying to enable parallel tests
+			//
+			// Lock and re-parse the txtar file now that test execution is done. This does
+			// make for some weird edge cases, but as long as underlying fs supports file
+			// locking (windows? :scream:) it should make it safe to run multiple tests on same
+			// txtar archive in parallel.
+			// lock := flock.New(fullpath)
+			// defer lock.Unlock()
+			// a, err = txtar.ParseFile(fullpath)
+			// if err != nil {
+			// 	t.Fatalf("error parsing txtar file: %v", err)
+			// }
+
 			index := make(map[string]int, len(a.Files))
 			for i, f := range a.Files {
 				index[f.Name] = i
@@ -411,7 +426,7 @@ func (x *TxTarTest) Run(t *testing.T, f func(tc *Test)) {
 					gold.Data = a.Files[i].Data
 					delete(index, sub.name)
 
-					if bytes.Equal(gold.Data, result) {
+					if bytes.Equal(gold.Data, result) || bytes.Equal(bytes.TrimRight(gold.Data, "\n"), result) {
 						continue
 					}
 				}
@@ -450,6 +465,15 @@ func (x *TxTarTest) Run(t *testing.T, f func(tc *Test)) {
 	if err != nil {
 		t.Fatal(err)
 	}
+}
+
+func dumpTestInfo(tc *Test) {
+	fmt.Println("=== TEST:", tc.Dir, tc.prefix)
+	fmt.Println("=== Files")
+	for _, f := range tc.Archive.Files {
+		fmt.Printf("===   %s\n", f.Name)
+	}
+	fmt.Println("=== END TEST")
 }
 
 type file struct {

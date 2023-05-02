@@ -37,6 +37,7 @@ type schemaDef struct {
 // Examples returns the set of examples of this schema defined in the original
 // lineage. The string key is the name given to the example.
 func (sch *schemaDef) Examples() map[string]*Instance {
+	panic("TODO")
 }
 
 func (sch *schemaDef) rt() *Runtime {
@@ -188,7 +189,7 @@ func BindType[T Assignee](sch Schema, t T) (TypedSchema[T], error) {
 	tsch.newfn = func() T {
 		nt := new(T)
 		rt.rl()
-		sch.Underlying().LookupPath(pathSchDef).Decode(nt) //nolint:errcheck
+		sch.Underlying().LookupPath(pathSchDef).Decode(nt) //nolint:gosec,errcheck
 		rt.ru()
 		return *nt
 	}
