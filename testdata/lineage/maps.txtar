@@ -337,3 +337,43 @@ Lenses count: 0
     }
   }
 }
+-- out/encoding/openapi/TestGenerate/subpath --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "someField",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "someField": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}
+-- out/encoding/openapi/TestGenerate/subpathroot --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "overriddenName",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "overriddenName": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}
