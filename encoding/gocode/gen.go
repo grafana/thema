@@ -16,10 +16,11 @@ import (
 	"github.com/dave/dst"
 	"github.com/dave/dst/decorator"
 	"github.com/dave/dst/dstutil"
-	"github.com/deepmap/oapi-codegen/pkg/codegen"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/grafana/thema"
 	"github.com/grafana/thema/encoding/openapi"
+	"github.com/grafana/thema/internal/deepmap/oapi-codegen/pkg/codegen"
+	"github.com/grafana/thema/internal/util"
 	"golang.org/x/tools/imports"
 )
 
@@ -54,8 +55,10 @@ type TypeConfigOpenAPI struct {
 	// default behavior when the fix is usually quite easy.)
 	IgnoreDiscoveredImports bool
 
-	// NoOptionalPointers removes all pointers the types that were marked as optional in cue file
-	// for Go files.
+	// NoOptionalPointers causes optional schema fields to be represented as normal
+	// Go struct fields, rather than as pointers. For example, a `foo?: string`
+	// field is usually converted to `Foo *string`, but is instead converted `Foo
+	// string` when NoOptionalPointers is true.
 	NoOptionalPointers bool
 
 	// UseGoDeclInComments sets the name of the fields and structs at the beginning of each comment.
@@ -110,8 +113,8 @@ func GenerateTypesOpenAPI(sch thema.Schema, cfg *TypeConfigOpenAPI) ([]byte, err
 			Models: true,
 		},
 		OutputOptions: codegen.OutputOptions{
-			SkipFmt:   true,
 			SkipPrune: true,
+			// SkipFmt:   true, // we should be able to skip fmt, but dst's parser panics on nested structs when we don't
 			UserTemplates: map[string]string{
 				"imports.tmpl": importstmpl,
 			},
@@ -387,7 +390,7 @@ type genGoFile struct {
 }
 
 func postprocessGoFile(cfg genGoFile) ([]byte, error) {
-	fname := filepath.Base(cfg.path)
+	fname := util.SanitizeLabelString(filepath.Base(cfg.path))
 	buf := new(bytes.Buffer)
 	fset := token.NewFileSet()
 	gf, err := decorator.ParseFile(fset, fname, string(cfg.in), parser.ParseComments)

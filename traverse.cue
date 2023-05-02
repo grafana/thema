@@ -1,53 +1,42 @@
 package thema
 
+// SearchAndValidate is a pseudofunction that takes a lineage (lin) and some candidate
+// data (inst) as an argument, and searches the lineage for a schema against which
+// that data is valid.
+//
+// A #LinkedInstance is "returned" (out) corresponding to the first schema in the
+// lineage for which the data is a valid instance of the schema. Data is not checked
+// for concreteness. If there is no match, bottom is returned.
+//
+// TODO optionally check for concreteness of otherwise valid data
 // TODO functionize
-#SearchAndValidate: {
-	lin:  #Lineage
-	inst: lin.joinSchema
-	out:  #LinkedInstance
+#SearchAndValidate: fn={
+	lin: _
+	inst: {...} // TODO consistently rename to 'object' or something
 
-	let ininst = inst
-	let inlin = lin
-	let all = (_all & {lin: inlin}).out
-	out: [ for _, vSch in all {
-		#LinkedInstance & {
-			v:    vSch.v
-			lin:  inlin
-			inst: ininst
-		}
-	}][0]
+	out: #LinkedInstance
+	out: [ for _, sch in fn.lin.schemas if ((inst & sch._#schema) != _|_) {
+		v:    sch.version
+		lin:  fn.lin
+		inst: inst & sch._#schema
+	}, _|_][0]
+}
+
+#ValidFor: {
+	lin: _
+	inst: {...} // TODO consistently rename to 'object' or something
+
+	out: #SyntacticVersion
+	out: [ for _, sch in lin._sortedSchemas if ((sch._#schema & inst) != _|_) {sch.version}][0]
 }
 
 // #LinkedInstance represents data that is an instance of some schema, the
-// version of that schema, and the lineage from which they all hail.
+// version of that schema, and the lineage of the schema.
 #LinkedInstance: {
-	inst: lin.joinSchema
-	lin:  #Lineage
-	v:    #SyntacticVersion
+	inst: {...} // TODO consistently rename to 'object' or something
+	lin:        #Lineage & {_atLeastOneSchema: true}
+	v:          #SyntacticVersion              // TODO rename to 'version'
 
 	// TODO need proper validation/subsumption check here, not simple unification
-	_valid: inst & lin.seqs[v[0]].schemas[v[1]]
-}
-
-// Latest indicates that traversal should continue until the latest schema in
-// the entire lineage is reached.
-#Latest: _#resolver & {
-	lin: #Lineage
-	to:  (#LatestVersion & {lin: lin}).out
-}
-
-// LatestWithinSequence indicates that, given a starting schema version,
-// traversal should continue to the latest version within the starting version's
-// sequence.
-#LatestWithinSequence: _#resolver & {
-	lin:  #Lineage
-	from: #SyntacticVersion
-	to: [from[0], len(lin.seqs[from[0]].schemas)]
-}
-
-// common type over #Latest and #LatestWithinSequence
-_#resolver: {
-	lin:   #Lineage
-	from?: #SyntacticVersion
-	to:    #SyntacticVersion & [<=(#LatestVersion & {lin: lin}).out[0], <len(lin.seqs[to[0]].schemas)]
+	//	_valid: inst & (#Pick & {lin: L.lin, v: v}).out
 }

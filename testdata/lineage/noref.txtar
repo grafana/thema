@@ -1,0 +1,226 @@
+# schema contains a normal field and a definition not referenced by the field
+-- in.cue --
+import "github.com/grafana/thema"
+
+thema.#Lineage
+name: "noref"
+schemas: [{
+	version: [0, 0]
+	schema: {
+		someField: string
+
+		#Baz: {
+			run:  string
+			tell: bytes
+			dat:  int32
+		}
+	}
+}]
+lenses: []
+-- out/bind --
+Schema count: 1
+Schema versions: 0.0
+Lenses count: 0
+-- out/encoding/openapi/TestGenerate/nilcfg --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "noref",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "Baz": {
+        "type": "object",
+        "required": [
+          "run",
+          "tell",
+          "dat"
+        ],
+        "properties": {
+          "run": {
+            "type": "string"
+          },
+          "tell": {
+            "type": "string",
+            "format": "binary"
+          },
+          "dat": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "noref": {
+        "type": "object",
+        "required": [
+          "someField"
+        ],
+        "properties": {
+          "someField": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
+-- out/encoding/openapi/TestGenerate/expandrefs --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "noref",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "Baz": {
+        "type": "object",
+        "required": [
+          "run",
+          "tell",
+          "dat"
+        ],
+        "properties": {
+          "run": {
+            "type": "string"
+          },
+          "tell": {
+            "type": "string",
+            "format": "binary"
+          },
+          "dat": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "noref": {
+        "type": "object",
+        "required": [
+          "someField"
+        ],
+        "properties": {
+          "someField": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
+-- out/encoding/openapi/TestGenerate/group --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "noref",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "someField": {
+        "type": "string"
+      },
+      "Baz": {
+        "type": "object",
+        "required": [
+          "run",
+          "tell",
+          "dat"
+        ],
+        "properties": {
+          "run": {
+            "type": "string"
+          },
+          "tell": {
+            "type": "string",
+            "format": "binary"
+          },
+          "dat": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      }
+    }
+  }
+}
+-- out/encoding/gocode/TestGenerate/nilcfg --
+== noref_type_0.0_gen.go
+package noref
+
+// Baz defines model for Baz.
+type Baz struct {
+	Dat  int32  `json:"dat"`
+	Run  string `json:"run"`
+	Tell []byte `json:"tell"`
+}
+
+// Noref defines model for noref.
+type Noref struct {
+	SomeField string `json:"someField"`
+}
+-- out/encoding/gocode/TestGenerate/group --
+== noref_type_0.0_gen.go
+package noref
+
+// Baz defines model for Baz.
+type Baz struct {
+	Dat  int32  `json:"dat"`
+	Run  string `json:"run"`
+	Tell []byte `json:"tell"`
+}
+
+// SomeField defines model for someField.
+type SomeField = string
+-- out/encoding/gocode/TestGenerate/depointerized --
+== noref_type_0.0_gen.go
+package noref
+
+// Baz defines model for Baz.
+type Baz struct {
+	Dat  int32  `json:"dat"`
+	Run  string `json:"run"`
+	Tell []byte `json:"tell"`
+}
+
+// Noref defines model for noref.
+type Noref struct {
+	SomeField string `json:"someField"`
+}
+-- out/encoding/gocode/TestGenerate/godeclincomments --
+== noref_type_0.0_gen.go
+package noref
+
+// Baz defines model for Baz.
+type Baz struct {
+	Dat  int32  `json:"dat"`
+	Run  string `json:"run"`
+	Tell []byte `json:"tell"`
+}
+
+// Noref defines model for noref.
+type Noref struct {
+	SomeField string `json:"someField"`
+}
+-- out/encoding/gocode/TestGenerate/expandref --
+== noref_type_0.0_gen.go
+package noref
+
+// Baz defines model for Baz.
+type Baz struct {
+	Dat  int32  `json:"dat"`
+	Run  string `json:"run"`
+	Tell []byte `json:"tell"`
+}
+
+// Noref defines model for noref.
+type Noref struct {
+	SomeField string `json:"someField"`
+}

@@ -1,0 +1,8 @@
+-- in.cue --
+
+import "github.com/grafana/thema"
+
+thema.#Lineage
+name: "schemaless"
+-- out/bindfail --
+bind fail: invalid lineage, #Lineage.schemas must be concrete

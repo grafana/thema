@@ -1,6 +1,6 @@
 package errors
 
-import "errors"
+import "github.com/cockroachdb/errors"
 
 // ValidationCode represents different classes of validation errors that may
 // occur vs. concrete data inputs.

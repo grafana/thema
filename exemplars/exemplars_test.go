@@ -30,7 +30,8 @@ func TestExemplarValidity(t *testing.T) {
 			t.Parallel()
 			_, err := thema.BindLineage(v, allrt, nameOpts[name]...)
 			if err != nil {
-				t.Fatal(err)
+				// t.Fatal(errors.Details(err, nil))
+				t.Fatalf("%T %+v", err, err)
 			}
 		})
 	}

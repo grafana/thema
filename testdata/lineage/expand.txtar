@@ -1,0 +1,665 @@
+# Simple expansion of a schema over time through backwards compatible addition of fields
+-- in.cue --
+
+import "github.com/grafana/thema"
+
+thema.#Lineage
+name: "expand"
+schemas: [{
+    version: [0, 0]
+    schema: {
+        init: string
+    }
+},
+{
+    version: [0, 1]
+    schema: {
+        init:      string
+        optional?: int
+    }
+},
+{
+    version: [0, 2]
+    schema: {
+        init:         string
+        optional?:    int
+        withDefault?: *"foo" | "bar"
+    }
+},
+{
+    version: [0, 3]
+    schema: {
+        init:         string
+        optional?:    int
+        withDefault?: *"foo" | "bar" | "baz"
+    }
+}]
+
+lenses: [{
+    to: [0, 0]
+    from: [0, 1]
+    input: _
+    result: {
+        init: input.init
+    }
+},
+{
+    to: [0, 1]
+    from: [0, 2]
+    input: _
+    result: {
+        init: input.init
+        if input.optional != _|_ {
+            optional: input.optional
+        }
+    }
+},
+{
+    to: [0, 2]
+    from: [0, 3]
+    input: _
+    result: {
+        init: input.init
+        if input.optional != _|_ {
+            optional: input.optional
+        }
+        if input.withDefault != _|_ {
+            // if the value is "baz" (not allowed by the to schema), then the to
+            // schema's default value "foo" will be selected by Thema's #Translate
+            withDefault: input.withDefault
+        }
+    }
+}]
+-- out/bind --
+Schema count: 4
+Schema versions: 0.0, 0.1, 0.2, 0.3
+Lenses count: 3
+-- out/encoding/openapi/TestGenerate/nilcfg --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "expand",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "expand": {
+        "type": "object",
+        "required": [
+          "init"
+        ],
+        "properties": {
+          "init": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}== 0.1.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "expand",
+    "version": "0.1"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "expand": {
+        "type": "object",
+        "required": [
+          "init"
+        ],
+        "properties": {
+          "init": {
+            "type": "string"
+          },
+          "optional": {
+            "type": "integer"
+          }
+        }
+      }
+    }
+  }
+}== 0.2.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "expand",
+    "version": "0.2"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "expand": {
+        "type": "object",
+        "required": [
+          "init"
+        ],
+        "properties": {
+          "init": {
+            "type": "string"
+          },
+          "optional": {
+            "type": "integer"
+          },
+          "withDefault": {
+            "type": "string",
+            "enum": [
+              "foo",
+              "bar"
+            ],
+            "default": "foo"
+          }
+        }
+      }
+    }
+  }
+}== 0.3.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "expand",
+    "version": "0.3"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "expand": {
+        "type": "object",
+        "required": [
+          "init"
+        ],
+        "properties": {
+          "init": {
+            "type": "string"
+          },
+          "optional": {
+            "type": "integer"
+          },
+          "withDefault": {
+            "type": "string",
+            "enum": [
+              "foo",
+              "bar",
+              "baz"
+            ],
+            "default": "foo"
+          }
+        }
+      }
+    }
+  }
+}
+-- out/encoding/openapi/TestGenerate/expandrefs --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "expand",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "expand": {
+        "type": "object",
+        "required": [
+          "init"
+        ],
+        "properties": {
+          "init": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}== 0.1.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "expand",
+    "version": "0.1"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "expand": {
+        "type": "object",
+        "required": [
+          "init"
+        ],
+        "properties": {
+          "init": {
+            "type": "string"
+          },
+          "optional": {
+            "type": "integer"
+          }
+        }
+      }
+    }
+  }
+}== 0.2.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "expand",
+    "version": "0.2"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "expand": {
+        "type": "object",
+        "required": [
+          "init"
+        ],
+        "properties": {
+          "init": {
+            "type": "string"
+          },
+          "optional": {
+            "type": "integer"
+          },
+          "withDefault": {
+            "type": "string",
+            "enum": [
+              "foo",
+              "bar"
+            ],
+            "default": "foo"
+          }
+        }
+      }
+    }
+  }
+}== 0.3.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "expand",
+    "version": "0.3"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "expand": {
+        "type": "object",
+        "required": [
+          "init"
+        ],
+        "properties": {
+          "init": {
+            "type": "string"
+          },
+          "optional": {
+            "type": "integer"
+          },
+          "withDefault": {
+            "type": "string",
+            "enum": [
+              "foo",
+              "bar",
+              "baz"
+            ],
+            "default": "foo"
+          }
+        }
+      }
+    }
+  }
+}
+-- out/encoding/openapi/TestGenerate/group --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "expand",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "init": {
+        "type": "string"
+      }
+    }
+  }
+}== 0.1.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "expand",
+    "version": "0.1"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "init": {
+        "type": "string"
+      },
+      "optional": {
+        "type": "integer"
+      }
+    }
+  }
+}== 0.2.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "expand",
+    "version": "0.2"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "init": {
+        "type": "string"
+      },
+      "optional": {
+        "type": "integer"
+      },
+      "withDefault": {
+        "type": "string",
+        "enum": [
+          "foo",
+          "bar"
+        ],
+        "default": "foo"
+      }
+    }
+  }
+}== 0.3.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "expand",
+    "version": "0.3"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "init": {
+        "type": "string"
+      },
+      "optional": {
+        "type": "integer"
+      },
+      "withDefault": {
+        "type": "string",
+        "enum": [
+          "foo",
+          "bar",
+          "baz"
+        ],
+        "default": "foo"
+      }
+    }
+  }
+}
+-- out/encoding/gocode/TestGenerate/nilcfg --
+== expand_type_0.0_gen.go
+package expand
+
+// Expand defines model for expand.
+type Expand struct {
+	Init string `json:"init"`
+}
+== expand_type_0.1_gen.go
+package expand
+
+// Expand defines model for expand.
+type Expand struct {
+	Init     string `json:"init"`
+	Optional *int   `json:"optional,omitempty"`
+}
+== expand_type_0.2_gen.go
+package expand
+
+// Defines values for ExpandWithDefault.
+const (
+	ExpandWithDefaultBar ExpandWithDefault = "bar"
+	ExpandWithDefaultFoo ExpandWithDefault = "foo"
+)
+
+// Expand defines model for expand.
+type Expand struct {
+	Init        string             `json:"init"`
+	Optional    *int               `json:"optional,omitempty"`
+	WithDefault *ExpandWithDefault `json:"withDefault,omitempty"`
+}
+
+// ExpandWithDefault defines model for Expand.WithDefault.
+type ExpandWithDefault string
+== expand_type_0.3_gen.go
+package expand
+
+// Defines values for ExpandWithDefault.
+const (
+	ExpandWithDefaultBar ExpandWithDefault = "bar"
+	ExpandWithDefaultBaz ExpandWithDefault = "baz"
+	ExpandWithDefaultFoo ExpandWithDefault = "foo"
+)
+
+// Expand defines model for expand.
+type Expand struct {
+	Init        string             `json:"init"`
+	Optional    *int               `json:"optional,omitempty"`
+	WithDefault *ExpandWithDefault `json:"withDefault,omitempty"`
+}
+
+// ExpandWithDefault defines model for Expand.WithDefault.
+type ExpandWithDefault string
+-- out/encoding/gocode/TestGenerate/group --
+== expand_type_0.0_gen.go
+package expand
+
+// Init defines model for init.
+type Init = string
+== expand_type_0.1_gen.go
+package expand
+
+// Init defines model for init.
+type Init = string
+
+// Optional defines model for optional.
+type Optional = int
+== expand_type_0.2_gen.go
+package expand
+
+// Defines values for WithDefault.
+const (
+	WithDefaultBar WithDefault = "bar"
+	WithDefaultFoo WithDefault = "foo"
+)
+
+// Init defines model for init.
+type Init = string
+
+// Optional defines model for optional.
+type Optional = int
+
+// WithDefault defines model for withDefault.
+type WithDefault string
+== expand_type_0.3_gen.go
+package expand
+
+// Defines values for WithDefault.
+const (
+	WithDefaultBar WithDefault = "bar"
+	WithDefaultBaz WithDefault = "baz"
+	WithDefaultFoo WithDefault = "foo"
+)
+
+// Init defines model for init.
+type Init = string
+
+// Optional defines model for optional.
+type Optional = int
+
+// WithDefault defines model for withDefault.
+type WithDefault string
+-- out/encoding/gocode/TestGenerate/depointerized --
+== expand_type_0.0_gen.go
+package expand
+
+// Expand defines model for expand.
+type Expand struct {
+	Init string `json:"init"`
+}
+== expand_type_0.1_gen.go
+package expand
+
+// Expand defines model for expand.
+type Expand struct {
+	Init     string `json:"init"`
+	Optional int    `json:"optional,omitempty"`
+}
+== expand_type_0.2_gen.go
+package expand
+
+// Defines values for ExpandWithDefault.
+const (
+	ExpandWithDefaultBar ExpandWithDefault = "bar"
+	ExpandWithDefaultFoo ExpandWithDefault = "foo"
+)
+
+// Expand defines model for expand.
+type Expand struct {
+	Init        string            `json:"init"`
+	Optional    int               `json:"optional,omitempty"`
+	WithDefault ExpandWithDefault `json:"withDefault,omitempty"`
+}
+
+// ExpandWithDefault defines model for Expand.WithDefault.
+type ExpandWithDefault string
+== expand_type_0.3_gen.go
+package expand
+
+// Defines values for ExpandWithDefault.
+const (
+	ExpandWithDefaultBar ExpandWithDefault = "bar"
+	ExpandWithDefaultBaz ExpandWithDefault = "baz"
+	ExpandWithDefaultFoo ExpandWithDefault = "foo"
+)
+
+// Expand defines model for expand.
+type Expand struct {
+	Init        string            `json:"init"`
+	Optional    int               `json:"optional,omitempty"`
+	WithDefault ExpandWithDefault `json:"withDefault,omitempty"`
+}
+
+// ExpandWithDefault defines model for Expand.WithDefault.
+type ExpandWithDefault string
+-- out/encoding/gocode/TestGenerate/godeclincomments --
+== expand_type_0.0_gen.go
+package expand
+
+// Expand defines model for expand.
+type Expand struct {
+	Init string `json:"init"`
+}
+== expand_type_0.1_gen.go
+package expand
+
+// Expand defines model for expand.
+type Expand struct {
+	Init     string `json:"init"`
+	Optional *int   `json:"optional,omitempty"`
+}
+== expand_type_0.2_gen.go
+package expand
+
+// Defines values for ExpandWithDefault.
+const (
+	ExpandWithDefaultBar ExpandWithDefault = "bar"
+	ExpandWithDefaultFoo ExpandWithDefault = "foo"
+)
+
+// Expand defines model for expand.
+type Expand struct {
+	Init        string             `json:"init"`
+	Optional    *int               `json:"optional,omitempty"`
+	WithDefault *ExpandWithDefault `json:"withDefault,omitempty"`
+}
+
+// ExpandWithDefault defines model for Expand.WithDefault.
+type ExpandWithDefault string
+== expand_type_0.3_gen.go
+package expand
+
+// Defines values for ExpandWithDefault.
+const (
+	ExpandWithDefaultBar ExpandWithDefault = "bar"
+	ExpandWithDefaultBaz ExpandWithDefault = "baz"
+	ExpandWithDefaultFoo ExpandWithDefault = "foo"
+)
+
+// Expand defines model for expand.
+type Expand struct {
+	Init        string             `json:"init"`
+	Optional    *int               `json:"optional,omitempty"`
+	WithDefault *ExpandWithDefault `json:"withDefault,omitempty"`
+}
+
+// ExpandWithDefault defines model for Expand.WithDefault.
+type ExpandWithDefault string
+-- out/encoding/gocode/TestGenerate/expandref --
+== expand_type_0.0_gen.go
+package expand
+
+// Expand defines model for expand.
+type Expand struct {
+	Init string `json:"init"`
+}
+== expand_type_0.1_gen.go
+package expand
+
+// Expand defines model for expand.
+type Expand struct {
+	Init     string `json:"init"`
+	Optional *int   `json:"optional,omitempty"`
+}
+== expand_type_0.2_gen.go
+package expand
+
+// Defines values for ExpandWithDefault.
+const (
+	ExpandWithDefaultBar ExpandWithDefault = "bar"
+	ExpandWithDefaultFoo ExpandWithDefault = "foo"
+)
+
+// Expand defines model for expand.
+type Expand struct {
+	Init        string             `json:"init"`
+	Optional    *int               `json:"optional,omitempty"`
+	WithDefault *ExpandWithDefault `json:"withDefault,omitempty"`
+}
+
+// ExpandWithDefault defines model for Expand.WithDefault.
+type ExpandWithDefault string
+== expand_type_0.3_gen.go
+package expand
+
+// Defines values for ExpandWithDefault.
+const (
+	ExpandWithDefaultBar ExpandWithDefault = "bar"
+	ExpandWithDefaultBaz ExpandWithDefault = "baz"
+	ExpandWithDefaultFoo ExpandWithDefault = "foo"
+)
+
+// Expand defines model for expand.
+type Expand struct {
+	Init        string             `json:"init"`
+	Optional    *int               `json:"optional,omitempty"`
+	WithDefault *ExpandWithDefault `json:"withDefault,omitempty"`
+}
+
+// ExpandWithDefault defines model for Expand.WithDefault.
+type ExpandWithDefault string

@@ -15,7 +15,6 @@ import (
 	"cuelang.org/go/encoding/jsonschema"
 	"cuelang.org/go/encoding/openapi"
 	"cuelang.org/go/encoding/yaml"
-	"github.com/grafana/thema"
 	"github.com/grafana/thema/encoding/cue"
 	tastutil "github.com/grafana/thema/internal/astutil"
 	"github.com/spf13/cobra"
@@ -175,12 +174,13 @@ func (ic *initCommand) runEmpty(cmd *cobra.Command, args []string) {
 		return
 	}
 
+	// TODO uncomment after re-export
 	// Have to re-insert because comments get lost somehow by NewLineage()
-	err = cue.InsertSchemaNodeAs(linf, expr, thema.SV(0, 0))
-	if err != nil {
-		ic.err = err
-		return
-	}
+	// err = cue.InsertSchemaNodeAs(linf, expr, thema.SV(0, 0))
+	// if err != nil {
+	// 	ic.err = err
+	// 	return
+	// }
 
 	linf, err = toSubpath(ic.cuepath, linf)
 	if err != nil {

@@ -1,0 +1,270 @@
+# joinSchema contains references to external definitions
+-- in.cue --
+import "github.com/grafana/thema"
+
+thema.#Lineage
+name: "exref"
+joinSchema: {
+    ref: ExRef
+    refdef: #ExRefDef
+}
+schemas: [{
+	version: [0, 0]
+	schema: {
+		foo: string
+	}
+}]
+lenses: []
+
+ExRef: {
+	normalField: string
+}
+
+#ExRefDef: {
+	defField: string
+}
+-- out/bind --
+Schema count: 1
+Schema versions: 0.0
+Lenses count: 0
+-- out/encoding/openapi/TestGenerate/nilcfg --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "exref",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "ExRef": {
+        "type": "object",
+        "required": [
+          "normalField"
+        ],
+        "properties": {
+          "normalField": {
+            "type": "string"
+          }
+        }
+      },
+      "ExRefDef": {
+        "type": "object",
+        "required": [
+          "defField"
+        ],
+        "properties": {
+          "defField": {
+            "type": "string"
+          }
+        }
+      },
+      "exref": {
+        "type": "object",
+        "properties": {
+          "ref": {
+            "$ref": "#/components/schemas/ExRef"
+          },
+          "refdef": {
+            "$ref": "#/components/schemas/ExRefDef"
+          },
+          "foo": {
+            "type": "string"
+          }
+        },
+        "allOf": [
+          {
+            "required": [
+              "ref",
+              "refdef"
+            ]
+          },
+          {
+            "required": [
+              "foo"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}
+-- out/encoding/openapi/TestGenerate/expandrefs --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "exref",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "exref": {
+        "type": "object",
+        "required": [
+          "ref",
+          "foo",
+          "refdef"
+        ],
+        "properties": {
+          "ref": {
+            "type": "object",
+            "required": [
+              "normalField"
+            ],
+            "properties": {
+              "normalField": {
+                "type": "string"
+              }
+            }
+          },
+          "foo": {
+            "type": "string"
+          },
+          "refdef": {
+            "type": "object",
+            "required": [
+              "defField"
+            ],
+            "properties": {
+              "defField": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+-- out/encoding/openapi/TestGenerate/group --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "exref",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "ref": {
+        "type": "object",
+        "required": [
+          "normalField"
+        ],
+        "properties": {
+          "normalField": {
+            "type": "string"
+          }
+        }
+      },
+      "foo": {
+        "type": "string"
+      },
+      "refdef": {
+        "type": "object",
+        "required": [
+          "defField"
+        ],
+        "properties": {
+          "defField": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
+-- out/encoding/gocode/TestGenerate/nilcfg --
+== exref_type_0.0_gen.go
+package exref
+
+// ExRef defines model for ExRef.
+type ExRef struct {
+	NormalField string `json:"normalField"`
+}
+
+// ExRefDef defines model for ExRefDef.
+type ExRefDef struct {
+	DefField string `json:"defField"`
+}
+
+// Exref defines model for exref.
+type Exref struct {
+	Foo    string   `json:"foo"`
+	Ref    ExRef    `json:"ref"`
+	Refdef ExRefDef `json:"refdef"`
+}
+-- out/encoding/gocode/TestGenerate/group --
+== exref_type_0.0_gen.go
+package exref
+
+// Foo defines model for foo.
+type Foo = string
+
+// Ref defines model for ref.
+type Ref struct {
+	NormalField string `json:"normalField"`
+}
+
+// Refdef defines model for refdef.
+type Refdef struct {
+	DefField string `json:"defField"`
+}
+-- out/encoding/gocode/TestGenerate/depointerized --
+== exref_type_0.0_gen.go
+package exref
+
+// ExRef defines model for ExRef.
+type ExRef struct {
+	NormalField string `json:"normalField"`
+}
+
+// ExRefDef defines model for ExRefDef.
+type ExRefDef struct {
+	DefField string `json:"defField"`
+}
+
+// Exref defines model for exref.
+type Exref struct {
+	Foo    string   `json:"foo"`
+	Ref    ExRef    `json:"ref"`
+	Refdef ExRefDef `json:"refdef"`
+}
+-- out/encoding/gocode/TestGenerate/godeclincomments --
+== exref_type_0.0_gen.go
+package exref
+
+// ExRef defines model for ExRef.
+type ExRef struct {
+	NormalField string `json:"normalField"`
+}
+
+// ExRefDef defines model for ExRefDef.
+type ExRefDef struct {
+	DefField string `json:"defField"`
+}
+
+// Exref defines model for exref.
+type Exref struct {
+	Foo    string   `json:"foo"`
+	Ref    ExRef    `json:"ref"`
+	Refdef ExRefDef `json:"refdef"`
+}
+-- out/encoding/gocode/TestGenerate/expandref --
+== exref_type_0.0_gen.go
+package exref
+
+// Exref defines model for exref.
+type Exref struct {
+	Foo string `json:"foo"`
+	Ref struct {
+		NormalField string `json:"normalField"`
+	} `json:"ref"`
+	Refdef struct {
+		DefField string `json:"defField"`
+	} `json:"refdef"`
+}

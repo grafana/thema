@@ -5,8 +5,8 @@ import "cuelang.org/go/cue"
 // TrimPathPrefix strips the provided prefix from the provided path, if the
 // prefix exists.
 //
-// If path and prefix are equivalent, and there is at least one additional selector in the provided
-// path.
+// If path and prefix are equivalent, and there is at least one additional
+// selector in the provided path.
 func TrimPathPrefix(path, prefix cue.Path) cue.Path {
 	sels, psels := path.Selectors(), prefix.Selectors()
 	if len(sels) == 1 {
@@ -38,10 +38,13 @@ func ReplacePathPrefix(p, oldprefix, newprefix cue.Path) cue.Path {
 	return cue.MakePath(pn...)
 }
 
-// PathsAreEq reports whether two paths are equivalent. Paths that vary only by
+// PathsAreEq tests whether two [cue.Path] are equivalent. Paths that vary only by
 // optionality are considered equivalent.
 func PathsAreEq(p1, p2 cue.Path) bool {
-	p1s, p2s := p1.Selectors(), p2.Selectors()
+	return pathsAreEq(p1.Selectors(), p2.Selectors())
+}
+
+func pathsAreEq(p1s, p2s []cue.Selector) bool {
 	if len(p1s) != len(p2s) {
 		return false
 	}
@@ -53,7 +56,16 @@ func PathsAreEq(p1, p2 cue.Path) bool {
 	return true
 }
 
-// LastSelectorEq reports whether the final selector in the provided path is
+// PathHasPrefix tests whether the [cue.Path] p begins with prefix.
+func PathHasPrefix(p, prefix cue.Path) bool {
+	ps, pres := p.Selectors(), prefix.Selectors()
+	if len(pres) > len(ps) {
+		return false
+	}
+	return pathsAreEq(ps[:len(pres)], pres)
+}
+
+// LastSelectorEq tests whether the final selector in the provided path is
 // equivalent to the provided selector. Selectors that vary only by optionality
 // are considered equivalent.
 func LastSelectorEq(p cue.Path, sel cue.Selector) bool {

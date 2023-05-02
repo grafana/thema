@@ -1,0 +1,176 @@
+diff oapi-codegen/pkg/codegen/codegen_test.go thema/internal/deepmap/oapi-codegen/pkg/codegen/codegen_test.go
+4d3
+< 	"bytes"
+7,8d5
+< 	"io"
+< 	"net/http"
+11,13d7
+< 	examplePetstoreClient "github.com/deepmap/oapi-codegen/examples/petstore-expanded"
+< 	examplePetstore "github.com/deepmap/oapi-codegen/examples/petstore-expanded/echo/api"
+< 	"github.com/deepmap/oapi-codegen/pkg/util"
+15a10
+> 	"github.com/grafana/thema/internal/deepmap/oapi-codegen/pkg/util"
+31,131d25
+< }
+< 
+< func TestExamplePetStoreCodeGeneration(t *testing.T) {
+< 
+< 	// Input vars for code generation:
+< 	packageName := "api"
+< 	opts := Configuration{
+< 		PackageName: packageName,
+< 		Generate: GenerateOptions{
+< 			EchoServer:   true,
+< 			Client:       true,
+< 			Models:       true,
+< 			EmbeddedSpec: true,
+< 		},
+< 	}
+< 
+< 	// Get a spec from the example PetStore definition:
+< 	swagger, err := examplePetstore.GetSwagger()
+< 	assert.NoError(t, err)
+< 
+< 	// Run our code generation:
+< 	code, err := Generate(swagger, opts)
+< 	assert.NoError(t, err)
+< 	assert.NotEmpty(t, code)
+< 
+< 	// Check that we have valid (formattable) code:
+< 	_, err = format.Source([]byte(code))
+< 	assert.NoError(t, err)
+< 
+< 	// Check that we have a package:
+< 	assert.Contains(t, code, "package api")
+< 
+< 	// Check that the client method signatures return response structs:
+< 	assert.Contains(t, code, "func (c *Client) FindPetByID(ctx context.Context, id int64, reqEditors ...RequestEditorFn) (*http.Response, error) {")
+< 
+< 	// Check that the property comments were generated
+< 	assert.Contains(t, code, "// Id Unique id of the pet")
+< 
+< 	// Check that the summary comment contains newlines
+< 	assert.Contains(t, code, `// Deletes a pet by ID
+< 	// (DELETE /pets/{id})
+< `)
+< 
+< 	// Make sure the generated code is valid:
+< 	checkLint(t, "test.gen.go", []byte(code))
+< }
+< 
+< func TestExamplePetStoreCodeGenerationWithUserTemplates(t *testing.T) {
+< 
+< 	userTemplates := map[string]string{"typedef.tmpl": "//blah"}
+< 
+< 	// Input vars for code generation:
+< 	packageName := "api"
+< 	opts := Configuration{
+< 		PackageName: packageName,
+< 		Generate: GenerateOptions{
+< 			Models: true,
+< 		},
+< 		OutputOptions: OutputOptions{
+< 			UserTemplates: userTemplates,
+< 		},
+< 	}
+< 
+< 	// Get a spec from the example PetStore definition:
+< 	swagger, err := examplePetstore.GetSwagger()
+< 	assert.NoError(t, err)
+< 
+< 	// Run our code generation:
+< 	code, err := Generate(swagger, opts)
+< 	assert.NoError(t, err)
+< 	assert.NotEmpty(t, code)
+< 
+< 	// Check that we have valid (formattable) code:
+< 	_, err = format.Source([]byte(code))
+< 	assert.NoError(t, err)
+< 
+< 	// Check that we have a package:
+< 	assert.Contains(t, code, "package api")
+< 
+< 	// Check that the built-in template has been overriden
+< 	assert.Contains(t, code, "//blah")
+< }
+< 
+< func TestExamplePetStoreParseFunction(t *testing.T) {
+< 
+< 	bodyBytes := []byte(`{"id": 5, "name": "testpet", "tag": "cat"}`)
+< 
+< 	cannedResponse := &http.Response{
+< 		StatusCode: 200,
+< 		Body:       io.NopCloser(bytes.NewReader(bodyBytes)),
+< 		Header:     http.Header{},
+< 	}
+< 	cannedResponse.Header.Add("Content-type", "application/json")
+< 
+< 	findPetByIDResponse, err := examplePetstoreClient.ParseFindPetByIDResponse(cannedResponse)
+< 	assert.NoError(t, err)
+< 	assert.NotNil(t, findPetByIDResponse.JSON200)
+< 	assert.Equal(t, int64(5), findPetByIDResponse.JSON200.Id)
+< 	assert.Equal(t, "testpet", findPetByIDResponse.JSON200.Name)
+< 	assert.NotNil(t, findPetByIDResponse.JSON200.Tag)
+< 	assert.Equal(t, "cat", *findPetByIDResponse.JSON200.Tag)
+diff oapi-codegen/pkg/codegen/merge_schemas.go thema/internal/deepmap/oapi-codegen/pkg/codegen/merge_schemas.go
+13c13
+< func MergeSchemas(allOf []*openapi3.SchemaRef, path []string) (Schema, error) {
+---
+> func MergeSchemas(schema *openapi3.Schema, path []string) (Schema, error) {
+17c17
+< 		return mergeSchemasV1(allOf, path)
+---
+> 		return mergeSchemasV1(schema.AllOf, path)
+19c19
+< 	return mergeSchemas(allOf, path)
+---
+> 	return mergeSchemas(schema, path)
+22c22,23
+< func mergeSchemas(allOf []*openapi3.SchemaRef, path []string) (Schema, error) {
+---
+> func mergeSchemas(baseSchema *openapi3.Schema, path []string) (Schema, error) {
+> 	allOf := baseSchema.AllOf
+25,27c26,27
+< 	if n == 1 {
+< 		return GenerateGoSchema(allOf[0], path)
+< 	}
+---
+> 	schema := *baseSchema
+> 	schema.AllOf = nil
+29,34c29
+< 	schema, err := valueWithPropagatedRef(allOf[0])
+< 	if err != nil {
+< 		return Schema{}, err
+< 	}
+< 
+< 	for i := 1; i < n; i++ {
+---
+> 	for i := 0; i < n; i++ {
+diff oapi-codegen/pkg/codegen/operations.go thema/internal/deepmap/oapi-codegen/pkg/codegen/operations.go
+26d25
+< 	"github.com/deepmap/oapi-codegen/pkg/util"
+27a27
+> 	"github.com/grafana/thema/internal/deepmap/oapi-codegen/pkg/util"
+diff oapi-codegen/pkg/codegen/schema.go thema/internal/deepmap/oapi-codegen/pkg/codegen/schema.go
+257c257
+< 		mergedSchema, err := MergeSchemas(schema.AllOf, path)
+---
+> 		mergedSchema, err := MergeSchemas(schema, path)
+576c576
+< 			outSchema.GoType = "openapi_types.File"
+---
+> 			outSchema.GoType = "[]byte"
+diff oapi-codegen/pkg/codegen/template_helpers.go thema/internal/deepmap/oapi-codegen/pkg/codegen/template_helpers.go
+23c23
+< 	"github.com/deepmap/oapi-codegen/pkg/util"
+---
+> 	"github.com/grafana/thema/internal/deepmap/oapi-codegen/pkg/util"
+Common subdirectories: oapi-codegen/pkg/codegen/templates and thema/internal/deepmap/oapi-codegen/pkg/codegen/templates
+Common subdirectories: oapi-codegen/pkg/codegen/test_specs and thema/internal/deepmap/oapi-codegen/pkg/codegen/test_specs
+diff oapi-codegen/pkg/codegen/utils.go thema/internal/deepmap/oapi-codegen/pkg/codegen/utils.go
+19a20
+> 	"reflect"
+907c908
+< 	return t1.Schema.OAPISchema == t2.Schema.OAPISchema
+---
+> 	return reflect.DeepEqual(t1.Schema.OAPISchema, t2.Schema.OAPISchema)
