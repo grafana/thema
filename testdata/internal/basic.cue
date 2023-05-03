@@ -7,11 +7,35 @@ basic: #Lineage & {
 	joinSchema: {
 		all: int32
 	}
+	// where this lineage defines its "slots" - each slot is basically
+	// like an argument to a function
+	composeSlots: {
+		PanelCfg: [N=string]: #Lineage & {
+			name: N
+			joinSchema: {
+				PanelOptions: {}
+				PanelFieldConfig?: {}
+			}
+		}
+	}
 	schemas: [
 		{
 			version: [0, 0]
 			schema: {
-				init: string
+				init:          string
+				composedThing: _
+				composedOther: _
+			}
+			compose: {
+				PanelCfg: Compo={
+					// for each schema in each compose-injected lineage, this struct will be injected into the schema in this lineage
+					intoSchema: {
+						composedThing: Compo.schema.PanelOptions
+					}
+					outForLens: {
+						PanelOptions: Compo.input.composedThing
+					}
+				}
 			}
 			examples: {
 				simple: {
@@ -72,6 +96,8 @@ basic: #Lineage & {
 				if (input.optional != _|_) {
 					optional: input.optional
 				}
+
+				composedThing: _ // wtf goes here so that we delegate lensing to the sublineage
 
 				withDefault: input.withDefault
 			}
@@ -162,3 +188,8 @@ cmpsv: {
 	},
 	]
 }
+
+// imagine that this is the #Lineage defined in the barchart compositional kind
+barchartLineage: _
+
+basicComposed: basic & {composeSlots: PanelCfg: barchart: barchartLineage}

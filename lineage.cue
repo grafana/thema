@@ -29,6 +29,8 @@ import (
 
 	joinSchema?: struct.MinFields(1)
 
+	composeSlots?: [string]: #Lineage | {[string]: #Lineage}
+
 	// schemas is the ordered list of all schemas in the lineage.
 	//
 	// Each element is a #SchemaDef, injected with the joinSchema for this lineage.
@@ -43,6 +45,9 @@ import (
 
 	if joinSchema != _|_ {
 		schemas: [{_join: joinSchema}, ...{{_join: joinSchema}}]
+	}
+	if composeSlots != _|_ {
+		schemas: [{_slots: composeSlots}, ...{{_slots: composeSlots}}]
 	}
 
 	// lenses contains all the mappings between all the schemas in the lineage.
@@ -255,6 +260,9 @@ import (
 	// This handle is also unified with the joinSchema of the containing lineage.
 
 	_#schema: _join & schema
+
+	// TODO constrain that the elements of compose are at most the set of slots defined in parent lineage composeSlots
+	compose: _
 
 	_schemaIsNonEmpty: struct.MinFields(1) & _#schema
 
