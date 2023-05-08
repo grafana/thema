@@ -70,7 +70,8 @@ func GenerateTypes(sch thema.Schema, cfg *TypeConfig) (*ast.File, error) {
 		cfg.RootName = strings.Title(sch.Lineage().Name())
 	}
 
-	tf, err := cuetsy.GenerateAST(sch.Underlying().LookupPath(cue.MakePath(cue.Hid("_#schema", "github.com/grafana/thema"))), *cfg.CuetsyConfig)
+	schdef := sch.Underlying().LookupPath(cue.MakePath(cue.Hid("_#schema", "github.com/grafana/thema")))
+	tf, err := cuetsy.GenerateAST(schdef, *cfg.CuetsyConfig)
 	if err != nil {
 		return nil, fmt.Errorf("generating TS for child elements of schema failed: %w", err)
 	}
@@ -80,7 +81,7 @@ func GenerateTypes(sch thema.Schema, cfg *TypeConfig) (*ast.File, error) {
 		if cfg.RootAsType {
 			as = cuetsy.TypeAlias
 		}
-		top, err := cuetsy.GenerateSingleAST(cfg.RootName, sch.Underlying(), as)
+		top, err := cuetsy.GenerateSingleAST(cfg.RootName, schdef, as)
 		if err != nil {
 			return nil, fmt.Errorf("generating TS for schema root failed: %w", err)
 		}
