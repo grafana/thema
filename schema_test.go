@@ -7,6 +7,9 @@ import (
 
 	"cuelang.org/go/cue/cuecontext"
 	"cuelang.org/go/cue/errors"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var linstr = `name: "single"
@@ -16,6 +19,13 @@ schemas: [{
 		astring?: string
 		anint:   int64 | *42
 		abool:   bool
+	}
+	examples: {
+		simple: {
+			astring: "some string"
+			anint:  42
+			abool:  true
+		}
 	}
 }]
 `
@@ -74,6 +84,33 @@ func TestBindType(t *testing.T) {
 	if nt2.Anint != 42 {
 		t.Fatalf("expected schema-specified default of 42 for nt2.Anint, got %v", nt2.Anint)
 	}
+}
+
+func TestSchema_Examples(t *testing.T) {
+	lin := testLin()
+
+	sch := lin.First()
+	examples := sch.Examples()
+	require.NotNil(t, examples)
+
+	// There must be a "simple" example based on
+	// the definition above (beginning of file).
+	require.NotEmpty(t, examples)
+	require.NotNil(t, examples["simple"])
+
+	tt := &TestType{}
+	ts, err := BindType[*TestType](sch, tt)
+	require.NoError(t, err)
+
+	tinst, err := ts.ValidateTyped(examples["simple"].Underlying())
+	require.NoError(t, err)
+
+	val, err := tinst.Value()
+	require.NoError(t, err)
+
+	assert.Equal(t, "some string", *val.Astring)
+	assert.Equal(t, int64(42), val.Anint)
+	assert.Equal(t, true, val.Abool)
 }
 
 // scratch test, preserved only as a simpler sandbox for future playing with pointers, generics, reflect

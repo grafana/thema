@@ -14,9 +14,10 @@ var (
 )
 
 var (
-	pathSchDef = cue.MakePath(cue.Hid("_#schema", "github.com/grafana/thema"))
-	pathSch    = cue.MakePath(cue.Str("schema"))
-	pathJoin   = cue.MakePath(cue.Hid("_join", "github.com/grafana/thema"))
+	pathSchDef   = cue.MakePath(cue.Hid("_#schema", "github.com/grafana/thema"))
+	pathExamples = cue.MakePath(cue.Str("examples"))
+	pathSch      = cue.MakePath(cue.Str("schema"))
+	pathJoin     = cue.MakePath(cue.Hid("_join", "github.com/grafana/thema"))
 )
 
 // schemaDef represents a single #SchemaDef, with a backlink to its containing
@@ -37,7 +38,23 @@ type schemaDef struct {
 // Examples returns the set of examples of this schema defined in the original
 // lineage. The string key is the name given to the example.
 func (sch *schemaDef) Examples() map[string]*Instance {
-	panic("TODO")
+	examplesNode := sch.Underlying().LookupPath(pathExamples)
+	it, err := examplesNode.Fields()
+	if err != nil {
+		panic(err)
+	}
+
+	examples := make(map[string]*Instance)
+	for it.Next() {
+		label := it.Label()
+		examples[label] = &Instance{
+			raw:  it.Value(),
+			name: label,
+			sch:  sch,
+		}
+	}
+
+	return examples
 }
 
 func (sch *schemaDef) rt() *Runtime {

@@ -215,6 +215,10 @@ type Schema interface {
 	// Lineage returns the lineage that contains this schema.
 	Lineage() Lineage
 
+	// Examples returns the set of examples of this schema defined in the original
+	// lineage. The string key is the name given to the example.
+	Examples() map[string]*Instance
+
 	// Schema must be a private interface in order to ensure all instances fully
 	// conform to Thema invariants.
 	_schema()
