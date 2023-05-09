@@ -62,12 +62,12 @@ type twosidederr struct {
 func (e *twosidederr) Error() string {
 	var buf bytes.Buffer
 
-	fmt.Fprintf(&buf, "%s: validation failed, data is not an instance:\n\tschema expected `%s`", e.coords, e.sv)
+	fmt.Fprintf(&buf, "%s: validation failed, data is not an instance:\n\tschema expected `%s`", e.coords, e.dv)
 	for _, pos := range e.schpos {
 		fmt.Fprintf(&buf, "\n\t\t%s", pos.String())
 	}
 
-	fmt.Fprintf(&buf, "\n\tbut data contained `%s`", e.dv)
+	fmt.Fprintf(&buf, "\n\tbut data contained `%s`", e.sv)
 	for _, pos := range e.datapos {
 		fmt.Fprintf(&buf, "\n\t\t%s", pos.String())
 	}
@@ -170,7 +170,7 @@ func mungeValidateErr(err error, sch Schema) error {
 		}
 
 		// We missed a case, wrap CUE err in a plea for help
-		errs = append(errs, fmt.Errorf("no Thema handler for CUE error, please file an issue against github.com/grafana/thema\nto improve this error output!\n\n%w", ee))
+		errs = append(errs, fmt.Errorf("no Thema handler for CUE error, please file an issue against github.com/grafana/thema\nto improve this error output:\n%w\n", ee))
 	}
 	return errs
 }
