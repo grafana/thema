@@ -121,7 +121,7 @@ basic: #Lineage & {
 			from: [1, 1]
 			input: _
 			result: {
-				renamed: input.init
+				renamed: input.renamed
 				all:     input.all
 				if (input.optional != _|_) {
 					optional: input.optional

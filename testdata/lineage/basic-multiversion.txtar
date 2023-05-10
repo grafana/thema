@@ -1,0 +1,337 @@
+# Basic schema evolution over time
+
+#multiversion
+-- in.cue --
+import "github.com/grafana/thema"
+
+thema.#Lineage
+name: "basic-multiversion"
+
+joinSchema: {
+    all: int32
+}
+
+schemas: [{
+    version: [0, 0]
+    schema: {
+        init: string
+    }
+    examples: {
+        simple: {
+            all:  42
+            init: "some string"
+        }
+    }
+},
+{
+    version: [0, 1]
+    schema: {
+        init:      string
+        optional?: int32
+    }
+    examples: {
+        withoutOptional: {
+            all:  42
+            init: "some string"
+        }
+        withOptional: {
+            all:  42
+            init: "some string"
+            optional: 32
+        }
+    }
+},
+{
+    version: [0, 2]
+    schema: {
+        init:        string
+        optional?:   int32
+        withDefault: *"foo" | "bar"
+    }
+    examples: {
+        withoutOptional: {
+            all:  42
+            init: "some string"
+            withDefault: "foo"
+        }
+        withOptional: {
+            all:  42
+            init: "some string"
+            optional: 32
+            withDefault: "bar"
+        }
+    }
+},
+{
+    version: [0, 3]
+    schema: {
+        init:        string
+        optional?:   int32
+        withDefault: *"foo" | "bar" | "baz"
+    }
+    examples: {
+        withoutOptional: {
+            all:  42
+            init: "some string"
+            withDefault: "baz"
+        }
+        withOptional: {
+            all:  42
+            init: "some string"
+            optional: 32
+            withDefault: "baz"
+        }
+    }
+},
+{
+    version: [1, 0]
+    schema: {
+        renamed:     string
+        optional?:   int32
+        withDefault: "foo" | *"bar" | "baz"
+    }
+    examples: {
+        withoutOptional: {
+            all:  42
+            renamed: "some string"
+            withDefault: "foo"
+        }
+        withOptional: {
+            all:  42
+            renamed: "some string"
+            optional: 32
+            withDefault: "bar"
+        }
+    }
+},
+{
+    version: [1, 1]
+    schema: {
+        renamed:     string
+        optional?:   int32
+        withDefault: "foo" | *"bar" | "baz" | "bing"
+    }
+    examples: {
+        withoutOptional: {
+            all:  42
+            renamed: "some string"
+            withDefault: "bing"
+        }
+        withOptional: {
+            all:  42
+            renamed: "some string"
+            optional: 32
+            withDefault: "bing"
+        }
+    }
+}]
+
+lenses: [{
+    to: [0, 3]
+    from: [1, 0]
+    input: _
+    result: {
+        init: input.renamed
+        all:  input.all
+        if (input.optional != _|_) {
+            optional: input.optional
+        }
+
+        withDefault: input.withDefault
+    }
+},
+{
+    to: [0, 1]
+    from: [0, 2]
+    input: _
+    result: {
+        init: input.init
+        all:  input.all
+        if (input.optional != _|_) {
+            optional: input.optional
+        }
+    }
+},
+{
+    to: [0, 2]
+    from: [0, 3]
+    input: _
+    result: {
+        init: input.init
+        all:  input.all
+        if (input.optional != _|_) {
+            optional: input.optional
+        }
+        // TODO: withDefault: input.withDefault doesn't work
+        withDefault: "foo"
+    }
+},
+{
+    to: [1, 0]
+    from: [0, 3]
+    input: _
+    result: {
+        renamed: input.init
+        all:     input.all
+        if (input.optional != _|_) {
+            optional: input.optional
+        }
+        // TODO: withDefault: input.withDefault doesn't work
+        withDefault: "foo"
+    }
+},
+{
+    to: [1, 0]
+    from: [1, 1]
+    input: _
+    result: {
+        renamed: input.renamed
+        all:     input.all
+        if (input.optional != _|_) {
+            optional: input.optional
+        }
+        // TODO: withDefault: input.withDefault doesn't work
+        withDefault: "foo"
+    }
+},
+{
+    to: [0, 0]
+    from: [0, 1]
+    input: _
+    result: {
+        init: input.init
+        all:  input.all
+    }
+}]
+-- out/core/instance/translate/lineage/basic-multiversion-simple-0.0->0.0.json --
+{"all":42,"init":"some string"}
+-- out/core/instance/translate/lineage/basic-multiversion-simple-0.0->0.1.json --
+{"all":42,"init":"some string"}
+-- out/core/instance/translate/lineage/basic-multiversion-simple-0.0->0.2.json --
+{"all":42,"init":"some string","withDefault":"foo"}
+-- out/core/instance/translate/lineage/basic-multiversion-simple-0.0->0.3.json --
+{"all":42,"init":"some string","withDefault":"foo"}
+-- out/core/instance/translate/lineage/basic-multiversion-simple-0.0->1.0.json --
+{"renamed":"some string","all":42,"withDefault":"foo"}
+-- out/core/instance/translate/lineage/basic-multiversion-simple-0.0->1.1.json --
+{"renamed":"some string","all":42,"withDefault":"foo"}
+-- out/core/instance/translate/lineage/basic-multiversion-withoutOptional-0.1->0.0.json --
+{"init":"some string","all":42}
+-- out/core/instance/translate/lineage/basic-multiversion-withoutOptional-0.1->0.1.json --
+{"all":42,"init":"some string"}
+-- out/core/instance/translate/lineage/basic-multiversion-withoutOptional-0.1->0.2.json --
+{"all":42,"init":"some string","withDefault":"foo"}
+-- out/core/instance/translate/lineage/basic-multiversion-withoutOptional-0.1->0.3.json --
+{"all":42,"init":"some string","withDefault":"foo"}
+-- out/core/instance/translate/lineage/basic-multiversion-withoutOptional-0.1->1.0.json --
+{"renamed":"some string","all":42,"withDefault":"foo"}
+-- out/core/instance/translate/lineage/basic-multiversion-withoutOptional-0.1->1.1.json --
+{"renamed":"some string","all":42,"withDefault":"foo"}
+-- out/core/instance/translate/lineage/basic-multiversion-withOptional-0.1->0.0.json --
+{"init":"some string","all":42}
+-- out/core/instance/translate/lineage/basic-multiversion-withOptional-0.1->0.1.json --
+{"all":42,"init":"some string","optional":32}
+-- out/core/instance/translate/lineage/basic-multiversion-withOptional-0.1->0.2.json --
+{"all":42,"init":"some string","optional":32,"withDefault":"foo"}
+-- out/core/instance/translate/lineage/basic-multiversion-withOptional-0.1->0.3.json --
+{"all":42,"init":"some string","optional":32,"withDefault":"foo"}
+-- out/core/instance/translate/lineage/basic-multiversion-withOptional-0.1->1.0.json --
+{"renamed":"some string","all":42,"optional":32,"withDefault":"foo"}
+-- out/core/instance/translate/lineage/basic-multiversion-withOptional-0.1->1.1.json --
+{"renamed":"some string","all":42,"optional":32,"withDefault":"foo"}
+-- out/core/instance/translate/lineage/basic-multiversion-withoutOptional-0.2->0.0.json --
+{"init":"some string","all":42}
+-- out/core/instance/translate/lineage/basic-multiversion-withoutOptional-0.2->0.1.json --
+{"init":"some string","all":42}
+-- out/core/instance/translate/lineage/basic-multiversion-withoutOptional-0.2->0.2.json --
+{"all":42,"init":"some string","withDefault":"foo"}
+-- out/core/instance/translate/lineage/basic-multiversion-withoutOptional-0.2->0.3.json --
+{"all":42,"init":"some string","withDefault":"foo"}
+-- out/core/instance/translate/lineage/basic-multiversion-withoutOptional-0.2->1.0.json --
+{"renamed":"some string","all":42,"withDefault":"foo"}
+-- out/core/instance/translate/lineage/basic-multiversion-withoutOptional-0.2->1.1.json --
+{"renamed":"some string","all":42,"withDefault":"foo"}
+-- out/core/instance/translate/lineage/basic-multiversion-withOptional-0.2->0.0.json --
+{"init":"some string","all":42}
+-- out/core/instance/translate/lineage/basic-multiversion-withOptional-0.2->0.1.json --
+{"init":"some string","all":42,"optional":32}
+-- out/core/instance/translate/lineage/basic-multiversion-withOptional-0.2->0.2.json --
+{"all":42,"init":"some string","optional":32,"withDefault":"bar"}
+-- out/core/instance/translate/lineage/basic-multiversion-withOptional-0.2->0.3.json --
+{"all":42,"init":"some string","optional":32,"withDefault":"bar"}
+-- out/core/instance/translate/lineage/basic-multiversion-withOptional-0.2->1.0.json --
+{"renamed":"some string","all":42,"optional":32,"withDefault":"foo"}
+-- out/core/instance/translate/lineage/basic-multiversion-withOptional-0.2->1.1.json --
+{"renamed":"some string","all":42,"optional":32,"withDefault":"foo"}
+-- out/core/instance/translate/lineage/basic-multiversion-withoutOptional-0.3->0.0.json --
+{"init":"some string","all":42}
+-- out/core/instance/translate/lineage/basic-multiversion-withoutOptional-0.3->0.1.json --
+{"init":"some string","all":42}
+-- out/core/instance/translate/lineage/basic-multiversion-withoutOptional-0.3->0.2.json --
+{"init":"some string","all":42,"withDefault":"foo"}
+-- out/core/instance/translate/lineage/basic-multiversion-withoutOptional-0.3->0.3.json --
+{"all":42,"init":"some string","withDefault":"baz"}
+-- out/core/instance/translate/lineage/basic-multiversion-withoutOptional-0.3->1.0.json --
+{"renamed":"some string","all":42,"withDefault":"foo"}
+-- out/core/instance/translate/lineage/basic-multiversion-withoutOptional-0.3->1.1.json --
+{"renamed":"some string","all":42,"withDefault":"foo"}
+-- out/core/instance/translate/lineage/basic-multiversion-withOptional-0.3->0.0.json --
+{"init":"some string","all":42}
+-- out/core/instance/translate/lineage/basic-multiversion-withOptional-0.3->0.1.json --
+{"init":"some string","all":42,"optional":32}
+-- out/core/instance/translate/lineage/basic-multiversion-withOptional-0.3->0.2.json --
+{"init":"some string","all":42,"optional":32,"withDefault":"foo"}
+-- out/core/instance/translate/lineage/basic-multiversion-withOptional-0.3->0.3.json --
+{"all":42,"init":"some string","optional":32,"withDefault":"baz"}
+-- out/core/instance/translate/lineage/basic-multiversion-withOptional-0.3->1.0.json --
+{"renamed":"some string","all":42,"optional":32,"withDefault":"foo"}
+-- out/core/instance/translate/lineage/basic-multiversion-withOptional-0.3->1.1.json --
+{"renamed":"some string","all":42,"optional":32,"withDefault":"foo"}
+-- out/core/instance/translate/lineage/basic-multiversion-withoutOptional-1.0->0.0.json --
+{"init":"some string","all":42}
+-- out/core/instance/translate/lineage/basic-multiversion-withoutOptional-1.0->0.1.json --
+{"init":"some string","all":42}
+-- out/core/instance/translate/lineage/basic-multiversion-withoutOptional-1.0->0.2.json --
+{"init":"some string","all":42,"withDefault":"foo"}
+-- out/core/instance/translate/lineage/basic-multiversion-withoutOptional-1.0->0.3.json --
+{"init":"some string","all":42,"withDefault":"foo"}
+-- out/core/instance/translate/lineage/basic-multiversion-withoutOptional-1.0->1.0.json --
+{"all":42,"renamed":"some string","withDefault":"foo"}
+-- out/core/instance/translate/lineage/basic-multiversion-withoutOptional-1.0->1.1.json --
+{"all":42,"renamed":"some string","withDefault":"foo"}
+-- out/core/instance/translate/lineage/basic-multiversion-withOptional-1.0->0.0.json --
+{"init":"some string","all":42}
+-- out/core/instance/translate/lineage/basic-multiversion-withOptional-1.0->0.1.json --
+{"init":"some string","all":42,"optional":32}
+-- out/core/instance/translate/lineage/basic-multiversion-withOptional-1.0->0.2.json --
+{"init":"some string","all":42,"optional":32,"withDefault":"foo"}
+-- out/core/instance/translate/lineage/basic-multiversion-withOptional-1.0->0.3.json --
+{"init":"some string","all":42,"optional":32,"withDefault":"bar"}
+-- out/core/instance/translate/lineage/basic-multiversion-withOptional-1.0->1.0.json --
+{"all":42,"renamed":"some string","optional":32,"withDefault":"bar"}
+-- out/core/instance/translate/lineage/basic-multiversion-withOptional-1.0->1.1.json --
+{"all":42,"renamed":"some string","optional":32,"withDefault":"bar"}
+-- out/core/instance/translate/lineage/basic-multiversion-withoutOptional-1.1->0.0.json --
+{"init":"some string","all":42}
+-- out/core/instance/translate/lineage/basic-multiversion-withoutOptional-1.1->0.1.json --
+{"init":"some string","all":42}
+-- out/core/instance/translate/lineage/basic-multiversion-withoutOptional-1.1->0.2.json --
+{"init":"some string","all":42,"withDefault":"foo"}
+-- out/core/instance/translate/lineage/basic-multiversion-withoutOptional-1.1->0.3.json --
+{"init":"some string","all":42,"withDefault":"foo"}
+-- out/core/instance/translate/lineage/basic-multiversion-withoutOptional-1.1->1.0.json --
+{"renamed":"some string","all":42,"withDefault":"foo"}
+-- out/core/instance/translate/lineage/basic-multiversion-withoutOptional-1.1->1.1.json --
+{"all":42,"renamed":"some string","withDefault":"bing"}
+-- out/core/instance/translate/lineage/basic-multiversion-withOptional-1.1->0.0.json --
+{"init":"some string","all":42}
+-- out/core/instance/translate/lineage/basic-multiversion-withOptional-1.1->0.1.json --
+{"init":"some string","all":42,"optional":32}
+-- out/core/instance/translate/lineage/basic-multiversion-withOptional-1.1->0.2.json --
+{"init":"some string","all":42,"optional":32,"withDefault":"foo"}
+-- out/core/instance/translate/lineage/basic-multiversion-withOptional-1.1->0.3.json --
+{"init":"some string","all":42,"optional":32,"withDefault":"foo"}
+-- out/core/instance/translate/lineage/basic-multiversion-withOptional-1.1->1.0.json --
+{"renamed":"some string","all":42,"optional":32,"withDefault":"foo"}
+-- out/core/instance/translate/lineage/basic-multiversion-withOptional-1.1->1.1.json --
+{"all":42,"renamed":"some string","optional":32,"withDefault":"bing"}

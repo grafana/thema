@@ -125,7 +125,7 @@ import "list"
 				list.Drop(_accum, 1)
 			},
 			// to version same as from version is a no-op
-			if cmp == 0 {},
+			if cmp == 0 {[]},
 		][0]
 	}
 }
