@@ -46,7 +46,7 @@ func (sch *schemaDef) Examples() map[string]*Instance {
 
 	examples := make(map[string]*Instance)
 	for it.Next() {
-		label := it.Label()
+		label := it.Selector().String()
 		examples[label] = &Instance{
 			raw:  it.Value(),
 			name: label,

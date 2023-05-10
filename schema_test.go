@@ -36,13 +36,7 @@ type TestType struct {
 	Abool   bool    `json:"abool"`
 }
 
-type TestType2 struct {
-	Astring string `json:"astring"`
-	Anint   int64  `json:"anint"`
-	Abool   bool   `json:"abool"`
-}
-
-func testLin() Lineage {
+func testLin(linstr string) Lineage {
 	rt := NewRuntime(cuecontext.New())
 	val := rt.Context().CompileString(linstr)
 	lin, err := BindLineage(val, rt)
@@ -57,7 +51,7 @@ func ptr[T any](t T) *T {
 }
 
 func TestBindType(t *testing.T) {
-	lin := testLin()
+	lin := testLin(linstr)
 
 	tt := &TestType{Astring: ptr("init"), Anint: 10}
 	ts, err := BindType[*TestType](lin.First(), tt)
@@ -87,30 +81,68 @@ func TestBindType(t *testing.T) {
 }
 
 func TestSchema_Examples(t *testing.T) {
-	lin := testLin()
+	t.Run("withExamples", func(t *testing.T) {
+		lin := testLin(linstr)
 
-	sch := lin.First()
-	examples := sch.Examples()
-	require.NotNil(t, examples)
+		sch := lin.First()
+		examples := sch.Examples()
+		require.NotNil(t, examples)
 
-	// There must be a "simple" example based on
-	// the definition above (beginning of file).
-	require.NotEmpty(t, examples)
-	require.NotNil(t, examples["simple"])
+		// There must be a "simple" example based on
+		// the definition above (beginning of file).
+		require.NotEmpty(t, examples)
+		require.NotNil(t, examples["simple"])
 
-	tt := &TestType{}
-	ts, err := BindType[*TestType](sch, tt)
-	require.NoError(t, err)
+		ts, err := BindType[*TestType](sch, &TestType{})
+		require.NoError(t, err)
 
-	tinst, err := ts.ValidateTyped(examples["simple"].Underlying())
-	require.NoError(t, err)
+		tinst, err := ts.ValidateTyped(examples["simple"].Underlying())
+		require.NoError(t, err)
 
-	val, err := tinst.Value()
-	require.NoError(t, err)
+		got, err := tinst.Value()
+		require.NoError(t, err)
 
-	assert.Equal(t, "some string", *val.Astring)
-	assert.Equal(t, int64(42), val.Anint)
-	assert.Equal(t, true, val.Abool)
+		expected := &TestType{Astring: ptr("some string"), Anint: 42, Abool: true}
+		assert.Equal(t, expected, got)
+	})
+
+	t.Run("withoutExamples", func(t *testing.T) {
+		linStrNoExamples := `name: "single"
+schemas: [{
+	version: [0, 0]
+	schema: {
+		astring?: string
+		anint:   int64 | *42
+		abool:   bool
+	}
+}]
+`
+
+		lin := testLin(linStrNoExamples)
+
+		sch := lin.First()
+		examples := sch.Examples()
+		require.NotNil(t, examples)
+	})
+
+	t.Run("withEmptyExamples", func(t *testing.T) {
+		linStrNoExamples := `name: "single"
+schemas: [{
+	version: [0, 0]
+	schema: {
+		astring?: string
+		anint:   int64 | *42
+		abool:   bool
+	}
+	examples: {}
+}]
+`
+		lin := testLin(linStrNoExamples)
+
+		sch := lin.First()
+		examples := sch.Examples()
+		require.NotNil(t, examples)
+	})
 }
 
 // scratch test, preserved only as a simpler sandbox for future playing with pointers, generics, reflect
