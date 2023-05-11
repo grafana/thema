@@ -1,0 +1,1454 @@
+# Basic schema evolution over time
+
+#multiversion
+-- in.cue --
+import "github.com/grafana/thema"
+
+thema.#Lineage
+name: "basic-multiversion"
+
+schemas: [{
+    version: [0, 0]
+    schema: {
+        init: string
+    }
+    examples: {
+        simple: {
+            init: "some string"
+        }
+    }
+},
+{
+    version: [0, 1]
+    schema: {
+        init:      string
+        optional?: int32
+    }
+    examples: {
+        withoutOptional: {
+            init: "some string"
+        }
+        withOptional: {
+            init: "some string"
+            optional: 32
+        }
+    }
+},
+{
+    version: [0, 2]
+    schema: {
+        init:        string
+        optional?:   int32
+        withDefault: *"foo" | "bar"
+    }
+    examples: {
+        withoutOptional: {
+            init: "some string"
+            withDefault: "foo"
+        }
+        withOptional: {
+            init: "some string"
+            optional: 32
+            withDefault: "bar"
+        }
+    }
+},
+{
+    version: [0, 3]
+    schema: {
+        init:        string
+        optional?:   int32
+        withDefault: *"foo" | "bar" | "baz"
+    }
+    examples: {
+        withoutOptional: {
+            init: "some string"
+            withDefault: "baz"
+        }
+        withOptional: {
+            init: "some string"
+            optional: 32
+            withDefault: "baz"
+        }
+    }
+},
+{
+    version: [1, 0]
+    schema: {
+        renamed:     string
+        optional?:   int32
+        withDefault: "foo" | *"bar" | "baz"
+    }
+    examples: {
+        withoutOptional: {
+            renamed: "some string"
+            withDefault: "foo"
+        }
+        withOptional: {
+            renamed: "some string"
+            optional: 32
+            withDefault: "bar"
+        }
+    }
+},
+{
+    version: [1, 1]
+    schema: {
+        renamed:     string
+        optional?:   int32
+        withDefault: "foo" | *"bar" | "baz" | "bing"
+    }
+    examples: {
+        withoutOptional: {
+            renamed: "some string"
+            withDefault: "bing"
+        }
+        withOptional: {
+            renamed: "some string"
+            optional: 32
+            withDefault: "bing"
+        }
+    }
+}]
+
+lenses: [{
+    to: [0, 3]
+    from: [1, 0]
+    input: _
+    result: {
+        init: input.renamed
+        if (input.optional != _|_) {
+            optional: input.optional
+        }
+
+        withDefault: input.withDefault
+    }
+},
+{
+    to: [0, 1]
+    from: [0, 2]
+    input: _
+    result: {
+        init: input.init
+        if (input.optional != _|_) {
+            optional: input.optional
+        }
+    }
+},
+{
+    to: [0, 2]
+    from: [0, 3]
+    input: _
+    result: {
+        init: input.init
+        if (input.optional != _|_) {
+            optional: input.optional
+        }
+        // TODO: withDefault: input.withDefault doesn't work
+        withDefault: "foo"
+    }
+},
+{
+    to: [1, 0]
+    from: [0, 3]
+    input: _
+    result: {
+        renamed: input.init
+        if (input.optional != _|_) {
+            optional: input.optional
+        }
+        // TODO: withDefault: input.withDefault doesn't work
+        withDefault: "foo"
+    }
+},
+{
+    to: [1, 0]
+    from: [1, 1]
+    input: _
+    result: {
+        renamed: input.renamed
+        if (input.optional != _|_) {
+            optional: input.optional
+        }
+        // TODO: withDefault: input.withDefault doesn't work
+        withDefault: "foo"
+    }
+},
+{
+    to: [0, 0]
+    from: [0, 1]
+    input: _
+    result: {
+        init: input.init
+    }
+}]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.0-simple->0.0.json --
+{"init":"some string"}
+{"init":"some string"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.0-simple->0.1.json --
+{"init":"some string"}
+{"init":"some string"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.0-simple->0.2.json --
+{"init":"some string"}
+{"init":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.0-simple->0.3.json --
+{"init":"some string"}
+{"init":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.0-simple->1.0.json --
+{"init":"some string"}
+{"renamed":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.0-simple->1.1.json --
+{"init":"some string"}
+{"renamed":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.1-withoutOptional->0.0.json --
+{"init":"some string"}
+{"init":"some string"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.1-withoutOptional->0.1.json --
+{"init":"some string"}
+{"init":"some string"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.1-withoutOptional->0.2.json --
+{"init":"some string"}
+{"init":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.1-withoutOptional->0.3.json --
+{"init":"some string"}
+{"init":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.1-withoutOptional->1.0.json --
+{"init":"some string"}
+{"renamed":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.1-withoutOptional->1.1.json --
+{"init":"some string"}
+{"renamed":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.1-withOptional->0.0.json --
+{"init":"some string","optional":32}
+{"init":"some string"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.1-withOptional->0.1.json --
+{"init":"some string","optional":32}
+{"init":"some string","optional":32}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.1-withOptional->0.2.json --
+{"init":"some string","optional":32}
+{"init":"some string","optional":32,"withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.1-withOptional->0.3.json --
+{"init":"some string","optional":32}
+{"init":"some string","optional":32,"withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.1-withOptional->1.0.json --
+{"init":"some string","optional":32}
+{"renamed":"some string","optional":32,"withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.1-withOptional->1.1.json --
+{"init":"some string","optional":32}
+{"renamed":"some string","optional":32,"withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.2-withOptional->0.0.json --
+{"init":"some string","optional":32,"withDefault":"bar"}
+{"init":"some string"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.2-withOptional->0.1.json --
+{"init":"some string","optional":32,"withDefault":"bar"}
+{"init":"some string","optional":32}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.2-withOptional->0.2.json --
+{"init":"some string","optional":32,"withDefault":"bar"}
+{"init":"some string","optional":32,"withDefault":"bar"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.2-withOptional->0.3.json --
+{"init":"some string","optional":32,"withDefault":"bar"}
+{"init":"some string","optional":32,"withDefault":"bar"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.2-withOptional->1.0.json --
+{"init":"some string","optional":32,"withDefault":"bar"}
+{"renamed":"some string","optional":32,"withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.2-withOptional->1.1.json --
+{"init":"some string","optional":32,"withDefault":"bar"}
+{"renamed":"some string","optional":32,"withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.2-withoutOptional->0.0.json --
+{"init":"some string","withDefault":"foo"}
+{"init":"some string"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.2-withoutOptional->0.1.json --
+{"init":"some string","withDefault":"foo"}
+{"init":"some string"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.2-withoutOptional->0.2.json --
+{"init":"some string","withDefault":"foo"}
+{"init":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.2-withoutOptional->0.3.json --
+{"init":"some string","withDefault":"foo"}
+{"init":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.2-withoutOptional->1.0.json --
+{"init":"some string","withDefault":"foo"}
+{"renamed":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.2-withoutOptional->1.1.json --
+{"init":"some string","withDefault":"foo"}
+{"renamed":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.3-withoutOptional->0.0.json --
+{"init":"some string","withDefault":"baz"}
+{"init":"some string"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.3-withoutOptional->0.1.json --
+{"init":"some string","withDefault":"baz"}
+{"init":"some string"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.3-withoutOptional->0.2.json --
+{"init":"some string","withDefault":"baz"}
+{"init":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.3-withoutOptional->0.3.json --
+{"init":"some string","withDefault":"baz"}
+{"init":"some string","withDefault":"baz"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.3-withoutOptional->1.0.json --
+{"init":"some string","withDefault":"baz"}
+{"renamed":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.3-withoutOptional->1.1.json --
+{"init":"some string","withDefault":"baz"}
+{"renamed":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.3-withOptional->0.0.json --
+{"init":"some string","optional":32,"withDefault":"baz"}
+{"init":"some string"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.3-withOptional->0.1.json --
+{"init":"some string","optional":32,"withDefault":"baz"}
+{"init":"some string","optional":32}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.3-withOptional->0.2.json --
+{"init":"some string","optional":32,"withDefault":"baz"}
+{"init":"some string","optional":32,"withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.3-withOptional->0.3.json --
+{"init":"some string","optional":32,"withDefault":"baz"}
+{"init":"some string","optional":32,"withDefault":"baz"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.3-withOptional->1.0.json --
+{"init":"some string","optional":32,"withDefault":"baz"}
+{"renamed":"some string","optional":32,"withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.3-withOptional->1.1.json --
+{"init":"some string","optional":32,"withDefault":"baz"}
+{"renamed":"some string","optional":32,"withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.0-withOptional->0.0.json --
+{"renamed":"some string","optional":32,"withDefault":"bar"}
+{"init":"some string"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.0-withOptional->0.1.json --
+{"renamed":"some string","optional":32,"withDefault":"bar"}
+{"init":"some string","optional":32}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.0-withOptional->0.2.json --
+{"renamed":"some string","optional":32,"withDefault":"bar"}
+{"init":"some string","optional":32,"withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.0-withOptional->0.3.json --
+{"renamed":"some string","optional":32,"withDefault":"bar"}
+{"init":"some string","optional":32,"withDefault":"bar"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.0-withOptional->1.0.json --
+{"renamed":"some string","optional":32,"withDefault":"bar"}
+{"renamed":"some string","optional":32,"withDefault":"bar"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.0-withOptional->1.1.json --
+{"renamed":"some string","optional":32,"withDefault":"bar"}
+{"renamed":"some string","optional":32,"withDefault":"bar"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.0-withoutOptional->0.0.json --
+{"renamed":"some string","withDefault":"foo"}
+{"init":"some string"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.0-withoutOptional->0.1.json --
+{"renamed":"some string","withDefault":"foo"}
+{"init":"some string"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.0-withoutOptional->0.2.json --
+{"renamed":"some string","withDefault":"foo"}
+{"init":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.0-withoutOptional->0.3.json --
+{"renamed":"some string","withDefault":"foo"}
+{"init":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.0-withoutOptional->1.0.json --
+{"renamed":"some string","withDefault":"foo"}
+{"renamed":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.0-withoutOptional->1.1.json --
+{"renamed":"some string","withDefault":"foo"}
+{"renamed":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.1-withoutOptional->0.0.json --
+{"renamed":"some string","withDefault":"bing"}
+{"init":"some string"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.1-withoutOptional->0.1.json --
+{"renamed":"some string","withDefault":"bing"}
+{"init":"some string"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.1-withoutOptional->0.2.json --
+{"renamed":"some string","withDefault":"bing"}
+{"init":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.1-withoutOptional->0.3.json --
+{"renamed":"some string","withDefault":"bing"}
+{"init":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.1-withoutOptional->1.0.json --
+{"renamed":"some string","withDefault":"bing"}
+{"renamed":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.1-withoutOptional->1.1.json --
+{"renamed":"some string","withDefault":"bing"}
+{"renamed":"some string","withDefault":"bing"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.1-withOptional->0.0.json --
+{"renamed":"some string","optional":32,"withDefault":"bing"}
+{"init":"some string"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.1-withOptional->0.1.json --
+{"renamed":"some string","optional":32,"withDefault":"bing"}
+{"init":"some string","optional":32}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.1-withOptional->0.2.json --
+{"renamed":"some string","optional":32,"withDefault":"bing"}
+{"init":"some string","optional":32,"withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.1-withOptional->0.3.json --
+{"renamed":"some string","optional":32,"withDefault":"bing"}
+{"init":"some string","optional":32,"withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.1-withOptional->1.0.json --
+{"renamed":"some string","optional":32,"withDefault":"bing"}
+{"renamed":"some string","optional":32,"withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.1-withOptional->1.1.json --
+{"renamed":"some string","optional":32,"withDefault":"bing"}
+{"renamed":"some string","optional":32,"withDefault":"bing"}
+[]
+-- out/bind --
+Schema count: 6
+Schema versions: 0.0, 0.1, 0.2, 0.3, 1.0, 1.1
+Lenses count: 6
+-- out/encoding/gocode/TestGenerate/nilcfg --
+== basicmultiversion_type_0.0_gen.go
+package basicmultiversion
+
+// Basicmultiversion defines model for basicmultiversion.
+type Basicmultiversion struct {
+	Init string `json:"init"`
+}
+== basicmultiversion_type_0.1_gen.go
+package basicmultiversion
+
+// Basicmultiversion defines model for basicmultiversion.
+type Basicmultiversion struct {
+	Init     string `json:"init"`
+	Optional *int32 `json:"optional,omitempty"`
+}
+== basicmultiversion_type_0.2_gen.go
+package basicmultiversion
+
+// Defines values for BasicmultiversionWithDefault.
+const (
+	BasicmultiversionWithDefaultBar BasicmultiversionWithDefault = "bar"
+	BasicmultiversionWithDefaultFoo BasicmultiversionWithDefault = "foo"
+)
+
+// Basicmultiversion defines model for basicmultiversion.
+type Basicmultiversion struct {
+	Init        string                       `json:"init"`
+	Optional    *int32                       `json:"optional,omitempty"`
+	WithDefault BasicmultiversionWithDefault `json:"withDefault"`
+}
+
+// BasicmultiversionWithDefault defines model for Basicmultiversion.WithDefault.
+type BasicmultiversionWithDefault string
+== basicmultiversion_type_0.3_gen.go
+package basicmultiversion
+
+// Defines values for BasicmultiversionWithDefault.
+const (
+	BasicmultiversionWithDefaultBar BasicmultiversionWithDefault = "bar"
+	BasicmultiversionWithDefaultBaz BasicmultiversionWithDefault = "baz"
+	BasicmultiversionWithDefaultFoo BasicmultiversionWithDefault = "foo"
+)
+
+// Basicmultiversion defines model for basicmultiversion.
+type Basicmultiversion struct {
+	Init        string                       `json:"init"`
+	Optional    *int32                       `json:"optional,omitempty"`
+	WithDefault BasicmultiversionWithDefault `json:"withDefault"`
+}
+
+// BasicmultiversionWithDefault defines model for Basicmultiversion.WithDefault.
+type BasicmultiversionWithDefault string
+== basicmultiversion_type_1.0_gen.go
+package basicmultiversion
+
+// Defines values for BasicmultiversionWithDefault.
+const (
+	BasicmultiversionWithDefaultBar BasicmultiversionWithDefault = "bar"
+	BasicmultiversionWithDefaultBaz BasicmultiversionWithDefault = "baz"
+	BasicmultiversionWithDefaultFoo BasicmultiversionWithDefault = "foo"
+)
+
+// Basicmultiversion defines model for basicmultiversion.
+type Basicmultiversion struct {
+	Optional    *int32                       `json:"optional,omitempty"`
+	Renamed     string                       `json:"renamed"`
+	WithDefault BasicmultiversionWithDefault `json:"withDefault"`
+}
+
+// BasicmultiversionWithDefault defines model for Basicmultiversion.WithDefault.
+type BasicmultiversionWithDefault string
+== basicmultiversion_type_1.1_gen.go
+package basicmultiversion
+
+// Defines values for BasicmultiversionWithDefault.
+const (
+	BasicmultiversionWithDefaultBar  BasicmultiversionWithDefault = "bar"
+	BasicmultiversionWithDefaultBaz  BasicmultiversionWithDefault = "baz"
+	BasicmultiversionWithDefaultBing BasicmultiversionWithDefault = "bing"
+	BasicmultiversionWithDefaultFoo  BasicmultiversionWithDefault = "foo"
+)
+
+// Basicmultiversion defines model for basicmultiversion.
+type Basicmultiversion struct {
+	Optional    *int32                       `json:"optional,omitempty"`
+	Renamed     string                       `json:"renamed"`
+	WithDefault BasicmultiversionWithDefault `json:"withDefault"`
+}
+
+// BasicmultiversionWithDefault defines model for Basicmultiversion.WithDefault.
+type BasicmultiversionWithDefault string
+-- out/encoding/openapi/TestGenerate/nilcfg --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "basicmultiversion",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "basicmultiversion": {
+        "type": "object",
+        "required": [
+          "init"
+        ],
+        "properties": {
+          "init": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}== 0.1.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "basicmultiversion",
+    "version": "0.1"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "basicmultiversion": {
+        "type": "object",
+        "required": [
+          "init"
+        ],
+        "properties": {
+          "init": {
+            "type": "string"
+          },
+          "optional": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      }
+    }
+  }
+}== 0.2.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "basicmultiversion",
+    "version": "0.2"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "basicmultiversion": {
+        "type": "object",
+        "required": [
+          "init",
+          "withDefault"
+        ],
+        "properties": {
+          "init": {
+            "type": "string"
+          },
+          "optional": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "withDefault": {
+            "type": "string",
+            "enum": [
+              "foo",
+              "bar"
+            ],
+            "default": "foo"
+          }
+        }
+      }
+    }
+  }
+}== 0.3.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "basicmultiversion",
+    "version": "0.3"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "basicmultiversion": {
+        "type": "object",
+        "required": [
+          "init",
+          "withDefault"
+        ],
+        "properties": {
+          "init": {
+            "type": "string"
+          },
+          "optional": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "withDefault": {
+            "type": "string",
+            "enum": [
+              "foo",
+              "bar",
+              "baz"
+            ],
+            "default": "foo"
+          }
+        }
+      }
+    }
+  }
+}== 1.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "basicmultiversion",
+    "version": "1.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "basicmultiversion": {
+        "type": "object",
+        "required": [
+          "renamed",
+          "withDefault"
+        ],
+        "properties": {
+          "renamed": {
+            "type": "string"
+          },
+          "optional": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "withDefault": {
+            "type": "string",
+            "enum": [
+              "bar",
+              "foo",
+              "baz"
+            ],
+            "default": "bar"
+          }
+        }
+      }
+    }
+  }
+}== 1.1.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "basicmultiversion",
+    "version": "1.1"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "basicmultiversion": {
+        "type": "object",
+        "required": [
+          "renamed",
+          "withDefault"
+        ],
+        "properties": {
+          "renamed": {
+            "type": "string"
+          },
+          "optional": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "withDefault": {
+            "type": "string",
+            "enum": [
+              "bar",
+              "foo",
+              "baz",
+              "bing"
+            ],
+            "default": "bar"
+          }
+        }
+      }
+    }
+  }
+}
+-- out/encoding/gocode/TestGenerate/group --
+== basicmultiversion_type_0.0_gen.go
+package basicmultiversion
+
+// Init defines model for init.
+type Init = string
+== basicmultiversion_type_0.1_gen.go
+package basicmultiversion
+
+// Init defines model for init.
+type Init = string
+
+// Optional defines model for optional.
+type Optional = int32
+== basicmultiversion_type_0.2_gen.go
+package basicmultiversion
+
+// Defines values for WithDefault.
+const (
+	WithDefaultBar WithDefault = "bar"
+	WithDefaultFoo WithDefault = "foo"
+)
+
+// Init defines model for init.
+type Init = string
+
+// Optional defines model for optional.
+type Optional = int32
+
+// WithDefault defines model for withDefault.
+type WithDefault string
+== basicmultiversion_type_0.3_gen.go
+package basicmultiversion
+
+// Defines values for WithDefault.
+const (
+	WithDefaultBar WithDefault = "bar"
+	WithDefaultBaz WithDefault = "baz"
+	WithDefaultFoo WithDefault = "foo"
+)
+
+// Init defines model for init.
+type Init = string
+
+// Optional defines model for optional.
+type Optional = int32
+
+// WithDefault defines model for withDefault.
+type WithDefault string
+== basicmultiversion_type_1.0_gen.go
+package basicmultiversion
+
+// Defines values for WithDefault.
+const (
+	WithDefaultBar WithDefault = "bar"
+	WithDefaultBaz WithDefault = "baz"
+	WithDefaultFoo WithDefault = "foo"
+)
+
+// Optional defines model for optional.
+type Optional = int32
+
+// Renamed defines model for renamed.
+type Renamed = string
+
+// WithDefault defines model for withDefault.
+type WithDefault string
+== basicmultiversion_type_1.1_gen.go
+package basicmultiversion
+
+// Defines values for WithDefault.
+const (
+	WithDefaultBar  WithDefault = "bar"
+	WithDefaultBaz  WithDefault = "baz"
+	WithDefaultBing WithDefault = "bing"
+	WithDefaultFoo  WithDefault = "foo"
+)
+
+// Optional defines model for optional.
+type Optional = int32
+
+// Renamed defines model for renamed.
+type Renamed = string
+
+// WithDefault defines model for withDefault.
+type WithDefault string
+-- out/encoding/openapi/TestGenerate/group --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "basicmultiversion",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "init": {
+        "type": "string"
+      }
+    }
+  }
+}== 0.1.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "basicmultiversion",
+    "version": "0.1"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "init": {
+        "type": "string"
+      },
+      "optional": {
+        "type": "integer",
+        "format": "int32"
+      }
+    }
+  }
+}== 0.2.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "basicmultiversion",
+    "version": "0.2"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "init": {
+        "type": "string"
+      },
+      "optional": {
+        "type": "integer",
+        "format": "int32"
+      },
+      "withDefault": {
+        "type": "string",
+        "enum": [
+          "foo",
+          "bar"
+        ],
+        "default": "foo"
+      }
+    }
+  }
+}== 0.3.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "basicmultiversion",
+    "version": "0.3"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "init": {
+        "type": "string"
+      },
+      "optional": {
+        "type": "integer",
+        "format": "int32"
+      },
+      "withDefault": {
+        "type": "string",
+        "enum": [
+          "foo",
+          "bar",
+          "baz"
+        ],
+        "default": "foo"
+      }
+    }
+  }
+}== 1.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "basicmultiversion",
+    "version": "1.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "renamed": {
+        "type": "string"
+      },
+      "optional": {
+        "type": "integer",
+        "format": "int32"
+      },
+      "withDefault": {
+        "type": "string",
+        "enum": [
+          "bar",
+          "foo",
+          "baz"
+        ],
+        "default": "bar"
+      }
+    }
+  }
+}== 1.1.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "basicmultiversion",
+    "version": "1.1"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "renamed": {
+        "type": "string"
+      },
+      "optional": {
+        "type": "integer",
+        "format": "int32"
+      },
+      "withDefault": {
+        "type": "string",
+        "enum": [
+          "bar",
+          "foo",
+          "baz",
+          "bing"
+        ],
+        "default": "bar"
+      }
+    }
+  }
+}
+-- out/encoding/gocode/TestGenerate/depointerized --
+== basicmultiversion_type_0.0_gen.go
+package basicmultiversion
+
+// Basicmultiversion defines model for basicmultiversion.
+type Basicmultiversion struct {
+	Init string `json:"init"`
+}
+== basicmultiversion_type_0.1_gen.go
+package basicmultiversion
+
+// Basicmultiversion defines model for basicmultiversion.
+type Basicmultiversion struct {
+	Init     string `json:"init"`
+	Optional int32  `json:"optional,omitempty"`
+}
+== basicmultiversion_type_0.2_gen.go
+package basicmultiversion
+
+// Defines values for BasicmultiversionWithDefault.
+const (
+	BasicmultiversionWithDefaultBar BasicmultiversionWithDefault = "bar"
+	BasicmultiversionWithDefaultFoo BasicmultiversionWithDefault = "foo"
+)
+
+// Basicmultiversion defines model for basicmultiversion.
+type Basicmultiversion struct {
+	Init        string                       `json:"init"`
+	Optional    int32                        `json:"optional,omitempty"`
+	WithDefault BasicmultiversionWithDefault `json:"withDefault"`
+}
+
+// BasicmultiversionWithDefault defines model for Basicmultiversion.WithDefault.
+type BasicmultiversionWithDefault string
+== basicmultiversion_type_0.3_gen.go
+package basicmultiversion
+
+// Defines values for BasicmultiversionWithDefault.
+const (
+	BasicmultiversionWithDefaultBar BasicmultiversionWithDefault = "bar"
+	BasicmultiversionWithDefaultBaz BasicmultiversionWithDefault = "baz"
+	BasicmultiversionWithDefaultFoo BasicmultiversionWithDefault = "foo"
+)
+
+// Basicmultiversion defines model for basicmultiversion.
+type Basicmultiversion struct {
+	Init        string                       `json:"init"`
+	Optional    int32                        `json:"optional,omitempty"`
+	WithDefault BasicmultiversionWithDefault `json:"withDefault"`
+}
+
+// BasicmultiversionWithDefault defines model for Basicmultiversion.WithDefault.
+type BasicmultiversionWithDefault string
+== basicmultiversion_type_1.0_gen.go
+package basicmultiversion
+
+// Defines values for BasicmultiversionWithDefault.
+const (
+	BasicmultiversionWithDefaultBar BasicmultiversionWithDefault = "bar"
+	BasicmultiversionWithDefaultBaz BasicmultiversionWithDefault = "baz"
+	BasicmultiversionWithDefaultFoo BasicmultiversionWithDefault = "foo"
+)
+
+// Basicmultiversion defines model for basicmultiversion.
+type Basicmultiversion struct {
+	Optional    int32                        `json:"optional,omitempty"`
+	Renamed     string                       `json:"renamed"`
+	WithDefault BasicmultiversionWithDefault `json:"withDefault"`
+}
+
+// BasicmultiversionWithDefault defines model for Basicmultiversion.WithDefault.
+type BasicmultiversionWithDefault string
+== basicmultiversion_type_1.1_gen.go
+package basicmultiversion
+
+// Defines values for BasicmultiversionWithDefault.
+const (
+	BasicmultiversionWithDefaultBar  BasicmultiversionWithDefault = "bar"
+	BasicmultiversionWithDefaultBaz  BasicmultiversionWithDefault = "baz"
+	BasicmultiversionWithDefaultBing BasicmultiversionWithDefault = "bing"
+	BasicmultiversionWithDefaultFoo  BasicmultiversionWithDefault = "foo"
+)
+
+// Basicmultiversion defines model for basicmultiversion.
+type Basicmultiversion struct {
+	Optional    int32                        `json:"optional,omitempty"`
+	Renamed     string                       `json:"renamed"`
+	WithDefault BasicmultiversionWithDefault `json:"withDefault"`
+}
+
+// BasicmultiversionWithDefault defines model for Basicmultiversion.WithDefault.
+type BasicmultiversionWithDefault string
+-- out/encoding/openapi/TestGenerate/expandrefs --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "basicmultiversion",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "basicmultiversion": {
+        "type": "object",
+        "required": [
+          "init"
+        ],
+        "properties": {
+          "init": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}== 0.1.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "basicmultiversion",
+    "version": "0.1"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "basicmultiversion": {
+        "type": "object",
+        "required": [
+          "init"
+        ],
+        "properties": {
+          "init": {
+            "type": "string"
+          },
+          "optional": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      }
+    }
+  }
+}== 0.2.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "basicmultiversion",
+    "version": "0.2"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "basicmultiversion": {
+        "type": "object",
+        "required": [
+          "init",
+          "withDefault"
+        ],
+        "properties": {
+          "init": {
+            "type": "string"
+          },
+          "optional": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "withDefault": {
+            "type": "string",
+            "enum": [
+              "foo",
+              "bar"
+            ],
+            "default": "foo"
+          }
+        }
+      }
+    }
+  }
+}== 0.3.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "basicmultiversion",
+    "version": "0.3"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "basicmultiversion": {
+        "type": "object",
+        "required": [
+          "init",
+          "withDefault"
+        ],
+        "properties": {
+          "init": {
+            "type": "string"
+          },
+          "optional": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "withDefault": {
+            "type": "string",
+            "enum": [
+              "foo",
+              "bar",
+              "baz"
+            ],
+            "default": "foo"
+          }
+        }
+      }
+    }
+  }
+}== 1.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "basicmultiversion",
+    "version": "1.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "basicmultiversion": {
+        "type": "object",
+        "required": [
+          "renamed",
+          "withDefault"
+        ],
+        "properties": {
+          "renamed": {
+            "type": "string"
+          },
+          "optional": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "withDefault": {
+            "type": "string",
+            "enum": [
+              "bar",
+              "foo",
+              "baz"
+            ],
+            "default": "bar"
+          }
+        }
+      }
+    }
+  }
+}== 1.1.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "basicmultiversion",
+    "version": "1.1"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "basicmultiversion": {
+        "type": "object",
+        "required": [
+          "renamed",
+          "withDefault"
+        ],
+        "properties": {
+          "renamed": {
+            "type": "string"
+          },
+          "optional": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "withDefault": {
+            "type": "string",
+            "enum": [
+              "bar",
+              "foo",
+              "baz",
+              "bing"
+            ],
+            "default": "bar"
+          }
+        }
+      }
+    }
+  }
+}
+-- out/encoding/gocode/TestGenerate/godeclincomments --
+== basicmultiversion_type_0.0_gen.go
+package basicmultiversion
+
+// Basicmultiversion defines model for basicmultiversion.
+type Basicmultiversion struct {
+	Init string `json:"init"`
+}
+== basicmultiversion_type_0.1_gen.go
+package basicmultiversion
+
+// Basicmultiversion defines model for basicmultiversion.
+type Basicmultiversion struct {
+	Init     string `json:"init"`
+	Optional *int32 `json:"optional,omitempty"`
+}
+== basicmultiversion_type_0.2_gen.go
+package basicmultiversion
+
+// Defines values for BasicmultiversionWithDefault.
+const (
+	BasicmultiversionWithDefaultBar BasicmultiversionWithDefault = "bar"
+	BasicmultiversionWithDefaultFoo BasicmultiversionWithDefault = "foo"
+)
+
+// Basicmultiversion defines model for basicmultiversion.
+type Basicmultiversion struct {
+	Init        string                       `json:"init"`
+	Optional    *int32                       `json:"optional,omitempty"`
+	WithDefault BasicmultiversionWithDefault `json:"withDefault"`
+}
+
+// BasicmultiversionWithDefault defines model for Basicmultiversion.WithDefault.
+type BasicmultiversionWithDefault string
+== basicmultiversion_type_0.3_gen.go
+package basicmultiversion
+
+// Defines values for BasicmultiversionWithDefault.
+const (
+	BasicmultiversionWithDefaultBar BasicmultiversionWithDefault = "bar"
+	BasicmultiversionWithDefaultBaz BasicmultiversionWithDefault = "baz"
+	BasicmultiversionWithDefaultFoo BasicmultiversionWithDefault = "foo"
+)
+
+// Basicmultiversion defines model for basicmultiversion.
+type Basicmultiversion struct {
+	Init        string                       `json:"init"`
+	Optional    *int32                       `json:"optional,omitempty"`
+	WithDefault BasicmultiversionWithDefault `json:"withDefault"`
+}
+
+// BasicmultiversionWithDefault defines model for Basicmultiversion.WithDefault.
+type BasicmultiversionWithDefault string
+== basicmultiversion_type_1.0_gen.go
+package basicmultiversion
+
+// Defines values for BasicmultiversionWithDefault.
+const (
+	BasicmultiversionWithDefaultBar BasicmultiversionWithDefault = "bar"
+	BasicmultiversionWithDefaultBaz BasicmultiversionWithDefault = "baz"
+	BasicmultiversionWithDefaultFoo BasicmultiversionWithDefault = "foo"
+)
+
+// Basicmultiversion defines model for basicmultiversion.
+type Basicmultiversion struct {
+	Optional    *int32                       `json:"optional,omitempty"`
+	Renamed     string                       `json:"renamed"`
+	WithDefault BasicmultiversionWithDefault `json:"withDefault"`
+}
+
+// BasicmultiversionWithDefault defines model for Basicmultiversion.WithDefault.
+type BasicmultiversionWithDefault string
+== basicmultiversion_type_1.1_gen.go
+package basicmultiversion
+
+// Defines values for BasicmultiversionWithDefault.
+const (
+	BasicmultiversionWithDefaultBar  BasicmultiversionWithDefault = "bar"
+	BasicmultiversionWithDefaultBaz  BasicmultiversionWithDefault = "baz"
+	BasicmultiversionWithDefaultBing BasicmultiversionWithDefault = "bing"
+	BasicmultiversionWithDefaultFoo  BasicmultiversionWithDefault = "foo"
+)
+
+// Basicmultiversion defines model for basicmultiversion.
+type Basicmultiversion struct {
+	Optional    *int32                       `json:"optional,omitempty"`
+	Renamed     string                       `json:"renamed"`
+	WithDefault BasicmultiversionWithDefault `json:"withDefault"`
+}
+
+// BasicmultiversionWithDefault defines model for Basicmultiversion.WithDefault.
+type BasicmultiversionWithDefault string
+-- out/encoding/gocode/TestGenerate/expandref --
+== basicmultiversion_type_0.0_gen.go
+package basicmultiversion
+
+// Basicmultiversion defines model for basicmultiversion.
+type Basicmultiversion struct {
+	Init string `json:"init"`
+}
+== basicmultiversion_type_0.1_gen.go
+package basicmultiversion
+
+// Basicmultiversion defines model for basicmultiversion.
+type Basicmultiversion struct {
+	Init     string `json:"init"`
+	Optional *int32 `json:"optional,omitempty"`
+}
+== basicmultiversion_type_0.2_gen.go
+package basicmultiversion
+
+// Defines values for BasicmultiversionWithDefault.
+const (
+	BasicmultiversionWithDefaultBar BasicmultiversionWithDefault = "bar"
+	BasicmultiversionWithDefaultFoo BasicmultiversionWithDefault = "foo"
+)
+
+// Basicmultiversion defines model for basicmultiversion.
+type Basicmultiversion struct {
+	Init        string                       `json:"init"`
+	Optional    *int32                       `json:"optional,omitempty"`
+	WithDefault BasicmultiversionWithDefault `json:"withDefault"`
+}
+
+// BasicmultiversionWithDefault defines model for Basicmultiversion.WithDefault.
+type BasicmultiversionWithDefault string
+== basicmultiversion_type_0.3_gen.go
+package basicmultiversion
+
+// Defines values for BasicmultiversionWithDefault.
+const (
+	BasicmultiversionWithDefaultBar BasicmultiversionWithDefault = "bar"
+	BasicmultiversionWithDefaultBaz BasicmultiversionWithDefault = "baz"
+	BasicmultiversionWithDefaultFoo BasicmultiversionWithDefault = "foo"
+)
+
+// Basicmultiversion defines model for basicmultiversion.
+type Basicmultiversion struct {
+	Init        string                       `json:"init"`
+	Optional    *int32                       `json:"optional,omitempty"`
+	WithDefault BasicmultiversionWithDefault `json:"withDefault"`
+}
+
+// BasicmultiversionWithDefault defines model for Basicmultiversion.WithDefault.
+type BasicmultiversionWithDefault string
+== basicmultiversion_type_1.0_gen.go
+package basicmultiversion
+
+// Defines values for BasicmultiversionWithDefault.
+const (
+	BasicmultiversionWithDefaultBar BasicmultiversionWithDefault = "bar"
+	BasicmultiversionWithDefaultBaz BasicmultiversionWithDefault = "baz"
+	BasicmultiversionWithDefaultFoo BasicmultiversionWithDefault = "foo"
+)
+
+// Basicmultiversion defines model for basicmultiversion.
+type Basicmultiversion struct {
+	Optional    *int32                       `json:"optional,omitempty"`
+	Renamed     string                       `json:"renamed"`
+	WithDefault BasicmultiversionWithDefault `json:"withDefault"`
+}
+
+// BasicmultiversionWithDefault defines model for Basicmultiversion.WithDefault.
+type BasicmultiversionWithDefault string
+== basicmultiversion_type_1.1_gen.go
+package basicmultiversion
+
+// Defines values for BasicmultiversionWithDefault.
+const (
+	BasicmultiversionWithDefaultBar  BasicmultiversionWithDefault = "bar"
+	BasicmultiversionWithDefaultBaz  BasicmultiversionWithDefault = "baz"
+	BasicmultiversionWithDefaultBing BasicmultiversionWithDefault = "bing"
+	BasicmultiversionWithDefaultFoo  BasicmultiversionWithDefault = "foo"
+)
+
+// Basicmultiversion defines model for basicmultiversion.
+type Basicmultiversion struct {
+	Optional    *int32                       `json:"optional,omitempty"`
+	Renamed     string                       `json:"renamed"`
+	WithDefault BasicmultiversionWithDefault `json:"withDefault"`
+}
+
+// BasicmultiversionWithDefault defines model for Basicmultiversion.WithDefault.
+type BasicmultiversionWithDefault string
