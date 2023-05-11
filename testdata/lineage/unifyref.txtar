@@ -1,0 +1,351 @@
+# schema contains an optional field with a ref to a type that references one type and extends another
+-- in.cue --
+import "github.com/grafana/thema"
+
+thema.#Lineage
+name: "unifyref"
+schemas: [{
+	version: [0, 0]
+	schema: {
+	    afoo: #Foo
+
+	    #Foo: External & {
+	        optf?: #Bar
+	    }
+	    #Bar: {
+	        another: string
+	    }
+	}
+}]
+lenses: []
+
+External: {
+    extfield: string
+}
+-- out/encoding/gocode/TestGenerate/nilcfg --
+== unifyref_type_0.0_gen.go
+package unifyref
+
+// Bar defines model for Bar.
+type Bar struct {
+	Another string `json:"another"`
+}
+
+// External defines model for External.
+type External struct {
+	Extfield string `json:"extfield"`
+}
+
+// Foo defines model for Foo.
+type Foo struct {
+	External
+	Optf     *Bar   `json:"optf,omitempty"`
+}
+
+// Unifyref defines model for unifyref.
+type Unifyref struct {
+	Afoo Foo `json:"afoo"`
+}
+-- out/encoding/gocode/TestGenerate/group --
+== unifyref_type_0.0_gen.go
+package unifyref
+
+// Bar defines model for Bar.
+type Bar struct {
+	Another string `json:"another"`
+}
+
+// External defines model for External.
+type External struct {
+	Extfield string `json:"extfield"`
+}
+
+// Foo defines model for Foo.
+type Foo struct {
+	External
+	Optf     *Bar   `json:"optf,omitempty"`
+}
+
+// Afoo defines model for afoo.
+type Afoo struct {
+	External
+	Optf     *Bar   `json:"optf,omitempty"`
+}
+-- out/encoding/openapi/TestGenerate/nilcfg --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "unifyref",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "Bar": {
+        "type": "object",
+        "required": [
+          "another"
+        ],
+        "properties": {
+          "another": {
+            "type": "string"
+          }
+        }
+      },
+      "External": {
+        "type": "object",
+        "required": [
+          "extfield"
+        ],
+        "properties": {
+          "extfield": {
+            "type": "string"
+          }
+        }
+      },
+      "Foo": {
+        "type": "object",
+        "properties": {
+          "optf": {
+            "$ref": "#/components/schemas/Bar"
+          }
+        },
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/External"
+          }
+        ]
+      },
+      "unifyref": {
+        "type": "object",
+        "required": [
+          "afoo"
+        ],
+        "properties": {
+          "afoo": {
+            "$ref": "#/components/schemas/Foo"
+          }
+        }
+      }
+    }
+  }
+}
+-- out/encoding/openapi/TestGenerate/group --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "unifyref",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "Bar": {
+        "type": "object",
+        "required": [
+          "another"
+        ],
+        "properties": {
+          "another": {
+            "type": "string"
+          }
+        }
+      },
+      "afoo": {
+        "type": "object",
+        "required": [
+          "extfield"
+        ],
+        "properties": {
+          "extfield": {
+            "type": "string"
+          },
+          "optf": {
+            "$ref": "#/components/schemas/Bar"
+          }
+        }
+      },
+      "External": {
+        "type": "object",
+        "required": [
+          "extfield"
+        ],
+        "properties": {
+          "extfield": {
+            "type": "string"
+          }
+        }
+      },
+      "Foo": {
+        "type": "object",
+        "properties": {
+          "optf": {
+            "$ref": "#/components/schemas/Bar"
+          }
+        },
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/External"
+          }
+        ]
+      }
+    }
+  }
+}
+-- out/encoding/openapi/TestGenerate/expandrefs --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "unifyref",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "Bar": {
+        "type": "object",
+        "required": [
+          "another"
+        ],
+        "properties": {
+          "another": {
+            "type": "string"
+          }
+        }
+      },
+      "Foo": {
+        "type": "object",
+        "required": [
+          "extfield"
+        ],
+        "properties": {
+          "extfield": {
+            "type": "string"
+          },
+          "optf": {
+            "type": "object",
+            "required": [
+              "another"
+            ],
+            "properties": {
+              "another": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "unifyref": {
+        "type": "object",
+        "required": [
+          "afoo"
+        ],
+        "properties": {
+          "afoo": {
+            "type": "object",
+            "required": [
+              "extfield"
+            ],
+            "properties": {
+              "extfield": {
+                "type": "string"
+              },
+              "optf": {
+                "type": "object",
+                "required": [
+                  "another"
+                ],
+                "properties": {
+                  "another": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+-- out/encoding/gocode/TestGenerate/depointerized --
+== unifyref_type_0.0_gen.go
+package unifyref
+
+// Bar defines model for Bar.
+type Bar struct {
+	Another string `json:"another"`
+}
+
+// External defines model for External.
+type External struct {
+	Extfield string `json:"extfield"`
+}
+
+// Foo defines model for Foo.
+type Foo struct {
+	External
+	Optf     Bar    `json:"optf,omitempty"`
+}
+
+// Unifyref defines model for unifyref.
+type Unifyref struct {
+	Afoo Foo `json:"afoo"`
+}
+-- out/encoding/gocode/TestGenerate/godeclincomments --
+== unifyref_type_0.0_gen.go
+package unifyref
+
+// Bar defines model for Bar.
+type Bar struct {
+	Another string `json:"another"`
+}
+
+// External defines model for External.
+type External struct {
+	Extfield string `json:"extfield"`
+}
+
+// Foo defines model for Foo.
+type Foo struct {
+	External
+	Optf     *Bar   `json:"optf,omitempty"`
+}
+
+// Unifyref defines model for unifyref.
+type Unifyref struct {
+	Afoo Foo `json:"afoo"`
+}
+-- out/encoding/gocode/TestGenerate/expandref --
+== unifyref_type_0.0_gen.go
+package unifyref
+
+// Bar defines model for Bar.
+type Bar struct {
+	Another string `json:"another"`
+}
+
+// Foo defines model for Foo.
+type Foo struct {
+	External
+	Optf     *struct {
+		Another string `json:"another"`
+	} `json:"optf,omitempty"`
+}
+
+// Unifyref defines model for unifyref.
+type Unifyref struct {
+	Afoo struct {
+		Extfield string `json:"extfield"`
+		Optf     *struct {
+			Another string `json:"another"`
+		} `json:"optf,omitempty"`
+	} `json:"afoo"`
+}
+-- out/bind --
+Schema count: 1
+Schema versions: 0.0
+Lenses count: 0

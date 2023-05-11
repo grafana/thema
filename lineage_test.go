@@ -58,6 +58,7 @@ func TestInvalidLineages(t *testing.T) {
 			"invalidlineage/defaultchange": "Thema compat analyzer fails to classify changes to default values as breaking",
 			"invalidlineage/joindef":       "no invariant checker written to disallow definitions from joinSchema",
 			"invalidlineage/onlydef":       "Lineage schema non-emptiness constraints are temporarily suspended while migrating grafana to flattened lineage structure",
+			"invalidlineage/addremove":     "Required field addition is not detected as breaking changes",
 		},
 	}
 

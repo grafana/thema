@@ -1,6 +1,7 @@
 # Basic schema evolution over time
 
 #multiversion
+#slow
 -- in.cue --
 import "github.com/grafana/thema"
 
