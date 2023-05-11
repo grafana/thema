@@ -182,3 +182,271 @@ lenses: [{
         init: input.init
     }
 }]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.0-simple->0.0.json --
+{"init":"some string"}
+{"init":"some string"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.0-simple->0.1.json --
+{"init":"some string"}
+{"init":"some string"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.0-simple->0.2.json --
+{"init":"some string"}
+{"init":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.0-simple->0.3.json --
+{"init":"some string"}
+{"init":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.0-simple->1.0.json --
+{"init":"some string"}
+{"renamed":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.0-simple->1.1.json --
+{"init":"some string"}
+{"renamed":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.1-withoutOptional->0.0.json --
+{"init":"some string"}
+{"init":"some string"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.1-withoutOptional->0.1.json --
+{"init":"some string"}
+{"init":"some string"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.1-withoutOptional->0.2.json --
+{"init":"some string"}
+{"init":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.1-withoutOptional->0.3.json --
+{"init":"some string"}
+{"init":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.1-withoutOptional->1.0.json --
+{"init":"some string"}
+{"renamed":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.1-withoutOptional->1.1.json --
+{"init":"some string"}
+{"renamed":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.1-withOptional->0.0.json --
+{"init":"some string","optional":32}
+{"init":"some string"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.1-withOptional->0.1.json --
+{"init":"some string","optional":32}
+{"init":"some string","optional":32}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.1-withOptional->0.2.json --
+{"init":"some string","optional":32}
+{"init":"some string","optional":32,"withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.1-withOptional->0.3.json --
+{"init":"some string","optional":32}
+{"init":"some string","optional":32,"withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.1-withOptional->1.0.json --
+{"init":"some string","optional":32}
+{"renamed":"some string","optional":32,"withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.1-withOptional->1.1.json --
+{"init":"some string","optional":32}
+{"renamed":"some string","optional":32,"withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.2-withOptional->0.0.json --
+{"init":"some string","optional":32,"withDefault":"bar"}
+{"init":"some string"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.2-withOptional->0.1.json --
+{"init":"some string","optional":32,"withDefault":"bar"}
+{"init":"some string","optional":32}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.2-withOptional->0.2.json --
+{"init":"some string","optional":32,"withDefault":"bar"}
+{"init":"some string","optional":32,"withDefault":"bar"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.2-withOptional->0.3.json --
+{"init":"some string","optional":32,"withDefault":"bar"}
+{"init":"some string","optional":32,"withDefault":"bar"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.2-withOptional->1.0.json --
+{"init":"some string","optional":32,"withDefault":"bar"}
+{"renamed":"some string","optional":32,"withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.2-withOptional->1.1.json --
+{"init":"some string","optional":32,"withDefault":"bar"}
+{"renamed":"some string","optional":32,"withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.2-withoutOptional->0.0.json --
+{"init":"some string","withDefault":"foo"}
+{"init":"some string"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.2-withoutOptional->0.1.json --
+{"init":"some string","withDefault":"foo"}
+{"init":"some string"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.2-withoutOptional->0.2.json --
+{"init":"some string","withDefault":"foo"}
+{"init":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.2-withoutOptional->0.3.json --
+{"init":"some string","withDefault":"foo"}
+{"init":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.2-withoutOptional->1.0.json --
+{"init":"some string","withDefault":"foo"}
+{"renamed":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.2-withoutOptional->1.1.json --
+{"init":"some string","withDefault":"foo"}
+{"renamed":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.3-withoutOptional->0.0.json --
+{"init":"some string","withDefault":"baz"}
+{"init":"some string"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.3-withoutOptional->0.1.json --
+{"init":"some string","withDefault":"baz"}
+{"init":"some string"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.3-withoutOptional->0.2.json --
+{"init":"some string","withDefault":"baz"}
+{"init":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.3-withoutOptional->0.3.json --
+{"init":"some string","withDefault":"baz"}
+{"init":"some string","withDefault":"baz"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.3-withoutOptional->1.0.json --
+{"init":"some string","withDefault":"baz"}
+{"renamed":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.3-withoutOptional->1.1.json --
+{"init":"some string","withDefault":"baz"}
+{"renamed":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.3-withOptional->0.0.json --
+{"init":"some string","optional":32,"withDefault":"baz"}
+{"init":"some string"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.3-withOptional->0.1.json --
+{"init":"some string","optional":32,"withDefault":"baz"}
+{"init":"some string","optional":32}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.3-withOptional->0.2.json --
+{"init":"some string","optional":32,"withDefault":"baz"}
+{"init":"some string","optional":32,"withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.3-withOptional->0.3.json --
+{"init":"some string","optional":32,"withDefault":"baz"}
+{"init":"some string","optional":32,"withDefault":"baz"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.3-withOptional->1.0.json --
+{"init":"some string","optional":32,"withDefault":"baz"}
+{"renamed":"some string","optional":32,"withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.3-withOptional->1.1.json --
+{"init":"some string","optional":32,"withDefault":"baz"}
+{"renamed":"some string","optional":32,"withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.0-withOptional->0.0.json --
+{"renamed":"some string","optional":32,"withDefault":"bar"}
+{"init":"some string"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.0-withOptional->0.1.json --
+{"renamed":"some string","optional":32,"withDefault":"bar"}
+{"init":"some string","optional":32}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.0-withOptional->0.2.json --
+{"renamed":"some string","optional":32,"withDefault":"bar"}
+{"init":"some string","optional":32,"withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.0-withOptional->0.3.json --
+{"renamed":"some string","optional":32,"withDefault":"bar"}
+{"init":"some string","optional":32,"withDefault":"bar"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.0-withOptional->1.0.json --
+{"renamed":"some string","optional":32,"withDefault":"bar"}
+{"renamed":"some string","optional":32,"withDefault":"bar"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.0-withOptional->1.1.json --
+{"renamed":"some string","optional":32,"withDefault":"bar"}
+{"renamed":"some string","optional":32,"withDefault":"bar"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.0-withoutOptional->0.0.json --
+{"renamed":"some string","withDefault":"foo"}
+{"init":"some string"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.0-withoutOptional->0.1.json --
+{"renamed":"some string","withDefault":"foo"}
+{"init":"some string"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.0-withoutOptional->0.2.json --
+{"renamed":"some string","withDefault":"foo"}
+{"init":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.0-withoutOptional->0.3.json --
+{"renamed":"some string","withDefault":"foo"}
+{"init":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.0-withoutOptional->1.0.json --
+{"renamed":"some string","withDefault":"foo"}
+{"renamed":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.0-withoutOptional->1.1.json --
+{"renamed":"some string","withDefault":"foo"}
+{"renamed":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.1-withoutOptional->0.0.json --
+{"renamed":"some string","withDefault":"bing"}
+{"init":"some string"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.1-withoutOptional->0.1.json --
+{"renamed":"some string","withDefault":"bing"}
+{"init":"some string"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.1-withoutOptional->0.2.json --
+{"renamed":"some string","withDefault":"bing"}
+{"init":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.1-withoutOptional->0.3.json --
+{"renamed":"some string","withDefault":"bing"}
+{"init":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.1-withoutOptional->1.0.json --
+{"renamed":"some string","withDefault":"bing"}
+{"renamed":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.1-withoutOptional->1.1.json --
+{"renamed":"some string","withDefault":"bing"}
+{"renamed":"some string","withDefault":"bing"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.1-withOptional->0.0.json --
+{"renamed":"some string","optional":32,"withDefault":"bing"}
+{"init":"some string"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.1-withOptional->0.1.json --
+{"renamed":"some string","optional":32,"withDefault":"bing"}
+{"init":"some string","optional":32}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.1-withOptional->0.2.json --
+{"renamed":"some string","optional":32,"withDefault":"bing"}
+{"init":"some string","optional":32,"withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.1-withOptional->0.3.json --
+{"renamed":"some string","optional":32,"withDefault":"bing"}
+{"init":"some string","optional":32,"withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.1-withOptional->1.0.json --
+{"renamed":"some string","optional":32,"withDefault":"bing"}
+{"renamed":"some string","optional":32,"withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.1-withOptional->1.1.json --
+{"renamed":"some string","optional":32,"withDefault":"bing"}
+{"renamed":"some string","optional":32,"withDefault":"bing"}
+[]
+-- out/bind --
+Schema count: 6
+Schema versions: 0.0, 0.1, 0.2, 0.3, 1.0, 1.1
+Lenses count: 6
