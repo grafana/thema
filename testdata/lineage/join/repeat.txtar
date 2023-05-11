@@ -14,10 +14,6 @@ schemas: [{
 	}
 }]
 lenses: []
--- out/bind --
-Schema count: 1
-Schema versions: 0.0
-Lenses count: 0
 -- out/encoding/openapi/TestGenerate/nilcfg --
 == 0.0.json
 {
@@ -42,6 +38,37 @@ Lenses count: 0
       }
     }
   }
+}
+-- out/encoding/gocode/TestGenerate/group --
+== repeat_type_0.0_gen.go
+package repeat
+
+// Foo defines model for foo.
+type Foo = string
+-- out/encoding/openapi/TestGenerate/group --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "repeat",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "foo": {
+        "type": "string"
+      }
+    }
+  }
+}
+-- out/encoding/gocode/TestGenerate/depointerized --
+== repeat_type_0.0_gen.go
+package repeat
+
+// Repeat defines model for repeat.
+type Repeat struct {
+	Foo string `json:"foo"`
 }
 -- out/encoding/openapi/TestGenerate/expandrefs --
 == 0.0.json
@@ -68,45 +95,6 @@ Lenses count: 0
     }
   }
 }
--- out/encoding/openapi/TestGenerate/group --
-== 0.0.json
-{
-  "openapi": "3.0.0",
-  "info": {
-    "title": "repeat",
-    "version": "0.0"
-  },
-  "paths": {},
-  "components": {
-    "schemas": {
-      "foo": {
-        "type": "string"
-      }
-    }
-  }
-}
--- out/encoding/gocode/TestGenerate/nilcfg --
-== repeat_type_0.0_gen.go
-package repeat
-
-// Repeat defines model for repeat.
-type Repeat struct {
-	Foo string `json:"foo"`
-}
--- out/encoding/gocode/TestGenerate/group --
-== repeat_type_0.0_gen.go
-package repeat
-
-// Foo defines model for foo.
-type Foo = string
--- out/encoding/gocode/TestGenerate/depointerized --
-== repeat_type_0.0_gen.go
-package repeat
-
-// Repeat defines model for repeat.
-type Repeat struct {
-	Foo string `json:"foo"`
-}
 -- out/encoding/gocode/TestGenerate/godeclincomments --
 == repeat_type_0.0_gen.go
 package repeat
@@ -116,6 +104,18 @@ type Repeat struct {
 	Foo string `json:"foo"`
 }
 -- out/encoding/gocode/TestGenerate/expandref --
+== repeat_type_0.0_gen.go
+package repeat
+
+// Repeat defines model for repeat.
+type Repeat struct {
+	Foo string `json:"foo"`
+}
+-- out/bind --
+Schema count: 1
+Schema versions: 0.0
+Lenses count: 0
+-- out/encoding/gocode/TestGenerate/nilcfg --
 == repeat_type_0.0_gen.go
 package repeat
 

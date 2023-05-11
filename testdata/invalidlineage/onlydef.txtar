@@ -15,11 +15,3 @@ schemas: [{
 	}
 }]
 lenses: []
--- out/bindfail --
-_sortedSchemas: invalid value [] (does not satisfy list.MinItems(1)): len(list) < MinItems(1) (0 < 1):
-    ../../lineage.cue:97:7
-    ../../lineage.cue:93:21
-    ../../lineage.cue:97:21
-schemas.0._schemaIsNonEmpty: invalid value {#Baz:{run:string,tell:bytes,dat:int & >=-2147483648 & <=2147483647}} (does not satisfy struct.MinFields(1)): len(fields) < MinFields(1) (0 < 1):
-    ../../lineage.cue:259:21
-    ../../lineage.cue:259:38

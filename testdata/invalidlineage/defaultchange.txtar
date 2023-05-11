@@ -29,10 +29,3 @@ lenses: [
         }
     },
 ]
--- out/bindfail --
-not a lineage, missing #Lineage.name
-(1) forced error mark
-  | "not a lineage"
-  | github.com/cockroachdb/errors/withstack/*withstack.withStack::
-Wraps: (2) not a lineage, missing #Lineage.name
-Error types: (1) *markers.withMark (2) *errors.errorString
