@@ -10,36 +10,7 @@ schemas: [{
         firstfield: string
     }
 }]
--- out/bind --
-Schema count: 1
-Schema versions: 0.0
-Lenses count: 0
 -- out/encoding/openapi/TestGenerate/nilcfg --
-== 0.0.json
-{
-  "openapi": "3.0.0",
-  "info": {
-    "title": "oneschemaversionless",
-    "version": "0.0"
-  },
-  "paths": {},
-  "components": {
-    "schemas": {
-      "oneschemaversionless": {
-        "type": "object",
-        "required": [
-          "firstfield"
-        ],
-        "properties": {
-          "firstfield": {
-            "type": "string"
-          }
-        }
-      }
-    }
-  }
-}
--- out/encoding/openapi/TestGenerate/expandrefs --
 == 0.0.json
 {
   "openapi": "3.0.0",
@@ -81,20 +52,6 @@ Lenses count: 0
     }
   }
 }
--- out/encoding/gocode/TestGenerate/nilcfg --
-== oneschemaversionless_type_0.0_gen.go
-package oneschemaversionless
-
-// Oneschemaversionless defines model for oneschemaversionless.
-type Oneschemaversionless struct {
-	Firstfield string `json:"firstfield"`
-}
--- out/encoding/gocode/TestGenerate/group --
-== oneschemaversionless_type_0.0_gen.go
-package oneschemaversionless
-
-// Firstfield defines model for firstfield.
-type Firstfield = string
 -- out/encoding/gocode/TestGenerate/depointerized --
 == oneschemaversionless_type_0.0_gen.go
 package oneschemaversionless
@@ -102,6 +59,31 @@ package oneschemaversionless
 // Oneschemaversionless defines model for oneschemaversionless.
 type Oneschemaversionless struct {
 	Firstfield string `json:"firstfield"`
+}
+-- out/encoding/openapi/TestGenerate/expandrefs --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "oneschemaversionless",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "oneschemaversionless": {
+        "type": "object",
+        "required": [
+          "firstfield"
+        ],
+        "properties": {
+          "firstfield": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
 }
 -- out/encoding/gocode/TestGenerate/godeclincomments --
 == oneschemaversionless_type_0.0_gen.go
@@ -119,3 +101,21 @@ package oneschemaversionless
 type Oneschemaversionless struct {
 	Firstfield string `json:"firstfield"`
 }
+-- out/bind --
+Schema count: 1
+Schema versions: 0.0
+Lenses count: 0
+-- out/encoding/gocode/TestGenerate/nilcfg --
+== oneschemaversionless_type_0.0_gen.go
+package oneschemaversionless
+
+// Oneschemaversionless defines model for oneschemaversionless.
+type Oneschemaversionless struct {
+	Firstfield string `json:"firstfield"`
+}
+-- out/encoding/gocode/TestGenerate/group --
+== oneschemaversionless_type_0.0_gen.go
+package oneschemaversionless
+
+// Firstfield defines model for firstfield.
+type Firstfield = string

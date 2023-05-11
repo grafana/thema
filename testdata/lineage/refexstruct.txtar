@@ -17,10 +17,6 @@ lenses: []
     tell: bytes
     dat:  int32
 }
--- out/bind --
-Schema count: 1
-Schema versions: 0.0
-Lenses count: 0
 -- out/encoding/openapi/TestGenerate/nilcfg --
 == 0.0.json
 {
@@ -61,6 +57,41 @@ Lenses count: 0
         "properties": {
           "aBaz": {
             "$ref": "#/components/schemas/Baz"
+          }
+        }
+      }
+    }
+  }
+}
+-- out/encoding/openapi/TestGenerate/group --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "refexstruct",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "aBaz": {
+        "type": "object",
+        "required": [
+          "run",
+          "tell",
+          "dat"
+        ],
+        "properties": {
+          "run": {
+            "type": "string"
+          },
+          "tell": {
+            "type": "string",
+            "format": "binary"
+          },
+          "dat": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       }
@@ -110,41 +141,37 @@ Lenses count: 0
     }
   }
 }
--- out/encoding/openapi/TestGenerate/group --
-== 0.0.json
-{
-  "openapi": "3.0.0",
-  "info": {
-    "title": "refexstruct",
-    "version": "0.0"
-  },
-  "paths": {},
-  "components": {
-    "schemas": {
-      "aBaz": {
-        "type": "object",
-        "required": [
-          "run",
-          "tell",
-          "dat"
-        ],
-        "properties": {
-          "run": {
-            "type": "string"
-          },
-          "tell": {
-            "type": "string",
-            "format": "binary"
-          },
-          "dat": {
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      }
-    }
-  }
+-- out/encoding/gocode/TestGenerate/godeclincomments --
+== refexstruct_type_0.0_gen.go
+package refexstruct
+
+// Baz defines model for Baz.
+type Baz struct {
+	Dat  int32  `json:"dat"`
+	Run  string `json:"run"`
+	Tell []byte `json:"tell"`
 }
+
+// Refexstruct defines model for refexstruct.
+type Refexstruct struct {
+	ABaz Baz `json:"aBaz"`
+}
+-- out/encoding/gocode/TestGenerate/expandref --
+== refexstruct_type_0.0_gen.go
+package refexstruct
+
+// Refexstruct defines model for refexstruct.
+type Refexstruct struct {
+	ABaz struct {
+		Dat  int32  `json:"dat"`
+		Run  string `json:"run"`
+		Tell []byte `json:"tell"`
+	} `json:"aBaz"`
+}
+-- out/bind --
+Schema count: 1
+Schema versions: 0.0
+Lenses count: 0
 -- out/encoding/gocode/TestGenerate/nilcfg --
 == refexstruct_type_0.0_gen.go
 package refexstruct
@@ -184,31 +211,4 @@ type Baz struct {
 // Refexstruct defines model for refexstruct.
 type Refexstruct struct {
 	ABaz Baz `json:"aBaz"`
-}
--- out/encoding/gocode/TestGenerate/godeclincomments --
-== refexstruct_type_0.0_gen.go
-package refexstruct
-
-// Baz defines model for Baz.
-type Baz struct {
-	Dat  int32  `json:"dat"`
-	Run  string `json:"run"`
-	Tell []byte `json:"tell"`
-}
-
-// Refexstruct defines model for refexstruct.
-type Refexstruct struct {
-	ABaz Baz `json:"aBaz"`
-}
--- out/encoding/gocode/TestGenerate/expandref --
-== refexstruct_type_0.0_gen.go
-package refexstruct
-
-// Refexstruct defines model for refexstruct.
-type Refexstruct struct {
-	ABaz struct {
-		Dat  int32  `json:"dat"`
-		Run  string `json:"run"`
-		Tell []byte `json:"tell"`
-	} `json:"aBaz"`
 }
