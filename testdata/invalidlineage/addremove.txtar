@@ -1,0 +1,44 @@
+# adding or removing a required field is considered a backwards incompatible change
+#lineagePath: lin
+-- in.cue --
+
+import "github.com/grafana/thema"
+
+lin: thema.#Lineage
+lin: name: "breaking"
+lin: schemas: [{
+    version: [0, 0]
+    schema: {
+        firstfield: string
+    }
+},
+{
+    version: [0, 1]
+    schema: {
+        firstfield: string
+        added: int32
+    }
+},
+{
+    version: [0, 2]
+    schema: {
+        firstfield: string
+    }
+}]
+
+lin: lenses: [{
+	from: [0, 1]
+	to: [0, 0]
+	input: _
+	result: {
+		firstfield: input.firstfield
+	}
+}, {
+	from: [0, 2]
+	to: [0, 2]
+	input: _
+	result: {
+		firstfield: input.firstfield
+		secondfield: 42
+	}
+}]
