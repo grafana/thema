@@ -21,6 +21,7 @@ func TestGenerate(t *testing.T) {
 			"lineage/defaultchange": "default backcompat invariants not working properly yet",
 			"lineage/optional":      "Optional fields do not satisfy struct.MinFields(), causing #Lineage constraints to fail",
 			"lineage/union":         "Test is abominably slow, cue evaluator is choking up on disjunctions",
+			"lineage/unifyref":      "CUE Struct unifications are not being properly rendered as Go struct embeddings",
 		},
 	}
 

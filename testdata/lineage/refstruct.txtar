@@ -17,10 +17,6 @@ schemas: [{
 	}
 }]
 lenses: []
--- out/bind --
-Schema count: 1
-Schema versions: 0.0
-Lenses count: 0
 -- out/encoding/openapi/TestGenerate/nilcfg --
 == 0.0.json
 {
@@ -61,6 +57,62 @@ Lenses count: 0
         "properties": {
           "aBaz": {
             "$ref": "#/components/schemas/Baz"
+          }
+        }
+      }
+    }
+  }
+}
+-- out/encoding/openapi/TestGenerate/group --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "refstruct",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "aBaz": {
+        "type": "object",
+        "required": [
+          "run",
+          "tell",
+          "dat"
+        ],
+        "properties": {
+          "run": {
+            "type": "string"
+          },
+          "tell": {
+            "type": "string",
+            "format": "binary"
+          },
+          "dat": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "Baz": {
+        "type": "object",
+        "required": [
+          "run",
+          "tell",
+          "dat"
+        ],
+        "properties": {
+          "run": {
+            "type": "string"
+          },
+          "tell": {
+            "type": "string",
+            "format": "binary"
+          },
+          "dat": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       }
@@ -131,62 +183,44 @@ Lenses count: 0
     }
   }
 }
--- out/encoding/openapi/TestGenerate/group --
-== 0.0.json
-{
-  "openapi": "3.0.0",
-  "info": {
-    "title": "refstruct",
-    "version": "0.0"
-  },
-  "paths": {},
-  "components": {
-    "schemas": {
-      "aBaz": {
-        "type": "object",
-        "required": [
-          "run",
-          "tell",
-          "dat"
-        ],
-        "properties": {
-          "run": {
-            "type": "string"
-          },
-          "tell": {
-            "type": "string",
-            "format": "binary"
-          },
-          "dat": {
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
-      "Baz": {
-        "type": "object",
-        "required": [
-          "run",
-          "tell",
-          "dat"
-        ],
-        "properties": {
-          "run": {
-            "type": "string"
-          },
-          "tell": {
-            "type": "string",
-            "format": "binary"
-          },
-          "dat": {
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      }
-    }
-  }
+-- out/encoding/gocode/TestGenerate/godeclincomments --
+== refstruct_type_0.0_gen.go
+package refstruct
+
+// Baz defines model for Baz.
+type Baz struct {
+	Dat  int32  `json:"dat"`
+	Run  string `json:"run"`
+	Tell []byte `json:"tell"`
 }
+
+// Refstruct defines model for refstruct.
+type Refstruct struct {
+	ABaz Baz `json:"aBaz"`
+}
+-- out/encoding/gocode/TestGenerate/expandref --
+== refstruct_type_0.0_gen.go
+package refstruct
+
+// Baz defines model for Baz.
+type Baz struct {
+	Dat  int32  `json:"dat"`
+	Run  string `json:"run"`
+	Tell []byte `json:"tell"`
+}
+
+// Refstruct defines model for refstruct.
+type Refstruct struct {
+	ABaz struct {
+		Dat  int32  `json:"dat"`
+		Run  string `json:"run"`
+		Tell []byte `json:"tell"`
+	} `json:"aBaz"`
+}
+-- out/bind --
+Schema count: 1
+Schema versions: 0.0
+Lenses count: 0
 -- out/encoding/gocode/TestGenerate/nilcfg --
 == refstruct_type_0.0_gen.go
 package refstruct
@@ -233,38 +267,4 @@ type Baz struct {
 // Refstruct defines model for refstruct.
 type Refstruct struct {
 	ABaz Baz `json:"aBaz"`
-}
--- out/encoding/gocode/TestGenerate/godeclincomments --
-== refstruct_type_0.0_gen.go
-package refstruct
-
-// Baz defines model for Baz.
-type Baz struct {
-	Dat  int32  `json:"dat"`
-	Run  string `json:"run"`
-	Tell []byte `json:"tell"`
-}
-
-// Refstruct defines model for refstruct.
-type Refstruct struct {
-	ABaz Baz `json:"aBaz"`
-}
--- out/encoding/gocode/TestGenerate/expandref --
-== refstruct_type_0.0_gen.go
-package refstruct
-
-// Baz defines model for Baz.
-type Baz struct {
-	Dat  int32  `json:"dat"`
-	Run  string `json:"run"`
-	Tell []byte `json:"tell"`
-}
-
-// Refstruct defines model for refstruct.
-type Refstruct struct {
-	ABaz struct {
-		Dat  int32  `json:"dat"`
-		Run  string `json:"run"`
-		Tell []byte `json:"tell"`
-	} `json:"aBaz"`
 }

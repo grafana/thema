@@ -22,100 +22,6 @@ schemas: [{
 	}
 }]
 lenses: []
--- out/encoding/gocode/TestGenerate/nilcfg --
-== nearoptional_type_0.0_gen.go
-package nearoptional
-
-// Nearoptional defines model for nearoptional.
-type Nearoptional struct {
-	Abool   *bool    `json:"abool,omitempty"`
-	Abytes  []byte   `json:"abytes,omitempty"`
-	Alist   []string `json:"alist,omitempty"`
-	Anint   *int     `json:"anint,omitempty"`
-	Astring *string  `json:"astring,omitempty"`
-	Astruct *struct {
-		Nested string `json:"nested"`
-	} `json:"astruct,omitempty"`
-	Notoptional int32 `json:"notoptional"`
-}
--- out/encoding/gocode/TestGenerate/group --
-== nearoptional_type_0.0_gen.go
-package nearoptional
-
-// Abool defines model for abool.
-type Abool = bool
-
-// Abytes defines model for abytes.
-type Abytes = []byte
-
-// Alist defines model for alist.
-type Alist = []string
-
-// Anint defines model for anint.
-type Anint = int
-
-// Astring defines model for astring.
-type Astring = string
-
-// Astruct defines model for astruct.
-type Astruct struct {
-	Nested string `json:"nested"`
-}
-
-// Notoptional defines model for notoptional.
-type Notoptional = int32
--- out/encoding/gocode/TestGenerate/depointerized --
-== nearoptional_type_0.0_gen.go
-package nearoptional
-
-// Nearoptional defines model for nearoptional.
-type Nearoptional struct {
-	Abool   bool     `json:"abool,omitempty"`
-	Abytes  []byte   `json:"abytes,omitempty"`
-	Alist   []string `json:"alist,omitempty"`
-	Anint   int      `json:"anint,omitempty"`
-	Astring string   `json:"astring,omitempty"`
-	Astruct struct {
-		Nested string `json:"nested"`
-	} `json:"astruct,omitempty"`
-	Notoptional int32 `json:"notoptional"`
-}
--- out/encoding/gocode/TestGenerate/godeclincomments --
-== nearoptional_type_0.0_gen.go
-package nearoptional
-
-// Nearoptional defines model for nearoptional.
-type Nearoptional struct {
-	Abool   *bool    `json:"abool,omitempty"`
-	Abytes  []byte   `json:"abytes,omitempty"`
-	Alist   []string `json:"alist,omitempty"`
-	Anint   *int     `json:"anint,omitempty"`
-	Astring *string  `json:"astring,omitempty"`
-	Astruct *struct {
-		Nested string `json:"nested"`
-	} `json:"astruct,omitempty"`
-	Notoptional int32 `json:"notoptional"`
-}
--- out/encoding/gocode/TestGenerate/expandref --
-== nearoptional_type_0.0_gen.go
-package nearoptional
-
-// Nearoptional defines model for nearoptional.
-type Nearoptional struct {
-	Abool   *bool    `json:"abool,omitempty"`
-	Abytes  []byte   `json:"abytes,omitempty"`
-	Alist   []string `json:"alist,omitempty"`
-	Anint   *int     `json:"anint,omitempty"`
-	Astring *string  `json:"astring,omitempty"`
-	Astruct *struct {
-		Nested string `json:"nested"`
-	} `json:"astruct,omitempty"`
-	Notoptional int32 `json:"notoptional"`
-}
--- out/bind --
-Schema count: 1
-Schema versions: 0.0
-Lenses count: 0
 -- out/encoding/openapi/TestGenerate/nilcfg --
 == 0.0.json
 {
@@ -172,6 +78,32 @@ Lenses count: 0
     }
   }
 }
+-- out/encoding/gocode/TestGenerate/group --
+== nearoptional_type_0.0_gen.go
+package nearoptional
+
+// Abool defines model for abool.
+type Abool = bool
+
+// Abytes defines model for abytes.
+type Abytes = []byte
+
+// Alist defines model for alist.
+type Alist = []string
+
+// Anint defines model for anint.
+type Anint = int
+
+// Astring defines model for astring.
+type Astring = string
+
+// Astruct defines model for astruct.
+type Astruct struct {
+	Nested string `json:"nested"`
+}
+
+// Notoptional defines model for notoptional.
+type Notoptional = int32
 -- out/encoding/openapi/TestGenerate/group --
 == 0.0.json
 {
@@ -219,6 +151,22 @@ Lenses count: 0
       }
     }
   }
+}
+-- out/encoding/gocode/TestGenerate/depointerized --
+== nearoptional_type_0.0_gen.go
+package nearoptional
+
+// Nearoptional defines model for nearoptional.
+type Nearoptional struct {
+	Abool   bool     `json:"abool,omitempty"`
+	Abytes  []byte   `json:"abytes,omitempty"`
+	Alist   []string `json:"alist,omitempty"`
+	Anint   int      `json:"anint,omitempty"`
+	Astring string   `json:"astring,omitempty"`
+	Astruct struct {
+		Nested string `json:"nested"`
+	} `json:"astruct,omitempty"`
+	Notoptional int32 `json:"notoptional"`
 }
 -- out/encoding/openapi/TestGenerate/expandrefs --
 == 0.0.json
@@ -275,4 +223,56 @@ Lenses count: 0
       }
     }
   }
+}
+-- out/encoding/gocode/TestGenerate/godeclincomments --
+== nearoptional_type_0.0_gen.go
+package nearoptional
+
+// Nearoptional defines model for nearoptional.
+type Nearoptional struct {
+	Abool   *bool    `json:"abool,omitempty"`
+	Abytes  []byte   `json:"abytes,omitempty"`
+	Alist   []string `json:"alist,omitempty"`
+	Anint   *int     `json:"anint,omitempty"`
+	Astring *string  `json:"astring,omitempty"`
+	Astruct *struct {
+		Nested string `json:"nested"`
+	} `json:"astruct,omitempty"`
+	Notoptional int32 `json:"notoptional"`
+}
+-- out/encoding/gocode/TestGenerate/expandref --
+== nearoptional_type_0.0_gen.go
+package nearoptional
+
+// Nearoptional defines model for nearoptional.
+type Nearoptional struct {
+	Abool   *bool    `json:"abool,omitempty"`
+	Abytes  []byte   `json:"abytes,omitempty"`
+	Alist   []string `json:"alist,omitempty"`
+	Anint   *int     `json:"anint,omitempty"`
+	Astring *string  `json:"astring,omitempty"`
+	Astruct *struct {
+		Nested string `json:"nested"`
+	} `json:"astruct,omitempty"`
+	Notoptional int32 `json:"notoptional"`
+}
+-- out/bind --
+Schema count: 1
+Schema versions: 0.0
+Lenses count: 0
+-- out/encoding/gocode/TestGenerate/nilcfg --
+== nearoptional_type_0.0_gen.go
+package nearoptional
+
+// Nearoptional defines model for nearoptional.
+type Nearoptional struct {
+	Abool   *bool    `json:"abool,omitempty"`
+	Abytes  []byte   `json:"abytes,omitempty"`
+	Alist   []string `json:"alist,omitempty"`
+	Anint   *int     `json:"anint,omitempty"`
+	Astring *string  `json:"astring,omitempty"`
+	Astruct *struct {
+		Nested string `json:"nested"`
+	} `json:"astruct,omitempty"`
+	Notoptional int32 `json:"notoptional"`
 }

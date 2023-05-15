@@ -6,8 +6,8 @@ thema.#Lineage
 name: "empty-schemas"
 schemas: []
 -- out/bindfail --
-schemas: incompatible list lengths (0 and 1)
+incompatible list lengths (0 and 1)
 _sortedSchemas: invalid value [] (does not satisfy list.MinItems(1)): len(list) < MinItems(1) (0 < 1):
-    ../../lineage.cue:97:7
-    ../../lineage.cue:93:21
-    ../../lineage.cue:97:21
+    ../../lineage.cue:98:7
+    ../../lineage.cue:94:21
+    ../../lineage.cue:98:21

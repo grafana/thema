@@ -13,10 +13,6 @@ schemas: [{
 	}
 }]
 lenses: []
--- out/bind --
-Schema count: 1
-Schema versions: 0.0
-Lenses count: 0
 -- out/encoding/openapi/TestGenerate/nilcfg --
 == 0.0.json
 {
@@ -44,6 +40,37 @@ Lenses count: 0
       }
     }
   }
+}
+-- out/encoding/openapi/TestGenerate/group --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "refscalar",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "aBaz": {
+        "type": "string"
+      },
+      "Baz": {
+        "type": "string"
+      }
+    }
+  }
+}
+-- out/encoding/gocode/TestGenerate/depointerized --
+== refscalar_type_0.0_gen.go
+package refscalar
+
+// Baz defines model for Baz.
+type Baz = string
+
+// Refscalar defines model for refscalar.
+type Refscalar struct {
+	ABaz Baz `json:"aBaz"`
 }
 -- out/encoding/openapi/TestGenerate/expandrefs --
 == 0.0.json
@@ -73,57 +100,6 @@ Lenses count: 0
     }
   }
 }
--- out/encoding/openapi/TestGenerate/group --
-== 0.0.json
-{
-  "openapi": "3.0.0",
-  "info": {
-    "title": "refscalar",
-    "version": "0.0"
-  },
-  "paths": {},
-  "components": {
-    "schemas": {
-      "aBaz": {
-        "type": "string"
-      },
-      "Baz": {
-        "type": "string"
-      }
-    }
-  }
-}
--- out/encoding/gocode/TestGenerate/nilcfg --
-== refscalar_type_0.0_gen.go
-package refscalar
-
-// Baz defines model for Baz.
-type Baz = string
-
-// Refscalar defines model for refscalar.
-type Refscalar struct {
-	ABaz Baz `json:"aBaz"`
-}
--- out/encoding/gocode/TestGenerate/group --
-== refscalar_type_0.0_gen.go
-package refscalar
-
-// Baz defines model for Baz.
-type Baz = string
-
-// ABaz defines model for aBaz.
-type ABaz = string
--- out/encoding/gocode/TestGenerate/depointerized --
-== refscalar_type_0.0_gen.go
-package refscalar
-
-// Baz defines model for Baz.
-type Baz = string
-
-// Refscalar defines model for refscalar.
-type Refscalar struct {
-	ABaz Baz `json:"aBaz"`
-}
 -- out/encoding/gocode/TestGenerate/godeclincomments --
 == refscalar_type_0.0_gen.go
 package refscalar
@@ -146,3 +122,27 @@ type Baz = string
 type Refscalar struct {
 	ABaz string `json:"aBaz"`
 }
+-- out/bind --
+Schema count: 1
+Schema versions: 0.0
+Lenses count: 0
+-- out/encoding/gocode/TestGenerate/nilcfg --
+== refscalar_type_0.0_gen.go
+package refscalar
+
+// Baz defines model for Baz.
+type Baz = string
+
+// Refscalar defines model for refscalar.
+type Refscalar struct {
+	ABaz Baz `json:"aBaz"`
+}
+-- out/encoding/gocode/TestGenerate/group --
+== refscalar_type_0.0_gen.go
+package refscalar
+
+// Baz defines model for Baz.
+type Baz = string
+
+// ABaz defines model for aBaz.
+type ABaz = string

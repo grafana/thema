@@ -136,6 +136,10 @@ func GenerateTypesOpenAPI(sch thema.Schema, cfg *TypeConfigOpenAPI) ([]byte, err
 	})
 }
 
+// Almost all of the below imports are eliminated by dst transformers and calls
+// to goimports - but if they're not present in the template, then the internal
+// call to goimports that oapi-codegen makes will trigger a search for them,
+// which can slow down codegen by orders of magnitude.
 var importstmpl = `package {{ .PackageName }}
 
 import (
@@ -147,13 +151,23 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"gopkg.in/yaml.v2"
 	"io"
 	"io/ioutil"
+	"os"
 	"net/http"
 	"net/url"
 	"path"
 	"strings"
 	"time"
+
+	"github.com/deepmap/oapi-codegen/pkg/runtime"
+	openapi_types "github.com/deepmap/oapi-codegen/pkg/types"
+	"github.com/getkin/kin-openapi/openapi3"
+	"github.com/go-chi/chi/v5"
+	"github.com/labstack/echo/v4"
+	"github.com/gin-gonic/gin"
+	"github.com/gorilla/mux"
 )
 `
 

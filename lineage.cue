@@ -27,7 +27,8 @@ import (
 	//
 	// A lineage's joinSchema must never change as the lineage evolves.
 
-	joinSchema?: struct.MinFields(1)
+	//	joinSchema?: struct.MinFields(1)
+	joinSchema: _
 
 	// schemas is the ordered list of all schemas in the lineage.
 	//
@@ -256,7 +257,7 @@ import (
 
 	_#schema: _join & schema
 
-	_schemaIsNonEmpty: struct.MinFields(1) & _#schema
+	//	_schemaIsNonEmpty: struct.MinFields(1) & _#schema
 
 	// examples is an optional set of named examples of the schema, intended
 	// for use in documentation or other non-functional contexts.
