@@ -15,7 +15,7 @@ import (
 // Most calls to this should pass nil for the third parameter.
 func AppendSplit(v cue.Value, splitBy cue.Op, a []cue.Value) []cue.Value {
 	if !v.Exists() {
-		return nil
+		return a
 	}
 	op, args := v.Expr()
 	// dedup elements.
