@@ -24,7 +24,7 @@ func TestBindLineage(t *testing.T) {
 	rt := NewRuntime(ctx)
 
 	test.Run(t, func(tc *vanilla.Test) {
-		lin, err := bindTxtarLineage(tc, rt)
+		lin, err := bindTxtarLineage(tc, rt, "lineagePath")
 		if testing.Short() && tc.HasTag("slow") {
 			t.Skip("case is tagged #slow, skipping for -short")
 		}
@@ -78,7 +78,72 @@ func TestInvalidLineages(t *testing.T) {
 	})
 }
 
-func bindTxtarLineage(t *vanilla.Test, rt *Runtime) (Lineage, error) {
+func TestIsAppendOnly(t *testing.T) {
+	test := vanilla.TxTarTest{
+		Root: "./testdata/isappendonly/valid",
+		Name: "isappendonly",
+	}
+
+	ctx := cuecontext.New()
+	rt := NewRuntime(ctx)
+
+	test.Run(t, func(tc *vanilla.Test) {
+		if testing.Short() && tc.HasTag("slow") {
+			t.Skip("case is tagged #slow, skipping for -short")
+		}
+
+		lin1, err := bindTxtarLineage(tc, rt, "firstLin")
+		if err != nil {
+			tc.Fatalf("error binding first lineage: %+v", err)
+		}
+
+		lin2, err := bindTxtarLineage(tc, rt, "secondLin")
+		if err != nil {
+			tc.Fatalf("error binding second lineage: %+v", err)
+		}
+
+		err = IsAppendOnly(lin1, lin2)
+		if err != nil {
+			tc.Fatalf("IsAppendOnly returned an error: %+v", err)
+		}
+	})
+}
+
+func TestIsAppendOnlyFail(t *testing.T) {
+	test := vanilla.TxTarTest{
+		Root: "./testdata/isappendonly/invalid",
+		Name: "isappendonly-fail",
+	}
+
+	ctx := cuecontext.New()
+	rt := NewRuntime(ctx)
+
+	test.Run(t, func(tc *vanilla.Test) {
+		if testing.Short() && tc.HasTag("slow") {
+			t.Skip("case is tagged #slow, skipping for -short")
+		}
+
+		lin1, err := bindTxtarLineage(tc, rt, "firstLin")
+		if err != nil {
+			tc.Fatalf("error binding first lineage: %+v", err)
+		}
+
+		lin2, err := bindTxtarLineage(tc, rt, "secondLin")
+		if err != nil {
+			tc.Fatalf("error binding second lineage: %+v", err)
+		}
+
+		err = IsAppendOnly(lin1, lin2)
+		if err == nil {
+			tc.Fatalf("expected error from known invalid updates")
+		}
+
+		// TODO more verbose error output, should include CUE line-level analysis
+		tc.WriteErrors(errors.Promote(err, "IsAppendOnly fail"))
+	})
+}
+
+func bindTxtarLineage(t *vanilla.Test, rt *Runtime, path string) (Lineage, error) {
 	if rt == nil {
 		rt = NewRuntime(cuecontext.New())
 	}
@@ -87,15 +152,15 @@ func bindTxtarLineage(t *vanilla.Test, rt *Runtime) (Lineage, error) {
 	t.Helper()
 	inst := t.Instance()
 	val := ctx.BuildInstance(inst)
-	if p, ok := t.Value("lineagePath"); ok {
+	if p, ok := t.Value(path); ok {
 		t.Log(p)
 		pp := cue.ParsePath(p)
 		if len(pp.Selectors()) == 0 {
-			t.Fatalf("%q is not a valid value for the #lineagePath key", p)
+			t.Fatalf("%q is not a valid value for the #%s key", p, path)
 		}
 		val = val.LookupPath(pp)
 		if !val.Exists() {
-			t.Fatalf("path %q specified in #lineagePath does not exist in input cue instance", p)
+			t.Fatalf("path %q specified in #%s does not exist in input cue instance", p, path)
 		}
 	}
 
