@@ -24,8 +24,9 @@ lin2: schemas: [{
     }
 }]
 -- out/isappendonly-fail --
-field schema not present in {version:[0,0],schema:{firstfield:string},_join(github.com/grafana/thema):_,_#schema(github.com/grafana/thema):{firstfield:string},_schemaIsNonEmpty(github.com/grafana/thema):{firstfield:string}}:
-    ../../../lineage.cue:41:12
+field schema not present in {version:[0,0],schema:{firstfield:string},_join(github.com/grafana/thema):_,_#schema(github.com/grafana/thema):{firstfield:string}}:
+    ../../../lineage.cue:42:12
+    ../../../lineage.cue:46:13
     ./in.cue:5:17
 missing field "schema"
 required field is optional in subsumed value: secondfield
