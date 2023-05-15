@@ -1,12 +1,13 @@
 package thema
 
 import (
-	"cuelang.org/go/cue"
 	"encoding/json"
 	"fmt"
 	"io"
 	"strings"
 	"testing"
+
+	"cuelang.org/go/cue"
 
 	"github.com/grafana/thema/internal/txtartest/vanilla"
 
@@ -28,7 +29,7 @@ func TestInstance_Translate(t *testing.T) {
 			return
 		}
 
-		lin, lerr := bindTxtarLineage(tc, rt)
+		lin, lerr := bindTxtarLineage(tc, rt, "lineagePath")
 		require.NoError(tc, lerr)
 
 		for sch := lin.First(); sch != nil; sch = sch.Successor() {
