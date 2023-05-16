@@ -29,3 +29,5 @@ lenses: [
         }
     },
 ]
+-- out/bindfail --
+schema 0.1 must be backwards compatible with schema 0.0

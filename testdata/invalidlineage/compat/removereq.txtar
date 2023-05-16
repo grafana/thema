@@ -1,0 +1,33 @@
+# removing a required field is a backwards incompatible change
+#lineagePath: lin
+-- in.cue --
+
+import "github.com/grafana/thema"
+
+lin: thema.#Lineage
+lin: name: "removereq"
+lin: schemas: [{
+    version: [0, 0]
+    schema: {
+        firstfield: string
+        getsRemoved: int32
+    }
+},
+{
+    version: [0, 1]
+    schema: {
+        firstfield: string
+    }
+}]
+
+lin: lenses: [{
+	from: [0, 1]
+	to: [0, 0]
+	input: _
+	result: {
+		firstfield: input.firstfield
+		getsRemoved: 42
+	}
+}]
+-- out/bindfail --
+schema 0.1 must be backwards compatible with schema 0.0
