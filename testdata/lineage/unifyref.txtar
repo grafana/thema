@@ -39,7 +39,7 @@ type External struct {
 // Foo defines model for Foo.
 type Foo struct {
 	External
-	Optf     *Bar   `json:"optf,omitempty"`
+	Optf *Bar `json:"optf,omitempty"`
 }
 
 // Unifyref defines model for unifyref.
@@ -63,12 +63,12 @@ type External struct {
 // Foo defines model for Foo.
 type Foo struct {
 	External
-	Optf     *Bar   `json:"optf,omitempty"`
+	Optf *Bar `json:"optf,omitempty"`
 }
 
 // Afoo defines model for afoo.
 type Afoo struct {
-	External
+	Extfield string `json:"extfield"`
 	Optf     *Bar   `json:"optf,omitempty"`
 }
 -- out/encoding/openapi/TestGenerate/nilcfg --
@@ -288,7 +288,7 @@ type External struct {
 // Foo defines model for Foo.
 type Foo struct {
 	External
-	Optf     Bar    `json:"optf,omitempty"`
+	Optf Bar `json:"optf,omitempty"`
 }
 
 // Unifyref defines model for unifyref.
@@ -312,7 +312,7 @@ type External struct {
 // Foo defines model for Foo.
 type Foo struct {
 	External
-	Optf     *Bar   `json:"optf,omitempty"`
+	Optf *Bar `json:"optf,omitempty"`
 }
 
 // Unifyref defines model for unifyref.
@@ -330,7 +330,7 @@ type Bar struct {
 
 // Foo defines model for Foo.
 type Foo struct {
-	External
+	Extfield string `json:"extfield"`
 	Optf     *struct {
 		Another string `json:"another"`
 	} `json:"optf,omitempty"`
