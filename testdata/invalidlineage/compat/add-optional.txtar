@@ -5,7 +5,7 @@
 import "github.com/grafana/thema"
 
 lin: thema.#Lineage
-lin: name: "addoptional"
+lin: name: "add-optional"
 lin: schemas: [{
     version: [0, 0]
     schema: {

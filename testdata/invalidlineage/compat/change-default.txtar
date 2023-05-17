@@ -1,9 +1,10 @@
+# changing a default value is not backwards compatible
 -- in.cue --
 
 import "github.com/grafana/thema"
 
 thema.#Lineage
-name: "defaultchange"
+name: "change-default"
 schemas: [
     {
         version: [0, 0]

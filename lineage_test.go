@@ -55,11 +55,11 @@ func TestInvalidLineages(t *testing.T) {
 		Root: "./testdata/invalidlineage",
 		Name: "bindfail",
 		ToDo: map[string]string{
-			"invalidlineage/joindef":               "no invariant checker written to disallow definitions from joinSchema",
-			"invalidlineage/onlydef":               "Lineage schema non-emptiness constraints are temporarily suspended while migrating grafana to flattened lineage structure",
-			"invalidlineage/compat/defaultchange":  "Thema compat analyzer fails to classify changes to default values as breaking",
-			"invalidlineage/compat/removereq":      "Required field removal is not detected as breaking changes",
-			"invalidlineage/compat/removeoptional": "Optional field removal is not detected as breaking changes",
+			"invalidlineage/joindef":                "no invariant checker written to disallow definitions from joinSchema",
+			"invalidlineage/onlydef":                "Lineage schema non-emptiness constraints are temporarily suspended while migrating grafana to flattened lineage structure",
+			"invalidlineage/compat/change-default":  "Thema compat analyzer fails to classify changes to default values as breaking",
+			"invalidlineage/compat/remove-required": "Required field removal is not detected as breaking changes",
+			"invalidlineage/compat/remove-optional": "Optional field removal is not detected as breaking changes",
 		},
 	}
 
