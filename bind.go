@@ -48,7 +48,6 @@ func (ml *maybeLineage) checkGoValidity(cfg *bindConfig) error {
 	if err != nil {
 		panic(fmt.Sprintf("unreachable - should have already verified schemas field exists and is list: %+v", cerrors.Details(err, nil)))
 	}
-	schpath := cue.MakePath(cue.Hid("_#schema", "github.com/grafana/thema"))
 	vpath := cue.MakePath(cue.Str("version"))
 
 	var previous *schemaDef
@@ -71,15 +70,16 @@ func (ml *maybeLineage) checkGoValidity(cfg *bindConfig) error {
 		}
 
 		sch.ref = schiter.Value()
-		sch.def = sch.ref.LookupPath(schpath)
+		sch.def = sch.ref.LookupPath(pathSchDef)
 		if previous != nil && !cfg.skipbuggychecks {
-			compaterr := compat.ThemaCompatible(sch.def, previous.def)
-			if (sch.v[1] == 0 && compaterr == nil) || (sch.v[1] != 0 && compaterr != nil) {
-				return &compatInvariantError{
-					rawlin:    ml.uni,
-					violation: [2]SyntacticVersion{previous.v, sch.v},
-					detail:    compaterr,
-				}
+			compaterr := compat.ThemaCompatible(previous.ref.LookupPath(pathSch), sch.ref.LookupPath(pathSch))
+			if sch.v[1] == 0 && compaterr == nil {
+				// Major version change, should be backwards incompatible
+				return errors.Mark(mkerror(sch.ref.LookupPath(pathSch), "schema %s must be backwards incompatible with schema %s: introduce a breaking change, or redeclare as version %s", sch.v, previous.v, synv(previous.v[0], previous.v[1]+1)), terrors.ErrInvalidLineage)
+			}
+			if sch.v[1] != 0 && compaterr != nil {
+				// Minor version change, should be backwards compatible
+				return errors.Mark(mkerror(sch.ref.LookupPath(pathSch), "schema %s is not backwards compatible with schema %s:\n%s", sch.v, previous.v, cerrors.Details(compaterr, nil)), terrors.ErrInvalidLineage)
 			}
 		}
 
