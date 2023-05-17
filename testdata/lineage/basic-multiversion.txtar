@@ -40,7 +40,7 @@ schemas: [{
     schema: {
         init:        string
         optional?:   int32
-        withDefault: *"foo" | "bar"
+        withDefault?: *"foo" | "bar"
     }
     examples: {
         withoutOptional: {
@@ -59,7 +59,7 @@ schemas: [{
     schema: {
         init:        string
         optional?:   int32
-        withDefault: *"foo" | "bar" | "baz"
+        withDefault?: *"foo" | "bar" | "baz"
     }
     examples: {
         withoutOptional: {
