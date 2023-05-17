@@ -229,6 +229,9 @@ func GenerateGoSchema(sref *openapi3.SchemaRef, path []string) (Schema, error) {
 	}
 
 	schema := sref.Value
+	if schema.Properties == nil {
+		schema.Properties = map[string]*openapi3.SchemaRef{}
+	}
 
 	// If Ref is set on the SchemaRef, it means that this type is actually a reference to
 	// another type. We're not de-referencing, so simply use the referenced type.
@@ -266,6 +269,9 @@ func GenerateGoSchema(sref *openapi3.SchemaRef, path []string) (Schema, error) {
 				return mergedSchema, nil
 			} else {
 				refName := strings.ToLower(allOf.Ref[strings.LastIndex(allOf.Ref, "/")+1:])
+				if strings.Index(refName, "_") != -1 {
+					continue
+				}
 				schema.Properties[refName] = &openapi3.SchemaRef{
 					Ref: refName,
 					Value: &openapi3.Schema{
