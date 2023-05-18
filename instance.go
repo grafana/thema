@@ -174,6 +174,8 @@ func (i *Instance) Translate(to SyntacticVersion) (*Instance, TranslationLacunas
 	lac := make(multiTranslationLacunas, 0)
 	out.LookupPath(cue.MakePath(cue.Str("lacunas"))).Decode(&lac)
 
+	// Attempt to evaluate #Translate result into a concrete cue.Value, if possible.
+	// Otherwise, all the #Translate results are non-concrete, which leads to undesired effects.
 	raw, _ := out.LookupPath(cue.MakePath(cue.Str("result"), cue.Str("result"))).Default()
 
 	return &Instance{
