@@ -31,18 +31,17 @@ func TestInstance_Translate(t *testing.T) {
 		lin, lerr := bindTxtarLineage(tc, rt)
 		require.NoError(tc, lerr)
 
-		for sch := lin.First(); sch != nil; sch = sch.Successor() {
-			for _, example := range sch.Examples() {
-				for sch := lin.First(); sch != nil; sch = sch.Successor() {
-					to := sch.Version()
-					tinst, lacunas := example.Translate(to)
+		for from := lin.First(); from != nil; from = from.Successor() {
+			for _, example := range from.Examples() {
+				for to := lin.First(); to != nil; to = to.Successor() {
+					tinst, lacunas := example.Translate(to.Version())
 					require.NotNil(t, tinst)
 
 					result := tinst.Underlying()
 					require.True(t, result.Exists())
 					require.NoError(t, result.Err())
 
-					writeGolden(tc, to, example, result, lacunas)
+					writeGolden(tc, to.Version(), example, result, lacunas)
 				}
 			}
 		}
