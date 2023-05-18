@@ -174,8 +174,10 @@ func (i *Instance) Translate(to SyntacticVersion) (*Instance, TranslationLacunas
 	lac := make(multiTranslationLacunas, 0)
 	out.LookupPath(cue.MakePath(cue.Str("lacunas"))).Decode(&lac)
 
+	raw, _ := out.LookupPath(cue.MakePath(cue.Str("result"), cue.Str("result"))).Default()
+
 	return &Instance{
-		raw:  out.LookupPath(cue.MakePath(cue.Str("result"), cue.Str("result"))),
+		raw:  raw,
 		name: i.name,
 		sch:  newsch,
 	}, lac
