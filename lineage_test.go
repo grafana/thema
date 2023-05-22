@@ -67,7 +67,7 @@ func TestInvalidLineages(t *testing.T) {
 	rt := NewRuntime(ctx)
 
 	test.Run(t, func(tc *vanilla.Test) {
-		_, err := bindTxtarLineage(tc, rt)
+		_, err := bindTxtarLineage(tc, rt, "lineagePath")
 		if testing.Short() && tc.HasTag("slow") {
 			tc.Skip("case is tagged #slow, skipping for -short")
 		}
