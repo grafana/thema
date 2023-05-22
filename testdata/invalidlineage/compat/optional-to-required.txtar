@@ -1,0 +1,32 @@
+# upgrading a field from optional to required is backwards incompatible
+-- in.cue --
+
+import "github.com/grafana/thema"
+
+thema.#Lineage
+name: "optional-to-required"
+schemas: [{
+    version: [0, 0]
+    schema: {
+        toUpgrade?: string
+    }
+},
+{
+    version: [0, 1]
+    schema: {
+        toUpgrade: string
+    }
+}]
+
+lenses: [{
+	from: [0, 1]
+	to: [0, 0]
+	input: _
+	result: {
+		toUpgrade: input.toUpgrade
+	}
+}]
+-- out/bindfail --
+schema 0.1 is not backwards compatible with schema 0.0:
+required field is optional in subsumed value: toUpgrade
+value not an instance

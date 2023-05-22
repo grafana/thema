@@ -1,26 +1,20 @@
-# adding or removing a required field is considered a backwards incompatible change
+# removing a required field is a backwards incompatible change
 #lineagePath: lin
 -- in.cue --
 
 import "github.com/grafana/thema"
 
 lin: thema.#Lineage
-lin: name: "breaking"
+lin: name: "remove-required"
 lin: schemas: [{
     version: [0, 0]
     schema: {
         firstfield: string
+        getsRemoved: int32
     }
 },
 {
     version: [0, 1]
-    schema: {
-        firstfield: string
-        added: int32
-    }
-},
-{
-    version: [0, 2]
     schema: {
         firstfield: string
     }
@@ -32,13 +26,8 @@ lin: lenses: [{
 	input: _
 	result: {
 		firstfield: input.firstfield
-	}
-}, {
-	from: [0, 2]
-	to: [0, 2]
-	input: _
-	result: {
-		firstfield: input.firstfield
-		secondfield: 42
+		getsRemoved: 42
 	}
 }]
+-- out/bindfail --
+schema 0.1 must be backwards compatible with schema 0.0

@@ -55,10 +55,11 @@ func TestInvalidLineages(t *testing.T) {
 		Root: "./testdata/invalidlineage",
 		Name: "bindfail",
 		ToDo: map[string]string{
-			"invalidlineage/defaultchange": "Thema compat analyzer fails to classify changes to default values as breaking",
-			"invalidlineage/joindef":       "no invariant checker written to disallow definitions from joinSchema",
-			"invalidlineage/onlydef":       "Lineage schema non-emptiness constraints are temporarily suspended while migrating grafana to flattened lineage structure",
-			"invalidlineage/addremove":     "Required field addition is not detected as breaking changes",
+			"invalidlineage/joindef":                "no invariant checker written to disallow definitions from joinSchema",
+			"invalidlineage/onlydef":                "Lineage schema non-emptiness constraints are temporarily suspended while migrating grafana to flattened lineage structure",
+			"invalidlineage/compat/change-default":  "Thema compat analyzer fails to classify changes to default values as breaking",
+			"invalidlineage/compat/remove-required": "Required field removal is not detected as breaking changes",
+			"invalidlineage/compat/remove-optional": "Optional field removal is not detected as breaking changes",
 		},
 	}
 
@@ -66,17 +67,16 @@ func TestInvalidLineages(t *testing.T) {
 	rt := NewRuntime(ctx)
 
 	test.Run(t, func(tc *vanilla.Test) {
-		v := ctx.BuildInstance(tc.Instance())
-		_, err := BindLineage(v, rt)
+		_, err := bindTxtarLineage(tc, rt)
 		if testing.Short() && tc.HasTag("slow") {
-			t.Skip("case is tagged #slow, skipping for -short")
+			tc.Skip("case is tagged #slow, skipping for -short")
 		}
 
 		if err == nil {
 			tc.Fatal("expected error from known-invalid lineage")
 		}
 		// TODO more verbose error output, should include CUE line-level analysis
-		tc.WriteErrors(errors.Promote(err, "bind fail"))
+		tc.WriteErrors(errors.Promote(err, ""))
 	})
 }
 
@@ -155,7 +155,6 @@ func bindTxtarLineage(t *vanilla.Test, rt *Runtime, path string) (Lineage, error
 	inst := t.Instance()
 	val := ctx.BuildInstance(inst)
 	if p, ok := t.Value(path); ok {
-		t.Log(p)
 		pp := cue.ParsePath(p)
 		if len(pp.Selectors()) == 0 {
 			t.Fatalf("%q is not a valid value for the #%s key", p, path)

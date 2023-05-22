@@ -32,18 +32,17 @@ func TestInstance_Translate(t *testing.T) {
 		lin, lerr := bindTxtarLineage(tc, rt, "lineagePath")
 		require.NoError(tc, lerr)
 
-		for sch := lin.First(); sch != nil; sch = sch.Successor() {
-			for _, example := range sch.Examples() {
-				for sch := lin.First(); sch != nil; sch = sch.Successor() {
-					to := sch.Version()
-					tinst, lacunas := example.Translate(to)
+		for from := lin.First(); from != nil; from = from.Successor() {
+			for _, example := range from.Examples() {
+				for to := lin.First(); to != nil; to = to.Successor() {
+					tinst, lacunas := example.Translate(to.Version())
 					require.NotNil(t, tinst)
 
 					result := tinst.Underlying()
 					require.True(t, result.Exists())
 					require.NoError(t, result.Err())
 
-					writeGolden(tc, to, example, result, lacunas)
+					writeGolden(tc, to.Version(), example, result, lacunas)
 				}
 			}
 		}
@@ -78,4 +77,60 @@ func marshalAndWrite(tc *vanilla.Test, w io.Writer, any interface{}) {
 
 	_, err = w.Write(append(bytes, '\n'))
 	require.NoError(tc, err)
+}
+
+// TestInstance_LookupPathOnTranslatedInstance is a regression test
+// specifically written for https://github.com/grafana/thema/issues/155.
+//
+// Caused because [Instance.Translate] results were always non-concrete,
+// when the result evaluates to something concrete.
+//
+// So, this test checks that [cue.Value.LookupPath] behaves as expected
+// when used over an [Instance.Translate] result.
+func TestInstance_LookupPathOnTranslatedInstance(t *testing.T) {
+	ctx := cuecontext.New()
+	rt := NewRuntime(ctx)
+
+	// Initialize lineage for testing
+	linstr := `name: "simple"
+schemas: [
+	{
+		version: [0, 0]
+		schema:
+		{
+			title: string
+		},
+	},
+	{
+		version: [0, 1]
+		schema:
+		{
+			title: string
+			header?: string
+		},
+	},
+]`
+	linval := rt.Context().CompileString(linstr)
+	lin, err := BindLineage(linval, rt)
+	require.NoError(t, err)
+
+	// Initialize cue.Value
+	expected := "foo"
+	val := ctx.CompileString(fmt.Sprintf(`{"title": "%s"}`, expected))
+
+	// Validate cue.Value
+	inst := lin.ValidateAny(val)
+	require.Equal(t, SV(0, 0), inst.Schema().Version())
+
+	got, err := inst.Underlying().LookupPath(cue.ParsePath("title")).String()
+	require.NoError(t, err)
+	require.Equal(t, expected, got)
+
+	// Translate cue.Value (no lacunas)
+	tinst, _ := inst.Translate(SV(0, 1))
+	require.Equal(t, SV(0, 0), inst.Schema().Version())
+
+	got, err = tinst.Underlying().LookupPath(cue.ParsePath("title")).String()
+	require.NoError(t, err)
+	require.Equal(t, expected, got)
 }
