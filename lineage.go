@@ -189,8 +189,9 @@ func (lin *baseLineage) First() Schema {
 	return lin.allsch[0]
 }
 
-// All returns all Schemas in the lineage. Thema requires that all valid lineages
-// contain at least one schema, so this is guaranteed to contain at least one element.
+// All returns all Schemas in the lineage sorted by version (0.0 being the first
+// element). Thema requires that all valid lineages contain at least one schema,
+// so this is guaranteed to contain at least one element.
 func (lin *baseLineage) All() []Schema {
 	schemas := make([]Schema, len(lin.allsch))
 	for i, s := range lin.allsch {
