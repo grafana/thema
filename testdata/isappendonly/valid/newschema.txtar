@@ -6,25 +6,56 @@
 import "github.com/grafana/thema"
 
 lin1: thema.#Lineage
-lin1: name: "maps"
+lin1: name: "newschema"
 lin1: schemas: [{
 	version: [0, 0]
 	schema: {
-		firstfield: string
+		aunion: *"foo" | "bar" | "baz"
+        anObject: {
+            aField: string
+        }
+        anOptionalField?: int32
+        aBaz: #Baz
+
+		#Baz: {
+			run:  string
+			dat:  int32
+		}
 	}
 }]
 
 lin2: thema.#Lineage
-lin2: name: "lineage"
+lin2: name: "newschema"
 lin2: schemas: [{
     version: [0, 0]
-    schema: {
-        firstfield: string
-    }
+	schema: {
+		aunion: *"foo" | "bar" | "baz"
+        anObject: {
+            aField: string
+        }
+        anOptionalField?: int32
+        aBaz: #Baz
+
+		#Baz: {
+			run:  string
+			dat:  int32
+		}
+	}
 }, {
     version: [0, 1]
-    schema: {
-        firstfield: string
-        secondfield?: int32
-    }
+	schema: {
+		aunion: *"foo" | "bar" | "baz"
+        anObject: {
+            aField: string
+        }
+        anOptionalField?: int32
+        aBaz: #Baz
+
+		#Baz: {
+			run:  string
+			dat:  int32
+		}
+
+        aNewOptionalField?: int32
+	}
 }]

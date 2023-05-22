@@ -1,0 +1,33 @@
+#firstLin: lin1
+#secondLin: lin2
+-- in.cue --
+import "github.com/grafana/thema"
+
+lin1: thema.#Lineage
+lin1: name: "nested"
+lin1: schemas: [{
+	version: [0, 0]
+	schema: {
+		anObject: {
+            aField: string
+        }
+	}
+}]
+
+lin2: thema.#Lineage
+lin2: name: "nested"
+lin2: schemas: [{
+    version: [0, 0]
+    schema: {
+		anObject: {
+            aField: string
+            aNewOptionalField?: string
+        }
+    }
+}]
+-- out/isappendonly-fail --
+field anObject not present in {anObject:{aField:string}}:
+    ../../../lineage.cue:247:10
+    ./in.cue:18:13
+field not allowed in closed struct: aNewOptionalField
+missing field "anObject"

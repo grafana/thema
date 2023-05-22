@@ -1,0 +1,27 @@
+#firstLin: lin1
+#secondLin: lin2
+-- in.cue --
+import "github.com/grafana/thema"
+
+lin1: thema.#Lineage
+lin1: name: "defaultchange"
+lin1: schemas: [{
+	version: [0, 0]
+	schema: {
+		aunion: *"foo" | "bar" | "baz"
+	}
+}]
+
+lin2: thema.#Lineage
+lin2: name: "defaultchange"
+lin2: schemas: [{
+    version: [0, 0]
+    schema: {
+        aunion: "foo" | *"bar" | "baz"
+    }
+}]
+-- out/isappendonly-fail --
+field aunion not present in {aunion:*"bar" | "foo" | "baz"}:
+    ../../../lineage.cue:247:10
+    ./in.cue:16:13
+missing field "aunion"

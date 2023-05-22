@@ -1,0 +1,39 @@
+#firstLin: lin1
+#secondLin: lin2
+-- in.cue --
+import "github.com/grafana/thema"
+
+lin1: thema.#Lineage
+lin1: name: "embedref"
+lin1: schemas: [{
+	version: [0, 0]
+	schema: {
+		#EmbedRef
+
+        #EmbedRef: {
+            refField1: string
+            refField2: 42
+        }
+	}
+}]
+
+lin2: thema.#Lineage
+lin2: name: "embedref"
+lin2: schemas: [{
+    version: [0, 0]
+    schema: {
+        #EmbedRef
+
+        #EmbedRef: {
+            refField1: string
+            refField2: 1
+        }
+    }
+}]
+-- out/isappendonly-fail --
+field #EmbedRef not present in {#EmbedRef:{refField1:string,refField2:1},refField1:string,refField2:1}:
+    ../../../lineage.cue:247:10
+    ./in.cue:21:13
+field refField2 not present in {refField1:string,refField2:1}:
+    ./in.cue:24:20
+missing field "#EmbedRef"

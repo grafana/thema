@@ -294,8 +294,12 @@ func IsAppendOnly(oldLineage Lineage, newLineage Lineage) error {
 	}
 
 	for i, schema := range oldSchemas {
-		x := schema.Underlying()
-		y := newSchemas[i].Underlying()
+		schemaPath := "schema"
+		oldSchema := schema.Underlying()
+		x := oldSchema.LookupPath(cue.ParsePath(schemaPath))
+
+		newSchema := newSchemas[i].Underlying()
+		y := newSchema.LookupPath(cue.ParsePath(schemaPath))
 
 		if err := cuetil.Equal(x, y); err != nil {
 			return err
