@@ -268,7 +268,7 @@ func GenerateGoSchema(sref *openapi3.SchemaRef, path []string) (Schema, error) {
 				mergedSchema.OAPISchema = schema
 				return mergedSchema, nil
 			} else {
-				refName := strings.ToLower(allOf.Ref[strings.LastIndex(allOf.Ref, "/")+1:])
+				refName := allOf.Ref[strings.LastIndex(allOf.Ref, "/")+1:]
 				if strings.Index(refName, "_") != -1 {
 					continue
 				}
