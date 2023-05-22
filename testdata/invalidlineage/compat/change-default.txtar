@@ -1,9 +1,10 @@
+# changing a default value is not backwards compatible
 -- in.cue --
 
 import "github.com/grafana/thema"
 
 thema.#Lineage
-name: "defaultchange"
+name: "change-default"
 schemas: [
     {
         version: [0, 0]
@@ -29,3 +30,5 @@ lenses: [
         }
     },
 ]
+-- out/bindfail --
+schema 0.1 must be backwards compatible with schema 0.0
