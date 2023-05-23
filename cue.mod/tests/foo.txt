@@ -1,0 +1,9 @@
+# Verify that eval works as expect
+
+cue eval $WORK/repo/testdata/foo.cue
+cmp stdout $WORK/stdout.golden
+
+-- stdout.golden --
+renamed:     "i'mma string"
+all:         99999
+withDefault: "foo" | "bar"
