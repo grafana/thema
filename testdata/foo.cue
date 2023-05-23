@@ -5,7 +5,7 @@ import "github.com/grafana/thema/testdata/internal:thema"
 (thema.#Translate & {
 	lin:  thema.basic
 	inst: {
-		all:  99999
+		all:  88888
 		init: "i'mma string"
 	}
 	from: [0, 0]
