@@ -1,13 +1,10 @@
+name: CUE Unity Test
+
 on:
   push:
     branches:
-      - main
-    tags:
-      - v*
-  pull_request:
-    branches:
       - '**'
-name: Test
+
 jobs:
   test:
     strategy:
