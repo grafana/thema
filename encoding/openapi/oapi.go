@@ -39,6 +39,11 @@ type Config struct {
 	//
 	// No-op if [Group] is true.
 	Subpath cue.Path
+
+	// SplitSchema generates the schemas from schema and _join values, and it merges them
+	// to generate the file. It's useful when their merged _#schema version doesn't show
+	// the desired results.
+	SplitSchema bool
 }
 
 // GenerateSchema creates an OpenAPI document that represents the provided Thema
@@ -70,8 +75,10 @@ func GenerateSchema(sch thema.Schema, cfg *Config) (*ast.File, error) {
 	var err error
 	if cfg.Group {
 		decls, err = genGroup(gen)
+	} else if cfg.SplitSchema {
+		decls, err = genSingle(gen, gen.schraw, gen.join)
 	} else {
-		decls, err = genSingle(gen)
+		decls, err = genSingle(gen, gen.schdef)
 	}
 	if err != nil {
 		return nil, err
@@ -149,21 +156,21 @@ func genGroup(gen *oapiGen) ([]ast.Decl, error) {
 	return decls, nil
 }
 
-func genSingle(gen *oapiGen) ([]ast.Decl, error) {
-	hasSubpath := len(gen.cfg.Subpath.Selectors()) > 0
-
-	if hasSubpath {
-		for i, sel := range gen.cfg.Subpath.Selectors() {
-			if !gen.schdef.Allows(sel) {
-				return nil, errors.Newf(cuetil.FirstNonThemaPos(gen.schraw), "subpath %q not present in schema", cue.MakePath(gen.cfg.Subpath.Selectors()[:i+1]...))
-			}
-		}
-		if err := pathAllowed(gen.schdef, gen.cfg.Subpath); err != nil {
+func genSingle(gen *oapiGen, values ...cue.Value) ([]ast.Decl, error) {
+	decls := make([]ast.Decl, 0)
+	for _, v := range values {
+		decl, err := genSchema(gen, v)
+		if err != nil {
 			return nil, err
 		}
-		gen.schdef = gen.schdef.LookupPath(gen.cfg.Subpath)
+		decls = append(decls, decl...)
 	}
 
+	return decls, nil
+}
+
+func genSchema(gen *oapiGen, val cue.Value) ([]ast.Decl, error) {
+	hasSubpath := len(gen.cfg.Subpath.Selectors()) > 0
 	name := util.SanitizeLabelString(gen.sch.Lineage().Name())
 	if gen.cfg.RootName != "" {
 		name = gen.cfg.RootName
@@ -172,10 +179,22 @@ func genSingle(gen *oapiGen) ([]ast.Decl, error) {
 		name = sel[len(sel)-1].String()
 	}
 
+	if hasSubpath {
+		for i, sel := range gen.cfg.Subpath.Selectors() {
+			if !val.Allows(sel) {
+				return nil, errors.Newf(cuetil.FirstNonThemaPos(val), "subpath %q not present in schema", cue.MakePath(gen.cfg.Subpath.Selectors()[:i+1]...))
+			}
+		}
+		if err := pathAllowed(gen.join, gen.cfg.Subpath); err != nil {
+			return nil, err
+		}
+		val = val.LookupPath(gen.cfg.Subpath)
+	}
+
 	v := gen.sch.Underlying().Context().CompileString(fmt.Sprintf("#%s: _", name))
 	defpath := cue.MakePath(cue.Def(name))
 	// v, defpath := newEmptyDef(gen.sch.Underlying().Context(), name)
-	defsch := v.FillPath(defpath, gen.schdef)
+	defsch := v.FillPath(defpath, val)
 
 	gen.cfg.NameFunc = func(val cue.Value, path cue.Path) string {
 		// fmt.Println("NF===", path)
