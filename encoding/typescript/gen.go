@@ -9,6 +9,7 @@ import (
 
 	"cuelang.org/go/cue"
 	"github.com/grafana/cuetsy"
+	"github.com/grafana/cuetsy/ts"
 	"github.com/grafana/cuetsy/ts/ast"
 	"github.com/grafana/thema"
 )
@@ -70,26 +71,36 @@ func GenerateTypes(sch thema.Schema, cfg *TypeConfig) (*ast.File, error) {
 		cfg.RootName = strings.Title(sch.Lineage().Name())
 	}
 
-	schdef := sch.Underlying().LookupPath(cue.MakePath(cue.Hid("_#schema", "github.com/grafana/thema")))
-	tf, err := cuetsy.GenerateAST(schdef, *cfg.CuetsyConfig)
-	if err != nil {
-		return nil, fmt.Errorf("generating TS for child elements of schema failed: %w", err)
-	}
-
-	if !cfg.Group {
-		as := cuetsy.TypeInterface
-		if cfg.RootAsType {
-			as = cuetsy.TypeAlias
+	file := &ts.File{}
+	for _, path := range []cue.Selector{cue.Str("schema"), cue.Hid("_join", "github.com/grafana/thema")} {
+		schdef := sch.Underlying().LookupPath(cue.MakePath(path))
+		// Cuetsy only accepts structs as root file, otherwise it fails.
+		// _join could be _ and we can skip it when it happens to avoid to break the whole generation process.
+		if schdef.IncompleteKind() != cue.StructKind {
+			continue
 		}
-		top, err := cuetsy.GenerateSingleAST(cfg.RootName, schdef, as)
+		tf, err := cuetsy.GenerateAST(schdef, *cfg.CuetsyConfig)
 		if err != nil {
-			return nil, fmt.Errorf("generating TS for schema root failed: %w", err)
+			return nil, fmt.Errorf("generating TS for child elements of schema failed: %w", err)
 		}
-		tf.Nodes = append(tf.Nodes, top.T)
-		if top.D != nil {
-			tf.Nodes = append(tf.Nodes, top.D)
+
+		file.Nodes = append(file.Nodes, tf.Nodes...)
+
+		if !cfg.Group {
+			as := cuetsy.TypeInterface
+			if cfg.RootAsType {
+				as = cuetsy.TypeAlias
+			}
+			top, err := cuetsy.GenerateSingleAST(cfg.RootName, schdef, as)
+			if err != nil {
+				return nil, fmt.Errorf("generating TS for schema root failed: %w", err)
+			}
+			file.Nodes = append(file.Nodes, top.T)
+			if top.D != nil {
+				file.Nodes = append(file.Nodes, top.D)
+			}
 		}
 	}
 
-	return tf, nil
+	return file, nil
 }
