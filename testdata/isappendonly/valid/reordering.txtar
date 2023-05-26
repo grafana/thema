@@ -1,0 +1,49 @@
+#firstLin: lin1
+#secondLin: lin2
+-- in.cue --
+import (
+    "strings"
+
+    "github.com/grafana/thema"
+)
+
+lin1: thema.#Lineage
+lin1: name: "reordering"
+lin1: schemas: [{
+    version: [0, 0]
+    schema: {
+        aunion: *"foo" | "bar" | "baz"
+        anObject: {
+            aField: string 
+        }
+        anOptionalField?: int32
+        aBaz: #Baz
+
+        #Baz: {
+            run:  string & strings.MinRunes(1)
+            dat:  int32
+        }
+    }
+}]
+
+lin2: thema.#Lineage
+lin2: name: "reordering"
+lin2: schemas: [{
+    version: [0, 0]
+    schema: {
+        anObject: {
+            aField: string 
+        }
+
+        aBaz: #Baz
+
+		#Baz: {
+            dat:  int32
+            run:  string & strings.MinRunes(1)
+		}
+
+        aunion: *"foo" | "bar" | "baz"
+
+        anOptionalField?: int32
+    }
+}]

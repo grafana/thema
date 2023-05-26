@@ -1,0 +1,31 @@
+#firstLin: lin1
+#secondLin: lin2
+-- in.cue --
+import (
+	"time"
+	"strings"
+
+	"github.com/grafana/thema"
+)
+
+lin1: thema.#Lineage
+lin1: name: "withconstraints"
+lin1: schemas: [{
+	version: [0, 0]
+	schema: {
+		aString: string & strings.MinRunes(1)
+		aTime: string & time.Time
+		anInt: uint32 & >0 & <=24 | *12
+	}
+}]
+
+lin2: thema.#Lineage
+lin2: name: "withconstraints"
+lin2: schemas: [{
+	version: [0, 0]
+	schema: {
+		aString: string & strings.MinRunes(1)
+		aTime: string & time.Time
+		anInt: uint32 & >0 & <=24 | *12
+	}
+}]
