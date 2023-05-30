@@ -85,9 +85,9 @@ func TestIsAppendOnly(t *testing.T) {
 		Root: "./testdata/isappendonly/valid",
 		Name: "isappendonly",
 		ToDo: map[string]string{
-			"valid/withconstraints": "Subsume doesn't support constraints using built-in validators",
-			"valid/disjunction":     "Subsume requires the Final() option to consider two complex disjunctions as equal but this creates false negatives",
-			"valid/maps":            "Subsume requires the Final() option to consider two maps as equal but this creates false negatives",
+			"isappendonly/valid/withconstraints": "Subsume doesn't support constraints using built-in validators",
+			"isappendonly/valid/disjunction":     "Subsume requires the Final() option to consider two complex disjunctions as equal but this creates false negatives",
+			"isappendonly/valid/maps":            "Subsume requires the Final() option to consider two maps as equal but this creates false negatives",
 		},
 	}
 
