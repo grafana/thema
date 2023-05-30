@@ -20,7 +20,7 @@ lin1: schemas: [{
         aBaz: #Baz
 
         #Baz: {
-            run:  string & strings.MinRunes(1)
+            run:  string
             dat:  int32
         }
     }
@@ -39,7 +39,7 @@ lin2: schemas: [{
 
 		#Baz: {
             dat:  int32
-            run:  string & strings.MinRunes(1)
+            run:  string
 		}
 
         aunion: *"foo" | "bar" | "baz"
