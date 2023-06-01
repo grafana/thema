@@ -1,0 +1,27 @@
+#firstLin: lin1
+#secondLin: lin2
+-- in.cue --
+import (
+	"time"
+	"strings"
+
+	"github.com/grafana/thema"
+)
+
+lin1: thema.#Lineage
+lin1: name: "disjunction"
+lin1: schemas: [{
+	version: [0, 0]
+	schema: {
+		someField: string | [...string]
+	}
+}]
+
+lin2: thema.#Lineage
+lin2: name: "disjunction"
+lin2: schemas: [{
+	version: [0, 0]
+	schema: {
+		someField: string | [...string]
+	}
+}]

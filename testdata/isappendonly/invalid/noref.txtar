@@ -1,0 +1,40 @@
+#firstLin: lin1
+#secondLin: lin2
+-- in.cue --
+import "github.com/grafana/thema"
+
+lin1: thema.#Lineage
+lin1: name: "noref"
+lin1: schemas: [{
+	version: [0, 0]
+	schema: {
+		someField: string
+
+		#Baz: {
+			run:  string
+			tell: bytes
+			dat:  int32
+		}
+	}
+}]
+
+lin2: thema.#Lineage
+lin2: name: "noref"
+lin2: schemas: [{
+    version: [0, 0]
+    schema: {
+		someField: string
+
+		#Baz: {
+			run:  string
+			tell: bytes
+			dat?:  int32
+		}
+    }
+}]
+-- out/isappendonly-fail --
+field #Baz not present in {someField:string,#Baz:{run:string,tell:bytes}}:
+    ../../../lineage.cue:247:10
+    ./in.cue:22:13
+missing field "#Baz"
+required field is optional in subsumed value: dat
