@@ -17,6 +17,7 @@ require (
 	github.com/grafana/cuetsy v0.1.8
 	github.com/labstack/echo/v4 v4.9.1
 	github.com/matryer/moq v0.2.7
+	github.com/sergi/go-diff v1.3.1
 	github.com/spf13/cobra v1.4.0
 	github.com/stretchr/testify v1.8.1
 	github.com/xeipuuv/gojsonschema v1.2.0

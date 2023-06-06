@@ -1,0 +1,27 @@
+#firstLin: lin1
+#secondLin: lin2
+-- in.cue --
+import "github.com/grafana/thema"
+
+lin1: thema.#Lineage
+lin1: name: "boundaries"
+lin1: schemas: [{
+	version: [0, 0]
+	schema: {
+		anInt: uint32 & >0 & <=24 | *12
+	}
+}]
+
+lin2: thema.#Lineage
+lin2: name: "boundaries"
+lin2: schemas: [{
+	version: [0, 0]
+	schema: {
+		anInt: uint32 & >0 & <=14 | *12
+	}
+}]
+-- out/isappendonly-fail --
+field anInt not present in {anInt:*12 | >0 & <=24 & int}:
+    ../../../lineage.cue:247:10
+    ./in.cue:7:10
+missing field "anInt"

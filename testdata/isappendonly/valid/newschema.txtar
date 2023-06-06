@@ -1,0 +1,61 @@
+# an updated lineage that contains a new schema
+
+#firstLin: lin1
+#secondLin: lin2
+-- in.cue --
+import "github.com/grafana/thema"
+
+lin1: thema.#Lineage
+lin1: name: "newschema"
+lin1: schemas: [{
+	version: [0, 0]
+	schema: {
+		aunion: *"foo" | "bar" | "baz"
+        anObject: {
+            aField: string
+        }
+        anOptionalField?: int32
+        aBaz: #Baz
+
+		#Baz: {
+			run:  string
+			dat:  int32
+		}
+	}
+}]
+
+lin2: thema.#Lineage
+lin2: name: "newschema"
+lin2: schemas: [{
+    version: [0, 0]
+	schema: {
+		aunion: *"foo" | "bar" | "baz"
+        anObject: {
+            aField: string
+        }
+        anOptionalField?: int32
+        aBaz: #Baz
+
+		#Baz: {
+			run:  string
+			dat:  int32
+		}
+	}
+}, {
+    version: [0, 1]
+	schema: {
+		aunion: *"foo" | "bar" | "baz"
+        anObject: {
+            aField: string
+        }
+        anOptionalField?: int32
+        aBaz: #Baz
+
+		#Baz: {
+			run:  string
+			dat:  int32
+		}
+
+        aNewOptionalField?: int32
+	}
+}]

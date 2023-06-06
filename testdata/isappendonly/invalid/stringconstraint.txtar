@@ -1,0 +1,44 @@
+#firstLin: lin1
+#secondLin: lin2
+-- in.cue --
+import (
+	"time"
+	"strings"
+
+	"github.com/grafana/thema"
+)
+
+lin1: thema.#Lineage
+lin1: name: "stringconstraint"
+lin1: schemas: [{
+	version: [0, 0]
+	schema: {
+		aString: string & strings.MinRunes(1)
+		
+		anObject: {
+			aField: int
+		}
+	}
+}]
+
+lin2: thema.#Lineage
+lin2: name: "stringconstraint"
+lin2: schemas: [{
+	version: [0, 0]
+	schema: {
+		aString: string & strings.MinRunes(2)
+		
+		anObject: {
+			aField: int
+		}
+	}
+}]
+-- out/isappendonly-fail --
+field aString not present in {aString:strings.MinRunes(2),anObject:{aField:int}}:
+    ../../../lineage.cue:247:10
+    ./in.cue:25:10
+missing field "aString"
+invalid value strings.MinRunes(2) (does not satisfy strings.MinRunes(1)): error in call to strings.MinRunes: non-concrete value string:
+    ./in.cue:13:21
+    ./in.cue:13:38
+    ./in.cue:26:21

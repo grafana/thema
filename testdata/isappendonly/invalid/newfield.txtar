@@ -1,0 +1,26 @@
+#firstLin: lin1
+#secondLin: lin2
+-- in.cue --
+import "github.com/grafana/thema"
+
+lin1: thema.#Lineage
+lin1: name: "newfield"
+lin1: schemas: [{
+	version: [0, 0]
+	schema: {
+		firstfield: string
+	}
+}]
+
+lin2: thema.#Lineage
+lin2: name: "newfield"
+lin2: schemas: [{
+    version: [0, 0]
+    schema: {
+        firstfield: string
+        secondfield: int32
+    }
+}]
+-- out/isappendonly-fail --
+field not allowed in closed struct: secondfield
+value not an instance

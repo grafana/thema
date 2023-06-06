@@ -99,7 +99,9 @@ func (p Property) GoTypeDef() string {
 			(p.ReadOnly && (!p.Required || !globalState.options.Compatibility.DisableRequiredReadOnlyAsPointer)) ||
 			p.WriteOnly) {
 
-		typeDef = "*" + typeDef
+		if typeDef != "" {
+			typeDef = "*" + typeDef
+		}
 	}
 	return typeDef
 }
@@ -227,6 +229,9 @@ func GenerateGoSchema(sref *openapi3.SchemaRef, path []string) (Schema, error) {
 	}
 
 	schema := sref.Value
+	if schema.Properties == nil {
+		schema.Properties = map[string]*openapi3.SchemaRef{}
+	}
 
 	// If Ref is set on the SchemaRef, it means that this type is actually a reference to
 	// another type. We're not de-referencing, so simply use the referenced type.
@@ -254,12 +259,28 @@ func GenerateGoSchema(sref *openapi3.SchemaRef, path []string) (Schema, error) {
 	// so that in a RESTful paradigm, the Create operation can return
 	// (object, id), so that other operations can refer to (id)
 	if schema.AllOf != nil {
-		mergedSchema, err := MergeSchemas(schema, path)
-		if err != nil {
-			return Schema{}, fmt.Errorf("error merging schemas: %w", err)
+		for _, allOf := range schema.AllOf {
+			if allOf.Ref == "" {
+				mergedSchema, err := MergeSchemas(schema, path)
+				if err != nil {
+					return Schema{}, fmt.Errorf("error merging schemas: %w", err)
+				}
+				mergedSchema.OAPISchema = schema
+				return mergedSchema, nil
+			} else {
+				refName := allOf.Ref[strings.LastIndex(allOf.Ref, "/")+1:]
+				if strings.Index(refName, "_") != -1 {
+					continue
+				}
+				schema.Properties[refName] = &openapi3.SchemaRef{
+					Ref: refName,
+					Value: &openapi3.Schema{
+						Type:        "inner",
+						Description: allOf.Value.Description,
+					},
+				}
+			}
 		}
-		mergedSchema.OAPISchema = schema
-		return mergedSchema, nil
 	}
 
 	// Check for custom Go type extension
@@ -579,6 +600,8 @@ func oapiSchemaToGoType(schema *openapi3.Schema, path []string, outSchema *Schem
 			outSchema.GoType = "string"
 		}
 		outSchema.DefineViaAlias = true
+	case "inner":
+		outSchema.GoType = ""
 	default:
 		return fmt.Errorf("unhandled Schema type: %s", t)
 	}
@@ -653,7 +676,7 @@ func GenFieldsFromProperties(props []Property) []string {
 			if p.NeedsFormTag {
 				fieldTags["form"] = p.JsonFieldName
 			}
-		} else {
+		} else if p.GoTypeDef() != "" {
 			fieldTags["json"] = p.JsonFieldName + ",omitempty"
 			if p.NeedsFormTag {
 				fieldTags["form"] = p.JsonFieldName + ",omitempty"
@@ -682,7 +705,9 @@ func GenFieldsFromProperties(props []Property) []string {
 		for i, k := range keys {
 			tags[i] = fmt.Sprintf(`%s:"%s"`, k, fieldTags[k])
 		}
-		field += "`" + strings.Join(tags, " ") + "`"
+		if len(tags) > 0 {
+			field += "`" + strings.Join(tags, " ") + "`"
+		}
 		fields = append(fields, field)
 	}
 	return fields

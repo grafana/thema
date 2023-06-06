@@ -1,0 +1,39 @@
+#firstLin: lin1
+#secondLin: lin2
+-- in.cue --
+import "github.com/grafana/thema"
+
+lin1: thema.#Lineage
+lin1: name: "refstruct"
+lin1: schemas: [{
+	version: [0, 0]
+	schema: {
+		aBaz: #Baz
+
+		#Baz: {
+			run:  string
+			tell: bytes
+			dat:  int32
+		}
+	}
+}]
+
+lin2: thema.#Lineage
+lin2: name: "refstruct"
+lin2: schemas: [{
+    version: [0, 0]
+    schema: {
+		aBaz: #Baz
+
+		#Baz: {
+			run:  string
+			dat:  int32
+		}
+    }
+}]
+-- out/isappendonly-fail --
+field aBaz not present in {aBaz:{run:string,dat:>=-2147483648 & <=2147483647 & int},#Baz:{run:string,dat:>=-2147483648 & <=2147483647 & int}}:
+    ../../../lineage.cue:247:10
+    ./in.cue:22:13
+missing field "aBaz"
+required field is optional in subsumed value: tell

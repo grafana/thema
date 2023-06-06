@@ -189,6 +189,17 @@ func (lin *baseLineage) First() Schema {
 	return lin.allsch[0]
 }
 
+// All returns all Schemas in the lineage sorted by version (0.0 being the first
+// element). Thema requires that all valid lineages contain at least one schema,
+// so this is guaranteed to contain at least one element.
+func (lin *baseLineage) All() []Schema {
+	schemas := make([]Schema, len(lin.allsch))
+	for i, s := range lin.allsch {
+		schemas[i] = s
+	}
+	return schemas
+}
+
 // Underlying returns the cue.Value of the entire lineage.
 func (lin *baseLineage) Underlying() cue.Value {
 	isValidLineage(lin)
@@ -271,4 +282,30 @@ type unaryConvLineage[T Assignee] struct {
 
 func (lin *unaryConvLineage[T]) TypedSchema() TypedSchema[T] {
 	return lin.tsch
+}
+
+// IsAppendOnly returns nil if the new lineage only contains new schemas compared to the old one.
+// It returns an error if old schemas are updated or deleted.
+func IsAppendOnly(oldLineage Lineage, newLineage Lineage) error {
+	oldSchemas := oldLineage.All()
+	newSchemas := newLineage.All()
+
+	if len(newSchemas) < len(oldSchemas) {
+		return fmt.Errorf("schemas can't be deleted once published")
+	}
+
+	for i, schema := range oldSchemas {
+		schemaPath := "schema"
+		oldSchema := schema.Underlying()
+		x := oldSchema.LookupPath(cue.ParsePath(schemaPath))
+
+		newSchema := newSchemas[i].Underlying()
+		y := newSchema.LookupPath(cue.ParsePath(schemaPath))
+
+		if err := cuetil.Equal(x, y); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

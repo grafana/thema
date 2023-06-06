@@ -1,0 +1,44 @@
+#firstLin: lin1
+#secondLin: lin2
+-- in.cue --
+import (
+	"time"
+	"strings"
+
+	"github.com/grafana/thema"
+)
+
+lin1: thema.#Lineage
+lin1: name: "maps"
+lin1: schemas: [{
+	version: [0, 0]
+	schema: {
+		valPrimitive: [string]: bool
+		valList: [string]: [...string]
+		valStruct: [string]: foo: string
+		optValPrimitive?: [string]: bool
+		optValList?: [string]: [...string]
+		optValStruct?: [string]: foo: string
+		refValue: [string]: aStruct
+		someField: aMap
+	}
+}]
+
+lin2: thema.#Lineage
+lin2: name: "maps"
+lin2: schemas: [{
+	version: [0, 0]
+	schema: {
+		valPrimitive: [string]: bool
+		valList: [string]: [...string]
+		valStruct: [string]: foo: string
+		optValPrimitive?: [string]: bool
+		optValList?: [string]: [...string]
+		optValStruct?: [string]: foo: string
+		refValue: [string]: aStruct
+		someField: aMap
+	}
+}]
+
+aMap: [string]: bool
+aStruct: foo:   string
