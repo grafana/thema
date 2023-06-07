@@ -165,7 +165,7 @@ import (
 	// _basis keeps the index of the first schema in each major version
 	// within the overall canonical schema sort ordering. This allows trivial
 	// schema retrieval from a syntactic version.
-	_basis: [0, for maj, _ in list.Drop(_counts, len(_counts)-1) {
+	_basis: [0, for maj, _ in list.Drop(_counts, 1) {
 		list.Sum(list.Take(_counts, maj+1))
 	}]
 
