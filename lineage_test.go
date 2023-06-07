@@ -3,7 +3,6 @@ package thema
 import (
 	"bytes"
 	"fmt"
-	"os"
 	"testing"
 
 	"cuelang.org/go/cue"
@@ -12,7 +11,6 @@ import (
 	"cuelang.org/go/cue/errors"
 	"cuelang.org/go/cue/load"
 	"github.com/grafana/thema/internal/txtartest/vanilla"
-	"github.com/stretchr/testify/require"
 )
 
 func TestBindLineage(t *testing.T) {
@@ -199,34 +197,4 @@ func BenchmarkBindLineage(b *testing.B) {
 			}
 		}
 	})
-}
-
-func Benchmark_Translate(b *testing.B) {
-	ctx := cuecontext.New()
-	rt := NewRuntime(ctx)
-
-	// Initialize lineage for testing
-	rawlin, err := os.ReadFile("dashboard_kind.cue")
-	require.NoError(b, err)
-
-	linval := rt.Context().CompileString(string(rawlin))
-	lin, err := BindLineage(linval, rt)
-	require.NoError(b, err)
-
-	// Initialize cue.Value
-	rawval, err := os.ReadFile("dashboard.json")
-	val := ctx.CompileString(string(rawval))
-
-	// Benchmark core logic
-	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
-		// Validate cue.Value
-		inst := lin.ValidateAny(val)
-		require.NotNil(b, inst)
-		require.Equal(b, SV(0, 1), inst.Schema().Version())
-
-		// Translate cue.Value (no lacunas)
-		tinst, _ := inst.Translate(SV(1, 0))
-		require.Equal(b, SV(1, 0), tinst.Schema().Version())
-	}
 }
