@@ -100,10 +100,6 @@ type Test struct {
 	Dir string
 
 	hasGold bool
-
-	// lin     thema.Lineage
-	// linErr  error
-	// linOnce sync.Once
 }
 
 // Write implements [io.Writer] by writing to the output for the test,

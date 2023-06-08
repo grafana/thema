@@ -134,3 +134,47 @@ schemas: [
 	require.NoError(t, err)
 	require.Equal(t, expected, got)
 }
+
+func BenchmarkBasicTranslate(b *testing.B) {
+	test := vanilla.TxTarTest{
+		Root: "./testdata/lineage",
+		Name: "core/instance/translate",
+	}
+
+	ctx := cuecontext.New()
+	rt := NewRuntime(ctx)
+
+	test.RunBenchmark(b, func(bc *vanilla.Benchmark) {
+		if !bc.HasTag("multiversion") {
+			bc.Skip()
+		}
+
+		lval := ctx.BuildInstance(bc.Instance())
+		lin, err := BindLineage(lval, rt)
+		require.NoError(b, err)
+
+		first, second := lin.First(), lin.First().Successor()
+		bc.Run("forward", func(b *testing.B) {
+			for name, iexample := range first.Examples() {
+				example := iexample
+				b.Run(name, func(b *testing.B) {
+					b.ResetTimer()
+					for i := 0; i < b.N; i++ {
+						example.Translate(second.Version())
+					}
+				})
+			}
+		})
+		bc.Run("reverse", func(b *testing.B) {
+			for name, iexample := range second.Examples() {
+				example := iexample
+				b.Run(name, func(b *testing.B) {
+					b.ResetTimer()
+					for i := 0; i < b.N; i++ {
+						example.Translate(first.Version())
+					}
+				})
+			}
+		})
+	})
+}
