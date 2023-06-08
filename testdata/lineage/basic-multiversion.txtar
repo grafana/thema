@@ -110,6 +110,31 @@ schemas: [{
             withDefault: "bing"
         }
     }
+},
+{
+    version: [2, 0]
+    schema: {
+        toObj:     {
+            init: string
+        }
+        optional?:   int32
+        withDefault: "foo" | *"bar" | "baz" | "bing"
+    }
+    examples: {
+        withoutOptional: {
+            toObj: {
+                init: "some string"
+            }
+            withDefault: "bing"
+        }
+        withOptional: {
+            toObj: {
+                init: "some string"
+            }
+            optional: 32
+            withDefault: "bing"
+        }
+    }
 }]
 
 lenses: [{
@@ -182,6 +207,34 @@ lenses: [{
     result: {
         init: input.init
     }
+},
+{
+    to: [1, 1]
+    from: [2, 0]
+    input: _
+    result: {
+        renamed: input.toObj.init
+        if (input.optional != _|_) {
+            optional: input.optional
+        }
+        // TODO: withDefault: input.withDefault doesn't work
+        withDefault: "foo"
+    }
+},
+{
+    to: [2, 0]
+    from: [1, 1]
+    input: _
+    result: {
+        toObj: {
+            init: input.renamed
+        }
+        if (input.optional != _|_) {
+            optional: input.optional
+        }
+        // TODO: withDefault: input.withDefault doesn't work
+        withDefault: "foo"
+    }
 }]
 -- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.0-simple->0.0.json --
 {"init":"some string"}
@@ -207,29 +260,9 @@ lenses: [{
 {"init":"some string"}
 {"renamed":"some string","withDefault":"foo"}
 []
--- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.1-withoutOptional->0.0.json --
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.0-simple->2.0.json --
 {"init":"some string"}
-{"init":"some string"}
-[]
--- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.1-withoutOptional->0.1.json --
-{"init":"some string"}
-{"init":"some string"}
-[]
--- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.1-withoutOptional->0.2.json --
-{"init":"some string"}
-{"init":"some string"}
-[]
--- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.1-withoutOptional->0.3.json --
-{"init":"some string"}
-{"init":"some string"}
-[]
--- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.1-withoutOptional->1.0.json --
-{"init":"some string"}
-{"renamed":"some string","withDefault":"foo"}
-[]
--- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.1-withoutOptional->1.1.json --
-{"init":"some string"}
-{"renamed":"some string","withDefault":"foo"}
+{"toObj":{"init":"some string"},"withDefault":"foo"}
 []
 -- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.1-withOptional->0.0.json --
 {"init":"some string","optional":32}
@@ -255,6 +288,38 @@ lenses: [{
 {"init":"some string","optional":32}
 {"renamed":"some string","optional":32,"withDefault":"foo"}
 []
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.1-withOptional->2.0.json --
+{"init":"some string","optional":32}
+{"toObj":{"init":"some string"},"optional":32,"withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.1-withoutOptional->0.0.json --
+{"init":"some string"}
+{"init":"some string"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.1-withoutOptional->0.1.json --
+{"init":"some string"}
+{"init":"some string"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.1-withoutOptional->0.2.json --
+{"init":"some string"}
+{"init":"some string"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.1-withoutOptional->0.3.json --
+{"init":"some string"}
+{"init":"some string"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.1-withoutOptional->1.0.json --
+{"init":"some string"}
+{"renamed":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.1-withoutOptional->1.1.json --
+{"init":"some string"}
+{"renamed":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.1-withoutOptional->2.0.json --
+{"init":"some string"}
+{"toObj":{"init":"some string"},"withDefault":"foo"}
+[]
 -- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.2-withoutOptional->0.0.json --
 {"init":"some string","withDefault":"foo"}
 {"init":"some string"}
@@ -278,6 +343,10 @@ lenses: [{
 -- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.2-withoutOptional->1.1.json --
 {"init":"some string","withDefault":"foo"}
 {"renamed":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.2-withoutOptional->2.0.json --
+{"init":"some string","withDefault":"foo"}
+{"toObj":{"init":"some string"},"withDefault":"foo"}
 []
 -- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.2-withOptional->0.0.json --
 {"init":"some string","optional":32,"withDefault":"bar"}
@@ -303,29 +372,9 @@ lenses: [{
 {"init":"some string","optional":32,"withDefault":"bar"}
 {"renamed":"some string","optional":32,"withDefault":"foo"}
 []
--- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.3-withoutOptional->0.0.json --
-{"init":"some string","withDefault":"baz"}
-{"init":"some string"}
-[]
--- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.3-withoutOptional->0.1.json --
-{"init":"some string","withDefault":"baz"}
-{"init":"some string"}
-[]
--- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.3-withoutOptional->0.2.json --
-{"init":"some string","withDefault":"baz"}
-{"init":"some string","withDefault":"foo"}
-[]
--- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.3-withoutOptional->0.3.json --
-{"init":"some string","withDefault":"baz"}
-{"init":"some string","withDefault":"baz"}
-[]
--- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.3-withoutOptional->1.0.json --
-{"init":"some string","withDefault":"baz"}
-{"renamed":"some string","withDefault":"foo"}
-[]
--- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.3-withoutOptional->1.1.json --
-{"init":"some string","withDefault":"baz"}
-{"renamed":"some string","withDefault":"foo"}
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.2-withOptional->2.0.json --
+{"init":"some string","optional":32,"withDefault":"bar"}
+{"toObj":{"init":"some string"},"optional":32,"withDefault":"foo"}
 []
 -- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.3-withOptional->0.0.json --
 {"init":"some string","optional":32,"withDefault":"baz"}
@@ -351,6 +400,38 @@ lenses: [{
 {"init":"some string","optional":32,"withDefault":"baz"}
 {"renamed":"some string","optional":32,"withDefault":"foo"}
 []
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.3-withOptional->2.0.json --
+{"init":"some string","optional":32,"withDefault":"baz"}
+{"toObj":{"init":"some string"},"optional":32,"withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.3-withoutOptional->0.0.json --
+{"init":"some string","withDefault":"baz"}
+{"init":"some string"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.3-withoutOptional->0.1.json --
+{"init":"some string","withDefault":"baz"}
+{"init":"some string"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.3-withoutOptional->0.2.json --
+{"init":"some string","withDefault":"baz"}
+{"init":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.3-withoutOptional->0.3.json --
+{"init":"some string","withDefault":"baz"}
+{"init":"some string","withDefault":"baz"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.3-withoutOptional->1.0.json --
+{"init":"some string","withDefault":"baz"}
+{"renamed":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.3-withoutOptional->1.1.json --
+{"init":"some string","withDefault":"baz"}
+{"renamed":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.3-withoutOptional->2.0.json --
+{"init":"some string","withDefault":"baz"}
+{"toObj":{"init":"some string"},"withDefault":"foo"}
+[]
 -- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.0-withoutOptional->0.0.json --
 {"renamed":"some string","withDefault":"foo"}
 {"init":"some string"}
@@ -374,6 +455,10 @@ lenses: [{
 -- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.0-withoutOptional->1.1.json --
 {"renamed":"some string","withDefault":"foo"}
 {"renamed":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.0-withoutOptional->2.0.json --
+{"renamed":"some string","withDefault":"foo"}
+{"toObj":{"init":"some string"},"withDefault":"foo"}
 []
 -- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.0-withOptional->0.0.json --
 {"renamed":"some string","optional":32,"withDefault":"bar"}
@@ -399,6 +484,10 @@ lenses: [{
 {"renamed":"some string","optional":32,"withDefault":"bar"}
 {"renamed":"some string","optional":32,"withDefault":"bar"}
 []
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.0-withOptional->2.0.json --
+{"renamed":"some string","optional":32,"withDefault":"bar"}
+{"toObj":{"init":"some string"},"optional":32,"withDefault":"foo"}
+[]
 -- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.1-withoutOptional->0.0.json --
 {"renamed":"some string","withDefault":"bing"}
 {"init":"some string"}
@@ -422,6 +511,10 @@ lenses: [{
 -- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.1-withoutOptional->1.1.json --
 {"renamed":"some string","withDefault":"bing"}
 {"renamed":"some string","withDefault":"bing"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.1-withoutOptional->2.0.json --
+{"renamed":"some string","withDefault":"bing"}
+{"toObj":{"init":"some string"},"withDefault":"foo"}
 []
 -- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.1-withOptional->0.0.json --
 {"renamed":"some string","optional":32,"withDefault":"bing"}
@@ -447,10 +540,70 @@ lenses: [{
 {"renamed":"some string","optional":32,"withDefault":"bing"}
 {"renamed":"some string","optional":32,"withDefault":"bing"}
 []
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-1.1-withOptional->2.0.json --
+{"renamed":"some string","optional":32,"withDefault":"bing"}
+{"toObj":{"init":"some string"},"optional":32,"withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-2.0-withoutOptional->0.0.json --
+{"toObj":{"init":"some string"},"withDefault":"bing"}
+{"init":"some string"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-2.0-withoutOptional->0.1.json --
+{"toObj":{"init":"some string"},"withDefault":"bing"}
+{"init":"some string"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-2.0-withoutOptional->0.2.json --
+{"toObj":{"init":"some string"},"withDefault":"bing"}
+{"init":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-2.0-withoutOptional->0.3.json --
+{"toObj":{"init":"some string"},"withDefault":"bing"}
+{"init":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-2.0-withoutOptional->1.0.json --
+{"toObj":{"init":"some string"},"withDefault":"bing"}
+{"renamed":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-2.0-withoutOptional->1.1.json --
+{"toObj":{"init":"some string"},"withDefault":"bing"}
+{"renamed":"some string","withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-2.0-withoutOptional->2.0.json --
+{"toObj":{"init":"some string"},"withDefault":"bing"}
+{"toObj":{"init":"some string"},"withDefault":"bing"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-2.0-withOptional->0.0.json --
+{"toObj":{"init":"some string"},"optional":32,"withDefault":"bing"}
+{"init":"some string"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-2.0-withOptional->0.1.json --
+{"toObj":{"init":"some string"},"optional":32,"withDefault":"bing"}
+{"init":"some string","optional":32}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-2.0-withOptional->0.2.json --
+{"toObj":{"init":"some string"},"optional":32,"withDefault":"bing"}
+{"init":"some string","optional":32,"withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-2.0-withOptional->0.3.json --
+{"toObj":{"init":"some string"},"optional":32,"withDefault":"bing"}
+{"init":"some string","optional":32,"withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-2.0-withOptional->1.0.json --
+{"toObj":{"init":"some string"},"optional":32,"withDefault":"bing"}
+{"renamed":"some string","optional":32,"withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-2.0-withOptional->1.1.json --
+{"toObj":{"init":"some string"},"optional":32,"withDefault":"bing"}
+{"renamed":"some string","optional":32,"withDefault":"foo"}
+[]
+-- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-2.0-withOptional->2.0.json --
+{"toObj":{"init":"some string"},"optional":32,"withDefault":"bing"}
+{"toObj":{"init":"some string"},"optional":32,"withDefault":"bing"}
+[]
 -- out/bind --
-Schema count: 6
-Schema versions: 0.0, 0.1, 0.2, 0.3, 1.0, 1.1
-Lenses count: 6
+Schema count: 7
+Schema versions: 0.0, 0.1, 0.2, 0.3, 1.0, 1.1, 2.0
+Lenses count: 8
 -- out/encoding/gocode/TestGenerate/nilcfg --
 == basicmultiversion_type_0.0_gen.go
 package basicmultiversion
@@ -538,6 +691,28 @@ const (
 type Basicmultiversion struct {
 	Optional    *int32                       `json:"optional,omitempty"`
 	Renamed     string                       `json:"renamed"`
+	WithDefault BasicmultiversionWithDefault `json:"withDefault"`
+}
+
+// BasicmultiversionWithDefault defines model for Basicmultiversion.WithDefault.
+type BasicmultiversionWithDefault string
+== basicmultiversion_type_2.0_gen.go
+package basicmultiversion
+
+// Defines values for BasicmultiversionWithDefault.
+const (
+	BasicmultiversionWithDefaultBar  BasicmultiversionWithDefault = "bar"
+	BasicmultiversionWithDefaultBaz  BasicmultiversionWithDefault = "baz"
+	BasicmultiversionWithDefaultBing BasicmultiversionWithDefault = "bing"
+	BasicmultiversionWithDefaultFoo  BasicmultiversionWithDefault = "foo"
+)
+
+// Basicmultiversion defines model for basicmultiversion.
+type Basicmultiversion struct {
+	Optional *int32 `json:"optional,omitempty"`
+	ToObj    struct {
+		Init string `json:"init"`
+	} `json:"toObj"`
 	WithDefault BasicmultiversionWithDefault `json:"withDefault"`
 }
 
@@ -740,6 +915,52 @@ type BasicmultiversionWithDefault string
       }
     }
   }
+}== 2.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "basicmultiversion",
+    "version": "2.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "basicmultiversion": {
+        "type": "object",
+        "required": [
+          "toObj",
+          "withDefault"
+        ],
+        "properties": {
+          "toObj": {
+            "type": "object",
+            "required": [
+              "init"
+            ],
+            "properties": {
+              "init": {
+                "type": "string"
+              }
+            }
+          },
+          "optional": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "withDefault": {
+            "type": "string",
+            "enum": [
+              "bar",
+              "foo",
+              "baz",
+              "bing"
+            ],
+            "default": "bar"
+          }
+        }
+      }
+    }
+  }
 }
 -- out/encoding/openapi/TestGenerate/group --
 == 0.0.json
@@ -871,6 +1092,43 @@ type BasicmultiversionWithDefault string
     "schemas": {
       "renamed": {
         "type": "string"
+      },
+      "optional": {
+        "type": "integer",
+        "format": "int32"
+      },
+      "withDefault": {
+        "type": "string",
+        "enum": [
+          "bar",
+          "foo",
+          "baz",
+          "bing"
+        ],
+        "default": "bar"
+      }
+    }
+  }
+}== 2.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "basicmultiversion",
+    "version": "2.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "toObj": {
+        "type": "object",
+        "required": [
+          "init"
+        ],
+        "properties": {
+          "init": {
+            "type": "string"
+          }
+        }
       },
       "optional": {
         "type": "integer",
@@ -1086,6 +1344,52 @@ type BasicmultiversionWithDefault string
       }
     }
   }
+}== 2.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "basicmultiversion",
+    "version": "2.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "basicmultiversion": {
+        "type": "object",
+        "required": [
+          "toObj",
+          "withDefault"
+        ],
+        "properties": {
+          "toObj": {
+            "type": "object",
+            "required": [
+              "init"
+            ],
+            "properties": {
+              "init": {
+                "type": "string"
+              }
+            }
+          },
+          "optional": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "withDefault": {
+            "type": "string",
+            "enum": [
+              "bar",
+              "foo",
+              "baz",
+              "bing"
+            ],
+            "default": "bar"
+          }
+        }
+      }
+    }
+  }
 }
 -- out/encoding/gocode/TestGenerate/godeclincomments --
 == basicmultiversion_type_0.0_gen.go
@@ -1174,6 +1478,28 @@ const (
 type Basicmultiversion struct {
 	Optional    *int32                       `json:"optional,omitempty"`
 	Renamed     string                       `json:"renamed"`
+	WithDefault BasicmultiversionWithDefault `json:"withDefault"`
+}
+
+// BasicmultiversionWithDefault defines model for Basicmultiversion.WithDefault.
+type BasicmultiversionWithDefault string
+== basicmultiversion_type_2.0_gen.go
+package basicmultiversion
+
+// Defines values for BasicmultiversionWithDefault.
+const (
+	BasicmultiversionWithDefaultBar  BasicmultiversionWithDefault = "bar"
+	BasicmultiversionWithDefaultBaz  BasicmultiversionWithDefault = "baz"
+	BasicmultiversionWithDefaultBing BasicmultiversionWithDefault = "bing"
+	BasicmultiversionWithDefaultFoo  BasicmultiversionWithDefault = "foo"
+)
+
+// Basicmultiversion defines model for basicmultiversion.
+type Basicmultiversion struct {
+	Optional *int32 `json:"optional,omitempty"`
+	ToObj    struct {
+		Init string `json:"init"`
+	} `json:"toObj"`
 	WithDefault BasicmultiversionWithDefault `json:"withDefault"`
 }
 
@@ -1271,6 +1597,28 @@ type Basicmultiversion struct {
 
 // BasicmultiversionWithDefault defines model for Basicmultiversion.WithDefault.
 type BasicmultiversionWithDefault string
+== basicmultiversion_type_2.0_gen.go
+package basicmultiversion
+
+// Defines values for BasicmultiversionWithDefault.
+const (
+	BasicmultiversionWithDefaultBar  BasicmultiversionWithDefault = "bar"
+	BasicmultiversionWithDefaultBaz  BasicmultiversionWithDefault = "baz"
+	BasicmultiversionWithDefaultBing BasicmultiversionWithDefault = "bing"
+	BasicmultiversionWithDefaultFoo  BasicmultiversionWithDefault = "foo"
+)
+
+// Basicmultiversion defines model for basicmultiversion.
+type Basicmultiversion struct {
+	Optional *int32 `json:"optional,omitempty"`
+	ToObj    struct {
+		Init string `json:"init"`
+	} `json:"toObj"`
+	WithDefault BasicmultiversionWithDefault `json:"withDefault"`
+}
+
+// BasicmultiversionWithDefault defines model for Basicmultiversion.WithDefault.
+type BasicmultiversionWithDefault string
 -- out/encoding/gocode/TestGenerate/group --
 == basicmultiversion_type_0.0_gen.go
 package basicmultiversion
@@ -1354,6 +1702,27 @@ type Optional = int32
 
 // Renamed defines model for renamed.
 type Renamed = string
+
+// WithDefault defines model for withDefault.
+type WithDefault string
+== basicmultiversion_type_2.0_gen.go
+package basicmultiversion
+
+// Defines values for WithDefault.
+const (
+	WithDefaultBar  WithDefault = "bar"
+	WithDefaultBaz  WithDefault = "baz"
+	WithDefaultBing WithDefault = "bing"
+	WithDefaultFoo  WithDefault = "foo"
+)
+
+// Optional defines model for optional.
+type Optional = int32
+
+// ToObj defines model for toObj.
+type ToObj struct {
+	Init string `json:"init"`
+}
 
 // WithDefault defines model for withDefault.
 type WithDefault string
@@ -1444,6 +1813,28 @@ const (
 type Basicmultiversion struct {
 	Optional    int32                        `json:"optional,omitempty"`
 	Renamed     string                       `json:"renamed"`
+	WithDefault BasicmultiversionWithDefault `json:"withDefault"`
+}
+
+// BasicmultiversionWithDefault defines model for Basicmultiversion.WithDefault.
+type BasicmultiversionWithDefault string
+== basicmultiversion_type_2.0_gen.go
+package basicmultiversion
+
+// Defines values for BasicmultiversionWithDefault.
+const (
+	BasicmultiversionWithDefaultBar  BasicmultiversionWithDefault = "bar"
+	BasicmultiversionWithDefaultBaz  BasicmultiversionWithDefault = "baz"
+	BasicmultiversionWithDefaultBing BasicmultiversionWithDefault = "bing"
+	BasicmultiversionWithDefaultFoo  BasicmultiversionWithDefault = "foo"
+)
+
+// Basicmultiversion defines model for basicmultiversion.
+type Basicmultiversion struct {
+	Optional int32 `json:"optional,omitempty"`
+	ToObj    struct {
+		Init string `json:"init"`
+	} `json:"toObj"`
 	WithDefault BasicmultiversionWithDefault `json:"withDefault"`
 }
 
