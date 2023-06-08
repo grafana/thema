@@ -601,9 +601,9 @@ lenses: [{
 {"toObj":{"init":"some string"},"optional":32,"withDefault":"bing"}
 []
 -- out/bind --
-Schema count: 6
-Schema versions: 0.0, 0.1, 0.2, 0.3, 1.0, 1.1
-Lenses count: 6
+Schema count: 7
+Schema versions: 0.0, 0.1, 0.2, 0.3, 1.0, 1.1, 2.0
+Lenses count: 8
 -- out/encoding/gocode/TestGenerate/nilcfg --
 == basicmultiversion_type_0.0_gen.go
 package basicmultiversion
@@ -691,6 +691,28 @@ const (
 type Basicmultiversion struct {
 	Optional    *int32                       `json:"optional,omitempty"`
 	Renamed     string                       `json:"renamed"`
+	WithDefault BasicmultiversionWithDefault `json:"withDefault"`
+}
+
+// BasicmultiversionWithDefault defines model for Basicmultiversion.WithDefault.
+type BasicmultiversionWithDefault string
+== basicmultiversion_type_2.0_gen.go
+package basicmultiversion
+
+// Defines values for BasicmultiversionWithDefault.
+const (
+	BasicmultiversionWithDefaultBar  BasicmultiversionWithDefault = "bar"
+	BasicmultiversionWithDefaultBaz  BasicmultiversionWithDefault = "baz"
+	BasicmultiversionWithDefaultBing BasicmultiversionWithDefault = "bing"
+	BasicmultiversionWithDefaultFoo  BasicmultiversionWithDefault = "foo"
+)
+
+// Basicmultiversion defines model for basicmultiversion.
+type Basicmultiversion struct {
+	Optional *int32 `json:"optional,omitempty"`
+	ToObj    struct {
+		Init string `json:"init"`
+	} `json:"toObj"`
 	WithDefault BasicmultiversionWithDefault `json:"withDefault"`
 }
 
@@ -893,6 +915,52 @@ type BasicmultiversionWithDefault string
       }
     }
   }
+}== 2.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "basicmultiversion",
+    "version": "2.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "basicmultiversion": {
+        "type": "object",
+        "required": [
+          "toObj",
+          "withDefault"
+        ],
+        "properties": {
+          "toObj": {
+            "type": "object",
+            "required": [
+              "init"
+            ],
+            "properties": {
+              "init": {
+                "type": "string"
+              }
+            }
+          },
+          "optional": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "withDefault": {
+            "type": "string",
+            "enum": [
+              "bar",
+              "foo",
+              "baz",
+              "bing"
+            ],
+            "default": "bar"
+          }
+        }
+      }
+    }
+  }
 }
 -- out/encoding/openapi/TestGenerate/group --
 == 0.0.json
@@ -1024,6 +1092,43 @@ type BasicmultiversionWithDefault string
     "schemas": {
       "renamed": {
         "type": "string"
+      },
+      "optional": {
+        "type": "integer",
+        "format": "int32"
+      },
+      "withDefault": {
+        "type": "string",
+        "enum": [
+          "bar",
+          "foo",
+          "baz",
+          "bing"
+        ],
+        "default": "bar"
+      }
+    }
+  }
+}== 2.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "basicmultiversion",
+    "version": "2.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "toObj": {
+        "type": "object",
+        "required": [
+          "init"
+        ],
+        "properties": {
+          "init": {
+            "type": "string"
+          }
+        }
       },
       "optional": {
         "type": "integer",
@@ -1239,6 +1344,52 @@ type BasicmultiversionWithDefault string
       }
     }
   }
+}== 2.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "basicmultiversion",
+    "version": "2.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "basicmultiversion": {
+        "type": "object",
+        "required": [
+          "toObj",
+          "withDefault"
+        ],
+        "properties": {
+          "toObj": {
+            "type": "object",
+            "required": [
+              "init"
+            ],
+            "properties": {
+              "init": {
+                "type": "string"
+              }
+            }
+          },
+          "optional": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "withDefault": {
+            "type": "string",
+            "enum": [
+              "bar",
+              "foo",
+              "baz",
+              "bing"
+            ],
+            "default": "bar"
+          }
+        }
+      }
+    }
+  }
 }
 -- out/encoding/gocode/TestGenerate/godeclincomments --
 == basicmultiversion_type_0.0_gen.go
@@ -1327,6 +1478,28 @@ const (
 type Basicmultiversion struct {
 	Optional    *int32                       `json:"optional,omitempty"`
 	Renamed     string                       `json:"renamed"`
+	WithDefault BasicmultiversionWithDefault `json:"withDefault"`
+}
+
+// BasicmultiversionWithDefault defines model for Basicmultiversion.WithDefault.
+type BasicmultiversionWithDefault string
+== basicmultiversion_type_2.0_gen.go
+package basicmultiversion
+
+// Defines values for BasicmultiversionWithDefault.
+const (
+	BasicmultiversionWithDefaultBar  BasicmultiversionWithDefault = "bar"
+	BasicmultiversionWithDefaultBaz  BasicmultiversionWithDefault = "baz"
+	BasicmultiversionWithDefaultBing BasicmultiversionWithDefault = "bing"
+	BasicmultiversionWithDefaultFoo  BasicmultiversionWithDefault = "foo"
+)
+
+// Basicmultiversion defines model for basicmultiversion.
+type Basicmultiversion struct {
+	Optional *int32 `json:"optional,omitempty"`
+	ToObj    struct {
+		Init string `json:"init"`
+	} `json:"toObj"`
 	WithDefault BasicmultiversionWithDefault `json:"withDefault"`
 }
 
@@ -1424,6 +1597,28 @@ type Basicmultiversion struct {
 
 // BasicmultiversionWithDefault defines model for Basicmultiversion.WithDefault.
 type BasicmultiversionWithDefault string
+== basicmultiversion_type_2.0_gen.go
+package basicmultiversion
+
+// Defines values for BasicmultiversionWithDefault.
+const (
+	BasicmultiversionWithDefaultBar  BasicmultiversionWithDefault = "bar"
+	BasicmultiversionWithDefaultBaz  BasicmultiversionWithDefault = "baz"
+	BasicmultiversionWithDefaultBing BasicmultiversionWithDefault = "bing"
+	BasicmultiversionWithDefaultFoo  BasicmultiversionWithDefault = "foo"
+)
+
+// Basicmultiversion defines model for basicmultiversion.
+type Basicmultiversion struct {
+	Optional *int32 `json:"optional,omitempty"`
+	ToObj    struct {
+		Init string `json:"init"`
+	} `json:"toObj"`
+	WithDefault BasicmultiversionWithDefault `json:"withDefault"`
+}
+
+// BasicmultiversionWithDefault defines model for Basicmultiversion.WithDefault.
+type BasicmultiversionWithDefault string
 -- out/encoding/gocode/TestGenerate/group --
 == basicmultiversion_type_0.0_gen.go
 package basicmultiversion
@@ -1507,6 +1702,27 @@ type Optional = int32
 
 // Renamed defines model for renamed.
 type Renamed = string
+
+// WithDefault defines model for withDefault.
+type WithDefault string
+== basicmultiversion_type_2.0_gen.go
+package basicmultiversion
+
+// Defines values for WithDefault.
+const (
+	WithDefaultBar  WithDefault = "bar"
+	WithDefaultBaz  WithDefault = "baz"
+	WithDefaultBing WithDefault = "bing"
+	WithDefaultFoo  WithDefault = "foo"
+)
+
+// Optional defines model for optional.
+type Optional = int32
+
+// ToObj defines model for toObj.
+type ToObj struct {
+	Init string `json:"init"`
+}
 
 // WithDefault defines model for withDefault.
 type WithDefault string
@@ -1597,6 +1813,28 @@ const (
 type Basicmultiversion struct {
 	Optional    int32                        `json:"optional,omitempty"`
 	Renamed     string                       `json:"renamed"`
+	WithDefault BasicmultiversionWithDefault `json:"withDefault"`
+}
+
+// BasicmultiversionWithDefault defines model for Basicmultiversion.WithDefault.
+type BasicmultiversionWithDefault string
+== basicmultiversion_type_2.0_gen.go
+package basicmultiversion
+
+// Defines values for BasicmultiversionWithDefault.
+const (
+	BasicmultiversionWithDefaultBar  BasicmultiversionWithDefault = "bar"
+	BasicmultiversionWithDefaultBaz  BasicmultiversionWithDefault = "baz"
+	BasicmultiversionWithDefaultBing BasicmultiversionWithDefault = "bing"
+	BasicmultiversionWithDefaultFoo  BasicmultiversionWithDefault = "foo"
+)
+
+// Basicmultiversion defines model for basicmultiversion.
+type Basicmultiversion struct {
+	Optional int32 `json:"optional,omitempty"`
+	ToObj    struct {
+		Init string `json:"init"`
+	} `json:"toObj"`
 	WithDefault BasicmultiversionWithDefault `json:"withDefault"`
 }
 
