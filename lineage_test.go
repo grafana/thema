@@ -35,8 +35,9 @@ func TestBindLineage(t *testing.T) {
 		if err != nil {
 			tc.Fatalf("error binding lineage: %+v", err)
 		}
-
-		sspath := cue.MakePath(cue.Hid("_sortedSchemas", "github.com/grafana/thema"))
+		// schemaselem := cue.Hid("_sortedSchemas", "github.com/grafana/thema")
+		schemaselem := cue.Str("schemas")
+		sspath := cue.MakePath(schemaselem)
 		slen, err := lin.Underlying().LookupPath(sspath).Len().Int64()
 		if err != nil {
 			tc.Fatal("error getting schemas len", err)

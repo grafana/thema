@@ -83,19 +83,20 @@ import (
 
 	_atLeastOneSchema: len(schemas) > 0
 
-	_schemas: [...]
+	SS=_schemas: [...]
 	if _atLeastOneSchema == true {
 		_schemas: schemas
 	}
+
 	if _atLeastOneSchema == false {
 		_schemas: [#SchemaDef & {version: [0, 0]}]
 	}
 
-	SS=_sortedSchemas: list.Sort(_schemas, {
-		x:    #SchemaDef
-		y:    #SchemaDef
-		less: (_cmpSV & {l: x.version, r: y.version}).out == -1
-	}) & list.MinItems(1)
+	//	SS=_sortedSchemas: list.Sort(_schemas, {
+	//		x:    #SchemaDef
+	//		y:    #SchemaDef
+	//		less: (_cmpSV & {l: x.version, r: y.version}).out == -1
+	//	}) & list.MinItems(1)
 
 	// TODO add informative validation that exactly the expected set of explicit lenses exist
 	_sortedLenses: list.Sort(lenses, {
