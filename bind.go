@@ -44,7 +44,6 @@ type maybeLineage struct {
 }
 
 func (ml *maybeLineage) checkGoValidity(cfg *bindConfig) error {
-	// schiter, err := ml.uni.LookupPath(cue.MakePath(cue.Hid("_sortedSchemas", "github.com/grafana/thema"))).List()
 	schiter, err := ml.uni.LookupPath(cue.MakePath(cue.Str("schemas"))).List()
 	if err != nil {
 		panic(fmt.Sprintf("unreachable - should have already verified schemas field exists and is list: %+v", cerrors.Details(err, nil)))

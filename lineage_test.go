@@ -35,7 +35,6 @@ func TestBindLineage(t *testing.T) {
 		if err != nil {
 			tc.Fatalf("error binding lineage: %+v", err)
 		}
-		// schemaselem := cue.Hid("_sortedSchemas", "github.com/grafana/thema")
 		schemaselem := cue.Str("schemas")
 		sspath := cue.MakePath(schemaselem)
 		slen, err := lin.Underlying().LookupPath(sspath).Len().Int64()
@@ -45,7 +44,6 @@ func TestBindLineage(t *testing.T) {
 		fmt.Fprintf(tc, "Schema count: %v\n", slen)
 		fmt.Fprintf(tc, "Schema versions: %s\n", lin.allVersions())
 
-		// lenseselem := cue.Hid("_sortedLenses", "github.com/grafana/thema")
 		var llen int64
 		if slen > 1 {
 			lenseselem := cue.Str("lenses")
