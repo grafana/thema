@@ -33,7 +33,7 @@ lin2: schemas: [{
 }]
 -- out/isappendonly-fail --
 field aBaz not present in {aBaz:{run:string,dat:>=-2147483648 & <=2147483647 & int},#Baz:{run:string,dat:>=-2147483648 & <=2147483647 & int}}:
-    ../../../lineage.cue:247:10
+    ../../../lineage.cue:248:10
     ./in.cue:22:13
 missing field "aBaz"
 required field is optional in subsumed value: tell

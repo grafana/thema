@@ -61,14 +61,14 @@ import (
 	// Thus, for a lineage with schema versions [0,0], [0,1], [1,0], [2,0], [2,1],
 	// the following lenses must exist (implicit lenses are wrapped in parentheses):
 	//
-	// ([0,0] -> [0,1])
 	//  [0,1] -> [0,0]
-	//  [0,1] -> [1,0]
+	// ([0,0] -> [0,1])
 	//  [1,0] -> [0,1]
-	//  [1,0] -> [2,0]
+	//  [0,1] -> [1,0]
 	//  [2,0] -> [1,0]
-	// ([2,0] -> [2,1])
+	//  [1,0] -> [2,0]
 	//  [2,1] -> [2,0]
+	// ([2,0] -> [2,1])
 	//
 	// To be valid, a lineage must define the exact set of explicit lenses entailed by its
 	// set of schema versions. It is not permitted to explicitly define a lens across
@@ -79,7 +79,7 @@ import (
 	// list. Thema tooling that modifies and emits lineages definitions may produce lenses
 	// sorted in ascending order, rather than original source order.
 	// TODO switch to descending order - newest on top is nicer to read
-	lenses: [...#Lens]
+	SL=lenses: [...#Lens]
 
 	_atLeastOneSchema: len(schemas) > 0
 
@@ -92,21 +92,8 @@ import (
 		_schemas: [#SchemaDef & {version: [0, 0]}]
 	}
 
-	//	SS=_sortedSchemas: list.Sort(_schemas, {
-	//		x:    #SchemaDef
-	//		y:    #SchemaDef
-	//		less: (_cmpSV & {l: x.version, r: y.version}).out == -1
-	//	}) & list.MinItems(1)
-
-	// TODO add informative validation that exactly the expected set of explicit lenses exist
-	_sortedLenses: list.Sort(lenses, {
-		x:    #Lens
-		y:    #Lens
-		less: ((_cmpSV & {l: x.to, r: y.to}).out == -1 || (x.to == y.to && x.from[0] < y.from[0]))
-	})
-
-	_forwardLenses: [ for lens in _sortedLenses if {lens.to[0] > lens.from[0]} {lens}]
-	_backwardLenses: [ for lens in _sortedLenses if {lens.to[0] <= lens.from[0]} {lens}]
+	_forwardLenses: [ for lens in SL if {lens.to[0] > lens.from[0]} {lens}]
+	_backwardLenses: [ for lens in SL if {lens.to[0] <= lens.from[0]} {lens}]
 
 	// preserved for debugging
 	//	lensVersions: {

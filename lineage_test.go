@@ -45,7 +45,9 @@ func TestBindLineage(t *testing.T) {
 		fmt.Fprintf(tc, "Schema count: %v\n", slen)
 		fmt.Fprintf(tc, "Schema versions: %s\n", lin.allVersions())
 
-		slpath := cue.MakePath(cue.Hid("_sortedLenses", "github.com/grafana/thema"))
+		// lenseselem := cue.Hid("_sortedLenses", "github.com/grafana/thema")
+		lenseselem := cue.Str("lenses")
+		slpath := cue.MakePath(lenseselem)
 		llen, err := lin.Underlying().LookupPath(slpath).Len().Int64()
 		if err != nil {
 			tc.Fatal("error getting schemas len", err)

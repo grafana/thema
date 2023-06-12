@@ -24,7 +24,7 @@ import "list"
 //
 // TODO functionize
 #Translate: {
-	L=lin: #Lineage
+	L=lin: _
 	I=inst: {...}
 	FV=from: #SyntacticVersion
 	TV=to:   #SyntacticVersion
@@ -55,7 +55,7 @@ import "list"
 					let prior = _accum[i]
 
 					// the actual schema def
-					let schdef = L._sortedSchemas[pos]
+					let schdef = L.schemas[pos]
 
 					// TODO does having this field in the result, even hidden, cause a problem? does using an alias cause the computation to run more than once?
 					_lens: L._backwardLenses[(L._flatidx & {v: schdef.version}).out] & {
@@ -84,7 +84,7 @@ import "list"
 				// translation, inclusive of the starting schema.
 				let lo = (L._flatidx & {v: FV}).out
 				let hi = (L._flatidx & {v: TV}).out
-				let schrange = list.Slice(L._sortedSchemas, lo+1, hi+1)
+				let schrange = list.Slice(L.schemas, lo+1, hi+1)
 
 				_accum: [{result: I, to: FV}, for i, schdef in schrange {
 					// alias pointing to the previous item in the list we're building

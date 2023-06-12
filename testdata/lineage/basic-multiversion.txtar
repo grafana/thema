@@ -138,16 +138,11 @@ schemas: [{
 }]
 
 lenses: [{
-    to: [0, 3]
-    from: [1, 0]
+    to: [0, 0]
+    from: [0, 1]
     input: _
     result: {
-        init: input.renamed
-        if (input.optional != _|_) {
-            optional: input.optional
-        }
-
-        withDefault: input.withDefault
+        init: input.init
     }
 },
 {
@@ -175,6 +170,19 @@ lenses: [{
     }
 },
 {
+    to: [0, 3]
+    from: [1, 0]
+    input: _
+    result: {
+        init: input.renamed
+        if (input.optional != _|_) {
+            optional: input.optional
+        }
+
+        withDefault: input.withDefault
+    }
+},
+{
     to: [1, 0]
     from: [0, 3]
     input: _
@@ -198,14 +206,6 @@ lenses: [{
         }
         // TODO: withDefault: input.withDefault doesn't work
         withDefault: "foo"
-    }
-},
-{
-    to: [0, 0]
-    from: [0, 1]
-    input: _
-    result: {
-        init: input.init
     }
 },
 {
