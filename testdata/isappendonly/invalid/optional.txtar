@@ -23,6 +23,6 @@ lin2: schemas: [{
 }]
 -- out/isappendonly-fail --
 field aNewOptionalField not present in {aField:string}:
-    ../../../lineage.cue:248:10
+    ../../../lineage.cue:235:10
     ./in.cue:7:10
 missing field "aNewOptionalField"
