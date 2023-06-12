@@ -22,5 +22,5 @@ lin2: schemas: [{
     }
 }]
 -- out/isappendonly-fail --
-field not allowed in closed struct: secondfield
+required field is optional in subsumed value: secondfield
 value not an instance

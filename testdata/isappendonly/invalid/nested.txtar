@@ -26,8 +26,9 @@ lin2: schemas: [{
     }
 }]
 -- out/isappendonly-fail --
+field aNewOptionalField not present in {aField:string}:
+    ./in.cue:8:13
 field anObject not present in {anObject:{aField:string}}:
-    ../../../lineage.cue:247:10
-    ./in.cue:18:13
-field not allowed in closed struct: aNewOptionalField
+    ../../../lineage.cue:235:10
+    ./in.cue:7:10
 missing field "anObject"

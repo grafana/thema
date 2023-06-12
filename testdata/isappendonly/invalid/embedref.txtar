@@ -32,7 +32,7 @@ lin2: schemas: [{
 }]
 -- out/isappendonly-fail --
 field #EmbedRef not present in {#EmbedRef:{refField1:string,refField2:1},refField1:string,refField2:1}:
-    ../../../lineage.cue:247:10
+    ../../../lineage.cue:235:10
     ./in.cue:21:13
 field refField2 not present in {refField1:string,refField2:1}:
     ./in.cue:24:20

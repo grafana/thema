@@ -36,15 +36,3 @@ func TestExemplarValidity(t *testing.T) {
 		})
 	}
 }
-
-func BenchmarkBindLineage(b *testing.B) {
-	for name, o := range nameOpts {
-		b.Run(name, func(b *testing.B) {
-			lib := thema.NewRuntime(cuecontext.New())
-			b.ResetTimer()
-			for i := 0; i < b.N; i++ {
-				lineageForExemplar(name, lib, o...)
-			}
-		})
-	}
-}
