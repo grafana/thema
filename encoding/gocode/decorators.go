@@ -228,7 +228,7 @@ func withoutUnderscore(i *dst.Ident) {
 func withoutRawData(existingFields map[string]bool) func(ident *dst.Ident) {
 	return func(i *dst.Ident) {
 		if existingFields[i.Name] {
-			i.Name = setStar(i) + "interface{}"
+			i.Name = setStar(i) + "any"
 		}
 	}
 }
