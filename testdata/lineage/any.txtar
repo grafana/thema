@@ -1,0 +1,269 @@
+# lineage containing fields that must generate any type in Go
+-- in.cue --
+import "github.com/grafana/thema"
+
+thema.#Lineage
+name: "any"
+schemas: [{
+    version: [0, 0]
+    schema: {
+        value: string | bool
+        optional?: string | bool
+        emptyMap: {...}
+
+        structVal: {
+            inner: string | int
+            innerOptional?: _
+        }
+    }
+}]
+lenses: []
+-- out/encoding/gocode/TestGenerate/nilcfg --
+== any_type_0.0_gen.go
+package any
+
+// Any defines model for any.
+type Any struct {
+	EmptyMap  map[string]any `json:"emptyMap"`
+	Optional  *any           `json:"optional,omitempty"`
+	StructVal struct {
+		Inner         any  `json:"inner"`
+		InnerOptional *any `json:"innerOptional,omitempty"`
+	} `json:"structVal"`
+	Value any `json:"value"`
+}
+-- out/encoding/gocode/TestGenerate/group --
+== any_type_0.0_gen.go
+package any
+
+// EmptyMap defines model for emptyMap.
+type EmptyMap = map[string]any
+
+// StructVal defines model for structVal.
+type StructVal struct {
+	Inner         any  `json:"inner"`
+	InnerOptional *any `json:"innerOptional,omitempty"`
+}
+-- out/encoding/gocode/TestGenerate/depointerized --
+== any_type_0.0_gen.go
+package any
+
+// Any defines model for any.
+type Any struct {
+	EmptyMap  map[string]any `json:"emptyMap"`
+	Optional  any            `json:"optional,omitempty"`
+	StructVal struct {
+		Inner         any `json:"inner"`
+		InnerOptional any `json:"innerOptional,omitempty"`
+	} `json:"structVal"`
+	Value any `json:"value"`
+}
+-- out/encoding/gocode/TestGenerate/godeclincomments --
+== any_type_0.0_gen.go
+package any
+
+// Any defines model for any.
+type Any struct {
+	EmptyMap  map[string]any `json:"emptyMap"`
+	Optional  *any           `json:"optional,omitempty"`
+	StructVal struct {
+		Inner         any  `json:"inner"`
+		InnerOptional *any `json:"innerOptional,omitempty"`
+	} `json:"structVal"`
+	Value any `json:"value"`
+}
+-- out/encoding/gocode/TestGenerate/expandref --
+== any_type_0.0_gen.go
+package any
+
+// Any defines model for any.
+type Any struct {
+	EmptyMap  map[string]any `json:"emptyMap"`
+	Optional  *any           `json:"optional,omitempty"`
+	StructVal struct {
+		Inner         any  `json:"inner"`
+		InnerOptional *any `json:"innerOptional,omitempty"`
+	} `json:"structVal"`
+	Value any `json:"value"`
+}
+-- out/bind --
+Schema count: 1
+Schema versions: 0.0
+Lenses count: 0
+-- out/encoding/openapi/TestGenerate/nilcfg --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "any",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "any": {
+        "type": "object",
+        "required": [
+          "value",
+          "emptyMap",
+          "structVal"
+        ],
+        "properties": {
+          "value": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          "optional": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          "emptyMap": {
+            "type": "object"
+          },
+          "structVal": {
+            "type": "object",
+            "required": [
+              "inner"
+            ],
+            "properties": {
+              "inner": {
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ]
+              },
+              "innerOptional": {}
+            }
+          }
+        }
+      }
+    }
+  }
+}
+-- out/encoding/openapi/TestGenerate/group --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "any",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "value": {
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "boolean"
+          }
+        ]
+      },
+      "optional": {
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "boolean"
+          }
+        ]
+      },
+      "emptyMap": {
+        "type": "object"
+      },
+      "structVal": {
+        "type": "object",
+        "required": [
+          "inner"
+        ],
+        "properties": {
+          "inner": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              }
+            ]
+          },
+          "innerOptional": {}
+        }
+      }
+    }
+  }
+}
+-- out/encoding/openapi/TestGenerate/expandrefs --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "any",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "any": {
+        "type": "object",
+        "required": [
+          "value",
+          "emptyMap",
+          "structVal"
+        ],
+        "properties": {
+          "value": {
+            "oneOf": [
+              {},
+              {}
+            ]
+          },
+          "optional": {
+            "oneOf": [
+              {},
+              {}
+            ]
+          },
+          "emptyMap": {
+            "type": "object",
+            "additionalProperties": {}
+          },
+          "structVal": {
+            "type": "object",
+            "required": [
+              "inner"
+            ],
+            "properties": {
+              "inner": {
+                "oneOf": [
+                  {},
+                  {}
+                ]
+              },
+              "innerOptional": {}
+            }
+          }
+        }
+      }
+    }
+  }
+}
