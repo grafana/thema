@@ -69,8 +69,8 @@ type GetTestByNameResponse struct {
 	HTTPResponse *http.Response
 	JSON200      *[]Test
 	XML200       *[]Test
-	JSON422      *[]interface{}
-	XML422       *[]interface{}
+	JSON422      *[]any
+	XML422       *[]any
 	JSONDefault  *Error
 }`)
 
