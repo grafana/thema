@@ -3,7 +3,7 @@
 import "github.com/grafana/thema"
 
 thema.#Lineage
-name: "any"
+name: "go-any"
 schemas: [{
     version: [0, 0]
     schema: {
@@ -18,90 +18,18 @@ schemas: [{
     }
 }]
 lenses: []
--- out/encoding/gocode/TestGenerate/nilcfg --
-== any_type_0.0_gen.go
-package any
-
-// Any defines model for any.
-type Any struct {
-	EmptyMap  map[string]any `json:"emptyMap"`
-	Optional  *any           `json:"optional,omitempty"`
-	StructVal struct {
-		Inner         any  `json:"inner"`
-		InnerOptional *any `json:"innerOptional,omitempty"`
-	} `json:"structVal"`
-	Value any `json:"value"`
-}
--- out/encoding/gocode/TestGenerate/group --
-== any_type_0.0_gen.go
-package any
-
-// EmptyMap defines model for emptyMap.
-type EmptyMap = map[string]any
-
-// StructVal defines model for structVal.
-type StructVal struct {
-	Inner         any  `json:"inner"`
-	InnerOptional *any `json:"innerOptional,omitempty"`
-}
--- out/encoding/gocode/TestGenerate/depointerized --
-== any_type_0.0_gen.go
-package any
-
-// Any defines model for any.
-type Any struct {
-	EmptyMap  map[string]any `json:"emptyMap"`
-	Optional  any            `json:"optional,omitempty"`
-	StructVal struct {
-		Inner         any `json:"inner"`
-		InnerOptional any `json:"innerOptional,omitempty"`
-	} `json:"structVal"`
-	Value any `json:"value"`
-}
--- out/encoding/gocode/TestGenerate/godeclincomments --
-== any_type_0.0_gen.go
-package any
-
-// Any defines model for any.
-type Any struct {
-	EmptyMap  map[string]any `json:"emptyMap"`
-	Optional  *any           `json:"optional,omitempty"`
-	StructVal struct {
-		Inner         any  `json:"inner"`
-		InnerOptional *any `json:"innerOptional,omitempty"`
-	} `json:"structVal"`
-	Value any `json:"value"`
-}
--- out/encoding/gocode/TestGenerate/expandref --
-== any_type_0.0_gen.go
-package any
-
-// Any defines model for any.
-type Any struct {
-	EmptyMap  map[string]any `json:"emptyMap"`
-	Optional  *any           `json:"optional,omitempty"`
-	StructVal struct {
-		Inner         any  `json:"inner"`
-		InnerOptional *any `json:"innerOptional,omitempty"`
-	} `json:"structVal"`
-	Value any `json:"value"`
-}
--- out/bind --
-Schema count: 1
-Schema versions: 0.0
-Lenses count: 0
 -- out/encoding/openapi/TestGenerate/nilcfg --
 == 0.0.json
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "any",
+    "title": "goany",
     "version": "0.0"
   },
   "paths": {},
   "components": {
     "schemas": {
-      "any": {
+      "goany": {
         "type": "object",
         "required": [
           "value",
@@ -156,12 +84,26 @@ Lenses count: 0
     }
   }
 }
+-- out/encoding/gocode/TestGenerate/nilcfg --
+== goany_type_0.0_gen.go
+package goany
+
+// Goany defines model for goany.
+type Goany struct {
+	EmptyMap  map[string]any `json:"emptyMap"`
+	Optional  *any           `json:"optional,omitempty"`
+	StructVal struct {
+		Inner         any  `json:"inner"`
+		InnerOptional *any `json:"innerOptional,omitempty"`
+	} `json:"structVal"`
+	Value any `json:"value"`
+}
 -- out/encoding/openapi/TestGenerate/group --
 == 0.0.json
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "any",
+    "title": "goany",
     "version": "0.0"
   },
   "paths": {},
@@ -212,18 +154,34 @@ Lenses count: 0
     }
   }
 }
+-- out/encoding/gocode/TestGenerate/group --
+== goany_type_0.0_gen.go
+package goany
+
+// EmptyMap defines model for emptyMap.
+type EmptyMap = map[string]any
+
+// StructVal defines model for structVal.
+type StructVal struct {
+	Inner         any  `json:"inner"`
+	InnerOptional *any `json:"innerOptional,omitempty"`
+}
+-- out/bind --
+Schema count: 1
+Schema versions: 0.0
+Lenses count: 0
 -- out/encoding/openapi/TestGenerate/expandrefs --
 == 0.0.json
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "any",
+    "title": "goany",
     "version": "0.0"
   },
   "paths": {},
   "components": {
     "schemas": {
-      "any": {
+      "goany": {
         "type": "object",
         "required": [
           "value",
@@ -266,4 +224,46 @@ Lenses count: 0
       }
     }
   }
+}
+-- out/encoding/gocode/TestGenerate/depointerized --
+== goany_type_0.0_gen.go
+package goany
+
+// Goany defines model for goany.
+type Goany struct {
+	EmptyMap  map[string]any `json:"emptyMap"`
+	Optional  any            `json:"optional,omitempty"`
+	StructVal struct {
+		Inner         any `json:"inner"`
+		InnerOptional any `json:"innerOptional,omitempty"`
+	} `json:"structVal"`
+	Value any `json:"value"`
+}
+-- out/encoding/gocode/TestGenerate/godeclincomments --
+== goany_type_0.0_gen.go
+package goany
+
+// Goany defines model for goany.
+type Goany struct {
+	EmptyMap  map[string]any `json:"emptyMap"`
+	Optional  *any           `json:"optional,omitempty"`
+	StructVal struct {
+		Inner         any  `json:"inner"`
+		InnerOptional *any `json:"innerOptional,omitempty"`
+	} `json:"structVal"`
+	Value any `json:"value"`
+}
+-- out/encoding/gocode/TestGenerate/expandref --
+== goany_type_0.0_gen.go
+package goany
+
+// Goany defines model for goany.
+type Goany struct {
+	EmptyMap  map[string]any `json:"emptyMap"`
+	Optional  *any           `json:"optional,omitempty"`
+	StructVal struct {
+		Inner         any  `json:"inner"`
+		InnerOptional *any `json:"innerOptional,omitempty"`
+	} `json:"structVal"`
+	Value any `json:"value"`
 }
