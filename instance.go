@@ -25,8 +25,10 @@ func BindInstanceType[T Assignee](inst *Instance, tsch TypedSchema[T]) (*TypedIn
 	}, nil
 }
 
-// An Instance represents some data that has been validated against a
-// lineage's schema. It includes a reference to the schema.
+// Instance represents data that is a valid instance of a Thema [Schema].
+//
+// It is not possible to create a valid Instance directly. They can only be
+// obtained by successful call to [Schema.Validate].
 type Instance struct {
 	// The CUE representation of the input data
 	raw cue.Value
@@ -34,6 +36,15 @@ type Instance struct {
 	name string
 	// The schema the data validated against/of which the input data is a valid instance
 	sch Schema
+
+	// simple flag the prevents external creation
+	valid bool
+}
+
+func (i *Instance) check() {
+	if !i.valid {
+		panic("Instance is not valid; Instances must be created by a call to thema.Schema.Validate")
+	}
 }
 
 // Hydrate returns a copy of the Instance with all default values specified by
@@ -42,6 +53,8 @@ type Instance struct {
 // NOTE hydration implementation is a WIP. If errors are encountered, the
 // original input is returned unchanged.
 func (i *Instance) Hydrate() *Instance {
+	i.check()
+
 	i.sch.Lineage().Runtime()
 	ni, err := doHydrate(i.sch.Underlying(), i.raw)
 	// FIXME For now, just no-op it if we error
@@ -50,9 +63,10 @@ func (i *Instance) Hydrate() *Instance {
 	}
 
 	return &Instance{
-		raw:  ni,
-		name: i.name,
-		sch:  i.sch,
+		valid: true,
+		raw:   ni,
+		name:  i.name,
+		sch:   i.sch,
 	}
 }
 
@@ -62,6 +76,8 @@ func (i *Instance) Hydrate() *Instance {
 // NOTE dehydration implementation is a WIP. If errors are encountered, the
 // original input is returned unchanged.
 func (i *Instance) Dehydrate() *Instance {
+	i.check()
+
 	ni, _, err := doDehydrate(i.sch.Underlying(), i.raw)
 	// FIXME For now, just no-op it if we error
 	if err != nil {
@@ -69,35 +85,36 @@ func (i *Instance) Dehydrate() *Instance {
 	}
 
 	return &Instance{
-		raw:  ni,
-		name: i.name,
-		sch:  i.sch,
+		valid: true,
+		raw:   ni,
+		name:  i.name,
+		sch:   i.sch,
 	}
 }
 
 // AsSuccessor translates the instance into the form specified by the successor
 // schema.
-//
-// TODO figure out how to represent unary vs. composite lineages here
 func (i *Instance) AsSuccessor() (*Instance, TranslationLacunas) {
+	i.check()
 	return i.Translate(i.sch.Successor().Version())
 }
 
 // AsPredecessor translates the instance into the form specified by the predecessor
 // schema.
-//
-// TODO figure out how to represent unary vs. composite lineages here
 func (i *Instance) AsPredecessor() (*Instance, TranslationLacunas) {
-	panic("TODO translation from newer to older schema is not yet implemented")
+	i.check()
+	return i.Translate(i.sch.Predecessor().Version())
 }
 
-// Underlying returns the cue.Value representing the instance's underlying data.
+// Underlying returns the cue.Value representing the data contained in the Instance.
 func (i *Instance) Underlying() cue.Value {
+	i.check()
 	return i.raw
 }
 
-// Schema returns the schema which subsumes/validated this instance.
+// Schema returns the [Schema] corresponding to this instance.
 func (i *Instance) Schema() Schema {
+	i.check()
 	return i.sch
 }
 
@@ -105,23 +122,44 @@ func (i *Instance) rt() *Runtime {
 	return getLinLib(i.Schema().Lineage())
 }
 
+// TypedInstance represents data that is a valid instance of a Thema
+// [TypedSchema].
+//
+// A TypedInstance is to a [TypedSchema] as an [Instance] is to a [Schema].
+//
+// It is not possible to create a valid TypedInstance directly. They can only be
+// obtained by successful call to [TypedSchema.Validate].
 type TypedInstance[T Assignee] struct {
 	*Instance
 	tsch TypedSchema[T]
 }
 
+// TypedSchema returns the [TypedSchema] corresponding to this instance.
+//
+// This method is identical to [Instance.Schema], except that it returns the already-typed variant.
 func (inst *TypedInstance[T]) TypedSchema() TypedSchema[T] {
+	inst.check()
 	return inst.tsch
 }
 
+// Value returns a Go struct of this TypedInstance's generic [Assignee] type,
+// populated with the data contained in this instance, including default values, etc.
+//
+// This method is similar to [json.Unmarshal] - it decodes serialized data into a standard Go type
+// for working with in all the usual ways.
 func (inst *TypedInstance[T]) Value() (T, error) {
+	inst.check()
+
 	t := inst.tsch.NewT()
 	// TODO figure out correct pointer handling here
 	err := inst.Instance.raw.Decode(&t)
 	return t, err
 }
 
+// ValueP is the same as Value, but panics if an error is encountered.
 func (inst *TypedInstance[T]) ValueP() T {
+	inst.check()
+
 	t, err := inst.Value()
 	if err != nil {
 		panic(fmt.Errorf("error decoding value: %w", err))
@@ -150,6 +188,8 @@ func (inst *TypedInstance[T]) ValueP() T {
 // achieved in the program depending on Thema, so we avoid introducing
 // complexity into Thema that is not essential for all use cases.
 func (i *Instance) Translate(to SyntacticVersion) (*Instance, TranslationLacunas) {
+	i.check()
+
 	// TODO define this in terms of AsSuccessor and AsPredecessor, rather than those in terms of this.
 	newsch, err := i.Schema().Lineage().Schema(to)
 	if err != nil {
@@ -179,9 +219,10 @@ func (i *Instance) Translate(to SyntacticVersion) (*Instance, TranslationLacunas
 	raw, _ := out.LookupPath(cue.MakePath(cue.Str("result"), cue.Str("result"))).Default()
 
 	return &Instance{
-		raw:  raw,
-		name: i.name,
-		sch:  newsch,
+		valid: true,
+		raw:   raw,
+		name:  i.name,
+		sch:   newsch,
 	}, lac
 }
 
