@@ -69,6 +69,10 @@ func (ml *maybeLineage) checkGoValidity(cfg *bindConfig) error {
 			panic(fmt.Sprintf("unreachable - could not decode syntactic version: %+v", err))
 		}
 
+		if err := ml.checkSchemasOrder(previous, sch); err != nil {
+			return err
+		}
+
 		sch.ref = schiter.Value()
 		sch.def = sch.ref.LookupPath(pathSchDef)
 		if previous != nil && !cfg.skipbuggychecks {
@@ -86,6 +90,18 @@ func (ml *maybeLineage) checkGoValidity(cfg *bindConfig) error {
 		ml.schlist = append(ml.schlist, sch)
 		ml.allv = append(ml.allv, sch.v)
 		previous = sch
+	}
+
+	return nil
+}
+
+func (ml *maybeLineage) checkSchemasOrder(prev, curr *schemaDef) error {
+	if prev == nil {
+		return nil
+	}
+
+	if curr.v.Less(prev.v) {
+		return errors.Mark(mkerror(curr.ref.LookupPath(pathSch), "schema versions are out of order: %s must go after %s", curr.v, prev.v), terrors.ErrInvalidSchemasOrder)
 	}
 
 	return nil
