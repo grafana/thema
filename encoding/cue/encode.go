@@ -124,7 +124,7 @@ func appendlin(lin thema.Lineage, sch cue.Value) (ast.Node, error) {
 	linf := astutil.Format(lin.Underlying()).(*ast.File)
 	schnode := astutil.ToExpr(astutil.Format(sch))
 
-	lv := thema.LatestVersion(lin)
+	lv := lin.Latest().Version()
 	lsch := thema.SchemaP(lin, lv)
 	if err := compat.ThemaCompatible(lsch.Underlying(), sch); err == nil {
 		// Is compatible, bump minor version

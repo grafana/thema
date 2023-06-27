@@ -99,7 +99,7 @@ func SchemaP(lin Lineage, v SyntacticVersion) Schema {
 // LatestVersion returns the version number of the newest (largest) schema
 // version in the provided lineage.
 //
-// DEPRECATED: call Lineage.Latest().Version().
+// Deprecated: call Lineage.Latest().Version().
 func LatestVersion(lin Lineage) SyntacticVersion {
 	return lin.Latest().Version()
 }
@@ -109,7 +109,7 @@ func LatestVersion(lin Lineage) SyntacticVersion {
 //
 // An error indicates the number of the provided sequence does not exist.
 //
-// DEPRECATED: call Schema.LatestInMajor().Version() after loading a schema in the desired major version.
+// Deprecated: call Schema.LatestInMajor().Version() after loading a schema in the desired major version.
 func LatestVersionInSequence(lin Lineage, seqv uint) (SyntacticVersion, error) {
 	sch, err := lin.Schema(SV(seqv, 0))
 	if err != nil {
@@ -135,6 +135,8 @@ func LatestVersionInSequence(lin Lineage, seqv uint) (SyntacticVersion, error) {
 // the builder func to reduce stutter:
 //
 //	func Lineage ...
+//
+// Deprecated: having an explicit type for this adds little value.
 type LineageFactory func(*Runtime, ...BindOption) (Lineage, error)
 
 // A ConvergentLineageFactory is the same as a LineageFactory, but for a
@@ -143,6 +145,8 @@ type LineageFactory func(*Runtime, ...BindOption) (Lineage, error)
 // There is no reason to provide both a ConvergentLineageFactory and a
 // LineageFactory, as the latter is always reachable from the former. As such,
 // idiomatic naming conventions are unchanged.
+//
+// Deprecated: having an explicit type for this adds little value.
 type ConvergentLineageFactory[T Assignee] func(*Runtime, ...BindOption) (ConvergentLineage[T], error)
 
 // A BindOption defines options that may be specified only at initial

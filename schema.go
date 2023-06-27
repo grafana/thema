@@ -48,9 +48,10 @@ func (sch *schemaDef) Examples() map[string]*Instance {
 	for it.Next() {
 		label := it.Selector().String()
 		examples[label] = &Instance{
-			raw:  it.Value(),
-			name: label,
-			sch:  sch,
+			valid: true,
+			raw:   it.Value(),
+			name:  label,
+			sch:   sch,
 		}
 	}
 
@@ -86,9 +87,10 @@ func (sch *schemaDef) Validate(data cue.Value) (*Instance, error) {
 	}
 
 	return &Instance{
-		raw:  data,
-		sch:  sch,
-		name: "", // FIXME how are we getting this out?
+		valid: true,
+		raw:   data,
+		sch:   sch,
+		name:  "", // FIXME how are we getting this out?
 	}, nil
 }
 
