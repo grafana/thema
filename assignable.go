@@ -15,7 +15,7 @@ import (
 // If the provided T is a pointer, it will be dereferenced before verification.
 // Double pointers (or any n-pointer > 1) are not allowed.
 //
-// The provided T must struct-kinded, as it is a requirement that all Thema
+// The provided T must be struct-kinded, as it is a requirement that all Thema
 // schemas are of base type struct.
 //
 //	type MyType struct {
