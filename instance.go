@@ -167,7 +167,22 @@ func (inst *TypedInstance[T]) ValueP() T {
 	return t
 }
 
-// Translate transforms the provided [Instance] to an Instance of a different
+// Translate is [Instance.TranslateErr], but panics if an error is encountered.
+//
+// Errors can only occur in Translate if lenses are not written correctly.
+// Eventually, it is hoped that all possible error cases on lenses will be
+// determinable statically, and turned into lineage validity errors that are
+// caught by [BindLineage]. If that goal is reached, this function will never
+// panic, and [Instance.TranslateErr] will be deprecated.
+func (i *Instance) Translate(to SyntacticVersion) (*Instance, TranslationLacunas) {
+	inst, lac, err := i.TranslateErr(to)
+	if err != nil {
+		panic(err)
+	}
+	return inst, lac
+}
+
+// TranslateErr transforms the provided [Instance] to an Instance of a different
 // [Schema] from the same [Lineage]. A new *Instance is returned representing the
 // transformed value, along with any lacunas accumulated along the way.
 //
@@ -187,7 +202,11 @@ func (inst *TypedInstance[T]) ValueP() T {
 // result in the exact original data. Input state preservation can be fully
 // achieved in the program depending on Thema, so we avoid introducing
 // complexity into Thema that is not essential for all use cases.
-func (i *Instance) Translate(to SyntacticVersion) (*Instance, TranslationLacunas) {
+//
+// Errors only occur in cases where lenses were written in an unexpected way -
+// for example, not all fields were mapped over, and the resulting object is not
+// concrete. All errors returned from this func will children of [terrors.ErrInvalidLens].
+func (i *Instance) TranslateErr(to SyntacticVersion) (*Instance, TranslationLacunas, error) {
 	i.check()
 
 	// TODO define this in terms of AsSuccessor and AsPredecessor, rather than those in terms of this.
