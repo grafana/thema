@@ -66,6 +66,27 @@ var (
 	ErrInvalidOutOfBounds = errors.New("data is out of schema bounds")
 )
 
+// Translation errors. These all occur as a result of an invalid lens. Currently
+// these may be returned from [thema.Instance.TranslateErr]. Eventually, it is
+// hoped that they will be caught statically in [thema.BindLineage] and cannot
+// occur at runtime.
+var (
+	// ErrInvalidLens indicates that a lens is not correctly written. It is the parent
+	// to all other lens and translation errors, and is a child of ErrInvalidLineage.
+	ErrInvalidLens = errors.New("lens is invalid")
+
+	// ErrLensIncomplete indicates that translating some valid data through
+	// a lens produced a non-concrete result. This always indicates a problem with the
+	// lens as it is written, and as such is a child of ErrInvalidLens.
+	ErrLensIncomplete = errors.New("result of lens translation is not concrete")
+
+	// ErrLensResultIsInvalidData indicates that translating some valid data through a
+	// lens produced a result that was not an instance of the target schema. This
+	// always indicates a problem with the lens as it is written, and as such is a
+	// child of ErrInvalidLens.
+	ErrLensResultIsInvalidData = errors.New("result of lens translation is not valid for target schema")
+)
+
 // Lower level general errors
 var (
 	// ErrValueNotExist indicates that a necessary CUE value did not exist.

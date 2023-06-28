@@ -4,7 +4,10 @@ import (
 	"fmt"
 
 	"cuelang.org/go/cue"
-	"cuelang.org/go/cue/errors"
+	cerrors "cuelang.org/go/cue/errors"
+	"cuelang.org/go/pkg/encoding/json"
+	"github.com/cockroachdb/errors"
+	terrors "github.com/grafana/thema/errors"
 )
 
 // BindInstanceType produces a TypedInstance, given an Instance and a
@@ -227,22 +230,28 @@ func (i *Instance) TranslateErr(to SyntacticVersion) (*Instance, TranslationLacu
 	}
 
 	if out.Err() != nil {
-		panic(errors.Details(out.Err(), nil))
+		return nil, nil, errors.Mark(out.Err(), terrors.ErrInvalidLens)
 	}
 
 	lac := make(multiTranslationLacunas, 0)
 	out.LookupPath(cue.MakePath(cue.Str("lacunas"))).Decode(&lac)
 
-	// Attempt to evaluate #Translate result into a concrete cue.Value, if possible.
+	// Attempt to evaluate #Translate result to remove intermediate structures created by #Translate.
 	// Otherwise, all the #Translate results are non-concrete, which leads to undesired effects.
 	raw, _ := out.LookupPath(cue.MakePath(cue.Str("result"), cue.Str("result"))).Default()
 
-	return &Instance{
-		valid: true,
-		raw:   raw,
-		name:  i.name,
-		sch:   newsch,
-	}, lac
+	// Check that the result is concrete by trying to marshal/export it as JSON
+	_, err = json.Marshal(raw)
+	if err != nil {
+		return nil, nil, errors.Mark(fmt.Errorf("lens produced a non-concrete result: %s", cerrors.Details(err, nil)), terrors.ErrLensIncomplete)
+	}
+
+	// Ensure the result is a valid instance of the target schema
+	inst, err := newsch.Validate(raw)
+	if err != nil {
+		return nil, nil, errors.Mark(err, terrors.ErrLensResultIsInvalidData)
+	}
+	return inst, lac, err
 }
 
 type multiTranslationLacunas []struct {
