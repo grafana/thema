@@ -49,7 +49,7 @@ func (e *onesidederr) Error() string {
 }
 
 func (e *onesidederr) Unwrap() error {
-	return terrors.ErrNotAnInstance
+	return terrors.ErrInvalidData
 }
 
 type twosidederr struct {
@@ -75,7 +75,7 @@ func (e *twosidederr) Error() string {
 }
 
 func (e *twosidederr) Unwrap() error {
-	return terrors.ErrNotAnInstance
+	return terrors.ErrInvalidData
 }
 
 // TODO differentiate this once we have generic composition to support trimming out irrelevant disj branches
@@ -86,13 +86,13 @@ type emptydisjunction struct {
 }
 
 func (e *emptydisjunction) Unwrap() error {
-	return terrors.ErrNotAnInstance
+	return terrors.ErrInvalidData
 }
 
 type validationFailure []error
 
 func (vf validationFailure) Unwrap() error {
-	return terrors.ErrNotAnInstance
+	return terrors.ErrInvalidData
 }
 
 func (vf validationFailure) Error() string {

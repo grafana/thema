@@ -35,17 +35,17 @@ type ValidationError struct {
 
 // Unwrap implements standard Go error unwrapping, relied on by errors.Is.
 //
-// All ValidationErrors wrap the general ErrNotAnInstance sentinel error.
+// All ValidationErrors wrap the general ErrInvalidData sentinel error.
 func (ve *ValidationError) Unwrap() error {
-	return ErrNotAnInstance
+	return ErrInvalidData
 }
 
 // Validation error codes/types
 var (
-	// ErrNotAnInstance is the general error that indicates some data failed validation
+	// ErrInvalidData is the general error that indicates some data failed validation
 	// against a Thema schema. Use it with errors.Is() to differentiate validation errors
 	// from other classes of failure.
-	ErrNotAnInstance = errors.New("data not a valid instance of schema")
+	ErrInvalidData = errors.New("data not a valid instance of schema")
 
 	// ErrInvalidExcessField indicates a validation failure in which the schema is
 	// treated as closed, and the data contains a field not specified in the schema.

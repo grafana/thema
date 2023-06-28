@@ -239,7 +239,3 @@ func (lac multiTranslationLacunas) AsList() []Lacuna {
 	}
 	return l
 }
-
-// func TranslateComposed(lin ComposedLineage) {
-
-// }
