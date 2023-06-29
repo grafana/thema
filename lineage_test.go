@@ -33,8 +33,10 @@ func TestBindLineage(t *testing.T) {
 			t.Skip("case is tagged #slow, skipping for -short")
 		}
 
+		expected, ok := tc.Value("expectedErrorMessage")
+		assert.Equal(tc, ok, err != nil, "expected error message, but got none: %v", expected)
+
 		if err != nil {
-			expected, ok := tc.Value("expectedErrorMessage")
 			if ok {
 				assert.Equal(tc, expected, err.Error())
 				return
