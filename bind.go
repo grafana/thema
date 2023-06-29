@@ -101,7 +101,7 @@ func (ml *maybeLineage) checkSchemasOrder(prev, curr *schemaDef) error {
 	}
 
 	if curr.v.Less(prev.v) {
-		return errors.Mark(mkerror(curr.ref.LookupPath(pathSch), "schema versions are out of order: %s must go after %s", curr.v, prev.v), terrors.ErrInvalidSchemasOrder)
+		return errors.Mark(mkerror(curr.ref.LookupPath(pathSch), "schema version %s is not greater than previous schema version %s", curr.v, prev.v), terrors.ErrInvalidSchemasOrder)
 	}
 
 	return nil
@@ -220,13 +220,13 @@ func checkLensesOrder(prev, curr *lensVersionDef) error {
 
 	if curr.to.Less(prev.to) {
 		return errors.Mark(
-			errors.Errorf("lenses are out of order: lens with version [to: %s, from: %s] must go after [to: %s, from: %s]", curr.to, curr.from, prev.to, prev.from),
+			errors.Errorf("lens version [to: %s, from: %s] is not greater than previous lens version [to: %s, from: %s]", curr.to, curr.from, prev.to, prev.from),
 			terrors.ErrInvalidLensesOrder)
 	}
 
 	if prev.to == curr.to && curr.from.Less(prev.from) {
 		return errors.Mark(
-			errors.Errorf("lenses are out of order: lens with version [to: %s, from: %s] must go after [to: %s, from: %s]", curr.to, curr.from, prev.to, prev.from),
+			errors.Errorf("lens version [to: %s, from: %s] is not greater than previous lens version [to: %s, from: %s]", curr.to, curr.from, prev.to, prev.from),
 			terrors.ErrInvalidLensesOrder)
 	}
 

@@ -1,5 +1,5 @@
 # lineage loading should error because schemas are not ordered by version
-#expectedErrorMessage: schema versions are out of order: 0.1 must go after 0.2
+#expectedErrorMessage: schema version 0.1 is not greater than previous schema version 0.2
 -- in.cue --
 import "github.com/grafana/thema"
 
