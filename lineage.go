@@ -6,6 +6,8 @@ import (
 
 	"cuelang.org/go/cue"
 	cerrors "cuelang.org/go/cue/errors"
+	"github.com/cockroachdb/errors"
+	terrors "github.com/grafana/thema/errors"
 	"github.com/grafana/thema/internal/cuetil"
 )
 
@@ -40,7 +42,7 @@ type baseLineage struct {
 
 // BindLineage takes a raw [cue.Value], checks that it correctly follows Thema's
 // invariants, such as translatability and backwards compatibility version
-// numbering. If checks succeed, a [Lineage] is returned.
+// numbering. If these checks succeed, a [Lineage] is returned.
 //
 // This function is the only way to create non-nil Lineage objects. As a result,
 // all non-nil instances of Lineage in any Go program are guaranteed to follow
@@ -250,10 +252,7 @@ func (lin *baseLineage) Schema(v SyntacticVersion) (Schema, error) {
 	isValidLineage(lin)
 
 	if !synvExists(lin.allv, v) {
-		return nil, &ErrNoSchemaWithVersion{
-			lin: lin,
-			v:   v,
-		}
+		return nil, errors.Mark(errors.Newf("no schema with version %s in lineage %s", v, lin.name), terrors.ErrVersionNotExist)
 	}
 
 	return lin.schema(v), nil

@@ -9,7 +9,7 @@ import (
 // evolutionary history of a particular kind of object: every schema that has
 // ever existed for that object, and the lenses that allow translating between
 // those schema versions.
-#Lineage: L={
+#Lineage: {
 	// The name of the thing specified by the schemas in this lineage.
 	//
 	// A lineage's name must not change as it evolves.
@@ -79,7 +79,7 @@ import (
 	// list. Thema tooling that modifies and emits lineages definitions may produce lenses
 	// sorted in ascending order, rather than original source order.
 	// TODO switch to descending order - newest on top is nicer to read
-	SL=lenses: [...#Lens]
+	lenses: [...#Lens]
 
 	_atLeastOneSchema: len(schemas) > 0
 
@@ -92,8 +92,8 @@ import (
 		_schemas: [#SchemaDef & {version: [0, 0]}]
 	}
 
-	_forwardLenses: [ for lens in SL if {lens.to[0] > lens.from[0]} {lens}]
-	_backwardLenses: [ for lens in SL if {lens.to[0] <= lens.from[0]} {lens}]
+	_forwardLenses: [ for lens in lenses if {lens.to[0] > lens.from[0]} {lens}]
+	_backwardLenses: [ for lens in lenses if {lens.to[0] <= lens.from[0]} {lens}]
 
 	// preserved for debugging
 	//	lensVersions: {
@@ -165,25 +165,25 @@ import (
 	// Pick is the only correct mechanism to retrieve a lineage's declared schema.
 	// Retrieving a lineage's schemas by direct indexing will not check invariants,
 	// apply compositions or joinSchemas.
-	#Pick: {
-		// The schema version to retrieve.
-		v: #SyntacticVersion & [<len(L._counts), <=L._counts[v[0]]]
-		// TODO(must) https://github.com/cue-lang/cue/issues/943
-		// must(isconcrete(v[0]), "must specify a concrete major version")
-
-		out: SS[_basis[v[0]]+v[1]]._#schema
-	}
+	//#Pick: {
+	//	// The schema version to retrieve.
+	//	v: #SyntacticVersion & [<len(L._counts), <=L._counts[v[0]]]
+	//	// TODO(must) https://github.com/cue-lang/cue/issues/943
+	//	// must(isconcrete(v[0]), "must specify a concrete major version")
+//
+	//	out: SS[_basis[v[0]]+v[1]]._#schema
+	//}
 
 	// PickDef takes the same arguments as Pick, but returns the entire
 	// #SchemaDef rather than only the schema body itself.
-	#PickDef: {
-		// The schema version to retrieve.
-		v: #SyntacticVersion & [<len(L._counts), <=L._counts[v[0]]]
-		// TODO(must) https://github.com/cue-lang/cue/issues/943
-		// must(isconcrete(v[0]), "must specify a concrete sequence number")
-
-		out: SS[_basis[v[0]]+v[1]]
-	}
+	//#PickDef: {
+	//	// The schema version to retrieve.
+	//	v: #SyntacticVersion & [<len(L._counts), <=L._counts[v[0]]]
+	//	// TODO(must) https://github.com/cue-lang/cue/issues/943
+	//	// must(isconcrete(v[0]), "must specify a concrete sequence number")
+//
+	//	out: SS[_basis[v[0]]+v[1]]
+	//}
 
 	// latestVersion always contains the SyntacticVersion of the lineage's
 	// "latest" schema - the schema with the largest version number.

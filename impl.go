@@ -7,27 +7,6 @@ import (
 	"cuelang.org/go/cue/errors"
 )
 
-// ErrValueNotExist indicates that an operation failed because a provided
-// cue.Value does not exist.
-type ErrValueNotExist struct {
-	path string
-}
-
-func (e *ErrValueNotExist) Error() string {
-	return fmt.Sprintf("value from path %q does not exist, absent values cannot be lineages", e.path)
-}
-
-// ErrNoSchemaWithVersion indicates that an operation was requested against a
-// schema version that does not exist within a particular lineage.
-type ErrNoSchemaWithVersion struct {
-	lin Lineage
-	v   SyntacticVersion
-}
-
-func (e *ErrNoSchemaWithVersion) Error() string {
-	return fmt.Sprintf("lineage %q does not contain a schema with version %v", e.lin.Name(), e.v)
-}
-
 type compatInvariantError struct {
 	rawlin    cue.Value
 	violation [2]SyntacticVersion

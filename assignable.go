@@ -15,8 +15,8 @@ import (
 // If the provided T is a pointer, it will be dereferenced before verification.
 // Double pointers (or any n-pointer > 1) are not allowed.
 //
-// The provided T must necessarily be of struct type, as it is a requirement
-// that all Thema schemas are of base type struct.
+// The provided T must be struct-kinded, as it is a requirement that all Thema
+// schemas are of base type struct.
 //
 //	type MyType struct {
 //		MyField string `json:"myfield"`
@@ -32,9 +32,11 @@ func AssignableTo(sch Schema, T any) error {
 	return assignable(sch.Underlying().LookupPath(pathSchDef), T)
 }
 
-// ErrPointerDepth indicates that a Go type having pointer indirection depth > 1
-// (e.g. **struct{ V: string }) was provided to a Thema func that checks
-// assignability, such as [BindType].
+// ErrPointerDepth indicates that a Go type having pointer indirection depth greater than 1, such as
+//
+//	**struct{ V: string })
+//
+// was provided to a Thema func that checks assignability, such as [BindType].
 var ErrPointerDepth = errors.New("assignability does not support more than one level of pointer indirection")
 
 const scalarKinds = cue.NullKind | cue.BoolKind |
