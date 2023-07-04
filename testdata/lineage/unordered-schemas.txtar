@@ -234,3 +234,6 @@ lenses: [{
         withDefault: "foo"
     }
 }]
+
+-- error --
+schema version 0.1 is not greater than previous schema version 0.2

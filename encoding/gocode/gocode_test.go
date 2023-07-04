@@ -17,10 +17,6 @@ func TestGenerate(t *testing.T) {
 	test := vanilla.TxTarTest{
 		Root: "../../testdata/lineage",
 		Name: "encoding/gocode/TestGenerate",
-		Skip: map[string]string{
-			"lineage/unordered-lenses":  "lineage loading must fail, so this test is skipped",
-			"lineage/unordered-schemas": "lineage loading must fail, so this test is skipped",
-		},
 		ToDo: map[string]string{
 			"lineage/defaultchange": "default backcompat invariants not working properly yet",
 			"lineage/optional":      "Optional fields do not satisfy struct.MinFields(), causing #Lineage constraints to fail",
@@ -82,7 +78,8 @@ func TestGenerate(t *testing.T) {
 
 				lin, err := bindlin.BindTxtarLineage(tc, rt)
 				if err != nil {
-					tc.Fatal(err)
+					tc.ValidateErrorOrFail(err)
+					return
 				}
 				cfg := tcfg.cfg
 				if cfg == nil {
