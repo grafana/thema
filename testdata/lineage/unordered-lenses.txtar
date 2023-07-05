@@ -1,5 +1,4 @@
 # lineage loading should error because lenses are not ordered by version
-#expectedErrorMessage: lens version [to: 1.0, from: 0.3] is not greater than previous lens version [to: 1.0, from: 1.1]
 -- in.cue --
 import "github.com/grafana/thema"
 
@@ -163,4 +162,4 @@ lenses: [{
 }]
 
 -- error --
-lens version [to: 1.0, from: 0.3] is not greater than previous lens version [to: 1.0, from: 1.1]
+error binding lineage: lens version [to: 1.0, from: 0.3] is not greater than previous lens version [to: 1.0, from: 1.1]

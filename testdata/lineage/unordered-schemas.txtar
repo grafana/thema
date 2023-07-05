@@ -1,5 +1,4 @@
 # lineage loading should error because schemas are not ordered by version
-#expectedErrorMessage: schema version 0.1 is not greater than previous schema version 0.2
 -- in.cue --
 import "github.com/grafana/thema"
 
@@ -236,4 +235,4 @@ lenses: [{
 }]
 
 -- error --
-schema version 0.1 is not greater than previous schema version 0.2
+error binding lineage: schema version 0.1 is not greater than previous schema version 0.2

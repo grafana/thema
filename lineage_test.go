@@ -11,7 +11,6 @@ import (
 	"cuelang.org/go/cue/errors"
 	"cuelang.org/go/cue/load"
 	"github.com/grafana/thema/internal/txtartest/vanilla"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestBindLineage(t *testing.T) {
@@ -33,17 +32,10 @@ func TestBindLineage(t *testing.T) {
 			t.Skip("case is tagged #slow, skipping for -short")
 		}
 
-		expected, ok := tc.Value("expectedErrorMessage")
-		assert.Equal(tc, ok, err != nil, "expected error message, but got none: %v", expected)
-
 		if err != nil {
-			if ok {
-				assert.Equal(tc, expected, err.Error())
-				return
-			}
-			tc.Fatalf("error binding lineage: %+v", err)
+			tc.ValidateErrorOrFail(fmt.Errorf("error binding lineage: %+v", err.Error()))
+			return
 		}
-
 		schemaselem := cue.Str("schemas")
 		sspath := cue.MakePath(schemaselem)
 		slen, err := lin.Underlying().LookupPath(sspath).Len().Int64()
