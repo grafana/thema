@@ -85,7 +85,7 @@ var (
 	ErrInvalidSchemasOrder = errors.New("schemas in lineage are not ordered by version")
 
 	// ErrInvalidLensesOrder indicates that lenses are in the wrong order - they must be sorted by `to`, then `from`.
-	ErrInvalidLensesOrder = errors.New("schemas in lineage are not ordered by version")
+	ErrInvalidLensesOrder = errors.New("lenses in lineage are not ordered by version")
 
 	// ErrVersionNotExist indicates that no schema exists in a lineage with a
 	// given version.
