@@ -162,4 +162,4 @@ lenses: [{
 }]
 
 -- error --
-error binding lineage: lens version [to: 1.0, from: 0.3] is not greater than previous lens version [to: 1.0, from: 1.1]
+lens version [to: 1.0, from: 0.3] is not greater than previous lens version [to: 1.0, from: 1.1]

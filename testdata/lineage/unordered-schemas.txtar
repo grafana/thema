@@ -235,4 +235,4 @@ lenses: [{
 }]
 
 -- error --
-error binding lineage: schema version 0.1 is not greater than previous schema version 0.2
+schema version 0.1 is not greater than previous schema version 0.2
