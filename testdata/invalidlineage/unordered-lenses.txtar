@@ -1,19 +1,21 @@
-# lineage loading should error because schemas are not ordered by version
+# lineage loading should error because lenses are not ordered by version
 -- in.cue --
 import "github.com/grafana/thema"
 
 thema.#Lineage
-name: "unordered-schemas"
+name: "unordered-lenses"
 
 schemas: [{
     version: [0, 0]
     schema: {
         init: string
     }
-    examples: {
-        simple: {
-            init: "some string"
-        }
+},
+{
+    version: [0, 1]
+    schema: {
+        init:      string
+        optional?: int32
     }
 },
 {
@@ -23,33 +25,6 @@ schemas: [{
         optional?:   int32
         withDefault?: *"foo" | "bar"
     }
-    examples: {
-        withoutOptional: {
-            init: "some string"
-            withDefault: "foo"
-        }
-        withOptional: {
-            init: "some string"
-            optional: 32
-            withDefault: "bar"
-        }
-    }
-},
-{
-    version: [0, 1]
-    schema: {
-        init:      string
-        optional?: int32
-    }
-    examples: {
-        withoutOptional: {
-            init: "some string"
-        }
-        withOptional: {
-            init: "some string"
-            optional: 32
-        }
-    }
 },
 {
     version: [0, 3]
@@ -57,17 +32,6 @@ schemas: [{
         init:        string
         optional?:   int32
         withDefault?: *"foo" | "bar" | "baz"
-    }
-    examples: {
-        withoutOptional: {
-            init: "some string"
-            withDefault: "baz"
-        }
-        withOptional: {
-            init: "some string"
-            optional: 32
-            withDefault: "baz"
-        }
     }
 },
 {
@@ -77,17 +41,6 @@ schemas: [{
         optional?:   int32
         withDefault: "foo" | *"bar" | "baz"
     }
-    examples: {
-        withoutOptional: {
-            renamed: "some string"
-            withDefault: "foo"
-        }
-        withOptional: {
-            renamed: "some string"
-            optional: 32
-            withDefault: "bar"
-        }
-    }
 },
 {
     version: [1, 1]
@@ -95,17 +48,6 @@ schemas: [{
         renamed:     string
         optional?:   int32
         withDefault: "foo" | *"bar" | "baz" | "bing"
-    }
-    examples: {
-        withoutOptional: {
-            renamed: "some string"
-            withDefault: "bing"
-        }
-        withOptional: {
-            renamed: "some string"
-            optional: 32
-            withDefault: "bing"
-        }
     }
 },
 {
@@ -116,21 +58,6 @@ schemas: [{
         }
         optional?:   int32
         withDefault: "foo" | *"bar" | "baz" | "bing"
-    }
-    examples: {
-        withoutOptional: {
-            toObj: {
-                init: "some string"
-            }
-            withDefault: "bing"
-        }
-        withOptional: {
-            toObj: {
-                init: "some string"
-            }
-            optional: 32
-            withDefault: "bing"
-        }
     }
 }]
 
@@ -181,10 +108,10 @@ lenses: [{
 },
 {
     to: [1, 0]
-    from: [0, 3]
+    from: [1, 1]
     input: _
     result: {
-        renamed: input.init
+        renamed: input.renamed
         if (input.optional != _|_) {
             optional: input.optional
         }
@@ -194,10 +121,10 @@ lenses: [{
 },
 {
     to: [1, 0]
-    from: [1, 1]
+    from: [0, 3]
     input: _
     result: {
-        renamed: input.renamed
+        renamed: input.init
         if (input.optional != _|_) {
             optional: input.optional
         }
@@ -233,6 +160,5 @@ lenses: [{
         withDefault: "foo"
     }
 }]
-
--- error --
-schema version 0.1 is not greater than previous schema version 0.2
+-- out/bindfail --
+lens version [to: 1.0, from: 0.3] is not greater than previous lens version [to: 1.0, from: 1.1]

@@ -33,8 +33,7 @@ func TestBindLineage(t *testing.T) {
 		}
 
 		if err != nil {
-			tc.ValidateErrorOrFail(err)
-			return
+			tc.Fatalf("error binding lineage: %+v", err)
 		}
 		schemaselem := cue.Str("schemas")
 		sspath := cue.MakePath(schemaselem)

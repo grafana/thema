@@ -26,8 +26,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
 	"cuelang.org/go/cue/ast"
 	"cuelang.org/go/cue/build"
 	"cuelang.org/go/cue/cuecontext"
@@ -93,8 +91,6 @@ type Test struct {
 	*testing.T
 
 	prefix   string
-	hasError bool
-	err      string
 	buf      *bytes.Buffer // the default buffer
 	outFiles []file
 
@@ -178,15 +174,6 @@ func (t *Test) WriteErrors(err errors.Error) {
 			Cwd:     t.Dir,
 			ToSlash: true,
 		})
-	}
-}
-
-func (t *Test) ValidateErrorOrFail(err error) {
-	if t.hasError {
-		assert.Equal(t, err.Error(), t.err)
-		return
-	} else {
-		t.Fatal(err)
 	}
 }
 
@@ -303,9 +290,6 @@ func LoadVanilla(a *txtar.Archive, dir string, args ...string) []*build.Instance
 	auto := len(args) == 0
 	overlay := map[string]load.Source{}
 	for _, f := range a.Files {
-		if f.Name == "error" {
-			continue
-		}
 		if auto && !strings.Contains(f.Name, "/") {
 			args = append(args, f.Name)
 		}
@@ -381,13 +365,10 @@ func (x *TxTarTest) Run(t *testing.T, f func(tc *Test)) {
 					tc.hasGold = true
 				}
 
-				if f.Name == "error" {
-					tc.hasError = true
-					tc.err = strings.TrimSuffix(string(f.Data), "\n")
-				} else if tc.HasTag("noformat") || !strings.HasSuffix(f.Name, ".cue") {
+				// Format CUE files as required
+				if tc.HasTag("noformat") || !strings.HasSuffix(f.Name, ".cue") {
 					continue
 				}
-
 				if ff, err := format.Source(f.Data); err == nil {
 					if bytes.Equal(f.Data, ff) {
 						continue

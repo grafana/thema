@@ -91,8 +91,7 @@ func TestGenerate(t *testing.T) {
 
 				lin, lerr := bindlin.BindTxtarLineage(tc, rt)
 				if lerr != nil {
-					tc.ValidateErrorOrFail(lerr)
-					return
+					tc.Fatal(lerr)
 				}
 				for sch := lin.First(); sch != nil; sch = sch.Successor() {
 					f, err := GenerateSchema(sch, tcfg.cfg)

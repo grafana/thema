@@ -78,8 +78,7 @@ func TestGenerate(t *testing.T) {
 
 				lin, err := bindlin.BindTxtarLineage(tc, rt)
 				if err != nil {
-					tc.ValidateErrorOrFail(err)
-					return
+					tc.Fatal(err)
 				}
 				cfg := tcfg.cfg
 				if cfg == nil {
