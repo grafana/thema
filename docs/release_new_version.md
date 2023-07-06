@@ -1,5 +1,6 @@
 # Release a new version
+This process uses [GoReleaser](https://goreleaser.com/install/) to generate the release.
 
-1. Make sure that you have [GoReleaser](https://goreleaser.com/install/) installed in your local.
-2. Execute `make gen-release tag=your_tag` using [semantic versioning](https://goreleaser.com/limitations/semver/).
-3. To be consistent, all tags should include `v` prefix (ex. v0.1.1).
+1. Execute `make gen-release tag=your_tag` using [semantic versioning](https://goreleaser.com/limitations/semver/).
+2. To be consistent, all tags should include `v` prefix (ex. v0.1.1). Otherwise, the process couldn't start.
+3. When the tag is created, GoReleaser will do the rest of the work for you.
