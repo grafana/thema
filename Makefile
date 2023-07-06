@@ -1,7 +1,5 @@
-.PHONY: gen-release
+.PHONY: gen-tag
 
-gen-release:
-	./scripts/check_semantic_versioning.sh $(tag)
+gen-tag:
 	git tag $(tag)
 	git push origin $(tag)
-	goreleaser --rm-dist
