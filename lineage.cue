@@ -109,18 +109,6 @@ import (
 	//		}
 	//	}
 
-	_schemasAreOrdered: [ for i, sch in SS {
-		if i > 0 {
-			[
-				// sequence is ok if minor version bump
-				if (sch.version[0] == SS[i-1].version[0]) && (sch.version[1] == SS[i-1].version[1]+1) {true},
-				// or if major version bump, minor back at 0
-				if (sch.version[0] == SS[i-1].version[0]+1) && (sch.version[1] == 0) {true},
-				false,
-			][0] & true
-		}
-	}]
-
 	// _counts tracks the number of versions in each major version in the lineage.
 	// The index corresponds to the major version number, and the value is the
 	// number of minor versions within that major.

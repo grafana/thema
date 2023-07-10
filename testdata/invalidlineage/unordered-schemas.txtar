@@ -1,0 +1,237 @@
+# lineage loading should error because schemas are not ordered by version
+-- in.cue --
+import "github.com/grafana/thema"
+
+thema.#Lineage
+name: "unordered-schemas"
+
+schemas: [{
+    version: [0, 0]
+    schema: {
+        init: string
+    }
+    examples: {
+        simple: {
+            init: "some string"
+        }
+    }
+},
+{
+    version: [0, 2]
+    schema: {
+        init:        string
+        optional?:   int32
+        withDefault?: *"foo" | "bar"
+    }
+    examples: {
+        withoutOptional: {
+            init: "some string"
+            withDefault: "foo"
+        }
+        withOptional: {
+            init: "some string"
+            optional: 32
+            withDefault: "bar"
+        }
+    }
+},
+{
+    version: [0, 1]
+    schema: {
+        init:      string
+        optional?: int32
+    }
+    examples: {
+        withoutOptional: {
+            init: "some string"
+        }
+        withOptional: {
+            init: "some string"
+            optional: 32
+        }
+    }
+},
+{
+    version: [0, 3]
+    schema: {
+        init:        string
+        optional?:   int32
+        withDefault?: *"foo" | "bar" | "baz"
+    }
+    examples: {
+        withoutOptional: {
+            init: "some string"
+            withDefault: "baz"
+        }
+        withOptional: {
+            init: "some string"
+            optional: 32
+            withDefault: "baz"
+        }
+    }
+},
+{
+    version: [1, 0]
+    schema: {
+        renamed:     string
+        optional?:   int32
+        withDefault: "foo" | *"bar" | "baz"
+    }
+    examples: {
+        withoutOptional: {
+            renamed: "some string"
+            withDefault: "foo"
+        }
+        withOptional: {
+            renamed: "some string"
+            optional: 32
+            withDefault: "bar"
+        }
+    }
+},
+{
+    version: [1, 1]
+    schema: {
+        renamed:     string
+        optional?:   int32
+        withDefault: "foo" | *"bar" | "baz" | "bing"
+    }
+    examples: {
+        withoutOptional: {
+            renamed: "some string"
+            withDefault: "bing"
+        }
+        withOptional: {
+            renamed: "some string"
+            optional: 32
+            withDefault: "bing"
+        }
+    }
+},
+{
+    version: [2, 0]
+    schema: {
+        toObj:     {
+            init: string
+        }
+        optional?:   int32
+        withDefault: "foo" | *"bar" | "baz" | "bing"
+    }
+    examples: {
+        withoutOptional: {
+            toObj: {
+                init: "some string"
+            }
+            withDefault: "bing"
+        }
+        withOptional: {
+            toObj: {
+                init: "some string"
+            }
+            optional: 32
+            withDefault: "bing"
+        }
+    }
+}]
+
+lenses: [{
+    to: [0, 0]
+    from: [0, 1]
+    input: _
+    result: {
+        init: input.init
+    }
+},
+{
+    to: [0, 1]
+    from: [0, 2]
+    input: _
+    result: {
+        init: input.init
+        if (input.optional != _|_) {
+            optional: input.optional
+        }
+    }
+},
+{
+    to: [0, 2]
+    from: [0, 3]
+    input: _
+    result: {
+        init: input.init
+        if (input.optional != _|_) {
+            optional: input.optional
+        }
+        // TODO: withDefault: input.withDefault doesn't work
+        withDefault: "foo"
+    }
+},
+{
+    to: [0, 3]
+    from: [1, 0]
+    input: _
+    result: {
+        init: input.renamed
+        if (input.optional != _|_) {
+            optional: input.optional
+        }
+
+        withDefault: input.withDefault
+    }
+},
+{
+    to: [1, 0]
+    from: [0, 3]
+    input: _
+    result: {
+        renamed: input.init
+        if (input.optional != _|_) {
+            optional: input.optional
+        }
+        // TODO: withDefault: input.withDefault doesn't work
+        withDefault: "foo"
+    }
+},
+{
+    to: [1, 0]
+    from: [1, 1]
+    input: _
+    result: {
+        renamed: input.renamed
+        if (input.optional != _|_) {
+            optional: input.optional
+        }
+        // TODO: withDefault: input.withDefault doesn't work
+        withDefault: "foo"
+    }
+},
+{
+    to: [1, 1]
+    from: [2, 0]
+    input: _
+    result: {
+        renamed: input.toObj.init
+        if (input.optional != _|_) {
+            optional: input.optional
+        }
+        // TODO: withDefault: input.withDefault doesn't work
+        withDefault: "foo"
+    }
+},
+{
+    to: [2, 0]
+    from: [1, 1]
+    input: _
+    result: {
+        toObj: {
+            init: input.renamed
+        }
+        if (input.optional != _|_) {
+            optional: input.optional
+        }
+        // TODO: withDefault: input.withDefault doesn't work
+        withDefault: "foo"
+    }
+}]
+-- out/bindfail --
+schema version 0.1 is not greater than previous schema version 0.2
