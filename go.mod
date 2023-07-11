@@ -14,16 +14,15 @@ require (
 	github.com/getkin/kin-openapi v0.115.0
 	github.com/golangci/lint-1 v0.0.0-20181222135242-d2cdd8c08219
 	github.com/google/go-cmp v0.5.8
-	github.com/grafana/cuetsy v0.1.8
+	github.com/grafana/cuetsy v0.1.10
 	github.com/labstack/echo/v4 v4.9.1
 	github.com/matryer/moq v0.2.7
-	github.com/sergi/go-diff v1.3.1
 	github.com/spf13/cobra v1.4.0
 	github.com/stretchr/testify v1.8.1
 	github.com/xeipuuv/gojsonschema v1.2.0
 	github.com/yalue/merged_fs v1.2.2
 	golang.org/x/mod v0.7.0
-	golang.org/x/text v0.4.0
+	golang.org/x/text v0.6.0
 	golang.org/x/tools v0.3.0
 )
 
@@ -56,6 +55,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/protocolbuffers/txtpbfmt v0.0.0-20220428173112-74888fd59c2b // indirect
 	github.com/rogpeppe/go-internal v1.9.0 // indirect
+	github.com/sergi/go-diff v1.3.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
@@ -63,8 +63,8 @@ require (
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	github.com/xlab/treeprint v1.1.0 // indirect
 	golang.org/x/crypto v0.1.0 // indirect
-	golang.org/x/net v0.2.0 // indirect
-	golang.org/x/sys v0.2.0 // indirect
+	golang.org/x/net v0.5.0 // indirect
+	golang.org/x/sys v0.4.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
