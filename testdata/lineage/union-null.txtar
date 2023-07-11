@@ -1,0 +1,358 @@
+# schema contains a disjunction with nulls in a branch
+
+-- in.cue --
+import "github.com/grafana/thema"
+
+thema.#Lineage
+name: "union-null"
+schemas: [{
+	version: [0, 0]
+	schema: {
+		kindString: {
+			simpleString: string
+			withNull:     string | null
+		}
+		kindFloat: {
+			simpleFloat64: float64
+			simpleFloat32: float32
+			withNull64:    float64 | null
+			withNull32:    float32 | null
+		}
+		kindInt: {
+			simpleInt:   int
+			simpleInt32: int32
+			simpleInt64: int64
+			withNull:    int | null
+			withNull64:  int64 | null
+			withNull32:  int32 | null
+		}
+	}
+}]
+lenses: []
+-- out/bind --
+Schema count: 1
+Schema versions: 0.0
+Lenses count: 0
+-- out/encoding/openapi/TestGenerate/nilcfg --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "unionnull",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "unionnull": {
+        "type": "object",
+        "required": [
+          "kindString",
+          "kindFloat",
+          "kindInt"
+        ],
+        "properties": {
+          "kindString": {
+            "type": "object",
+            "required": [
+              "simpleString",
+              "withNull"
+            ],
+            "properties": {
+              "simpleString": {
+                "type": "string"
+              },
+              "withNull": {
+                "type": "string",
+                "nullable": true
+              }
+            }
+          },
+          "kindFloat": {
+            "type": "object",
+            "required": [
+              "simpleFloat64",
+              "simpleFloat32",
+              "withNull64",
+              "withNull32"
+            ],
+            "properties": {
+              "simpleFloat64": {
+                "type": "number",
+                "format": "double"
+              },
+              "simpleFloat32": {
+                "type": "number",
+                "format": "float"
+              },
+              "withNull64": {
+                "type": "number",
+                "minimum": -1.797693134862315708145274237317043567981E+308,
+                "maximum": 1.797693134862315708145274237317043567981E+308,
+                "nullable": true
+              },
+              "withNull32": {
+                "type": "number",
+                "minimum": -340282346638528859811704183484516925440,
+                "maximum": 340282346638528859811704183484516925440,
+                "nullable": true
+              }
+            }
+          },
+          "kindInt": {
+            "type": "object",
+            "required": [
+              "simpleInt",
+              "simpleInt32",
+              "simpleInt64",
+              "withNull",
+              "withNull64",
+              "withNull32"
+            ],
+            "properties": {
+              "simpleInt": {
+                "type": "integer"
+              },
+              "simpleInt32": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "simpleInt64": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "withNull": {
+                "type": "integer",
+                "nullable": true
+              },
+              "withNull64": {
+                "type": "integer",
+                "minimum": -9223372036854775808,
+                "maximum": 9223372036854775807,
+                "nullable": true
+              },
+              "withNull32": {
+                "type": "integer",
+                "minimum": -2147483648,
+                "maximum": 2147483647,
+                "nullable": true
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+-- out/encoding/openapi/TestGenerate/group --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "unionnull",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "kindString": {
+        "type": "object",
+        "required": [
+          "simpleString",
+          "withNull"
+        ],
+        "properties": {
+          "simpleString": {
+            "type": "string"
+          },
+          "withNull": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "kindFloat": {
+        "type": "object",
+        "required": [
+          "simpleFloat64",
+          "simpleFloat32",
+          "withNull64",
+          "withNull32"
+        ],
+        "properties": {
+          "simpleFloat64": {
+            "type": "number",
+            "format": "double"
+          },
+          "simpleFloat32": {
+            "type": "number",
+            "format": "float"
+          },
+          "withNull64": {
+            "type": "number",
+            "minimum": -1.797693134862315708145274237317043567981E+308,
+            "maximum": 1.797693134862315708145274237317043567981E+308,
+            "nullable": true
+          },
+          "withNull32": {
+            "type": "number",
+            "minimum": -340282346638528859811704183484516925440,
+            "maximum": 340282346638528859811704183484516925440,
+            "nullable": true
+          }
+        }
+      },
+      "kindInt": {
+        "type": "object",
+        "required": [
+          "simpleInt",
+          "simpleInt32",
+          "simpleInt64",
+          "withNull",
+          "withNull64",
+          "withNull32"
+        ],
+        "properties": {
+          "simpleInt": {
+            "type": "integer"
+          },
+          "simpleInt32": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "simpleInt64": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "withNull": {
+            "type": "integer",
+            "nullable": true
+          },
+          "withNull64": {
+            "type": "integer",
+            "minimum": -9223372036854775808,
+            "maximum": 9223372036854775807,
+            "nullable": true
+          },
+          "withNull32": {
+            "type": "integer",
+            "minimum": -2147483648,
+            "maximum": 2147483647,
+            "nullable": true
+          }
+        }
+      }
+    }
+  }
+}
+-- out/encoding/openapi/TestGenerate/expandrefs --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "unionnull",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "unionnull": {
+        "type": "object",
+        "required": [
+          "kindString",
+          "kindFloat",
+          "kindInt"
+        ],
+        "properties": {
+          "kindString": {
+            "type": "object",
+            "required": [
+              "simpleString",
+              "withNull"
+            ],
+            "properties": {
+              "simpleString": {
+                "type": "string"
+              },
+              "withNull": {
+                "type": "string",
+                "nullable": true
+              }
+            }
+          },
+          "kindFloat": {
+            "type": "object",
+            "required": [
+              "simpleFloat64",
+              "simpleFloat32",
+              "withNull64",
+              "withNull32"
+            ],
+            "properties": {
+              "simpleFloat64": {
+                "type": "number",
+                "format": "double"
+              },
+              "simpleFloat32": {
+                "type": "number",
+                "format": "float"
+              },
+              "withNull64": {
+                "type": "number",
+                "minimum": -1.797693134862315708145274237317043567981E+308,
+                "maximum": 1.797693134862315708145274237317043567981E+308,
+                "nullable": true
+              },
+              "withNull32": {
+                "type": "number",
+                "minimum": -340282346638528859811704183484516925440,
+                "maximum": 340282346638528859811704183484516925440,
+                "nullable": true
+              }
+            }
+          },
+          "kindInt": {
+            "type": "object",
+            "required": [
+              "simpleInt",
+              "simpleInt32",
+              "simpleInt64",
+              "withNull",
+              "withNull64",
+              "withNull32"
+            ],
+            "properties": {
+              "simpleInt": {
+                "type": "integer"
+              },
+              "simpleInt32": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "simpleInt64": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "withNull": {
+                "type": "integer",
+                "nullable": true
+              },
+              "withNull64": {
+                "type": "integer",
+                "minimum": -9223372036854775808,
+                "maximum": 9223372036854775807,
+                "nullable": true
+              },
+              "withNull32": {
+                "type": "integer",
+                "minimum": -2147483648,
+                "maximum": 2147483647,
+                "nullable": true
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
