@@ -356,3 +356,130 @@ Lenses count: 0
     }
   }
 }
+-- out/encoding/gocode/TestGenerate/nilcfg --
+== unionnull_type_0.0_gen.go
+package unionnull
+
+// Unionnull defines model for unionnull.
+type Unionnull struct {
+	KindFloat struct {
+		SimpleFloat32 float32  `json:"simpleFloat32"`
+		SimpleFloat64 float64  `json:"simpleFloat64"`
+		WithNull32    *float32 `json:"withNull32"`
+		WithNull64    *float64 `json:"withNull64"`
+	} `json:"kindFloat"`
+	KindInt struct {
+		SimpleInt   int    `json:"simpleInt"`
+		SimpleInt32 int32  `json:"simpleInt32"`
+		SimpleInt64 int64  `json:"simpleInt64"`
+		WithNull    *int   `json:"withNull"`
+		WithNull32  *int32 `json:"withNull32"`
+		WithNull64  *int64 `json:"withNull64"`
+	} `json:"kindInt"`
+	KindString struct {
+		SimpleString string  `json:"simpleString"`
+		WithNull     *string `json:"withNull"`
+	} `json:"kindString"`
+}
+-- out/encoding/gocode/TestGenerate/group --
+== unionnull_type_0.0_gen.go
+package unionnull
+
+// KindFloat defines model for kindFloat.
+type KindFloat struct {
+	SimpleFloat32 float32  `json:"simpleFloat32"`
+	SimpleFloat64 float64  `json:"simpleFloat64"`
+	WithNull32    *float32 `json:"withNull32"`
+	WithNull64    *float64 `json:"withNull64"`
+}
+
+// KindInt defines model for kindInt.
+type KindInt struct {
+	SimpleInt   int    `json:"simpleInt"`
+	SimpleInt32 int32  `json:"simpleInt32"`
+	SimpleInt64 int64  `json:"simpleInt64"`
+	WithNull    *int   `json:"withNull"`
+	WithNull32  *int32 `json:"withNull32"`
+	WithNull64  *int64 `json:"withNull64"`
+}
+
+// KindString defines model for kindString.
+type KindString struct {
+	SimpleString string  `json:"simpleString"`
+	WithNull     *string `json:"withNull"`
+}
+-- out/encoding/gocode/TestGenerate/depointerized --
+== unionnull_type_0.0_gen.go
+package unionnull
+
+// Unionnull defines model for unionnull.
+type Unionnull struct {
+	KindFloat struct {
+		SimpleFloat32 float32 `json:"simpleFloat32"`
+		SimpleFloat64 float64 `json:"simpleFloat64"`
+		WithNull32    float32 `json:"withNull32"`
+		WithNull64    float64 `json:"withNull64"`
+	} `json:"kindFloat"`
+	KindInt struct {
+		SimpleInt   int   `json:"simpleInt"`
+		SimpleInt32 int32 `json:"simpleInt32"`
+		SimpleInt64 int64 `json:"simpleInt64"`
+		WithNull    int   `json:"withNull"`
+		WithNull32  int32 `json:"withNull32"`
+		WithNull64  int64 `json:"withNull64"`
+	} `json:"kindInt"`
+	KindString struct {
+		SimpleString string `json:"simpleString"`
+		WithNull     string `json:"withNull"`
+	} `json:"kindString"`
+}
+-- out/encoding/gocode/TestGenerate/godeclincomments --
+== unionnull_type_0.0_gen.go
+package unionnull
+
+// Unionnull defines model for unionnull.
+type Unionnull struct {
+	KindFloat struct {
+		SimpleFloat32 float32  `json:"simpleFloat32"`
+		SimpleFloat64 float64  `json:"simpleFloat64"`
+		WithNull32    *float32 `json:"withNull32"`
+		WithNull64    *float32 `json:"withNull64"`
+	} `json:"kindFloat"`
+	KindInt struct {
+		SimpleInt   int   `json:"simpleInt"`
+		SimpleInt32 int32 `json:"simpleInt32"`
+		SimpleInt64 int64 `json:"simpleInt64"`
+		WithNull    *int  `json:"withNull"`
+		WithNull32  *int  `json:"withNull32"`
+		WithNull64  *int  `json:"withNull64"`
+	} `json:"kindInt"`
+	KindString struct {
+		SimpleString string  `json:"simpleString"`
+		WithNull     *string `json:"withNull"`
+	} `json:"kindString"`
+}
+-- out/encoding/gocode/TestGenerate/expandref --
+== unionnull_type_0.0_gen.go
+package unionnull
+
+// Unionnull defines model for unionnull.
+type Unionnull struct {
+	KindFloat struct {
+		SimpleFloat32 float32  `json:"simpleFloat32"`
+		SimpleFloat64 float64  `json:"simpleFloat64"`
+		WithNull32    *float32 `json:"withNull32"`
+		WithNull64    *float32 `json:"withNull64"`
+	} `json:"kindFloat"`
+	KindInt struct {
+		SimpleInt   int   `json:"simpleInt"`
+		SimpleInt32 int32 `json:"simpleInt32"`
+		SimpleInt64 int64 `json:"simpleInt64"`
+		WithNull    *int  `json:"withNull"`
+		WithNull32  *int  `json:"withNull32"`
+		WithNull64  *int  `json:"withNull64"`
+	} `json:"kindInt"`
+	KindString struct {
+		SimpleString string  `json:"simpleString"`
+		WithNull     *string `json:"withNull"`
+	} `json:"kindString"`
+}
