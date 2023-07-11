@@ -443,15 +443,15 @@ type Unionnull struct {
 		SimpleFloat32 float32  `json:"simpleFloat32"`
 		SimpleFloat64 float64  `json:"simpleFloat64"`
 		WithNull32    *float32 `json:"withNull32"`
-		WithNull64    *float32 `json:"withNull64"`
+		WithNull64    *float64 `json:"withNull64"`
 	} `json:"kindFloat"`
 	KindInt struct {
-		SimpleInt   int   `json:"simpleInt"`
-		SimpleInt32 int32 `json:"simpleInt32"`
-		SimpleInt64 int64 `json:"simpleInt64"`
-		WithNull    *int  `json:"withNull"`
-		WithNull32  *int  `json:"withNull32"`
-		WithNull64  *int  `json:"withNull64"`
+		SimpleInt   int    `json:"simpleInt"`
+		SimpleInt32 int32  `json:"simpleInt32"`
+		SimpleInt64 int64  `json:"simpleInt64"`
+		WithNull    *int   `json:"withNull"`
+		WithNull32  *int32 `json:"withNull32"`
+		WithNull64  *int64 `json:"withNull64"`
 	} `json:"kindInt"`
 	KindString struct {
 		SimpleString string  `json:"simpleString"`
@@ -468,15 +468,15 @@ type Unionnull struct {
 		SimpleFloat32 float32  `json:"simpleFloat32"`
 		SimpleFloat64 float64  `json:"simpleFloat64"`
 		WithNull32    *float32 `json:"withNull32"`
-		WithNull64    *float32 `json:"withNull64"`
+		WithNull64    *float64 `json:"withNull64"`
 	} `json:"kindFloat"`
 	KindInt struct {
-		SimpleInt   int   `json:"simpleInt"`
-		SimpleInt32 int32 `json:"simpleInt32"`
-		SimpleInt64 int64 `json:"simpleInt64"`
-		WithNull    *int  `json:"withNull"`
-		WithNull32  *int  `json:"withNull32"`
-		WithNull64  *int  `json:"withNull64"`
+		SimpleInt   int    `json:"simpleInt"`
+		SimpleInt32 int32  `json:"simpleInt32"`
+		SimpleInt64 int64  `json:"simpleInt64"`
+		WithNull    *int   `json:"withNull"`
+		WithNull32  *int32 `json:"withNull32"`
+		WithNull64  *int64 `json:"withNull64"`
 	} `json:"kindInt"`
 	KindString struct {
 		SimpleString string  `json:"simpleString"`
