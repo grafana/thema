@@ -1,0 +1,473 @@
+# schema contains a disjunction with nulls in a branch
+
+-- in.cue --
+import "github.com/grafana/thema"
+
+thema.#Lineage
+name: "union-null"
+schemas: [{
+	version: [0, 0]
+	schema: {
+		kindString: {
+			simpleString: string
+			withNull:     string | null
+		}
+		kindFloat: {
+			simpleFloat64: float64
+			simpleFloat32: float32
+			withNull64:    float64 | null
+			withNull32:    float32 | null
+		}
+		kindInt: {
+			simpleInt:   int
+			simpleInt32: int32
+			simpleInt64: int64
+			withNull:    int | null
+			withNull64:  int64 | null
+			withNull32:  int32 | null
+		}
+	}
+}]
+lenses: []
+-- out/bind --
+Schema count: 1
+Schema versions: 0.0
+Lenses count: 0
+-- out/encoding/openapi/TestGenerate/nilcfg --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "unionnull",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "unionnull": {
+        "type": "object",
+        "required": [
+          "kindString",
+          "kindFloat",
+          "kindInt"
+        ],
+        "properties": {
+          "kindString": {
+            "type": "object",
+            "required": [
+              "simpleString",
+              "withNull"
+            ],
+            "properties": {
+              "simpleString": {
+                "type": "string"
+              },
+              "withNull": {
+                "type": "string",
+                "nullable": true
+              }
+            }
+          },
+          "kindFloat": {
+            "type": "object",
+            "required": [
+              "simpleFloat64",
+              "simpleFloat32",
+              "withNull64",
+              "withNull32"
+            ],
+            "properties": {
+              "simpleFloat64": {
+                "type": "number",
+                "format": "double"
+              },
+              "simpleFloat32": {
+                "type": "number",
+                "format": "float"
+              },
+              "withNull64": {
+                "type": "number",
+                "format": "double",
+                "nullable": true
+              },
+              "withNull32": {
+                "type": "number",
+                "format": "float",
+                "nullable": true
+              }
+            }
+          },
+          "kindInt": {
+            "type": "object",
+            "required": [
+              "simpleInt",
+              "simpleInt32",
+              "simpleInt64",
+              "withNull",
+              "withNull64",
+              "withNull32"
+            ],
+            "properties": {
+              "simpleInt": {
+                "type": "integer"
+              },
+              "simpleInt32": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "simpleInt64": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "withNull": {
+                "type": "integer",
+                "nullable": true
+              },
+              "withNull64": {
+                "type": "integer",
+                "format": "int64",
+                "nullable": true
+              },
+              "withNull32": {
+                "type": "integer",
+                "format": "int32",
+                "nullable": true
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+-- out/encoding/openapi/TestGenerate/group --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "unionnull",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "kindString": {
+        "type": "object",
+        "required": [
+          "simpleString",
+          "withNull"
+        ],
+        "properties": {
+          "simpleString": {
+            "type": "string"
+          },
+          "withNull": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "kindFloat": {
+        "type": "object",
+        "required": [
+          "simpleFloat64",
+          "simpleFloat32",
+          "withNull64",
+          "withNull32"
+        ],
+        "properties": {
+          "simpleFloat64": {
+            "type": "number",
+            "format": "double"
+          },
+          "simpleFloat32": {
+            "type": "number",
+            "format": "float"
+          },
+          "withNull64": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "withNull32": {
+            "type": "number",
+            "format": "float",
+            "nullable": true
+          }
+        }
+      },
+      "kindInt": {
+        "type": "object",
+        "required": [
+          "simpleInt",
+          "simpleInt32",
+          "simpleInt64",
+          "withNull",
+          "withNull64",
+          "withNull32"
+        ],
+        "properties": {
+          "simpleInt": {
+            "type": "integer"
+          },
+          "simpleInt32": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "simpleInt64": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "withNull": {
+            "type": "integer",
+            "nullable": true
+          },
+          "withNull64": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "withNull32": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        }
+      }
+    }
+  }
+}
+-- out/encoding/openapi/TestGenerate/expandrefs --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "unionnull",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "unionnull": {
+        "type": "object",
+        "required": [
+          "kindString",
+          "kindFloat",
+          "kindInt"
+        ],
+        "properties": {
+          "kindString": {
+            "type": "object",
+            "required": [
+              "simpleString",
+              "withNull"
+            ],
+            "properties": {
+              "simpleString": {
+                "type": "string"
+              },
+              "withNull": {
+                "type": "string",
+                "nullable": true
+              }
+            }
+          },
+          "kindFloat": {
+            "type": "object",
+            "required": [
+              "simpleFloat64",
+              "simpleFloat32",
+              "withNull64",
+              "withNull32"
+            ],
+            "properties": {
+              "simpleFloat64": {
+                "type": "number",
+                "format": "double"
+              },
+              "simpleFloat32": {
+                "type": "number",
+                "format": "float"
+              },
+              "withNull64": {
+                "type": "number",
+                "format": "double",
+                "nullable": true
+              },
+              "withNull32": {
+                "type": "number",
+                "format": "float",
+                "nullable": true
+              }
+            }
+          },
+          "kindInt": {
+            "type": "object",
+            "required": [
+              "simpleInt",
+              "simpleInt32",
+              "simpleInt64",
+              "withNull",
+              "withNull64",
+              "withNull32"
+            ],
+            "properties": {
+              "simpleInt": {
+                "type": "integer"
+              },
+              "simpleInt32": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "simpleInt64": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "withNull": {
+                "type": "integer",
+                "nullable": true
+              },
+              "withNull64": {
+                "type": "integer",
+                "format": "int64",
+                "nullable": true
+              },
+              "withNull32": {
+                "type": "integer",
+                "format": "int32",
+                "nullable": true
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+-- out/encoding/gocode/TestGenerate/nilcfg --
+== unionnull_type_0.0_gen.go
+package unionnull
+
+// Unionnull defines model for unionnull.
+type Unionnull struct {
+	KindFloat struct {
+		SimpleFloat32 float32  `json:"simpleFloat32"`
+		SimpleFloat64 float64  `json:"simpleFloat64"`
+		WithNull32    *float32 `json:"withNull32"`
+		WithNull64    *float64 `json:"withNull64"`
+	} `json:"kindFloat"`
+	KindInt struct {
+		SimpleInt   int    `json:"simpleInt"`
+		SimpleInt32 int32  `json:"simpleInt32"`
+		SimpleInt64 int64  `json:"simpleInt64"`
+		WithNull    *int   `json:"withNull"`
+		WithNull32  *int32 `json:"withNull32"`
+		WithNull64  *int64 `json:"withNull64"`
+	} `json:"kindInt"`
+	KindString struct {
+		SimpleString string  `json:"simpleString"`
+		WithNull     *string `json:"withNull"`
+	} `json:"kindString"`
+}
+-- out/encoding/gocode/TestGenerate/group --
+== unionnull_type_0.0_gen.go
+package unionnull
+
+// KindFloat defines model for kindFloat.
+type KindFloat struct {
+	SimpleFloat32 float32  `json:"simpleFloat32"`
+	SimpleFloat64 float64  `json:"simpleFloat64"`
+	WithNull32    *float32 `json:"withNull32"`
+	WithNull64    *float64 `json:"withNull64"`
+}
+
+// KindInt defines model for kindInt.
+type KindInt struct {
+	SimpleInt   int    `json:"simpleInt"`
+	SimpleInt32 int32  `json:"simpleInt32"`
+	SimpleInt64 int64  `json:"simpleInt64"`
+	WithNull    *int   `json:"withNull"`
+	WithNull32  *int32 `json:"withNull32"`
+	WithNull64  *int64 `json:"withNull64"`
+}
+
+// KindString defines model for kindString.
+type KindString struct {
+	SimpleString string  `json:"simpleString"`
+	WithNull     *string `json:"withNull"`
+}
+-- out/encoding/gocode/TestGenerate/depointerized --
+== unionnull_type_0.0_gen.go
+package unionnull
+
+// Unionnull defines model for unionnull.
+type Unionnull struct {
+	KindFloat struct {
+		SimpleFloat32 float32 `json:"simpleFloat32"`
+		SimpleFloat64 float64 `json:"simpleFloat64"`
+		WithNull32    float32 `json:"withNull32"`
+		WithNull64    float64 `json:"withNull64"`
+	} `json:"kindFloat"`
+	KindInt struct {
+		SimpleInt   int   `json:"simpleInt"`
+		SimpleInt32 int32 `json:"simpleInt32"`
+		SimpleInt64 int64 `json:"simpleInt64"`
+		WithNull    int   `json:"withNull"`
+		WithNull32  int32 `json:"withNull32"`
+		WithNull64  int64 `json:"withNull64"`
+	} `json:"kindInt"`
+	KindString struct {
+		SimpleString string `json:"simpleString"`
+		WithNull     string `json:"withNull"`
+	} `json:"kindString"`
+}
+-- out/encoding/gocode/TestGenerate/godeclincomments --
+== unionnull_type_0.0_gen.go
+package unionnull
+
+// Unionnull defines model for unionnull.
+type Unionnull struct {
+	KindFloat struct {
+		SimpleFloat32 float32  `json:"simpleFloat32"`
+		SimpleFloat64 float64  `json:"simpleFloat64"`
+		WithNull32    *float32 `json:"withNull32"`
+		WithNull64    *float64 `json:"withNull64"`
+	} `json:"kindFloat"`
+	KindInt struct {
+		SimpleInt   int    `json:"simpleInt"`
+		SimpleInt32 int32  `json:"simpleInt32"`
+		SimpleInt64 int64  `json:"simpleInt64"`
+		WithNull    *int   `json:"withNull"`
+		WithNull32  *int32 `json:"withNull32"`
+		WithNull64  *int64 `json:"withNull64"`
+	} `json:"kindInt"`
+	KindString struct {
+		SimpleString string  `json:"simpleString"`
+		WithNull     *string `json:"withNull"`
+	} `json:"kindString"`
+}
+-- out/encoding/gocode/TestGenerate/expandref --
+== unionnull_type_0.0_gen.go
+package unionnull
+
+// Unionnull defines model for unionnull.
+type Unionnull struct {
+	KindFloat struct {
+		SimpleFloat32 float32  `json:"simpleFloat32"`
+		SimpleFloat64 float64  `json:"simpleFloat64"`
+		WithNull32    *float32 `json:"withNull32"`
+		WithNull64    *float64 `json:"withNull64"`
+	} `json:"kindFloat"`
+	KindInt struct {
+		SimpleInt   int    `json:"simpleInt"`
+		SimpleInt32 int32  `json:"simpleInt32"`
+		SimpleInt64 int64  `json:"simpleInt64"`
+		WithNull    *int   `json:"withNull"`
+		WithNull32  *int32 `json:"withNull32"`
+		WithNull64  *int64 `json:"withNull64"`
+	} `json:"kindInt"`
+	KindString struct {
+		SimpleString string  `json:"simpleString"`
+		WithNull     *string `json:"withNull"`
+	} `json:"kindString"`
+}

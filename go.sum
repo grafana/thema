@@ -227,8 +227,8 @@ github.com/russross/blackfriday v1.5.2/go.mod h1:JO/DiYxRf+HjHt06OyowR9PTA263kcR
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
 github.com/ryanuber/columnize v2.1.0+incompatible/go.mod h1:sm1tb6uqfes/u+d4ooFouqFdy9/2g9QGwK3SQygK0Ts=
 github.com/schollz/closestmatch v2.1.0+incompatible/go.mod h1:RtP1ddjLong6gTkbtmuhtR2uUrrJOpYzYRvbcPAid+g=
-github.com/sdboyer/cue v0.5.0-beta.2.0.20221218111347-341999f48bdb h1:X6XJsprVDQnlG4vT5TVb+cRlGMU78L/IKej8Q6SDFGY=
-github.com/sdboyer/cue v0.5.0-beta.2.0.20221218111347-341999f48bdb/go.mod h1:okjJBHFQFer+a41sAe2SaGm1glWS8oEb6CmJvn5Zdws=
+github.com/sdboyer/cue v0.5.0-beta.2.0.20230712135403-bdc4772ae055 h1:ilCOPMIGucstzXKgCVzAT8g6tu+Ejyk0J1HhXZN2xm0=
+github.com/sdboyer/cue v0.5.0-beta.2.0.20230712135403-bdc4772ae055/go.mod h1:okjJBHFQFer+a41sAe2SaGm1glWS8oEb6CmJvn5Zdws=
 github.com/sergi/go-diff v1.0.0/go.mod h1:0CfEIISq7TuYL3j771MWULgwwjU+GofnZX9QAmXWZgo=
 github.com/sergi/go-diff v1.3.1 h1:xkr+Oxo4BOQKmkn/B9eMK0g5Kg/983T9DqqPHwYqD+8=
 github.com/sergi/go-diff v1.3.1/go.mod h1:aMJSSKb2lpPvRNec0+w3fl7LP9IOFzdc9Pa4NFbPK1I=
