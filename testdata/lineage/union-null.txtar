@@ -87,14 +87,12 @@ Lenses count: 0
               },
               "withNull64": {
                 "type": "number",
-                "minimum": -1.797693134862315708145274237317043567981E+308,
-                "maximum": 1.797693134862315708145274237317043567981E+308,
+                "format": "double",
                 "nullable": true
               },
               "withNull32": {
                 "type": "number",
-                "minimum": -340282346638528859811704183484516925440,
-                "maximum": 340282346638528859811704183484516925440,
+                "format": "float",
                 "nullable": true
               }
             }
@@ -127,14 +125,12 @@ Lenses count: 0
               },
               "withNull64": {
                 "type": "integer",
-                "minimum": -9223372036854775808,
-                "maximum": 9223372036854775807,
+                "format": "int64",
                 "nullable": true
               },
               "withNull32": {
                 "type": "integer",
-                "minimum": -2147483648,
-                "maximum": 2147483647,
+                "format": "int32",
                 "nullable": true
               }
             }
@@ -190,14 +186,12 @@ Lenses count: 0
           },
           "withNull64": {
             "type": "number",
-            "minimum": -1.797693134862315708145274237317043567981E+308,
-            "maximum": 1.797693134862315708145274237317043567981E+308,
+            "format": "double",
             "nullable": true
           },
           "withNull32": {
             "type": "number",
-            "minimum": -340282346638528859811704183484516925440,
-            "maximum": 340282346638528859811704183484516925440,
+            "format": "float",
             "nullable": true
           }
         }
@@ -230,14 +224,12 @@ Lenses count: 0
           },
           "withNull64": {
             "type": "integer",
-            "minimum": -9223372036854775808,
-            "maximum": 9223372036854775807,
+            "format": "int64",
             "nullable": true
           },
           "withNull32": {
             "type": "integer",
-            "minimum": -2147483648,
-            "maximum": 2147483647,
+            "format": "int32",
             "nullable": true
           }
         }
@@ -299,14 +291,12 @@ Lenses count: 0
               },
               "withNull64": {
                 "type": "number",
-                "minimum": -1.797693134862315708145274237317043567981E+308,
-                "maximum": 1.797693134862315708145274237317043567981E+308,
+                "format": "double",
                 "nullable": true
               },
               "withNull32": {
                 "type": "number",
-                "minimum": -340282346638528859811704183484516925440,
-                "maximum": 340282346638528859811704183484516925440,
+                "format": "float",
                 "nullable": true
               }
             }
@@ -339,14 +329,12 @@ Lenses count: 0
               },
               "withNull64": {
                 "type": "integer",
-                "minimum": -9223372036854775808,
-                "maximum": 9223372036854775807,
+                "format": "int64",
                 "nullable": true
               },
               "withNull32": {
                 "type": "integer",
-                "minimum": -2147483648,
-                "maximum": 2147483647,
+                "format": "int32",
                 "nullable": true
               }
             }
