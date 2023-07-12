@@ -8,6 +8,7 @@ import (
 	"cuelang.org/go/cue"
 	"cuelang.org/go/cue/errors"
 	"cuelang.org/go/cue/token"
+
 	terrors "github.com/grafana/thema/errors"
 )
 
@@ -168,9 +169,6 @@ func mungeValidateErr(err error, sch Schema) error {
 			errs = append(errs, err)
 			continue
 		}
-
-		// We missed a case, wrap CUE err in a plea for help
-		errs = append(errs, fmt.Errorf("no Thema handler for CUE error, please file an issue against github.com/grafana/thema\nto improve this error output!\n\n%w", ee))
 	}
 	return errs
 }
@@ -196,8 +194,8 @@ func splitTokens(poslist []token.Pos) (schpos, datapos []token.Pos) {
 
 func trimThemaPath(parts []string) []string {
 	for i, s := range parts {
-		if s == "seqs" {
-			return parts[i+4:]
+		if s == "schemas" {
+			return parts[i+3:]
 		}
 	}
 
