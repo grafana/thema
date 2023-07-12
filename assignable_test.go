@@ -47,6 +47,33 @@ func TestAssignable(t *testing.T) {
 			}
 			`,
 		},
+		"any": {
+			T: &struct {
+				AString any `json:"aString"`
+				AnInt   any `json:"anInt"`
+			}{},
+			cue: `typ: {
+				aString: string
+				anInt: int32
+			}
+			`,
+		},
+		"not-any-union": {
+			T: &struct {
+				Hopeful struct {
+					AString any `json:"aString"`
+				} `json:"hopeful"`
+			}{},
+			cue: `typ: {
+				hopeful: {
+					aString: string
+				} | {
+					anInt: int32
+				}
+			}
+			`,
+			invalid: true,
+		},
 		"stringEnumNoPointer": {
 			T: struct {
 				Foo string `json:"foo"`

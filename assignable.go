@@ -88,29 +88,28 @@ func assignable(sch cue.Value, T interface{}) error {
 
 	check = func(gval, sval cue.Value, p cue.Path) {
 		sk, gk := sval.IncompleteKind(), gval.IncompleteKind()
-		schemaHadNull, goHadNull := sk&cue.NullKind != 0, gk&cue.NullKind != 0
+		schemaHadNull := sk&cue.NullKind != 0
 		sk &^= cue.NullKind
 		gk &^= cue.NullKind
 
 		ogval := gval
-		if goHadNull {
-			// At least for now, we have to deal with these unhelpful *null
-			// appearing in the encoding of pointer types.
-			//
-			// We can't do the same for the schema side, because this null stripper
-			// relies on the fact that all actual Go type declarations will come across
-			// as a single value, without any disjunctions.
-			gval = stripLeadNull(gval)
-		}
+		// At least for now, we have to deal with these unhelpful *null
+		// appearing in the encoding of pointer types.
+		//
+		// We can't do the same for the schema side, because this null stripper
+		// relies on the fact that all actual Go type declarations will come across
+		// as a single value, without any disjunctions.
+		gval = stripLeadNull(gval)
 
 		// strict equality _might_ be too restrictive? But it's better to start there
-		if sk != gk && gk != cue.TopKind {
+		if sk != gk && gk != (cue.TopKind^cue.NullKind) {
 			errs[p.String()] = fmt.Errorf("%s: is kind %s in schema, but kind %s in Go type", p, sk, gk)
 			return
-		} else if gk == cue.TopKind {
+		} else if gk == (cue.TopKind ^ cue.NullKind) {
 			// Escape hatch for a Go interface{}/any
 			return
 		}
+		op, _ := sval.Expr()
 
 		switch sk {
 		case cue.ListKind:
@@ -122,6 +121,10 @@ func assignable(sch cue.Value, T interface{}) error {
 				checkscalar(gval, sval, p)
 			}
 		case cue.StructKind:
+			if op == cue.OrOp {
+				errs[p.String()] = fmt.Errorf("%s: contains disjunction over struct types, but Go type is not any", p)
+				return
+			}
 			checkstruct(gval, sval, p)
 		case cue.NullKind:
 			errs[p.String()] = fmt.Errorf("%s: null is not permitted in schema; express optionality with ?", p)
