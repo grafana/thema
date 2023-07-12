@@ -144,6 +144,23 @@ func mungeValidateErr(err error, sch Schema) error {
 
 			errs = append(errs, err)
 			continue
+		case 2:
+			dataval, dvok := vals[0].(string)
+			schval, svok := vals[1].(string)
+			if !svok || !dvok {
+				break
+			}
+
+			errs = append(errs, &twosidederr{
+				schpos:  schpos,
+				datapos: datapos,
+				coords:  x,
+				sv:      schval,
+				dv:      dataval,
+				code:    terrors.OutOfBounds,
+			})
+			continue
+
 		case 4:
 			schval, svok := vals[0].(string)
 			dataval, dvok := vals[1].(string)
@@ -151,6 +168,12 @@ func mungeValidateErr(err error, sch Schema) error {
 			datakind, dkok := vals[3].(cue.Kind)
 			if !svok || !dvok || !skok || !dkok {
 				break
+			}
+
+			if schkind == cue.IntKind || schkind == cue.FloatKind || schkind == cue.NumberKind {
+				if m, ok := schErrMsgFormatMap[schval]; ok {
+					schval = m
+				}
 			}
 
 			err := &twosidederr{
@@ -171,6 +194,13 @@ func mungeValidateErr(err error, sch Schema) error {
 		}
 	}
 	return errs
+}
+
+var schErrMsgFormatMap = map[string]string{
+	"int & >=-2147483648 & <=2147483647":                                                                   "int32",
+	"int & >=-9223372036854775808 & <=9223372036854775807":                                                 "int64",
+	">=-340282346638528859811704183484516925440 & <=340282346638528859811704183484516925440":               "float32",
+	">=-1.797693134862315708145274237317043567981E+308 & <=1.797693134862315708145274237317043567981E+308": "float64",
 }
 
 func splitTokens(poslist []token.Pos) (schpos, datapos []token.Pos) {
