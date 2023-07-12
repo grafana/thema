@@ -87,11 +87,22 @@ func assignable(sch cue.Value, T interface{}) error {
 	var check, checkstruct, checklist, checkscalar checkfn
 
 	check = func(gval, sval cue.Value, p cue.Path) {
-		// At least for now, we have to deal with these unhelpful *null
-		// appearing in the encoding of pointer types.
-		gval = stripLeadNull(gval)
-
 		sk, gk := sval.IncompleteKind(), gval.IncompleteKind()
+		schemaHadNull, goHadNull := sk&cue.NullKind != 0, gk&cue.NullKind != 0
+		sk &^= cue.NullKind
+		gk &^= cue.NullKind
+
+		ogval := gval
+		if goHadNull {
+			// At least for now, we have to deal with these unhelpful *null
+			// appearing in the encoding of pointer types.
+			//
+			// We can't do the same for the schema side, because this null stripper
+			// relies on the fact that all actual Go type declarations will come across
+			// as a single value, without any disjunctions.
+			gval = stripLeadNull(gval)
+		}
+
 		// strict equality _might_ be too restrictive? But it's better to start there
 		if sk != gk && gk != cue.TopKind {
 			errs[p.String()] = fmt.Errorf("%s: is kind %s in schema, but kind %s in Go type", p, sk, gk)
@@ -104,10 +115,12 @@ func assignable(sch cue.Value, T interface{}) error {
 		switch sk {
 		case cue.ListKind:
 			checklist(gval, sval, p)
-		case cue.FloatKind, cue.IntKind, cue.StringKind, cue.BytesKind, cue.BoolKind:
-			checkscalar(gval, sval, p)
-		case cue.NumberKind:
-			checkscalar(gval, sval, p)
+		case cue.FloatKind, cue.IntKind, cue.StringKind, cue.BytesKind, cue.BoolKind, cue.NumberKind:
+			if schemaHadNull {
+				checkscalar(ogval, sval, p)
+			} else {
+				checkscalar(gval, sval, p)
+			}
 		case cue.StructKind:
 			checkstruct(gval, sval, p)
 		case cue.NullKind:
@@ -270,7 +283,7 @@ func assignable(sch cue.Value, T interface{}) error {
 func stripLeadNull(v cue.Value) cue.Value {
 	if op, vals := v.Expr(); op == cue.OrOp {
 		// Walk over the vals, because there may be more than one null (e.g. omitempty +
-		// slice/map type)
+		// slice/map type).
 		for i := 0; i < len(vals); i++ {
 			if vals[i].Null() != nil {
 				return vals[i]

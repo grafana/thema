@@ -352,6 +352,22 @@ func TestAssignable(t *testing.T) {
 			}
 			`, strconv.IntSize, strconv.IntSize),
 		},
+		"or-null": {
+			T: &struct {
+				Both   *string `json:"both,omitempty"`
+				NoOmit *string `json:"noOmit"`
+				// This case is the ugly ambiguous one - is the user saying that an empty string
+				// should be serialized as an absent field, but a nil pointer be serialized as
+				// null? WAAAAAAAT
+				Optional *string `json:"optional"`
+			}{},
+			cue: `typ: {
+				both: string | null
+				noOmit: string | null
+				optional?: string | null
+			}
+			`,
+		},
 	}
 
 	for name, tst := range tt {
