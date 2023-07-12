@@ -7,6 +7,7 @@ import (
 	cerrors "cuelang.org/go/cue/errors"
 	"cuelang.org/go/pkg/encoding/json"
 	"github.com/cockroachdb/errors"
+
 	terrors "github.com/grafana/thema/errors"
 )
 
@@ -97,14 +98,14 @@ func (i *Instance) Dehydrate() *Instance {
 
 // AsSuccessor translates the instance into the form specified by the successor
 // schema.
-func (i *Instance) AsSuccessor() (*Instance, TranslationLacunas) {
+func (i *Instance) AsSuccessor() (*Instance, TranslationLacunas, error) {
 	i.check()
 	return i.Translate(i.sch.Successor().Version())
 }
 
 // AsPredecessor translates the instance into the form specified by the predecessor
 // schema.
-func (i *Instance) AsPredecessor() (*Instance, TranslationLacunas) {
+func (i *Instance) AsPredecessor() (*Instance, TranslationLacunas, error) {
 	i.check()
 	return i.Translate(i.sch.Predecessor().Version())
 }
@@ -170,22 +171,7 @@ func (inst *TypedInstance[T]) ValueP() T {
 	return t
 }
 
-// Translate is [Instance.TranslateErr], but panics if an error is encountered.
-//
-// Errors can only occur in Translate if lenses are not written correctly.
-// Eventually, it is hoped that all possible error cases on lenses will be
-// determinable statically, and turned into lineage validity errors that are
-// caught by [BindLineage]. If that goal is reached, this function will never
-// panic, and [Instance.TranslateErr] will be deprecated.
-func (i *Instance) Translate(to SyntacticVersion) (*Instance, TranslationLacunas) {
-	inst, lac, err := i.TranslateErr(to)
-	if err != nil {
-		panic(err)
-	}
-	return inst, lac
-}
-
-// TranslateErr transforms the provided [Instance] to an Instance of a different
+// Translate transforms the provided [Instance] to an Instance of a different
 // [Schema] from the same [Lineage]. A new *Instance is returned representing the
 // transformed value, along with any lacunas accumulated along the way.
 //
@@ -209,7 +195,7 @@ func (i *Instance) Translate(to SyntacticVersion) (*Instance, TranslationLacunas
 // Errors only occur in cases where lenses were written in an unexpected way -
 // for example, not all fields were mapped over, and the resulting object is not
 // concrete. All errors returned from this func will children of [terrors.ErrInvalidLens].
-func (i *Instance) TranslateErr(to SyntacticVersion) (*Instance, TranslationLacunas, error) {
+func (i *Instance) Translate(to SyntacticVersion) (*Instance, TranslationLacunas, error) {
 	i.check()
 
 	// TODO define this in terms of AsSuccessor and AsPredecessor, rather than those in terms of this.

@@ -67,7 +67,7 @@ var (
 )
 
 // Translation errors. These all occur as a result of an invalid lens. Currently
-// these may be returned from [thema.Instance.TranslateErr]. Eventually, it is
+// these may be returned from [thema.Instance.Translate]. Eventually, it is
 // hoped that they will be caught statically in [thema.BindLineage] and cannot
 // occur at runtime.
 var (

@@ -10,9 +10,10 @@ import (
 	"path/filepath"
 
 	"cuelang.org/go/cue"
+	"github.com/spf13/cobra"
+
 	"github.com/grafana/thema"
 	"github.com/grafana/thema/vmux"
-	"github.com/spf13/cobra"
 )
 
 type dataCommand struct {
@@ -180,8 +181,11 @@ func (dc *dataCommand) runTranslate(cmd *cobra.Command, args []string) error {
 	}
 
 	// Prior validations checked that the schema version exists in the lineage
-	tinst, lac := inst.Translate(dc.lla.dl.sch.Version())
-	if err := dc.validateTranslationResult(tinst, lac); err != nil {
+	tinst, lac, err := inst.Translate(dc.lla.dl.sch.Version())
+	if err != nil {
+		return err
+	}
+	if err = dc.validateTranslationResult(tinst, lac); err != nil {
 		return err
 	}
 

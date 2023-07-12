@@ -48,7 +48,11 @@ func NewTypedMux[T thema.Assignee](sch thema.TypedSchema[T], dec Decoder) TypedM
 			}
 
 			if inst, ierr := isch.Validate(v); ierr == nil {
-				trinst, lac := inst.Translate(sch.Version())
+				trinst, lac, err := inst.Translate(sch.Version())
+				if err != nil {
+
+				}
+				// TODO perf: introduce a typed translator to avoid wastefully re-binding the go type every time
 				tinst, err := thema.BindInstanceType(trinst, sch)
 				if err != nil {
 					panic(fmt.Errorf("unreachable, instance type should always be bindable: %w", err))

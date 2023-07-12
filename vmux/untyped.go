@@ -48,8 +48,7 @@ func NewUntypedMux(sch thema.Schema, dec Decoder) UntypedMux {
 			}
 
 			if inst, ierr := isch.Validate(v); ierr == nil {
-				trinst, lac := inst.Translate(sch.Version())
-				return trinst, lac, nil
+				return inst.Translate(sch.Version())
 			}
 		}
 
