@@ -22,14 +22,14 @@ schemas: [
 		version: [0, 0]
 		schema:
 		{
-			title: string
+			title: int64
 		},
 	},
 	{
 		version: [0, 1]
 		schema:
 		{
-			title: string
+			title: int64
 			header?: string
 		},
 	},
@@ -38,7 +38,7 @@ schemas: [
 	lin, err := thema.BindLineage(linval, rt)
 	require.NoError(t, err)
 
-	data, err := decodeData(`{"header": "hello"}`)
+	data, err := decodeData(`{"title": null}`)
 	if err != nil {
 		t.Fatal(err)
 	}
