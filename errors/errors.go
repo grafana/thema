@@ -35,17 +35,17 @@ type ValidationError struct {
 
 // Unwrap implements standard Go error unwrapping, relied on by errors.Is.
 //
-// All ValidationErrors wrap the general ErrNotAnInstance sentinel error.
+// All ValidationErrors wrap the general ErrInvalidData sentinel error.
 func (ve *ValidationError) Unwrap() error {
-	return ErrNotAnInstance
+	return ErrInvalidData
 }
 
 // Validation error codes/types
 var (
-	// ErrNotAnInstance is the general error that indicates some data failed validation
+	// ErrInvalidData is the general error that indicates some data failed validation
 	// against a Thema schema. Use it with errors.Is() to differentiate validation errors
 	// from other classes of failure.
-	ErrNotAnInstance = errors.New("data not a valid instance of schema")
+	ErrInvalidData = errors.New("data not a valid instance of schema")
 
 	// ErrInvalidExcessField indicates a validation failure in which the schema is
 	// treated as closed, and the data contains a field not specified in the schema.
@@ -64,6 +64,27 @@ var (
 	// schema have the same (or subsuming) kinds, but the data is out of
 	// schema-defined bounds. Example: data: 4; schema: int & <3
 	ErrInvalidOutOfBounds = errors.New("data is out of schema bounds")
+)
+
+// Translation errors. These all occur as a result of an invalid lens. Currently
+// these may be returned from [thema.Instance.Translate]. Eventually, it is
+// hoped that they will be caught statically in [thema.BindLineage] and cannot
+// occur at runtime.
+var (
+	// ErrInvalidLens indicates that a lens is not correctly written. It is the parent
+	// to all other lens and translation errors, and is a child of ErrInvalidLineage.
+	ErrInvalidLens = errors.New("lens is invalid")
+
+	// ErrLensIncomplete indicates that translating some valid data through
+	// a lens produced a non-concrete result. This always indicates a problem with the
+	// lens as it is written, and as such is a child of ErrInvalidLens.
+	ErrLensIncomplete = errors.New("result of lens translation is not concrete")
+
+	// ErrLensResultIsInvalidData indicates that translating some valid data through a
+	// lens produced a result that was not an instance of the target schema. This
+	// always indicates a problem with the lens as it is written, and as such is a
+	// child of ErrInvalidLens.
+	ErrLensResultIsInvalidData = errors.New("result of lens translation is not valid for target schema")
 )
 
 // Lower level general errors

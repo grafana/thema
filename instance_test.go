@@ -35,7 +35,8 @@ func TestInstance_Translate(t *testing.T) {
 		for from := lin.First(); from != nil; from = from.Successor() {
 			for _, example := range from.Examples() {
 				for to := lin.First(); to != nil; to = to.Successor() {
-					tinst, lacunas := example.Translate(to.Version())
+					tinst, lacunas, err := example.Translate(to.Version())
+					require.NoError(t, err)
 					require.NotNil(t, tinst)
 
 					result := tinst.Underlying()
@@ -127,7 +128,8 @@ schemas: [
 	require.Equal(t, expected, got)
 
 	// Translate cue.Value (no lacunas)
-	tinst, _ := inst.Translate(SV(0, 1))
+	tinst, _, err := inst.Translate(SV(0, 1))
+	require.NoError(t, err)
 	require.Equal(t, SV(0, 0), inst.Schema().Version())
 
 	got, err = tinst.Underlying().LookupPath(cue.ParsePath("title")).String()

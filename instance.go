@@ -4,7 +4,11 @@ import (
 	"fmt"
 
 	"cuelang.org/go/cue"
-	"cuelang.org/go/cue/errors"
+	cerrors "cuelang.org/go/cue/errors"
+	"cuelang.org/go/pkg/encoding/json"
+	"github.com/cockroachdb/errors"
+
+	terrors "github.com/grafana/thema/errors"
 )
 
 // BindInstanceType produces a TypedInstance, given an Instance and a
@@ -94,14 +98,14 @@ func (i *Instance) Dehydrate() *Instance {
 
 // AsSuccessor translates the instance into the form specified by the successor
 // schema.
-func (i *Instance) AsSuccessor() (*Instance, TranslationLacunas) {
+func (i *Instance) AsSuccessor() (*Instance, TranslationLacunas, error) {
 	i.check()
 	return i.Translate(i.sch.Successor().Version())
 }
 
 // AsPredecessor translates the instance into the form specified by the predecessor
 // schema.
-func (i *Instance) AsPredecessor() (*Instance, TranslationLacunas) {
+func (i *Instance) AsPredecessor() (*Instance, TranslationLacunas, error) {
 	i.check()
 	return i.Translate(i.sch.Predecessor().Version())
 }
@@ -187,7 +191,11 @@ func (inst *TypedInstance[T]) ValueP() T {
 // result in the exact original data. Input state preservation can be fully
 // achieved in the program depending on Thema, so we avoid introducing
 // complexity into Thema that is not essential for all use cases.
-func (i *Instance) Translate(to SyntacticVersion) (*Instance, TranslationLacunas) {
+//
+// Errors only occur in cases where lenses were written in an unexpected way -
+// for example, not all fields were mapped over, and the resulting object is not
+// concrete. All errors returned from this func will children of [terrors.ErrInvalidLens].
+func (i *Instance) Translate(to SyntacticVersion) (*Instance, TranslationLacunas, error) {
 	i.check()
 
 	// TODO define this in terms of AsSuccessor and AsPredecessor, rather than those in terms of this.
@@ -208,22 +216,28 @@ func (i *Instance) Translate(to SyntacticVersion) (*Instance, TranslationLacunas
 	}
 
 	if out.Err() != nil {
-		panic(errors.Details(out.Err(), nil))
+		return nil, nil, errors.Mark(out.Err(), terrors.ErrInvalidLens)
 	}
 
 	lac := make(multiTranslationLacunas, 0)
 	out.LookupPath(cue.MakePath(cue.Str("lacunas"))).Decode(&lac)
 
-	// Attempt to evaluate #Translate result into a concrete cue.Value, if possible.
+	// Attempt to evaluate #Translate result to remove intermediate structures created by #Translate.
 	// Otherwise, all the #Translate results are non-concrete, which leads to undesired effects.
 	raw, _ := out.LookupPath(cue.MakePath(cue.Str("result"), cue.Str("result"))).Default()
 
-	return &Instance{
-		valid: true,
-		raw:   raw,
-		name:  i.name,
-		sch:   newsch,
-	}, lac
+	// Check that the result is concrete by trying to marshal/export it as JSON
+	_, err = json.Marshal(raw)
+	if err != nil {
+		return nil, nil, errors.Mark(fmt.Errorf("lens produced a non-concrete result: %s", cerrors.Details(err, nil)), terrors.ErrLensIncomplete)
+	}
+
+	// Ensure the result is a valid instance of the target schema
+	inst, err := newsch.Validate(raw)
+	if err != nil {
+		return nil, nil, errors.Mark(err, terrors.ErrLensResultIsInvalidData)
+	}
+	return inst, lac, err
 }
 
 type multiTranslationLacunas []struct {
@@ -239,7 +253,3 @@ func (lac multiTranslationLacunas) AsList() []Lacuna {
 	}
 	return l
 }
-
-// func TranslateComposed(lin ComposedLineage) {
-
-// }
