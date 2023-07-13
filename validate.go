@@ -170,7 +170,7 @@ func mungeValidateErr(err error, sch Schema) error {
 				break
 			}
 
-			if schkind == cue.IntKind || schkind == cue.FloatKind || schkind == cue.NumberKind {
+			if schkind&cue.NumberKind > 0 {
 				if m, ok := schErrMsgFormatMap[schval]; ok {
 					schval = m
 				}
