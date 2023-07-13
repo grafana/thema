@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"io/fs"
-	"os"
 	"path"
 	"path/filepath"
 	"strings"
@@ -22,8 +21,7 @@ type Benchmark struct {
 
 	Archive *txtar.Archive
 
-	// The absolute path of the current test directory.
-	Dir string
+	ThemaFS fs.FS
 
 	prefix   string
 	buf      *bytes.Buffer // the default buffer
@@ -98,7 +96,7 @@ func (b *Benchmark) Instances(args ...string) []*build.Instance {
 // RawInstances returns the instances represented by this .txtar file. The
 // returned instances are not checked for errors.
 func (b *Benchmark) RawInstances(args ...string) []*build.Instance {
-	return LoadVanilla(b.Archive, b.Dir, args...)
+	return LoadVanilla(b.ThemaFS, b.Archive, args...)
 }
 
 // RunBenchmark runs a benchmark on inputs defined in txtar files in x.Root or its subdirectories.
@@ -107,14 +105,7 @@ func (b *Benchmark) RawInstances(args ...string) []*build.Instance {
 func (x *TxTarTest) RunBenchmark(b *testing.B, f func(bc *Benchmark)) {
 	b.Helper()
 
-	dir, err := os.Getwd()
-	if err != nil {
-		b.Fatal(err)
-	}
-
-	root := x.Root
-
-	err = filepath.WalkDir(root, func(fullpath string, entry fs.DirEntry, err error) error {
+	err := filepath.WalkDir(x.Root, func(fullpath string, entry fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -135,7 +126,7 @@ func (x *TxTarTest) RunBenchmark(b *testing.B, f func(bc *Benchmark)) {
 			bc := &Benchmark{
 				B:       b,
 				Archive: a,
-				Dir:     filepath.Dir(filepath.Join(dir, fullpath)),
+				ThemaFS: x.ThemaFS,
 				prefix:  path.Join("out", x.Name),
 			}
 

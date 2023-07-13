@@ -15,8 +15,9 @@ import (
 
 func TestBindLineage(t *testing.T) {
 	test := vanilla.TxTarTest{
-		Root: "./testdata/lineage",
-		Name: "bind",
+		Root:    "./testdata/lineage",
+		Name:    "bind",
+		ThemaFS: CueJointFS,
 		ToDo: map[string]string{
 			"lineage/defaultchange": "Thema compat analyzer fails to classify changes to default values as breaking",
 			"lineage/optional":      "Optional fields do not satisfy struct.MinFields(), causing #Lineage constraints to fail",
@@ -59,8 +60,9 @@ func TestBindLineage(t *testing.T) {
 
 func TestInvalidLineages(t *testing.T) {
 	test := vanilla.TxTarTest{
-		Root: "./testdata/invalidlineage",
-		Name: "bindfail",
+		Root:    "./testdata/invalidlineage",
+		Name:    "bindfail",
+		ThemaFS: CueJointFS,
 		ToDo: map[string]string{
 			"invalidlineage/joindef":                "no invariant checker written to disallow definitions from joinSchema",
 			"invalidlineage/onlydef":                "Lineage schema non-emptiness constraints are temporarily suspended while migrating grafana to flattened lineage structure",
@@ -89,8 +91,9 @@ func TestInvalidLineages(t *testing.T) {
 
 func TestIsAppendOnly(t *testing.T) {
 	test := vanilla.TxTarTest{
-		Root: "./testdata/isappendonly/valid",
-		Name: "isappendonly",
+		Root:    "./testdata/isappendonly/valid",
+		Name:    "isappendonly",
+		ThemaFS: CueJointFS,
 		ToDo: map[string]string{
 			"isappendonly/valid/withconstraints": "Subsume doesn't support constraints using built-in validators",
 			"isappendonly/valid/disjunction":     "Subsume requires the Final() option to consider two complex disjunctions as equal but this creates false negatives",
@@ -125,8 +128,9 @@ func TestIsAppendOnly(t *testing.T) {
 
 func TestIsAppendOnlyFail(t *testing.T) {
 	test := vanilla.TxTarTest{
-		Root: "./testdata/isappendonly/invalid",
-		Name: "isappendonly-fail",
+		Root:    "./testdata/isappendonly/invalid",
+		Name:    "isappendonly-fail",
+		ThemaFS: CueJointFS,
 	}
 
 	ctx := cuecontext.New()

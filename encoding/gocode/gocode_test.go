@@ -16,8 +16,9 @@ import (
 
 func TestGenerate(t *testing.T) {
 	test := vanilla.TxTarTest{
-		Root: "../../testdata/lineage",
-		Name: "encoding/gocode/TestGenerate",
+		Root:    "../../testdata/lineage",
+		Name:    "encoding/gocode/TestGenerate",
+		ThemaFS: thema.CueJointFS,
 		ToDo: map[string]string{
 			"lineage/defaultchange": "default backcompat invariants not working properly yet",
 			"lineage/optional":      "Optional fields do not satisfy struct.MinFields(), causing #Lineage constraints to fail",

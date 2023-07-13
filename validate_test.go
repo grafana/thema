@@ -1,133 +1,71 @@
-package thema_test
+package thema
 
 import (
 	"errors"
 	"fmt"
+	"path/filepath"
 	"testing"
 
 	"cuelang.org/go/cue"
 	"cuelang.org/go/cue/cuecontext"
-	"github.com/grafana/thema"
-	"github.com/grafana/thema/vmux"
-	"github.com/stretchr/testify/assert"
+	cjson "cuelang.org/go/encoding/json"
+	"cuelang.org/go/pkg/strings"
+	"github.com/grafana/thema/internal/txtartest/vanilla"
 	"github.com/stretchr/testify/require"
 )
 
-var ctx = cuecontext.New()
-var rt = thema.NewRuntime(ctx)
-
-func TestBasicValidate(t *testing.T) {
-	linstrs := []struct {
-		name   string
-		linstr string
-	}{{
-		name: "int32",
-		linstr: `name: "simple"
-schemas: [
-	{
-		version: [0, 0]
-		schema:
-		{
-			title: int32
-			header?: string
-		},
-	},
-]`,
-	}, {
-		name: "int64",
-		linstr: `name: "simple"
-schemas: [
-	{
-		version: [0, 0]
-		schema:
-		{
-			title: int64
-			header?: string
-		},
-	},
-]`},
-		{
-			name: "float32",
-			linstr: `name: "simple"
-schemas: [
-	{
-		version: [0, 0]
-		schema:
-		{
-			title: float32
-			header?: string
-		},
-	},
-]`,
-		}, {
-			name: "float64",
-			linstr: `name: "simple"
-schemas: [
-	{
-		version: [0, 0]
-		schema:
-		{
-			title: float64
-			header?: string
-		},
-	},
-]`}, {
-			name: "custom range",
-			linstr: `name: "simple"
-schemas: [
-	{
-		version: [0, 0]
-		schema:
-		{
-			title: int32 & > 10 & < 20
-			header?: string
-		},
-	},
-]`}, {
-			name: "disjunction",
-			linstr: `name: "simple"
-schemas: [
-	{
-		version: [0, 0]
-		schema:
-		{
-			title: float64 | null
-			header?: string
-		},
-	},
-]`,
-		}}
-
-	for _, tc := range linstrs {
-		t.Run(tc.name, func(t *testing.T) {
-			linval := rt.Context().CompileString(tc.linstr)
-			lin, err := thema.BindLineage(linval, rt)
-			require.NoError(t, err)
-
-			data, err := decodeData(`{"title": "null"}`)
-			if err != nil {
-				require.NoError(t, err)
-			}
-
-			latest := lin.Latest()
-
-			_, err = latest.Validate(data)
-			if err != nil {
-				assert.NoError(t, err)
-			}
-		})
+// Validation-related test cases look for `*.data.json` files within
+// the txtar archives, describing input data to validate against the lineage.
+// The expected results are described in a file matching the input file.
+// Example:
+// * data file name: `firstfieldAsInt32.data.json`
+// * result file name: `firstfieldAsInt32`
+func TestValidate(t *testing.T) {
+	test := vanilla.TxTarTest{
+		Root:    "./testdata/lineage",
+		Name:    "validate/TestValidate",
+		ThemaFS: CueJointFS,
 	}
+
+	ctx := cuecontext.New()
+	rt := NewRuntime(ctx)
+
+	test.Run(t, func(tc *vanilla.Test) {
+		req := require.New(tc)
+
+		val := ctx.BuildInstance(tc.Instance())
+		lineage, err := BindLineage(val, rt)
+		req.NoError(err)
+
+		for _, file := range tc.Archive.Files {
+			if !strings.HasSuffix(file.Name, ".data.json") {
+				continue
+			}
+
+			data, err := decodeData(rt, string(file.Data))
+			req.NoError(err)
+
+			_, err = lineage.Latest().Validate(data)
+			req.Error(err, "The data shouldn't be valid for the schema")
+
+			outputFileName := filepath.Base(strings.TrimRight(file.Name, ".data.json"))
+
+			_, err = tc.Writer(outputFileName).Write([]byte(err.Error()))
+			req.NoError(err)
+		}
+	})
 }
 
-func decodeData(inputJSON string) (cue.Value, error) {
+func decodeData(rt *Runtime, inputJSON string) (cue.Value, error) {
 	if inputJSON == "" {
 		return cue.Value{}, errors.New("test error - data is missing")
 	}
 
-	jd := vmux.NewJSONCodec("test")
-	datval, err := jd.Decode(rt.Underlying().Context(), []byte(inputJSON))
+	ctx := rt.Underlying().Context()
+	expr, err := cjson.Extract("test", []byte(inputJSON))
 	if err != nil {
 		return cue.Value{}, fmt.Errorf("test error - failed to decode input data: %w", err)
 	}
-	return datval, nil
+
+	return ctx.BuildExpr(expr), nil
 }

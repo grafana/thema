@@ -1,13 +1,12 @@
 # a schema containing various different combinations of map-ish structures
 
-#lineagePath: lin
 #subpath
 -- in.cue --
 import "github.com/grafana/thema"
 
-lin: thema.#Lineage
-lin: name: "maps"
-lin: schemas: [{
+thema.#Lineage
+name: "maps"
+schemas: [{
 	version: [0, 0]
 	schema: {
 		valPrimitive: [string]: bool
@@ -20,7 +19,7 @@ lin: schemas: [{
 		someField: aMap
 	}
 }]
-lin: lenses: []
+lenses: []
 
 aMap: [string]: bool
 aStruct: foo:   string

@@ -1,12 +1,11 @@
 # lineage containing two trivial schemas
-#lineagePath: lin
 -- in.cue --
 
 import "github.com/grafana/thema"
 
-lin: thema.#Lineage
-lin: name: "trivial-two"
-lin: schemas: [{
+thema.#Lineage
+name: "trivial-two"
+schemas: [{
     version: [0, 0]
     schema: {
         firstfield: string
@@ -20,7 +19,7 @@ lin: schemas: [{
     }
 }]
 
-lin: lenses: [{
+lenses: [{
     from: [0, 1]
     to: [0, 0]
     input: _
@@ -28,6 +27,26 @@ lin: lenses: [{
         firstfield: input.firstfield
     }
 }]
+-- in/validate/TestValidate/firstfieldAsInt32.data.json --
+{
+    "firstfield": 42
+}
+-- out/validate/TestValidate/firstfieldAsInt32 --
+<trivial-two@v0.1>.firstfield: validation failed, data is not an instance:
+	schema expected `string`
+		/in.cue:15:21
+	but data contained `42`
+		test:2:19
+-- out/validate/TestValidate/secondfieldAsString --
+<trivial-two@v0.1>.secondfield: validation failed, data is not an instance:
+	schema expected `"foo"`
+		test:2:20
+	but data contained `int & >=-2147483648 & <=2147483647`
+		/cue.mod/pkg/github.com/grafana/thema/lineage.cue:234:20
+-- in/validate/TestValidate/secondfieldAsString.data.json --
+{
+    "secondfield": "foo"
+}
 -- out/encoding/openapi/TestGenerate/nilcfg --
 == 0.0.json
 {

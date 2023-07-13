@@ -1,12 +1,11 @@
 # lineage containing two trivial schemas
-#lineagePath: lin
 -- in.cue --
 
 import "github.com/grafana/thema"
 
-lin: thema.#Lineage
-lin: name: "trivial-two-comments"
-lin: schemas: [{
+thema.#Lineage
+name: "trivial-two-comments"
+schemas: [{
     version: [0, 0]
 
     // This should be schema/object-level docs
@@ -26,7 +25,7 @@ lin: schemas: [{
     }
 }]
 
-lin: lenses: [{
+lenses: [{
     from: [0, 1]
     to: [0, 0]
     input: _

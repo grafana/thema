@@ -17,8 +17,9 @@ import (
 
 func TestInstance_Translate(t *testing.T) {
 	test := vanilla.TxTarTest{
-		Root: "./testdata/lineage",
-		Name: "core/instance/translate",
+		Root:    "./testdata/lineage",
+		Name:    "core/instance/translate",
+		ThemaFS: CueJointFS,
 	}
 
 	ctx := cuecontext.New()
@@ -139,8 +140,9 @@ schemas: [
 
 func BenchmarkBasicTranslate(b *testing.B) {
 	test := vanilla.TxTarTest{
-		Root: "./testdata/lineage",
-		Name: "core/instance/translate",
+		Root:    "./testdata/lineage",
+		Name:    "core/instance/translate",
+		ThemaFS: CueJointFS,
 	}
 
 	ctx := cuecontext.New()
