@@ -69,6 +69,10 @@ func (ml *maybeLineage) checkGoValidity(cfg *bindConfig) error {
 			panic(fmt.Sprintf("unreachable - could not decode syntactic version: %+v", err))
 		}
 
+		if err := ml.checkSchemasOrder(previous, sch); err != nil {
+			return err
+		}
+
 		sch.ref = schiter.Value()
 		sch.def = sch.ref.LookupPath(pathSchDef)
 		if previous != nil && !cfg.skipbuggychecks {
@@ -86,6 +90,18 @@ func (ml *maybeLineage) checkGoValidity(cfg *bindConfig) error {
 		ml.schlist = append(ml.schlist, sch)
 		ml.allv = append(ml.allv, sch.v)
 		previous = sch
+	}
+
+	return nil
+}
+
+func (ml *maybeLineage) checkSchemasOrder(prev, curr *schemaDef) error {
+	if prev == nil {
+		return nil
+	}
+
+	if curr.v.Less(prev.v) {
+		return errors.Mark(mkerror(curr.ref.LookupPath(pathSch), "schema version %s is not greater than previous schema version %s", curr.v, prev.v), terrors.ErrInvalidSchemasOrder)
 	}
 
 	return nil
@@ -148,4 +164,83 @@ func (ml *maybeLineage) checkNativeValidity(cfg *bindConfig) error {
 	}
 
 	return nil
+}
+
+func (ml *maybeLineage) checkLensesOrder() error {
+	lensIter, err := ml.uni.LookupPath(cue.MakePath(cue.Str("lenses"))).List()
+	if err != nil {
+		return nil // no lenses found
+	}
+
+	var previous *lensVersionDef
+	for lensIter.Next() {
+		curr, err := newLensVersionDef(lensIter.Value())
+		if err != nil {
+			return err
+		}
+
+		if err := checkLensesOrder(previous, &curr); err != nil {
+			return err
+		}
+
+		previous = &curr
+	}
+
+	return nil
+}
+
+type lensVersionDef struct {
+	to   SyntacticVersion
+	from SyntacticVersion
+}
+
+func newLensVersionDef(val cue.Value) (lensVersionDef, error) {
+	v := lensVersionDef{}
+	to, err := v.version(val, "to")
+	if err != nil {
+		return lensVersionDef{}, err
+	}
+
+	from, err := v.version(val, "from")
+	if err != nil {
+		return lensVersionDef{}, err
+	}
+
+	return lensVersionDef{to: to, from: from}, err
+}
+
+func checkLensesOrder(prev, curr *lensVersionDef) error {
+	if prev == nil {
+		return nil
+	}
+
+	if curr == nil {
+		return nil
+	}
+
+	if curr.to.Less(prev.to) {
+		return errors.Mark(
+			errors.Errorf("lens version [to: %s, from: %s] is not greater than previous lens version [to: %s, from: %s]", curr.to, curr.from, prev.to, prev.from),
+			terrors.ErrInvalidLensesOrder)
+	}
+
+	if prev.to == curr.to && curr.from.Less(prev.from) {
+		return errors.Mark(
+			errors.Errorf("lens version [to: %s, from: %s] is not greater than previous lens version [to: %s, from: %s]", curr.to, curr.from, prev.to, prev.from),
+			terrors.ErrInvalidLensesOrder)
+	}
+
+	return nil
+}
+
+func (lensVersionDef) version(val cue.Value, p string) (SyntacticVersion, error) {
+	vPath := cue.MakePath(cue.Str(p))
+	vval := val.Value().LookupPath(vPath)
+
+	v := SyntacticVersion{}
+	if err := vval.Value().Decode(&v); err != nil {
+		return v, errors.Mark(mkerror(val, fmt.Sprintf("failed to decode lens version %s from: %s", vval, val)), terrors.ErrInvalidLineage)
+	}
+
+	return v, nil
 }

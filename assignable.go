@@ -87,28 +87,44 @@ func assignable(sch cue.Value, T interface{}) error {
 	var check, checkstruct, checklist, checkscalar checkfn
 
 	check = func(gval, sval cue.Value, p cue.Path) {
+		sk, gk := sval.IncompleteKind(), gval.IncompleteKind()
+		schemaHadNull := sk&cue.NullKind != 0
+		sk &^= cue.NullKind
+		gk &^= cue.NullKind
+
+		ogval := gval
 		// At least for now, we have to deal with these unhelpful *null
 		// appearing in the encoding of pointer types.
+		//
+		// We can't do the same for the schema side, because this null stripper
+		// relies on the fact that all actual Go type declarations will come across
+		// as a single value, without any disjunctions.
 		gval = stripLeadNull(gval)
 
-		sk, gk := sval.IncompleteKind(), gval.IncompleteKind()
 		// strict equality _might_ be too restrictive? But it's better to start there
-		if sk != gk && gk != cue.TopKind {
+		if sk != gk && gk != (cue.TopKind^cue.NullKind) {
 			errs[p.String()] = fmt.Errorf("%s: is kind %s in schema, but kind %s in Go type", p, sk, gk)
 			return
-		} else if gk == cue.TopKind {
+		} else if gk == (cue.TopKind ^ cue.NullKind) {
 			// Escape hatch for a Go interface{}/any
 			return
 		}
+		op, _ := sval.Expr()
 
 		switch sk {
 		case cue.ListKind:
 			checklist(gval, sval, p)
-		case cue.FloatKind, cue.IntKind, cue.StringKind, cue.BytesKind, cue.BoolKind:
-			checkscalar(gval, sval, p)
-		case cue.NumberKind:
-			checkscalar(gval, sval, p)
+		case cue.FloatKind, cue.IntKind, cue.StringKind, cue.BytesKind, cue.BoolKind, cue.NumberKind:
+			if schemaHadNull {
+				checkscalar(ogval, sval, p)
+			} else {
+				checkscalar(gval, sval, p)
+			}
 		case cue.StructKind:
+			if op == cue.OrOp {
+				errs[p.String()] = fmt.Errorf("%s: contains disjunction over struct types, but Go type is not any", p)
+				return
+			}
 			checkstruct(gval, sval, p)
 		case cue.NullKind:
 			errs[p.String()] = fmt.Errorf("%s: null is not permitted in schema; express optionality with ?", p)
@@ -270,7 +286,7 @@ func assignable(sch cue.Value, T interface{}) error {
 func stripLeadNull(v cue.Value) cue.Value {
 	if op, vals := v.Expr(); op == cue.OrOp {
 		// Walk over the vals, because there may be more than one null (e.g. omitempty +
-		// slice/map type)
+		// slice/map type).
 		for i := 0; i < len(vals); i++ {
 			if vals[i].Null() != nil {
 				return vals[i]

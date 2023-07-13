@@ -6,6 +6,7 @@ import (
 
 	"cuelang.org/go/cue/cuecontext"
 	copenapi "cuelang.org/go/encoding/openapi"
+
 	"github.com/grafana/thema"
 	"github.com/grafana/thema/encoding/openapi"
 	"github.com/grafana/thema/internal/txtartest/bindlin"

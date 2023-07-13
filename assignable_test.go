@@ -47,6 +47,33 @@ func TestAssignable(t *testing.T) {
 			}
 			`,
 		},
+		"any": {
+			T: &struct {
+				AString any `json:"aString"`
+				AnInt   any `json:"anInt"`
+			}{},
+			cue: `typ: {
+				aString: string
+				anInt: int32
+			}
+			`,
+		},
+		"not-any-union": {
+			T: &struct {
+				Hopeful struct {
+					AString any `json:"aString"`
+				} `json:"hopeful"`
+			}{},
+			cue: `typ: {
+				hopeful: {
+					aString: string
+				} | {
+					anInt: int32
+				}
+			}
+			`,
+			invalid: true,
+		},
 		"stringEnumNoPointer": {
 			T: struct {
 				Foo string `json:"foo"`
@@ -351,6 +378,22 @@ func TestAssignable(t *testing.T) {
 				intField: int%v
 			}
 			`, strconv.IntSize, strconv.IntSize),
+		},
+		"or-null": {
+			T: &struct {
+				Both   *string `json:"both,omitempty"`
+				NoOmit *string `json:"noOmit"`
+				// This case is the ugly ambiguous one - is the user saying that an empty string
+				// should be serialized as an absent field, but a nil pointer be serialized as
+				// null? WAAAAAAAT
+				Optional *string `json:"optional"`
+			}{},
+			cue: `typ: {
+				both: string | null
+				noOmit: string | null
+				optional?: string | null
+			}
+			`,
 		},
 	}
 

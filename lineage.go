@@ -124,6 +124,9 @@ func BindLineage(v cue.Value, rt *Runtime, opts ...BindOption) (Lineage, error) 
 	if err := ml.checkGoValidity(cfg); err != nil {
 		return nil, err
 	}
+	if err := ml.checkLensesOrder(); err != nil {
+		return nil, err
+	}
 
 	// previously verified that this value is concrete
 	nam, _ := orig.LookupPath(cue.MakePath(cue.Str("name"))).String()
