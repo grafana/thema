@@ -13,8 +13,29 @@ schemas: [{
         someInt64: int64
         someFloat32: float32
         someFloat64: float64
+        intWithBounds: int & >=0 & <10
     }
 }]
+-- in/validate/TestValidate/outOfBoundsLowerInt.data.json --
+{
+    "intWithBounds": -1
+}
+-- out/validate/TestValidate/outOfBoundsLowerInt --
+<scalar-fields@v0.0>.intWithBounds: validation failed, data is not an instance:
+	schema expected `>=0`
+		test:2:22
+	but data contained `-1`
+		/in.cue:14:30
+-- in/validate/TestValidate/outOfBoundsUpperInt.data.json --
+{
+    "intWithBounds": 12
+}
+-- out/validate/TestValidate/outOfBoundsUpperInt --
+<scalar-fields@v0.0>.intWithBounds: validation failed, data is not an instance:
+	schema expected `<10`
+		test:2:22
+	but data contained `12`
+		/in.cue:14:36
 -- in/validate/TestValidate/someInt32.data.json --
 {
     "someInt32": "not an int"
