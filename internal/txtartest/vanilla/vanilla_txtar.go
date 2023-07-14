@@ -36,7 +36,7 @@ import (
 	"cuelang.org/go/pkg/encoding/yaml"
 	"github.com/grafana/thema/internal/envvars"
 	"github.com/grafana/thema/internal/util"
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 	"golang.org/x/tools/txtar"
 )
 
@@ -444,7 +444,7 @@ func (x *TxTarTest) Run(t *testing.T, f func(tc *Test)) {
 					continue
 				}
 
-				require.Equal(t, string(gold.Data), string(result), "result for %s differs", sub.name)
+				assert.Equal(t, string(gold.Data), string(result), "result for %s differs", sub.name)
 			}
 
 			// Add remaining unrelated files, ignoring files that were already
