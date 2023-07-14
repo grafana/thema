@@ -17,11 +17,12 @@ import (
 	"github.com/dave/dst/decorator"
 	"github.com/dave/dst/dstutil"
 	"github.com/getkin/kin-openapi/openapi3"
+	"golang.org/x/tools/imports"
+
 	"github.com/grafana/thema"
 	"github.com/grafana/thema/encoding/openapi"
 	"github.com/grafana/thema/internal/deepmap/oapi-codegen/pkg/codegen"
 	"github.com/grafana/thema/internal/util"
-	"golang.org/x/tools/imports"
 )
 
 // All the parsed templates in the tmpl subdirectory
@@ -306,7 +307,7 @@ func GenerateLineageBinding(lin thema.Lineage, cfg *BindingConfig) ([]byte, erro
 		CueModName:          cfg.CueModName,
 		LoadDir:             cfg.LoadDir,
 		EmbedPath:           cfg.EmbedPath,
-		CUEPath:             cfg.CuePath.String(),
+		CUEPath:             fmt.Sprintf("%q", cfg.CuePath.String()),
 		BaseFactoryFuncName: "Lineage",
 		FactoryFuncName:     "Lineage",
 		IsConvergent:        cfg.Assignee != nil,
