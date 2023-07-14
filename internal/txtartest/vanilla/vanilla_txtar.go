@@ -34,8 +34,9 @@ import (
 	"cuelang.org/go/cue/load"
 	"cuelang.org/go/pkg/encoding/json"
 	"cuelang.org/go/pkg/encoding/yaml"
-	"github.com/google/go-cmp/cmp"
 	"github.com/grafana/thema/internal/envvars"
+	"github.com/grafana/thema/internal/util"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/tools/txtar"
 )
 
@@ -45,6 +46,8 @@ import (
 type TxTarTest struct {
 	// Run TxTarTest on this directory.
 	Root string
+
+	ThemaFS fs.FS
 
 	// Name is a unique name for this test. The golden file for this test is
 	// derived from the out/<name> file in the .txtar file.
@@ -95,6 +98,8 @@ type Test struct {
 	outFiles []file
 
 	Archive *txtar.Archive
+
+	ThemaFS fs.FS
 
 	// The absolute path of the current test directory.
 	Dir string
@@ -280,24 +285,31 @@ func formatVanillaNode(t *testing.T, n ast.Node) []byte {
 // RawInstances returns the instances represented by this .txtar file. The
 // returned instances are not checked for errors.
 func (t *Test) RawInstances(args ...string) []*build.Instance {
-	return LoadVanilla(t.Archive, t.Dir, args...)
+	return LoadVanilla(t.ThemaFS, t.Archive, args...)
 }
 
 // LoadVanilla loads the instances of a txtar file. By default, it only loads
-// files in the root directory. Relative files in the archive are given an
-// absolute location by prefixing it with dir.
-func LoadVanilla(a *txtar.Archive, dir string, args ...string) []*build.Instance {
+// files in the root directory.
+func LoadVanilla(themaFS fs.FS, a *txtar.Archive, args ...string) []*build.Instance {
+	vfsRootDir := "/"
+
 	auto := len(args) == 0
 	overlay := map[string]load.Source{}
 	for _, f := range a.Files {
 		if auto && !strings.Contains(f.Name, "/") {
 			args = append(args, f.Name)
 		}
-		overlay[filepath.Join(dir, f.Name)] = load.FromBytes(f.Data)
+		overlay[filepath.Join(vfsRootDir, f.Name)] = load.FromBytes(f.Data)
+	}
+
+	if err := util.ToOverlay(filepath.Join(vfsRootDir, "cue.mod/pkg/github.com/grafana/thema"), themaFS, overlay); err != nil {
+		// util.ToOverlay() explores a virtual filesystem and any error is extremely unlikely.
+		// Having a panic here is probably alright since this function is only used in tests.
+		panic(err)
 	}
 
 	cfg := &load.Config{
-		Dir:     dir,
+		Dir:     vfsRootDir,
 		Overlay: overlay,
 	}
 
@@ -316,9 +328,7 @@ func (x *TxTarTest) Run(t *testing.T, f func(tc *Test)) {
 		t.Fatal(err)
 	}
 
-	root := x.Root
-
-	err = filepath.WalkDir(root, func(fullpath string, entry fs.DirEntry, err error) error {
+	err = filepath.WalkDir(x.Root, func(fullpath string, entry fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -339,6 +349,7 @@ func (x *TxTarTest) Run(t *testing.T, f func(tc *Test)) {
 			tc := &Test{
 				T:       t,
 				Archive: a,
+				ThemaFS: x.ThemaFS,
 				Dir:     filepath.Dir(filepath.Join(dir, fullpath)),
 				prefix:  path.Join("out", x.Name),
 			}
@@ -433,9 +444,7 @@ func (x *TxTarTest) Run(t *testing.T, f func(tc *Test)) {
 					continue
 				}
 
-				t.Errorf("result for %s differs:\n%s",
-					sub.name,
-					cmp.Diff(string(gold.Data), string(result)))
+				require.Equal(t, string(gold.Data), string(result), "result for %s differs", sub.name)
 			}
 
 			// Add remaining unrelated files, ignoring files that were already

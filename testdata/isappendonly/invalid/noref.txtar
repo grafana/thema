@@ -34,7 +34,7 @@ lin2: schemas: [{
 }]
 -- out/isappendonly-fail --
 field #Baz not present in {someField:string,#Baz:{run:string,tell:bytes}}:
-    ../../../lineage.cue:223:10
-    ./in.cue:22:13
+    ../../../../../../../../cue.mod/pkg/github.com/grafana/thema/lineage.cue:223:10
+    ../../../../../../../../in.cue:22:13
 missing field "#Baz"
 required field is optional in subsumed value: dat

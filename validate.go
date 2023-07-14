@@ -106,6 +106,7 @@ func (vf validationFailure) Error() string {
 	return buf.String()
 }
 
+// HERE BE DRAGONS, BRING A SWORD.
 func mungeValidateErr(err error, sch Schema) error {
 	_, is := err.(errors.Error)
 	if !is {

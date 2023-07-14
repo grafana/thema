@@ -32,8 +32,8 @@ lin2: schemas: [{
 }]
 -- out/isappendonly-fail --
 field #EmbedRef not present in {#EmbedRef:{refField1:string,refField2:1},refField1:string,refField2:1}:
-    ../../../lineage.cue:223:10
-    ./in.cue:21:13
+    ../../../../../../../../cue.mod/pkg/github.com/grafana/thema/lineage.cue:223:10
+    ../../../../../../../../in.cue:21:13
 field refField2 not present in {refField1:string,refField2:1}:
-    ./in.cue:24:20
+    ../../../../../../../../in.cue:24:20
 missing field "#EmbedRef"

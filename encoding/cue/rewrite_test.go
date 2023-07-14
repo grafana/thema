@@ -8,6 +8,7 @@ import (
 	"cuelang.org/go/cue/ast"
 	"cuelang.org/go/cue/build"
 	"cuelang.org/go/cue/cuecontext"
+	"github.com/grafana/thema"
 	tastutil "github.com/grafana/thema/internal/astutil"
 	"github.com/grafana/thema/internal/txtartest/vanilla"
 )
@@ -15,8 +16,9 @@ import (
 func TestRewriteLegacyLineage(t *testing.T) {
 	ctx := cuecontext.New()
 	(&vanilla.TxTarTest{
-		Root: "./testdata/legacylineage",
-		Name: "rewrite-legacy-lineage",
+		Root:    "./testdata/legacylineage",
+		Name:    "rewrite-legacy-lineage",
+		ThemaFS: thema.CueJointFS,
 	}).Run(t, func(tc *vanilla.Test) {
 		inst := ctx.BuildInstance(tc.Instance())
 		val, _ := tc.Value("sub")
@@ -45,8 +47,9 @@ func TestRewriteFundamentals(t *testing.T) {
 
 	// case 1
 	(&vanilla.TxTarTest{
-		Root: "./testdata/basicrewrite",
-		Name: "oneroot",
+		Root:    "./testdata/basicrewrite",
+		Name:    "oneroot",
+		ThemaFS: thema.CueJointFS,
 	}).Run(t, func(tc *vanilla.Test) {
 		// An instance with two input files - len(bi.Files) == 2
 		bi := tc.Instance()

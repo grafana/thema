@@ -1,0 +1,228 @@
+# lineage containing a single schema with only scalar fields
+-- in.cue --
+
+import "github.com/grafana/thema"
+
+thema.#Lineage
+name: "scalar-fields"
+
+schemas: [{
+    version: [0, 0]
+    schema: {
+        someInt32: int32
+        someInt64: int64
+        someFloat32: float32
+        someFloat64: float64
+    }
+}]
+-- in/validate/TestValidate/someInt32.data.json --
+{
+    "someInt32": "not an int"
+}
+-- out/validate/TestValidate/someInt32 --
+<scalar-fields@v0.0>.someInt32: validation failed, data is not an instance:
+	schema expected `int32`
+	but data contained `"not an int"`
+		test:2:18
+-- in/validate/someInt64.data.json --
+{
+    "someInt64": "not an int64"
+}
+-- out/validate/TestValidate/someInt64 --
+<scalar-fields@v0.0>.someInt64: validation failed, data is not an instance:
+	schema expected `int64`
+	but data contained `"not an int64"`
+		test:2:18
+-- in/validate/TestValidate/someFloat32.data.json --
+{
+    "someFloat32": "I am a string"
+}
+-- out/validate/TestValidate/someFloat32 --
+<scalar-fields@v0.0>.someFloat32: validation failed, data is not an instance:
+	schema expected `float32`
+	but data contained `"I am a string"`
+		test:2:20
+-- in/validate/TestValidate/someFloat64.data.json --
+{
+    "someFloat64": "I am a string"
+}
+-- out/validate/TestValidate/someFloat64 --
+<scalar-fields@v0.0>.someFloat64: validation failed, data is not an instance:
+	schema expected `float64`
+	but data contained `"I am a string"`
+		test:2:20
+-- out/encoding/gocode/TestGenerate/nilcfg --
+== scalarfields_type_0.0_gen.go
+package scalarfields
+
+// Scalarfields defines model for scalarfields.
+type Scalarfields struct {
+	SomeFloat32 float32 `json:"someFloat32"`
+	SomeFloat64 float64 `json:"someFloat64"`
+	SomeInt32   int32   `json:"someInt32"`
+	SomeInt64   int64   `json:"someInt64"`
+}
+-- out/encoding/openapi/TestGenerate/nilcfg --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "scalarfields",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "scalarfields": {
+        "type": "object",
+        "required": [
+          "someInt32",
+          "someInt64",
+          "someFloat32",
+          "someFloat64"
+        ],
+        "properties": {
+          "someInt32": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "someInt64": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "someFloat32": {
+            "type": "number",
+            "format": "float"
+          },
+          "someFloat64": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      }
+    }
+  }
+}
+-- out/encoding/openapi/TestGenerate/group --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "scalarfields",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "someInt32": {
+        "type": "integer",
+        "format": "int32"
+      },
+      "someInt64": {
+        "type": "integer",
+        "format": "int64"
+      },
+      "someFloat32": {
+        "type": "number",
+        "format": "float"
+      },
+      "someFloat64": {
+        "type": "number",
+        "format": "double"
+      }
+    }
+  }
+}
+-- out/encoding/openapi/TestGenerate/expandrefs --
+== 0.0.json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "scalarfields",
+    "version": "0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "scalarfields": {
+        "type": "object",
+        "required": [
+          "someInt32",
+          "someInt64",
+          "someFloat32",
+          "someFloat64"
+        ],
+        "properties": {
+          "someInt32": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "someInt64": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "someFloat32": {
+            "type": "number",
+            "format": "float"
+          },
+          "someFloat64": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      }
+    }
+  }
+}
+-- out/encoding/gocode/TestGenerate/depointerized --
+== scalarfields_type_0.0_gen.go
+package scalarfields
+
+// Scalarfields defines model for scalarfields.
+type Scalarfields struct {
+	SomeFloat32 float32 `json:"someFloat32"`
+	SomeFloat64 float64 `json:"someFloat64"`
+	SomeInt32   int32   `json:"someInt32"`
+	SomeInt64   int64   `json:"someInt64"`
+}
+-- out/encoding/gocode/TestGenerate/godeclincomments --
+== scalarfields_type_0.0_gen.go
+package scalarfields
+
+// Scalarfields defines model for scalarfields.
+type Scalarfields struct {
+	SomeFloat32 float32 `json:"someFloat32"`
+	SomeFloat64 float64 `json:"someFloat64"`
+	SomeInt32   int32   `json:"someInt32"`
+	SomeInt64   int64   `json:"someInt64"`
+}
+-- out/encoding/gocode/TestGenerate/expandref --
+== scalarfields_type_0.0_gen.go
+package scalarfields
+
+// Scalarfields defines model for scalarfields.
+type Scalarfields struct {
+	SomeFloat32 float32 `json:"someFloat32"`
+	SomeFloat64 float64 `json:"someFloat64"`
+	SomeInt32   int32   `json:"someInt32"`
+	SomeInt64   int64   `json:"someInt64"`
+}
+-- out/bind --
+Schema count: 1
+Schema versions: 0.0
+Lenses count: 0
+-- out/encoding/gocode/TestGenerate/group --
+== scalarfields_type_0.0_gen.go
+package scalarfields
+
+// SomeFloat32 defines model for someFloat32.
+type SomeFloat32 = float32
+
+// SomeFloat64 defines model for someFloat64.
+type SomeFloat64 = float64
+
+// SomeInt32 defines model for someInt32.
+type SomeInt32 = int32
+
+// SomeInt64 defines model for someInt64.
+type SomeInt64 = int64
