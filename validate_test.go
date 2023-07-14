@@ -48,7 +48,7 @@ func TestValidate(t *testing.T) {
 			_, err = lineage.Latest().Validate(data)
 			req.Error(err, "The data shouldn't be valid for the schema")
 
-			outputFileName := filepath.Base(strings.TrimRight(file.Name, ".data.json"))
+			outputFileName := filepath.Base(strings.TrimSuffix(file.Name, ".data.json"))
 
 			_, err = tc.Writer(outputFileName).Write([]byte(err.Error()))
 			req.NoError(err)
