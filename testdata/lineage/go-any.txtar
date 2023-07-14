@@ -18,6 +18,53 @@ schemas: [{
     }
 }]
 lenses: []
+-- in/validate/TestValidate/valueAsInt.data.json --
+{
+    "value": 42
+}
+-- out/validate/TestValidate/valueAsInt --
+<go-any@v0.0>.value: validation failed, data is not an instance:
+	schema expected `42`
+		test:2:14
+		/in.cue:8:25
+	but data contained `bool`
+		/cue.mod/pkg/github.com/grafana/thema/lineage.cue:234:20
+<go-any@v0.0>.value: validation failed, data is not an instance:
+	schema expected `42`
+		test:2:14
+		/in.cue:8:16
+	but data contained `string`
+		/cue.mod/pkg/github.com/grafana/thema/lineage.cue:234:20
+-- out/validate/TestValidate/emptyMapAsString --
+<go-any@v0.0>.emptyMap: validation failed, data is not an instance:
+	schema expected `"definitely not a map"`
+		test:2:17
+		/in.cue:10:19
+	but data contained `{...}`
+		/cue.mod/pkg/github.com/grafana/thema/lineage.cue:234:20
+-- out/validate/TestValidate/structValInnerAsBool --
+<go-any@v0.0>.structVal.inner: validation failed, data is not an instance:
+	schema expected `true`
+		test:3:18
+		/in.cue:13:29
+	but data contained `int`
+		/cue.mod/pkg/github.com/grafana/thema/lineage.cue:234:20
+<go-any@v0.0>.structVal.inner: validation failed, data is not an instance:
+	schema expected `true`
+		test:3:18
+		/in.cue:13:20
+	but data contained `string`
+		/cue.mod/pkg/github.com/grafana/thema/lineage.cue:234:20
+-- in/validate/TestValidate/emptyMapAsString.data.json --
+{
+    "emptyMap": "definitely not a map"
+}
+-- in/validate/TestValidate/structValInnerAsBool.data.json --
+{
+    "structVal": {
+        "inner": true
+    }
+}
 -- out/encoding/openapi/TestGenerate/nilcfg --
 == 0.0.json
 {

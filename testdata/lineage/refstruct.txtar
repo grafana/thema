@@ -17,6 +17,18 @@ schemas: [{
 	}
 }]
 lenses: []
+-- in/validate/TestValidate/aBazRunWithInt.data.json --
+{
+    "aBaz": {
+        "run": 42
+    }
+}
+-- out/validate/TestValidate/aBazRunWithInt --
+<refstruct@v0.0>.aBaz.run: validation failed, data is not an instance:
+	schema expected `string`
+		/in.cue:11:10
+	but data contained `42`
+		test:3:16
 -- out/encoding/openapi/TestGenerate/nilcfg --
 == 0.0.json
 {
