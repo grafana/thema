@@ -34,9 +34,9 @@ import (
 	"cuelang.org/go/cue/load"
 	"cuelang.org/go/pkg/encoding/json"
 	"cuelang.org/go/pkg/encoding/yaml"
-	"github.com/google/go-cmp/cmp"
 	"github.com/grafana/thema/internal/envvars"
 	"github.com/grafana/thema/internal/util"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/tools/txtar"
 )
 
@@ -444,9 +444,7 @@ func (x *TxTarTest) Run(t *testing.T, f func(tc *Test)) {
 					continue
 				}
 
-				t.Errorf("result for %s differs:\n%s",
-					sub.name,
-					cmp.Diff(string(gold.Data), string(result)))
+				require.Equal(t, string(gold.Data), string(result), "result for %s differs", sub.name)
 			}
 
 			// Add remaining unrelated files, ignoring files that were already
