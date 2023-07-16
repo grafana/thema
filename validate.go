@@ -168,6 +168,15 @@ func mungeValidateErr(err error, sch Schema) error {
 			dataval, dvok := vals[1].(string)
 			schkind, skok := vals[2].(cue.Kind)
 			datakind, dkok := vals[3].(cue.Kind)
+
+			// if type is in map, then it's a schval, not dataval
+			// todo: this needs to be combined somehow with L184-187
+			if m, ok := schErrMsgFormatMap[dataval]; ok {
+				dataval = schval
+				schval = m
+				schkind, datakind = datakind, schkind
+			}
+
 			if !svok || !dvok || !skok || !dkok {
 				break
 			}

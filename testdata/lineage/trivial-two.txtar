@@ -39,9 +39,9 @@ lenses: [{
 		test:2:19
 -- out/validate/TestValidate/secondfieldAsString --
 <trivial-two@v0.1>.secondfield: validation failed, data is not an instance:
-	schema expected `"foo"`
+	schema expected `int32`
 		test:2:20
-	but data contained `int & >=-2147483648 & <=2147483647`
+	but data contained `"foo"`
 		/cue.mod/pkg/github.com/grafana/thema/lineage.cue:234:20
 -- in/validate/TestValidate/secondfieldAsString.data.json --
 {
