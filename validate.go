@@ -114,7 +114,8 @@ func mungeValidateErr(err error, sch Schema) error {
 	}
 
 	var errs validationFailure
-	for _, ee := range errors.Errors(err) {
+	e := errors.Errors(err)
+	for _, ee := range e {
 		schpos, datapos := splitTokens(ee.InputPositions())
 		x := coords{
 			sch:       sch,

@@ -13,44 +13,55 @@ schemas: [{
         someInt64: int64
         someFloat32: float32
         someFloat64: float64
+        someString: string
     }
 }]
 -- in/validate/TestValidate/someInt32.data.json --
 {
     "someInt32": "not an int"
 }
+-- in/validate/TestValidate/someString.data.json --
+{
+    "someString": 45
+}
 -- out/validate/TestValidate/someInt32 --
 <scalar-fields@v0.0>.someInt32: validation failed, data is not an instance:
 	schema expected `int32`
 	but data contained `"not an int"`
 		test:2:18
--- in/validate/someInt64.data.json --
-{
-    "someInt64": "not an int64"
-}
+-- out/validate/TestValidate/someString --
+<scalar-fields@v0.0>.someString: validation failed, data is not an instance:
+	schema expected `string`
+		/in.cue:14:21
+	but data contained `45`
+		test:2:19
 -- out/validate/TestValidate/someInt64 --
 <scalar-fields@v0.0>.someInt64: validation failed, data is not an instance:
 	schema expected `int64`
 	but data contained `"not an int64"`
 		test:2:18
--- in/validate/TestValidate/someFloat32.data.json --
-{
-    "someFloat32": "I am a string"
-}
 -- out/validate/TestValidate/someFloat32 --
 <scalar-fields@v0.0>.someFloat32: validation failed, data is not an instance:
 	schema expected `float32`
 	but data contained `"I am a string"`
 		test:2:20
--- in/validate/TestValidate/someFloat64.data.json --
-{
-    "someFloat64": "I am a string"
-}
 -- out/validate/TestValidate/someFloat64 --
 <scalar-fields@v0.0>.someFloat64: validation failed, data is not an instance:
 	schema expected `float64`
 	but data contained `"I am a string"`
 		test:2:20
+-- in/validate/someInt64.data.json --
+{
+    "someInt64": "not an int64"
+}
+-- in/validate/TestValidate/someFloat32.data.json --
+{
+    "someFloat32": "I am a string"
+}
+-- in/validate/TestValidate/someFloat64.data.json --
+{
+    "someFloat64": "I am a string"
+}
 -- out/encoding/gocode/TestGenerate/nilcfg --
 == scalarfields_type_0.0_gen.go
 package scalarfields
