@@ -115,7 +115,8 @@ func mungeValidateErr(err error, sch Schema) error {
 
 	var errs validationFailure
 	for _, ee := range errors.Errors(err) {
-		schpos, datapos := splitTokens(ee.InputPositions())
+		inputPositions := ee.InputPositions()
+		schpos, datapos := splitTokens(inputPositions)
 		x := coords{
 			sch:       sch,
 			fieldpath: trimThemaPath(ee.Path()),
@@ -132,7 +133,7 @@ func mungeValidateErr(err error, sch Schema) error {
 				schpos:  schpos,
 				datapos: datapos,
 				coords:  x,
-				val:     val,
+				val:     humanReadableCUEType(val),
 			}
 
 			if strings.Contains(msg, "incomplete") {
@@ -163,25 +164,32 @@ func mungeValidateErr(err error, sch Schema) error {
 			continue
 
 		case 4:
-			schval, svok := vals[0].(string)
-			dataval, dvok := vals[1].(string)
-			schkind, skok := vals[2].(cue.Kind)
-			datakind, dkok := vals[3].(cue.Kind)
-			if !svok || !dvok || !skok || !dkok {
-				break
+			var svok, dvok, skok, dkok bool
+			var schval, dataval string
+			var schkind, datakind cue.Kind
+
+			// data first
+			if len(inputPositions) > 1 && !strings.HasSuffix(inputPositions[0].Filename(), ".cue") {
+				schval, svok = vals[1].(string)
+				dataval, dvok = vals[0].(string)
+				schkind, skok = vals[3].(cue.Kind)
+				datakind, dkok = vals[2].(cue.Kind)
+			} else { // schema first
+				schval, svok = vals[0].(string)
+				dataval, dvok = vals[1].(string)
+				schkind, skok = vals[2].(cue.Kind)
+				datakind, dkok = vals[3].(cue.Kind)
 			}
 
-			if schkind&cue.NumberKind > 0 {
-				if m, ok := schErrMsgFormatMap[schval]; ok {
-					schval = m
-				}
+			if !svok || !dvok || !skok || !dkok {
+				break
 			}
 
 			err := &twosidederr{
 				schpos:  schpos,
 				datapos: datapos,
 				coords:  x,
-				sv:      schval,
+				sv:      humanReadableCUEType(schval),
 				dv:      dataval,
 			}
 			if datakind.IsAnyOf(schkind) {
@@ -199,9 +207,26 @@ func mungeValidateErr(err error, sch Schema) error {
 
 var schErrMsgFormatMap = map[string]string{
 	"int & >=-2147483648 & <=2147483647":                                                                   "int32",
+	">=-2147483648 & <=2147483647 & int":                                                                   "int32",
 	"int & >=-9223372036854775808 & <=9223372036854775807":                                                 "int64",
+	">=-9223372036854775808 & <=9223372036854775807 & int":                                                 "int64",
 	">=-340282346638528859811704183484516925440 & <=340282346638528859811704183484516925440":               "float32",
 	">=-1.797693134862315708145274237317043567981E+308 & <=1.797693134862315708145274237317043567981E+308": "float64",
+}
+
+func humanReadableCUEType(value string) string {
+	parts := strings.Split(value, " | ")
+	readableParts := make([]string, len(parts))
+
+	for i, part := range parts {
+		if m, ok := schErrMsgFormatMap[part]; ok {
+			part = m
+		}
+
+		readableParts[i] = part
+	}
+
+	return strings.Join(readableParts, " | ")
 }
 
 func splitTokens(poslist []token.Pos) (schpos, datapos []token.Pos) {
@@ -209,18 +234,34 @@ func splitTokens(poslist []token.Pos) (schpos, datapos []token.Pos) {
 		return
 	}
 
-	// We're assuming data is always last. ...Probably safe? Given that we
-	// control the order of operands in the Schema.Validate() calls...
-	dataname := poslist[len(poslist)-1].Filename()
+	// token.Pos items in `poslist` don't follow a predictable order.
+	// They can start by referencing a data input and then schemas, or vice-versa.
+	// That being said, we assume that either it will start with only data files
+	// and then only schemas, or the opposite.
+	// We need to figure out in `poslist` where the split between data and schema
+	// is, as well as which side of the split is which.
+
+	// Not the best heuristic: we assume that only schema files have `.cue` suffixes.
+	startsWithSchemas := strings.HasSuffix(poslist[0].Filename(), ".cue")
+
 	var split int
 	for i, pos := range poslist {
-		if pos.Filename() == dataname {
+		if strings.HasSuffix(pos.Filename(), ".cue") != startsWithSchemas {
 			split = i
 			break
 		}
 	}
 
-	return poslist[:split], poslist[split:]
+	// looks like we only have data
+	if split == 0 && !startsWithSchemas {
+		return nil, poslist
+	}
+
+	if startsWithSchemas {
+		return poslist[:split], poslist[split:]
+	}
+
+	return poslist[split:], poslist[:split]
 }
 
 func trimThemaPath(parts []string) []string {
