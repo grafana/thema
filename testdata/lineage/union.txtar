@@ -37,34 +37,34 @@ lenses: []
 }
 -- out/validate/TestValidate/mapUnionWithInt --
 <union@v0.0>.mapUnion.foo: validation failed, data is not an instance:
-	schema expected `42`
-		test:3:16
+	schema expected `bool`
 		/in.cue:24:29
 		/in.cue:10:40
-	but data contained `bool`
 		/cue.mod/pkg/github.com/grafana/thema/lineage.cue:234:20
-<union@v0.0>.mapUnion.foo: validation failed, data is not an instance:
-	schema expected `42`
+	but data contained `42`
 		test:3:16
+<union@v0.0>.mapUnion.foo: validation failed, data is not an instance:
+	schema expected `string`
 		/in.cue:24:20
 		/in.cue:10:40
-	but data contained `string`
 		/cue.mod/pkg/github.com/grafana/thema/lineage.cue:234:20
+	but data contained `42`
+		test:3:16
 -- out/validate/TestValidate/theUnionWithInt --
 <union@v0.0>.theUnion: validation failed, data is not an instance:
-	schema expected `42`
-		test:2:17
+	schema expected `bool`
 		/in.cue:24:29
 		/in.cue:8:30
-	but data contained `bool`
 		/cue.mod/pkg/github.com/grafana/thema/lineage.cue:234:20
-<union@v0.0>.theUnion: validation failed, data is not an instance:
-	schema expected `42`
+	but data contained `42`
 		test:2:17
+<union@v0.0>.theUnion: validation failed, data is not an instance:
+	schema expected `string`
 		/in.cue:24:20
 		/in.cue:8:30
-	but data contained `string`
 		/cue.mod/pkg/github.com/grafana/thema/lineage.cue:234:20
+	but data contained `42`
+		test:2:17
 -- in/validate/TestValidate/theUnionWithInt.data.json --
 {
     "theUnion": 42

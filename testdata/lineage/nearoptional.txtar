@@ -20,6 +20,26 @@ schemas: [{
 	}
 }]
 lenses: []
+-- in/validate/TestValidate/missingFields.data.json --
+{
+}
+-- out/validate/TestValidate/missingFields --
+<nearoptional@v0.0>.notoptional: validation failed, data is not an instance:
+	schema specifies that field exists with type `int32`
+	but field was absent from data
+-- in/validate/TestValidate/wrongTypeInListItem.data.json --
+{
+    "notoptional": 1,
+    "alist": [42]
+}
+-- out/validate/TestValidate/wrongTypeInListItem --
+<nearoptional@v0.0>.alist.0: validation failed, data is not an instance:
+	schema expected `string`
+		/in.cue:13:23
+		/in.cue:13:20
+		/cue.mod/pkg/github.com/grafana/thema/lineage.cue:234:20
+	but data contained `42`
+		test:3:15
 -- out/encoding/openapi/TestGenerate/nilcfg --
 == 0.0.json
 {

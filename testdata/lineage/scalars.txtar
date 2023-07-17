@@ -14,64 +14,92 @@ schemas: [{
         someFloat32: float32
         someFloat64: float64
         intWithBounds: int & >=0 & <10
+        nullableIntWithNoDefault: int | null
+        nullableIntWithDefault: int | null | *10
     }
 }]
--- in/validate/TestValidate/outOfBoundsLowerInt.data.json --
+-- in/validate/TestValidate/missingFields.data.json --
 {
-    "intWithBounds": -1
 }
+-- out/validate/TestValidate/missingFields --
+<scalar-fields@v0.0>.someInt32: validation failed, data is not an instance:
+	schema specifies that field exists with type `int32`
+	but field was absent from data
+<scalar-fields@v0.0>.someInt64: validation failed, data is not an instance:
+	schema specifies that field exists with type `int64`
+	but field was absent from data
+<scalar-fields@v0.0>.someFloat32: validation failed, data is not an instance:
+	schema specifies that field exists with type `float32`
+	but field was absent from data
+<scalar-fields@v0.0>.someFloat64: validation failed, data is not an instance:
+	schema specifies that field exists with type `float64`
+	but field was absent from data
+<scalar-fields@v0.0>.intWithBounds: validation failed, data is not an instance:
+	schema specifies that field exists with type `>=0 & <10 & int`
+	but field was absent from data
+<scalar-fields@v0.0>.nullableIntWithNoDefault: validation failed, data is not an instance:
+	schema specifies that field exists with type `int | null`
+	but field was absent from data
 -- out/validate/TestValidate/outOfBoundsLowerInt --
 <scalar-fields@v0.0>.intWithBounds: validation failed, data is not an instance:
 	schema expected `>=0`
-		test:2:22
-	but data contained `-1`
 		/in.cue:14:30
--- in/validate/TestValidate/outOfBoundsUpperInt.data.json --
-{
-    "intWithBounds": 12
-}
+	but data contained `-1`
+		test:2:22
 -- out/validate/TestValidate/outOfBoundsUpperInt --
 <scalar-fields@v0.0>.intWithBounds: validation failed, data is not an instance:
 	schema expected `<10`
-		test:2:22
-	but data contained `12`
 		/in.cue:14:36
--- in/validate/TestValidate/someInt32.data.json --
-{
-    "someInt32": "not an int"
-}
+	but data contained `12`
+		test:6:22
 -- out/validate/TestValidate/someInt32 --
 <scalar-fields@v0.0>.someInt32: validation failed, data is not an instance:
 	schema expected `int32`
 	but data contained `"not an int"`
 		test:2:18
--- in/validate/someInt64.data.json --
-{
-    "someInt64": "not an int64"
-}
 -- out/validate/TestValidate/someInt64 --
 <scalar-fields@v0.0>.someInt64: validation failed, data is not an instance:
 	schema expected `int64`
 	but data contained `"not an int64"`
 		test:2:18
--- in/validate/TestValidate/someFloat32.data.json --
-{
-    "someFloat32": "I am a string"
-}
 -- out/validate/TestValidate/someFloat32 --
 <scalar-fields@v0.0>.someFloat32: validation failed, data is not an instance:
 	schema expected `float32`
 	but data contained `"I am a string"`
 		test:2:20
--- in/validate/TestValidate/someFloat64.data.json --
-{
-    "someFloat64": "I am a string"
-}
 -- out/validate/TestValidate/someFloat64 --
 <scalar-fields@v0.0>.someFloat64: validation failed, data is not an instance:
 	schema expected `float64`
 	but data contained `"I am a string"`
 		test:2:20
+-- in/validate/TestValidate/outOfBoundsLowerInt.data.json --
+{
+    "intWithBounds": -1
+}
+-- in/validate/TestValidate/outOfBoundsUpperInt.data.json --
+{
+    "someInt32": 1,
+    "someInt64": 1,
+    "someFloat32": 1,
+    "someFloat64": 1,
+    "intWithBounds": 12
+}
+-- in/validate/TestValidate/someInt32.data.json --
+{
+    "someInt32": "not an int"
+}
+-- in/validate/someInt64.data.json --
+{
+    "someInt64": "not an int64"
+}
+-- in/validate/TestValidate/someFloat32.data.json --
+{
+    "someFloat32": "I am a string"
+}
+-- in/validate/TestValidate/someFloat64.data.json --
+{
+    "someFloat64": "I am a string"
+}
 -- out/encoding/gocode/TestGenerate/nilcfg --
 == scalarfields_type_0.0_gen.go
 package scalarfields
