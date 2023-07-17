@@ -25,7 +25,7 @@ func (e *onesidederr) Error() string {
 	fmt.Fprintf(&buf, "%s: validation failed, data is not an instance:", e.coords)
 	switch e.code {
 	case terrors.MissingField:
-		fmt.Fprintf(&buf, "\n\tschema specifies that field exists with type %v", e.val)
+		fmt.Fprintf(&buf, "\n\tschema specifies that field exists with type `%v`", e.val)
 		for _, pos := range e.schpos {
 			fmt.Fprintf(&buf, "\n\t\t%s", pos.String())
 		}
@@ -40,7 +40,7 @@ func (e *onesidederr) Error() string {
 			fmt.Fprintf(&buf, "\n\t\t%s", pos.String())
 		}
 
-		fmt.Fprintf(&buf, "\n\tbut field exists in data with value %v", e.val)
+		fmt.Fprintf(&buf, "\n\tbut field exists in data with value `%v`", e.val)
 		for _, pos := range e.datapos {
 			fmt.Fprintf(&buf, "\n\t\t%s", pos.String())
 		}
