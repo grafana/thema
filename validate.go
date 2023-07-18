@@ -147,8 +147,17 @@ func mungeValidateErr(err error, sch Schema) error {
 			errs = append(errs, err)
 			continue
 		case 2:
-			dataval, dvok := vals[0].(string)
-			schval, svok := vals[1].(string)
+			var dataval, schval string
+			var dvok, svok bool
+
+			// data first
+			if len(inputPositions) > 1 && !strings.HasSuffix(inputPositions[0].Filename(), ".cue") {
+				schval, svok = vals[1].(string)
+				dataval, dvok = vals[0].(string)
+			} else { // schema first
+				schval, svok = vals[0].(string)
+				dataval, dvok = vals[1].(string)
+			}
 			if !svok || !dvok {
 				break
 			}
@@ -157,7 +166,7 @@ func mungeValidateErr(err error, sch Schema) error {
 				schpos:  schpos,
 				datapos: datapos,
 				coords:  x,
-				sv:      schval,
+				sv:      humanReadableCUEType(schval),
 				dv:      dataval,
 				code:    terrors.OutOfBounds,
 			})
@@ -234,34 +243,21 @@ func splitTokens(poslist []token.Pos) (schpos, datapos []token.Pos) {
 		return
 	}
 
-	// token.Pos items in `poslist` don't follow a predictable order.
-	// They can start by referencing a data input and then schemas, or vice-versa.
-	// That being said, we assume that either it will start with only data files
-	// and then only schemas, or the opposite.
-	// We need to figure out in `poslist` where the split between data and schema
-	// is, as well as which side of the split is which.
-
-	// Not the best heuristic: we assume that only schema files have `.cue` suffixes.
-	startsWithSchemas := strings.HasSuffix(poslist[0].Filename(), ".cue")
-
-	var split int
-	for i, pos := range poslist {
-		if strings.HasSuffix(pos.Filename(), ".cue") != startsWithSchemas {
-			split = i
-			break
+	// Items in poslist don't follow a predictable order.
+	// References to the schema can come first, then the input. The opposite is
+	// also true. Or in some cases, they can be mixed.
+	// That's why we have to rely on a shaky heuristic here: we assume that
+	// only schema files have `.cue` suffixes, and we separate data from schema
+	// based on that criteria.
+	for _, pos := range poslist {
+		if strings.HasSuffix(pos.Filename(), ".cue") {
+			schpos = append(schpos, pos)
+		} else {
+			datapos = append(datapos, pos)
 		}
 	}
 
-	// looks like we only have data
-	if split == 0 && !startsWithSchemas {
-		return nil, poslist
-	}
-
-	if startsWithSchemas {
-		return poslist[:split], poslist[split:]
-	}
-
-	return poslist[split:], poslist[:split]
+	return schpos, datapos
 }
 
 func trimThemaPath(parts []string) []string {

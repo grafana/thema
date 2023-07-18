@@ -70,6 +70,30 @@ lenses: [{
         }
     }
 }]
+-- in/validate/TestValidate/invalidEnumValue.data.json --
+{
+    "init": "init",
+    "withDefault": "invalid value for withDefault"
+}
+-- out/validate/TestValidate/invalidEnumValue --
+<expand@v0.3>.withDefault: validation failed, data is not an instance:
+	schema expected `"bar"`
+		/in.cue:32:32
+		/cue.mod/pkg/github.com/grafana/thema/lineage.cue:234:20
+	but data contained `"invalid value for withDefault"`
+		test:3:20
+<expand@v0.3>.withDefault: validation failed, data is not an instance:
+	schema expected `"baz"`
+		/in.cue:32:40
+		/cue.mod/pkg/github.com/grafana/thema/lineage.cue:234:20
+	but data contained `"invalid value for withDefault"`
+		test:3:20
+<expand@v0.3>.withDefault: validation failed, data is not an instance:
+	schema expected `"foo"`
+		/in.cue:32:24
+		/cue.mod/pkg/github.com/grafana/thema/lineage.cue:234:20
+	but data contained `"invalid value for withDefault"`
+		test:3:20
 -- out/encoding/openapi/TestGenerate/nilcfg --
 == 0.0.json
 {
