@@ -17,12 +17,53 @@ schemas: [{
 		optValStruct?: [string]: foo: string
 		refValue: [string]: aStruct
 		someField: aMap
+
+        aComplexMap?: {
+            foo:      string  // foo is a string
+            [=~"^i"]: int     // all other fields starting with i are integers
+            [=~"^b"]: bool    // all other fields starting with b are booleans
+            [>"c"]:   string  // all other fields lexically after c are strings
+        }
 	}
 }]
 lenses: []
 
 aMap: [string]: bool
 aStruct: foo:   string
+-- in/validate/TestValidate/missingFields.data.json --
+{
+    "aComplexMap": {
+        "foo": 42,
+        "iShouldBeAnInt": "but I am not",
+        "bShouldBeABool": "but I am a string",
+        "cShouldBeAString": 1
+    }
+}
+-- out/validate/TestValidate/missingFields --
+<maps@v0.0>.aComplexMap.foo: validation failed, data is not an instance:
+	schema expected `string`
+		/in.cue:18:23
+		/cue.mod/pkg/github.com/grafana/thema/lineage.cue:234:20
+	but data contained `42`
+		test:3:16
+<maps@v0.0>.aComplexMap.iShouldBeAnInt: validation failed, data is not an instance:
+	schema expected `int`
+		/in.cue:19:23
+		/cue.mod/pkg/github.com/grafana/thema/lineage.cue:234:20
+	but data contained `"but I am not"`
+		test:4:27
+<maps@v0.0>.aComplexMap.bShouldBeABool: validation failed, data is not an instance:
+	schema expected `bool`
+		/in.cue:20:23
+		/cue.mod/pkg/github.com/grafana/thema/lineage.cue:234:20
+	but data contained `"but I am a string"`
+		test:5:27
+<maps@v0.0>.aComplexMap.cShouldBeAString: validation failed, data is not an instance:
+	schema expected `string`
+		/in.cue:21:23
+		/cue.mod/pkg/github.com/grafana/thema/lineage.cue:234:20
+	but data contained `1`
+		test:6:29
 -- out/encoding/openapi/TestGenerate/nilcfg --
 == 0.0.json
 {
@@ -127,6 +168,17 @@ aStruct: foo:   string
           },
           "someField": {
             "$ref": "#/components/schemas/aMap"
+          },
+          "aComplexMap": {
+            "type": "object",
+            "required": [
+              "foo"
+            ],
+            "properties": {
+              "foo": {
+                "type": "string"
+              }
+            }
           }
         }
       }
@@ -224,6 +276,17 @@ aStruct: foo:   string
         "additionalProperties": {
           "type": "boolean"
         }
+      },
+      "aComplexMap": {
+        "type": "object",
+        "required": [
+          "foo"
+        ],
+        "properties": {
+          "foo": {
+            "type": "string"
+          }
+        }
       }
     }
   }
@@ -242,6 +305,9 @@ type AStruct struct {
 
 // Maps defines model for maps.
 type Maps struct {
+	AComplexMap struct {
+		Foo string `json:"foo"`
+	} `json:"aComplexMap,omitempty"`
 	OptValList      map[string][]string `json:"optValList,omitempty"`
 	OptValPrimitive map[string]bool     `json:"optValPrimitive,omitempty"`
 	OptValStruct    map[string]struct {
@@ -353,6 +419,17 @@ type Maps struct {
             "additionalProperties": {
               "type": "boolean"
             }
+          },
+          "aComplexMap": {
+            "type": "object",
+            "required": [
+              "foo"
+            ],
+            "properties": {
+              "foo": {
+                "type": "string"
+              }
+            }
           }
         }
       }
@@ -413,6 +490,9 @@ type AStruct struct {
 
 // Maps defines model for maps.
 type Maps struct {
+	AComplexMap *struct {
+		Foo string `json:"foo"`
+	} `json:"aComplexMap,omitempty"`
 	OptValList      map[string][]string `json:"optValList,omitempty"`
 	OptValPrimitive map[string]bool     `json:"optValPrimitive,omitempty"`
 	OptValStruct    map[string]struct {
@@ -432,6 +512,9 @@ package maps
 
 // Maps defines model for maps.
 type Maps struct {
+	AComplexMap *struct {
+		Foo string `json:"foo"`
+	} `json:"aComplexMap,omitempty"`
 	OptValList      map[string][]string `json:"optValList,omitempty"`
 	OptValPrimitive map[string]bool     `json:"optValPrimitive,omitempty"`
 	OptValStruct    map[string]struct {
@@ -465,6 +548,9 @@ type AStruct struct {
 
 // Maps defines model for maps.
 type Maps struct {
+	AComplexMap *struct {
+		Foo string `json:"foo"`
+	} `json:"aComplexMap,omitempty"`
 	OptValList      map[string][]string `json:"optValList,omitempty"`
 	OptValPrimitive map[string]bool     `json:"optValPrimitive,omitempty"`
 	OptValStruct    map[string]struct {
@@ -481,6 +567,11 @@ type Maps struct {
 -- out/encoding/gocode/TestGenerate/group --
 == maps_type_0.0_gen.go
 package maps
+
+// AComplexMap defines model for aComplexMap.
+type AComplexMap struct {
+	Foo string `json:"foo"`
+}
 
 // AStruct defines model for aStruct.
 type AStruct struct {
