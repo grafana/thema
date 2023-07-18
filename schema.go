@@ -82,7 +82,7 @@ func (sch *schemaDef) Validate(data cue.Value) (*Instance, error) {
 	// }
 
 	x := sch.def.Unify(data)
-	if err := x.Validate(cue.Final(), cue.Concrete(true), cue.All()); err != nil {
+	if err := x.Validate(cue.Concrete(true), cue.All()); err != nil {
 		return nil, mungeValidateErr(err, sch)
 	}
 
