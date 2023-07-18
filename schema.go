@@ -82,7 +82,12 @@ func (sch *schemaDef) Validate(data cue.Value) (*Instance, error) {
 	// }
 
 	x := sch.def.Unify(data)
-	if err := x.Validate(cue.Concrete(true), cue.All()); err != nil {
+
+	// The cue.Concrete(true) option ensure that Concrete all values resulting
+	// from the unification of the schema and data are concrete.
+	// ie: every field defined by the schema has a concrete value associated to it,
+	// and no required field was omitted.
+	if err := x.Validate(cue.Concrete(true)); err != nil {
 		return nil, mungeValidateErr(err, sch)
 	}
 
