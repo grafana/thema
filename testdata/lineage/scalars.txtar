@@ -1,7 +1,10 @@
 # lineage containing a single schema with only scalar fields
 -- in.cue --
 
-import "github.com/grafana/thema"
+import (
+	"strings"
+	"github.com/grafana/thema"
+)
 
 thema.#Lineage
 name: "scalar-fields"
@@ -9,58 +12,332 @@ name: "scalar-fields"
 schemas: [{
     version: [0, 0]
     schema: {
+        someUInt8: uint8
+        someUInt16: uint16
+        someUInt32: uint32
+        someUInt64: uint64
+        someInt8: int8
+        someInt16: int16
         someInt32: int32
         someInt64: int64
         someFloat32: float32
         someFloat64: float64
+        intWithBounds: int & >=0 & <10
+        nullableIntWithNoDefault: int | null
+        nullableIntWithDefault: int | null | *10
+        stringWithLength: string & strings.MinRunes(10)
     }
 }]
--- in/validate/TestValidate/someInt32.data.json --
+-- in/validate/TestValidate/someInt8.data.json --
 {
-    "someInt32": "not an int"
+    "someInt8": null,
+    "someInt16": 1,
+    "someUInt16": 1,
+    "someUInt32": 1,
+    "someUInt64": 1,
+    "someUInt8": 10,
+    "someInt32": 1,
+    "someInt64": 1,
+    "someFloat32": 1,
+    "someFloat64": 1,
+    "intWithBounds": 9,
+    "nullableIntWithNoDefault":  null,
+    "nullableIntWithDefault": null,
+    "stringWithLength": "hello"
 }
+-- in/validate/TestValidate/someInt16.data.json --
+{
+    "someInt8": 1,
+    "someInt16": null,
+    "someUInt16": null,
+    "someUInt32": 1,
+    "someUInt64": 1,
+    "someUInt8": 10,
+    "someInt32": 1,
+    "someInt64": 1,
+    "someFloat32": 1,
+    "someFloat64": 1,
+    "intWithBounds": 9,
+    "nullableIntWithNoDefault":  null,
+    "nullableIntWithDefault": null,
+    "stringWithLength": "hello"
+}
+-- in/validate/TestValidate/someUInt16.data.json --
+{
+    "someUInt16": null,
+    "someUInt32": 1,
+    "someUInt64": 1,
+    "someUInt8": 10,
+    "someInt32": 1,
+    "someInt64": 1,
+    "someFloat32": 1,
+    "someFloat64": 1,
+    "intWithBounds": 9,
+    "nullableIntWithNoDefault":  null,
+    "nullableIntWithDefault": null,
+    "stringWithLength": "hello"
+}
+-- in/validate/TestValidate/someUInt32.data.json --
+{
+    "someUInt32": null,
+    "someUInt64": 1,
+    "someUInt8": 10,
+    "someInt32": 1,
+    "someInt64": 1,
+    "someFloat32": 1,
+    "someFloat64": 1,
+    "intWithBounds": 9,
+    "nullableIntWithNoDefault":  null,
+    "nullableIntWithDefault": null,
+    "stringWithLength": "hello"
+}
+-- in/validate/TestValidate/someUInt64.data.json --
+{
+    "someUInt32": 1,
+    "someUInt64": null,
+    "someUInt8": 10,
+    "someInt32": 1,
+    "someInt64": 1,
+    "someFloat32": 1,
+    "someFloat64": 1,
+    "intWithBounds": 9,
+    "nullableIntWithNoDefault":  null,
+    "nullableIntWithDefault": null,
+    "stringWithLength": "hello"
+}
+-- in/validate/TestValidate/someUInt8.data.json --
+{
+    "someUInt8": null,
+    "someInt32": 1,
+    "someInt64": 1,
+    "someFloat32": 1,
+    "someFloat64": 1,
+    "intWithBounds": 9,
+    "nullableIntWithNoDefault":  null,
+    "nullableIntWithDefault": null,
+    "stringWithLength": "hello"
+}
+-- in/validate/TestValidate/missingFields.data.json --
+{
+}
+-- in/validate/TestValidate/stringWithLength.data.json --
+{
+    "someInt32": 1,
+    "someInt64": 1,
+    "someFloat32": 1,
+    "someFloat64": 1,
+    "intWithBounds": 9,
+    "nullableIntWithNoDefault":  null,
+    "nullableIntWithDefault": null,
+    "stringWithLength": "hello"
+}
+-- out/validate/TestValidate/stringWithLength --
+<scalar-fields@v0.0>.stringWithLength:
+-- out/validate/TestValidate/someInt8 --
+<scalar-fields@v0.0>.someInt8: validation failed, data is not an instance:
+	schema expected `int8`
+	but data contained `null`
+		test:2:17
+<scalar-fields@v0.0>.stringWithLength: validation failed, data is not an instance:
+	schema expected `strings.MinRunes(10)`
+		/in.cue:26:27
+		/in.cue:26:53
+	but data contained `"hello"`
+		test:15:25
+		test:15:25
+-- out/validate/TestValidate/someInt16 --
+<scalar-fields@v0.0>.someUInt16: validation failed, data is not an instance:
+	schema expected `uint16`
+	but data contained `null`
+		test:4:19
+<scalar-fields@v0.0>.someInt16: validation failed, data is not an instance:
+	schema expected `int16`
+	but data contained `null`
+		test:3:18
+<scalar-fields@v0.0>.stringWithLength: validation failed, data is not an instance:
+	schema expected `strings.MinRunes(10)`
+		/in.cue:26:27
+		/in.cue:26:53
+	but data contained `"hello"`
+		test:15:25
+		test:15:25
+-- out/validate/TestValidate/someUInt16 --
+<scalar-fields@v0.0>.someUInt16: validation failed, data is not an instance:
+	schema expected `uint16`
+	but data contained `null`
+		test:2:19
+<scalar-fields@v0.0>.stringWithLength: validation failed, data is not an instance:
+	schema expected `strings.MinRunes(10)`
+		/in.cue:26:27
+		/in.cue:26:53
+	but data contained `"hello"`
+		test:13:25
+		test:13:25
+-- out/validate/TestValidate/someUInt32 --
+<scalar-fields@v0.0>.someUInt32: validation failed, data is not an instance:
+	schema expected `uint32`
+	but data contained `null`
+		test:2:19
+<scalar-fields@v0.0>.stringWithLength: validation failed, data is not an instance:
+	schema expected `strings.MinRunes(10)`
+		/in.cue:26:27
+		/in.cue:26:53
+	but data contained `"hello"`
+		test:12:25
+		test:12:25
+-- out/validate/TestValidate/someUInt64 --
+<scalar-fields@v0.0>.someUInt64: validation failed, data is not an instance:
+	schema expected `uint64`
+	but data contained `null`
+		test:3:19
+<scalar-fields@v0.0>.stringWithLength: validation failed, data is not an instance:
+	schema expected `strings.MinRunes(10)`
+		/in.cue:26:27
+		/in.cue:26:53
+	but data contained `"hello"`
+		test:12:25
+		test:12:25
+-- out/validate/TestValidate/someUInt8 --
+<scalar-fields@v0.0>.someUInt8: validation failed, data is not an instance:
+	schema expected `uint8`
+	but data contained `null`
+		test:2:18
+<scalar-fields@v0.0>.stringWithLength: validation failed, data is not an instance:
+	schema expected `strings.MinRunes(10)`
+		/in.cue:26:27
+		/in.cue:26:53
+	but data contained `"hello"`
+		test:10:25
+		test:10:25
+-- out/validate/TestValidate/missingFields --
+<scalar-fields@v0.0>.someUInt8: validation failed, data is not an instance:
+	schema specifies that field exists with type `uint8`
+	but field was absent from data
+<scalar-fields@v0.0>.someUInt16: validation failed, data is not an instance:
+	schema specifies that field exists with type `uint16`
+	but field was absent from data
+<scalar-fields@v0.0>.someUInt32: validation failed, data is not an instance:
+	schema specifies that field exists with type `uint32`
+	but field was absent from data
+<scalar-fields@v0.0>.someUInt64: validation failed, data is not an instance:
+	schema specifies that field exists with type `uint64`
+	but field was absent from data
+<scalar-fields@v0.0>.someInt8: validation failed, data is not an instance:
+	schema specifies that field exists with type `int8`
+	but field was absent from data
+<scalar-fields@v0.0>.someInt16: validation failed, data is not an instance:
+	schema specifies that field exists with type `int16`
+	but field was absent from data
+<scalar-fields@v0.0>.someInt32: validation failed, data is not an instance:
+	schema specifies that field exists with type `int32`
+	but field was absent from data
+<scalar-fields@v0.0>.someInt64: validation failed, data is not an instance:
+	schema specifies that field exists with type `int64`
+	but field was absent from data
+<scalar-fields@v0.0>.someFloat32: validation failed, data is not an instance:
+	schema specifies that field exists with type `float32`
+	but field was absent from data
+<scalar-fields@v0.0>.someFloat64: validation failed, data is not an instance:
+	schema specifies that field exists with type `float64`
+	but field was absent from data
+<scalar-fields@v0.0>.intWithBounds: validation failed, data is not an instance:
+	schema specifies that field exists with type `>=0 & <10 & int`
+	but field was absent from data
+<scalar-fields@v0.0>.nullableIntWithNoDefault: validation failed, data is not an instance:
+	schema specifies that field exists with type `int | null`
+	but field was absent from data
+<scalar-fields@v0.0>.stringWithLength: validation failed, data is not an instance:
+	schema specifies that field exists with type `strings.MinRunes(10)`
+		/in.cue:26:36
+	but field was absent from data
+-- out/validate/TestValidate/stringWithLength --
+<scalar-fields@v0.0>.stringWithLength: validation failed, data is not an instance:
+	schema expected `strings.MinRunes(10)`
+		/in.cue:26:27
+		/in.cue:26:53
+	but data contained `"hello"`
+		test:9:25
+		test:9:25
+-- out/validate/TestValidate/outOfBoundsLowerInt --
+<scalar-fields@v0.0>.intWithBounds: validation failed, data is not an instance:
+	schema expected `>=0`
+		/in.cue:23:30
+	but data contained `-1`
+		test:2:22
+-- out/validate/TestValidate/outOfBoundsUpperInt --
+<scalar-fields@v0.0>.intWithBounds: validation failed, data is not an instance:
+	schema expected `<10`
+		/in.cue:23:36
+	but data contained `12`
+		test:6:22
 -- out/validate/TestValidate/someInt32 --
 <scalar-fields@v0.0>.someInt32: validation failed, data is not an instance:
 	schema expected `int32`
 	but data contained `"not an int"`
 		test:2:18
--- in/validate/someInt64.data.json --
-{
-    "someInt64": "not an int64"
-}
 -- out/validate/TestValidate/someInt64 --
 <scalar-fields@v0.0>.someInt64: validation failed, data is not an instance:
 	schema expected `int64`
 	but data contained `"not an int64"`
 		test:2:18
--- in/validate/TestValidate/someFloat32.data.json --
-{
-    "someFloat32": "I am a string"
-}
 -- out/validate/TestValidate/someFloat32 --
 <scalar-fields@v0.0>.someFloat32: validation failed, data is not an instance:
 	schema expected `float32`
 	but data contained `"I am a string"`
 		test:2:20
--- in/validate/TestValidate/someFloat64.data.json --
-{
-    "someFloat64": "I am a string"
-}
 -- out/validate/TestValidate/someFloat64 --
 <scalar-fields@v0.0>.someFloat64: validation failed, data is not an instance:
 	schema expected `float64`
 	but data contained `"I am a string"`
 		test:2:20
+-- in/validate/TestValidate/outOfBoundsLowerInt.data.json --
+{
+    "intWithBounds": -1
+}
+-- in/validate/TestValidate/outOfBoundsUpperInt.data.json --
+{
+    "someInt32": 1,
+    "someInt64": 1,
+    "someFloat32": 1,
+    "someFloat64": 1,
+    "intWithBounds": 12
+}
+-- in/validate/TestValidate/someInt32.data.json --
+{
+    "someInt32": "not an int"
+}
+-- in/validate/someInt64.data.json --
+{
+    "someInt64": "not an int64"
+}
+-- in/validate/TestValidate/someFloat32.data.json --
+{
+    "someFloat32": "I am a string"
+}
+-- in/validate/TestValidate/someFloat64.data.json --
+{
+    "someFloat64": "I am a string"
+}
 -- out/encoding/gocode/TestGenerate/nilcfg --
 == scalarfields_type_0.0_gen.go
 package scalarfields
 
 // Scalarfields defines model for scalarfields.
 type Scalarfields struct {
-	SomeFloat32 float32 `json:"someFloat32"`
-	SomeFloat64 float64 `json:"someFloat64"`
-	SomeInt32   int32   `json:"someInt32"`
-	SomeInt64   int64   `json:"someInt64"`
+	IntWithBounds            int     `json:"intWithBounds"`
+	NullableIntWithDefault   *int    `json:"nullableIntWithDefault"`
+	NullableIntWithNoDefault *int    `json:"nullableIntWithNoDefault"`
+	SomeFloat32              float32 `json:"someFloat32"`
+	SomeFloat64              float64 `json:"someFloat64"`
+	SomeInt16                int     `json:"someInt16"`
+	SomeInt32                int32   `json:"someInt32"`
+	SomeInt64                int64   `json:"someInt64"`
+	SomeInt8                 int     `json:"someInt8"`
+	SomeUInt16               int     `json:"someUInt16"`
+	SomeUInt32               int     `json:"someUInt32"`
+	SomeUInt64               int     `json:"someUInt64"`
+	SomeUInt8                int     `json:"someUInt8"`
+	StringWithLength         string  `json:"stringWithLength"`
 }
 -- out/encoding/openapi/TestGenerate/nilcfg --
 == 0.0.json
@@ -76,12 +353,52 @@ type Scalarfields struct {
       "scalarfields": {
         "type": "object",
         "required": [
+          "someUInt8",
+          "someUInt16",
+          "someUInt32",
+          "someUInt64",
+          "someInt8",
+          "someInt16",
           "someInt32",
           "someInt64",
           "someFloat32",
-          "someFloat64"
+          "someFloat64",
+          "intWithBounds",
+          "nullableIntWithNoDefault",
+          "nullableIntWithDefault",
+          "stringWithLength"
         ],
         "properties": {
+          "someUInt8": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255
+          },
+          "someUInt16": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 65535
+          },
+          "someUInt32": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 4294967295
+          },
+          "someUInt64": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 18446744073709551615
+          },
+          "someInt8": {
+            "type": "integer",
+            "minimum": -128,
+            "maximum": 127
+          },
+          "someInt16": {
+            "type": "integer",
+            "minimum": -32768,
+            "maximum": 32767
+          },
           "someInt32": {
             "type": "integer",
             "format": "int32"
@@ -97,6 +414,25 @@ type Scalarfields struct {
           "someFloat64": {
             "type": "number",
             "format": "double"
+          },
+          "intWithBounds": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10,
+            "exclusiveMaximum": true
+          },
+          "nullableIntWithNoDefault": {
+            "type": "integer",
+            "nullable": true
+          },
+          "nullableIntWithDefault": {
+            "type": "integer",
+            "default": 10,
+            "nullable": true
+          },
+          "stringWithLength": {
+            "type": "string",
+            "minLength": 10
           }
         }
       }
@@ -114,6 +450,36 @@ type Scalarfields struct {
   "paths": {},
   "components": {
     "schemas": {
+      "someUInt8": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 255
+      },
+      "someUInt16": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 65535
+      },
+      "someUInt32": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 4294967295
+      },
+      "someUInt64": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 18446744073709551615
+      },
+      "someInt8": {
+        "type": "integer",
+        "minimum": -128,
+        "maximum": 127
+      },
+      "someInt16": {
+        "type": "integer",
+        "minimum": -32768,
+        "maximum": 32767
+      },
       "someInt32": {
         "type": "integer",
         "format": "int32"
@@ -129,6 +495,25 @@ type Scalarfields struct {
       "someFloat64": {
         "type": "number",
         "format": "double"
+      },
+      "intWithBounds": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 10,
+        "exclusiveMaximum": true
+      },
+      "nullableIntWithNoDefault": {
+        "type": "integer",
+        "nullable": true
+      },
+      "nullableIntWithDefault": {
+        "type": "integer",
+        "default": 10,
+        "nullable": true
+      },
+      "stringWithLength": {
+        "type": "string",
+        "minLength": 10
       }
     }
   }
@@ -147,12 +532,52 @@ type Scalarfields struct {
       "scalarfields": {
         "type": "object",
         "required": [
+          "someUInt8",
+          "someUInt16",
+          "someUInt32",
+          "someUInt64",
+          "someInt8",
+          "someInt16",
           "someInt32",
           "someInt64",
           "someFloat32",
-          "someFloat64"
+          "someFloat64",
+          "intWithBounds",
+          "nullableIntWithNoDefault",
+          "nullableIntWithDefault",
+          "stringWithLength"
         ],
         "properties": {
+          "someUInt8": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255
+          },
+          "someUInt16": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 65535
+          },
+          "someUInt32": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 4294967295
+          },
+          "someUInt64": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 18446744073709551615
+          },
+          "someInt8": {
+            "type": "integer",
+            "minimum": -128,
+            "maximum": 127
+          },
+          "someInt16": {
+            "type": "integer",
+            "minimum": -32768,
+            "maximum": 32767
+          },
           "someInt32": {
             "type": "integer",
             "format": "int32"
@@ -168,6 +593,25 @@ type Scalarfields struct {
           "someFloat64": {
             "type": "number",
             "format": "double"
+          },
+          "intWithBounds": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10,
+            "exclusiveMaximum": true
+          },
+          "nullableIntWithNoDefault": {
+            "type": "integer",
+            "nullable": true
+          },
+          "nullableIntWithDefault": {
+            "type": "integer",
+            "default": 10,
+            "nullable": true
+          },
+          "stringWithLength": {
+            "type": "string",
+            "minLength": 10
           }
         }
       }
@@ -180,10 +624,20 @@ package scalarfields
 
 // Scalarfields defines model for scalarfields.
 type Scalarfields struct {
-	SomeFloat32 float32 `json:"someFloat32"`
-	SomeFloat64 float64 `json:"someFloat64"`
-	SomeInt32   int32   `json:"someInt32"`
-	SomeInt64   int64   `json:"someInt64"`
+	IntWithBounds            int     `json:"intWithBounds"`
+	NullableIntWithDefault   int     `json:"nullableIntWithDefault"`
+	NullableIntWithNoDefault int     `json:"nullableIntWithNoDefault"`
+	SomeFloat32              float32 `json:"someFloat32"`
+	SomeFloat64              float64 `json:"someFloat64"`
+	SomeInt16                int     `json:"someInt16"`
+	SomeInt32                int32   `json:"someInt32"`
+	SomeInt64                int64   `json:"someInt64"`
+	SomeInt8                 int     `json:"someInt8"`
+	SomeUInt16               int     `json:"someUInt16"`
+	SomeUInt32               int     `json:"someUInt32"`
+	SomeUInt64               int     `json:"someUInt64"`
+	SomeUInt8                int     `json:"someUInt8"`
+	StringWithLength         string  `json:"stringWithLength"`
 }
 -- out/encoding/gocode/TestGenerate/godeclincomments --
 == scalarfields_type_0.0_gen.go
@@ -191,10 +645,20 @@ package scalarfields
 
 // Scalarfields defines model for scalarfields.
 type Scalarfields struct {
-	SomeFloat32 float32 `json:"someFloat32"`
-	SomeFloat64 float64 `json:"someFloat64"`
-	SomeInt32   int32   `json:"someInt32"`
-	SomeInt64   int64   `json:"someInt64"`
+	IntWithBounds            int     `json:"intWithBounds"`
+	NullableIntWithDefault   *int    `json:"nullableIntWithDefault"`
+	NullableIntWithNoDefault *int    `json:"nullableIntWithNoDefault"`
+	SomeFloat32              float32 `json:"someFloat32"`
+	SomeFloat64              float64 `json:"someFloat64"`
+	SomeInt16                int     `json:"someInt16"`
+	SomeInt32                int32   `json:"someInt32"`
+	SomeInt64                int64   `json:"someInt64"`
+	SomeInt8                 int     `json:"someInt8"`
+	SomeUInt16               int     `json:"someUInt16"`
+	SomeUInt32               int     `json:"someUInt32"`
+	SomeUInt64               int     `json:"someUInt64"`
+	SomeUInt8                int     `json:"someUInt8"`
+	StringWithLength         string  `json:"stringWithLength"`
 }
 -- out/encoding/gocode/TestGenerate/expandref --
 == scalarfields_type_0.0_gen.go
@@ -202,10 +666,20 @@ package scalarfields
 
 // Scalarfields defines model for scalarfields.
 type Scalarfields struct {
-	SomeFloat32 float32 `json:"someFloat32"`
-	SomeFloat64 float64 `json:"someFloat64"`
-	SomeInt32   int32   `json:"someInt32"`
-	SomeInt64   int64   `json:"someInt64"`
+	IntWithBounds            int     `json:"intWithBounds"`
+	NullableIntWithDefault   *int    `json:"nullableIntWithDefault"`
+	NullableIntWithNoDefault *int    `json:"nullableIntWithNoDefault"`
+	SomeFloat32              float32 `json:"someFloat32"`
+	SomeFloat64              float64 `json:"someFloat64"`
+	SomeInt16                int     `json:"someInt16"`
+	SomeInt32                int32   `json:"someInt32"`
+	SomeInt64                int64   `json:"someInt64"`
+	SomeInt8                 int     `json:"someInt8"`
+	SomeUInt16               int     `json:"someUInt16"`
+	SomeUInt32               int     `json:"someUInt32"`
+	SomeUInt64               int     `json:"someUInt64"`
+	SomeUInt8                int     `json:"someUInt8"`
+	StringWithLength         string  `json:"stringWithLength"`
 }
 -- out/bind --
 Schema count: 1
@@ -215,14 +689,44 @@ Lenses count: 0
 == scalarfields_type_0.0_gen.go
 package scalarfields
 
+// IntWithBounds defines model for intWithBounds.
+type IntWithBounds = int
+
+// NullableIntWithDefault defines model for nullableIntWithDefault.
+type NullableIntWithDefault = int
+
+// NullableIntWithNoDefault defines model for nullableIntWithNoDefault.
+type NullableIntWithNoDefault = int
+
 // SomeFloat32 defines model for someFloat32.
 type SomeFloat32 = float32
 
 // SomeFloat64 defines model for someFloat64.
 type SomeFloat64 = float64
 
+// SomeInt16 defines model for someInt16.
+type SomeInt16 = int
+
 // SomeInt32 defines model for someInt32.
 type SomeInt32 = int32
 
 // SomeInt64 defines model for someInt64.
 type SomeInt64 = int64
+
+// SomeInt8 defines model for someInt8.
+type SomeInt8 = int
+
+// SomeUInt16 defines model for someUInt16.
+type SomeUInt16 = int
+
+// SomeUInt32 defines model for someUInt32.
+type SomeUInt32 = int
+
+// SomeUInt64 defines model for someUInt64.
+type SomeUInt64 = int
+
+// SomeUInt8 defines model for someUInt8.
+type SomeUInt8 = int
+
+// StringWithLength defines model for stringWithLength.
+type StringWithLength = string

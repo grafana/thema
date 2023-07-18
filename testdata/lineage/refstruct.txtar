@@ -8,15 +8,45 @@ schemas: [{
 	version: [0, 0]
 	schema: {
 		aBaz: #Baz
+		disj: #Baz | #Bar
 
 		#Baz: {
 			run:  string
-			tell: bytes
+			tell?: bytes
 			dat:  int32
+		}
+
+		#Bar: {
+		    one: string
+		    two: string
 		}
 	}
 }]
 lenses: []
+-- in/validate/TestValidate/disjunction.data.json --
+{
+    "aBaz": {
+        "run": "42",
+        "dat": 32
+    },
+    "disj": {}
+}
+-- in/validate/TestValidate/aBazRunWithInt.data.json --
+{
+    "aBaz": {
+        "run": 42
+    }
+}
+-- out/validate/TestValidate/disjunction --
+<refstruct@v0.0>.disj: validation failed, data is not an instance:
+	schema specifies that field exists with type `{run:string,dat:>=-2147483648 & <=2147483647 & int} | {one:string,two:string}`
+	but field was absent from data
+-- out/validate/TestValidate/aBazRunWithInt --
+<refstruct@v0.0>.aBaz.run: validation failed, data is not an instance:
+	schema expected `string`
+		/in.cue:12:10
+	but data contained `42`
+		test:3:16
 -- out/encoding/openapi/TestGenerate/nilcfg --
 == 0.0.json
 {
@@ -28,11 +58,25 @@ lenses: []
   "paths": {},
   "components": {
     "schemas": {
+      "Bar": {
+        "type": "object",
+        "required": [
+          "one",
+          "two"
+        ],
+        "properties": {
+          "one": {
+            "type": "string"
+          },
+          "two": {
+            "type": "string"
+          }
+        }
+      },
       "Baz": {
         "type": "object",
         "required": [
           "run",
-          "tell",
           "dat"
         ],
         "properties": {
@@ -52,11 +96,23 @@ lenses: []
       "refstruct": {
         "type": "object",
         "required": [
-          "aBaz"
+          "aBaz",
+          "disj"
         ],
         "properties": {
           "aBaz": {
             "$ref": "#/components/schemas/Baz"
+          },
+          "disj": {
+            "type": "object",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Baz"
+              },
+              {
+                "$ref": "#/components/schemas/Bar"
+              }
+            ]
           }
         }
       }
@@ -78,7 +134,6 @@ lenses: []
         "type": "object",
         "required": [
           "run",
-          "tell",
           "dat"
         ],
         "properties": {
@@ -95,11 +150,25 @@ lenses: []
           }
         }
       },
+      "Bar": {
+        "type": "object",
+        "required": [
+          "one",
+          "two"
+        ],
+        "properties": {
+          "one": {
+            "type": "string"
+          },
+          "two": {
+            "type": "string"
+          }
+        }
+      },
       "Baz": {
         "type": "object",
         "required": [
           "run",
-          "tell",
           "dat"
         ],
         "properties": {
@@ -115,6 +184,17 @@ lenses: []
             "format": "int32"
           }
         }
+      },
+      "disj": {
+        "type": "object",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/Baz"
+          },
+          {
+            "$ref": "#/components/schemas/Bar"
+          }
+        ]
       }
     }
   }
@@ -130,11 +210,25 @@ lenses: []
   "paths": {},
   "components": {
     "schemas": {
+      "Bar": {
+        "type": "object",
+        "required": [
+          "one",
+          "two"
+        ],
+        "properties": {
+          "one": {
+            "type": "string"
+          },
+          "two": {
+            "type": "string"
+          }
+        }
+      },
       "Baz": {
         "type": "object",
         "required": [
           "run",
-          "tell",
           "dat"
         ],
         "properties": {
@@ -154,14 +248,14 @@ lenses: []
       "refstruct": {
         "type": "object",
         "required": [
-          "aBaz"
+          "aBaz",
+          "disj"
         ],
         "properties": {
           "aBaz": {
             "type": "object",
             "required": [
               "run",
-              "tell",
               "dat"
             ],
             "properties": {
@@ -177,6 +271,42 @@ lenses: []
                 "format": "int32"
               }
             }
+          },
+          "disj": {
+            "type": "object",
+            "properties": {
+              "run": {
+                "type": "string"
+              },
+              "tell": {
+                "type": "string",
+                "format": "binary"
+              },
+              "dat": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "one": {
+                "type": "string"
+              },
+              "two": {
+                "type": "string"
+              }
+            },
+            "oneOf": [
+              {
+                "required": [
+                  "run",
+                  "dat"
+                ]
+              },
+              {
+                "required": [
+                  "one",
+                  "two"
+                ]
+              }
+            ]
           }
         }
       }
@@ -187,26 +317,43 @@ lenses: []
 == refstruct_type_0.0_gen.go
 package refstruct
 
+// Bar defines model for Bar.
+type Bar struct {
+	One string `json:"one"`
+	Two string `json:"two"`
+}
+
 // Baz defines model for Baz.
 type Baz struct {
 	Dat  int32  `json:"dat"`
 	Run  string `json:"run"`
-	Tell []byte `json:"tell"`
+	Tell []byte `json:"tell,omitempty"`
 }
 
 // Refstruct defines model for refstruct.
 type Refstruct struct {
 	ABaz Baz `json:"aBaz"`
+	Disj any `json:"disj"`
 }
 -- out/encoding/gocode/TestGenerate/expandref --
 == refstruct_type_0.0_gen.go
 package refstruct
 
+import (
+	"encoding/json"
+)
+
+// Bar defines model for Bar.
+type Bar struct {
+	One string `json:"one"`
+	Two string `json:"two"`
+}
+
 // Baz defines model for Baz.
 type Baz struct {
 	Dat  int32  `json:"dat"`
 	Run  string `json:"run"`
-	Tell []byte `json:"tell"`
+	Tell []byte `json:"tell,omitempty"`
 }
 
 // Refstruct defines model for refstruct.
@@ -214,8 +361,19 @@ type Refstruct struct {
 	ABaz struct {
 		Dat  int32  `json:"dat"`
 		Run  string `json:"run"`
-		Tell []byte `json:"tell"`
+		Tell []byte `json:"tell,omitempty"`
 	} `json:"aBaz"`
+	Disj RefstructDisj `json:"disj"`
+}
+
+// RefstructDisj defines model for Refstruct.Disj.
+type RefstructDisj struct {
+	Dat   *int32  `json:"dat,omitempty"`
+	One   *string `json:"one,omitempty"`
+	Run   *string `json:"run,omitempty"`
+	Tell  []byte  `json:"tell,omitempty"`
+	Two   *string `json:"two,omitempty"`
+	union json.RawMessage
 }
 -- out/bind --
 Schema count: 1
@@ -225,46 +383,66 @@ Lenses count: 0
 == refstruct_type_0.0_gen.go
 package refstruct
 
+// Bar defines model for Bar.
+type Bar struct {
+	One string `json:"one"`
+	Two string `json:"two"`
+}
+
 // Baz defines model for Baz.
 type Baz struct {
 	Dat  int32  `json:"dat"`
 	Run  string `json:"run"`
-	Tell []byte `json:"tell"`
+	Tell []byte `json:"tell,omitempty"`
 }
 
 // Refstruct defines model for refstruct.
 type Refstruct struct {
 	ABaz Baz `json:"aBaz"`
+	Disj any `json:"disj"`
 }
 -- out/encoding/gocode/TestGenerate/group --
 == refstruct_type_0.0_gen.go
 package refstruct
 
+// Bar defines model for Bar.
+type Bar struct {
+	One string `json:"one"`
+	Two string `json:"two"`
+}
+
 // Baz defines model for Baz.
 type Baz struct {
 	Dat  int32  `json:"dat"`
 	Run  string `json:"run"`
-	Tell []byte `json:"tell"`
+	Tell []byte `json:"tell,omitempty"`
 }
 
 // ABaz defines model for aBaz.
 type ABaz struct {
 	Dat  int32  `json:"dat"`
 	Run  string `json:"run"`
-	Tell []byte `json:"tell"`
+	Tell []byte `json:"tell,omitempty"`
 }
 -- out/encoding/gocode/TestGenerate/depointerized --
 == refstruct_type_0.0_gen.go
 package refstruct
 
+// Bar defines model for Bar.
+type Bar struct {
+	One string `json:"one"`
+	Two string `json:"two"`
+}
+
 // Baz defines model for Baz.
 type Baz struct {
 	Dat  int32  `json:"dat"`
 	Run  string `json:"run"`
-	Tell []byte `json:"tell"`
+	Tell []byte `json:"tell,omitempty"`
 }
 
 // Refstruct defines model for refstruct.
 type Refstruct struct {
 	ABaz Baz `json:"aBaz"`
+	Disj any `json:"disj"`
 }

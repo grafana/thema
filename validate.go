@@ -25,7 +25,7 @@ func (e *onesidederr) Error() string {
 	fmt.Fprintf(&buf, "%s: validation failed, data is not an instance:", e.coords)
 	switch e.code {
 	case terrors.MissingField:
-		fmt.Fprintf(&buf, "\n\tschema specifies that field exists with type %v", e.val)
+		fmt.Fprintf(&buf, "\n\tschema specifies that field exists with type `%v`", e.val)
 		for _, pos := range e.schpos {
 			fmt.Fprintf(&buf, "\n\t\t%s", pos.String())
 		}
@@ -40,7 +40,7 @@ func (e *onesidederr) Error() string {
 			fmt.Fprintf(&buf, "\n\t\t%s", pos.String())
 		}
 
-		fmt.Fprintf(&buf, "\n\tbut field exists in data with value %v", e.val)
+		fmt.Fprintf(&buf, "\n\tbut field exists in data with value `%v`", e.val)
 		for _, pos := range e.datapos {
 			fmt.Fprintf(&buf, "\n\t\t%s", pos.String())
 		}
@@ -115,7 +115,8 @@ func mungeValidateErr(err error, sch Schema) error {
 
 	var errs validationFailure
 	for _, ee := range errors.Errors(err) {
-		schpos, datapos := splitTokens(ee.InputPositions())
+		inputPositions := ee.InputPositions()
+		schpos, datapos := splitTokens(inputPositions)
 		x := coords{
 			sch:       sch,
 			fieldpath: trimThemaPath(ee.Path()),
@@ -132,7 +133,7 @@ func mungeValidateErr(err error, sch Schema) error {
 				schpos:  schpos,
 				datapos: datapos,
 				coords:  x,
-				val:     val,
+				val:     humanReadableCUEType(val),
 			}
 
 			if strings.Contains(msg, "incomplete") {
@@ -146,8 +147,17 @@ func mungeValidateErr(err error, sch Schema) error {
 			errs = append(errs, err)
 			continue
 		case 2:
-			dataval, dvok := vals[0].(string)
-			schval, svok := vals[1].(string)
+			var dataval, schval string
+			var dvok, svok bool
+
+			// data first
+			if len(inputPositions) > 1 && !strings.HasSuffix(inputPositions[0].Filename(), ".cue") {
+				schval, svok = vals[1].(string)
+				dataval, dvok = vals[0].(string)
+			} else { // schema first
+				schval, svok = vals[0].(string)
+				dataval, dvok = vals[1].(string)
+			}
 			if !svok || !dvok {
 				break
 			}
@@ -156,32 +166,39 @@ func mungeValidateErr(err error, sch Schema) error {
 				schpos:  schpos,
 				datapos: datapos,
 				coords:  x,
-				sv:      schval,
+				sv:      humanReadableCUEType(schval),
 				dv:      dataval,
 				code:    terrors.OutOfBounds,
 			})
 			continue
 
 		case 4:
-			schval, svok := vals[0].(string)
-			dataval, dvok := vals[1].(string)
-			schkind, skok := vals[2].(cue.Kind)
-			datakind, dkok := vals[3].(cue.Kind)
-			if !svok || !dvok || !skok || !dkok {
-				break
+			var svok, dvok, skok, dkok bool
+			var schval, dataval string
+			var schkind, datakind cue.Kind
+
+			// data first
+			if len(inputPositions) > 1 && !strings.HasSuffix(inputPositions[0].Filename(), ".cue") {
+				schval, svok = vals[1].(string)
+				dataval, dvok = vals[0].(string)
+				schkind, skok = vals[3].(cue.Kind)
+				datakind, dkok = vals[2].(cue.Kind)
+			} else { // schema first
+				schval, svok = vals[0].(string)
+				dataval, dvok = vals[1].(string)
+				schkind, skok = vals[2].(cue.Kind)
+				datakind, dkok = vals[3].(cue.Kind)
 			}
 
-			if schkind&cue.NumberKind > 0 {
-				if m, ok := schErrMsgFormatMap[schval]; ok {
-					schval = m
-				}
+			if !svok || !dvok || !skok || !dkok {
+				break
 			}
 
 			err := &twosidederr{
 				schpos:  schpos,
 				datapos: datapos,
 				coords:  x,
-				sv:      schval,
+				sv:      humanReadableCUEType(schval),
 				dv:      dataval,
 			}
 			if datakind.IsAnyOf(schkind) {
@@ -198,10 +215,39 @@ func mungeValidateErr(err error, sch Schema) error {
 }
 
 var schErrMsgFormatMap = map[string]string{
-	"int & >=-2147483648 & <=2147483647":                                                                   "int32",
-	"int & >=-9223372036854775808 & <=9223372036854775807":                                                 "int64",
+	"int & >=0 & <=255":                                    "uint8",
+	"int & >=0 & <=65535":                                  "uint16",
+	"int & >=0 & <=4294967295":                             "uint32",
+	"int & >=0 & <=18446744073709551615":                   "uint64",
+	">=0 & <=255 & int":                                    "uint8",
+	">=0 & <=65535 & int":                                  "uint16",
+	">=0 & <=4294967295 & int":                             "uint32",
+	">=0 & <=18446744073709551615 & int":                   "uint64",
+	"int & >=-128 & <=127":                                 "int8",
+	">=-128 & <=127 & int":                                 "int8",
+	"int & >=-32768 & <=32767":                             "int16",
+	">=-32768 & <=32767 & int":                             "int16",
+	"int & >=-2147483648 & <=2147483647":                   "int32",
+	">=-2147483648 & <=2147483647 & int":                   "int32",
+	"int & >=-9223372036854775808 & <=9223372036854775807": "int64",
+	">=-9223372036854775808 & <=9223372036854775807 & int": "int64",
 	">=-340282346638528859811704183484516925440 & <=340282346638528859811704183484516925440":               "float32",
 	">=-1.797693134862315708145274237317043567981E+308 & <=1.797693134862315708145274237317043567981E+308": "float64",
+}
+
+func humanReadableCUEType(value string) string {
+	parts := strings.Split(value, " | ")
+	readableParts := make([]string, len(parts))
+
+	for i, part := range parts {
+		if m, ok := schErrMsgFormatMap[part]; ok {
+			part = m
+		}
+
+		readableParts[i] = part
+	}
+
+	return strings.Join(readableParts, " | ")
 }
 
 func splitTokens(poslist []token.Pos) (schpos, datapos []token.Pos) {
@@ -209,18 +255,21 @@ func splitTokens(poslist []token.Pos) (schpos, datapos []token.Pos) {
 		return
 	}
 
-	// We're assuming data is always last. ...Probably safe? Given that we
-	// control the order of operands in the Schema.Validate() calls...
-	dataname := poslist[len(poslist)-1].Filename()
-	var split int
-	for i, pos := range poslist {
-		if pos.Filename() == dataname {
-			split = i
-			break
+	// Items in poslist don't follow a predictable order.
+	// References to the schema can come first, then the input. The opposite is
+	// also true. Or in some cases, they can be mixed.
+	// That's why we have to rely on a shaky heuristic here: we assume that
+	// only schema files have `.cue` suffixes, and we separate data from schema
+	// based on that criteria.
+	for _, pos := range poslist {
+		if strings.HasSuffix(pos.Filename(), ".cue") {
+			schpos = append(schpos, pos)
+		} else {
+			datapos = append(datapos, pos)
 		}
 	}
 
-	return poslist[:split], poslist[split:]
+	return schpos, datapos
 }
 
 func trimThemaPath(parts []string) []string {
