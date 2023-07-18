@@ -106,10 +106,13 @@ package scalarfields
 
 // Scalarfields defines model for scalarfields.
 type Scalarfields struct {
-	SomeFloat32 float32 `json:"someFloat32"`
-	SomeFloat64 float64 `json:"someFloat64"`
-	SomeInt32   int32   `json:"someInt32"`
-	SomeInt64   int64   `json:"someInt64"`
+	IntWithBounds            int     `json:"intWithBounds"`
+	NullableIntWithDefault   *int    `json:"nullableIntWithDefault"`
+	NullableIntWithNoDefault *int    `json:"nullableIntWithNoDefault"`
+	SomeFloat32              float32 `json:"someFloat32"`
+	SomeFloat64              float64 `json:"someFloat64"`
+	SomeInt32                int32   `json:"someInt32"`
+	SomeInt64                int64   `json:"someInt64"`
 }
 -- out/encoding/openapi/TestGenerate/nilcfg --
 == 0.0.json
@@ -128,7 +131,10 @@ type Scalarfields struct {
           "someInt32",
           "someInt64",
           "someFloat32",
-          "someFloat64"
+          "someFloat64",
+          "intWithBounds",
+          "nullableIntWithNoDefault",
+          "nullableIntWithDefault"
         ],
         "properties": {
           "someInt32": {
@@ -146,6 +152,21 @@ type Scalarfields struct {
           "someFloat64": {
             "type": "number",
             "format": "double"
+          },
+          "intWithBounds": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10,
+            "exclusiveMaximum": true
+          },
+          "nullableIntWithNoDefault": {
+            "type": "integer",
+            "nullable": true
+          },
+          "nullableIntWithDefault": {
+            "type": "integer",
+            "default": 10,
+            "nullable": true
           }
         }
       }
@@ -178,6 +199,21 @@ type Scalarfields struct {
       "someFloat64": {
         "type": "number",
         "format": "double"
+      },
+      "intWithBounds": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 10,
+        "exclusiveMaximum": true
+      },
+      "nullableIntWithNoDefault": {
+        "type": "integer",
+        "nullable": true
+      },
+      "nullableIntWithDefault": {
+        "type": "integer",
+        "default": 10,
+        "nullable": true
       }
     }
   }
@@ -199,7 +235,10 @@ type Scalarfields struct {
           "someInt32",
           "someInt64",
           "someFloat32",
-          "someFloat64"
+          "someFloat64",
+          "intWithBounds",
+          "nullableIntWithNoDefault",
+          "nullableIntWithDefault"
         ],
         "properties": {
           "someInt32": {
@@ -217,6 +256,21 @@ type Scalarfields struct {
           "someFloat64": {
             "type": "number",
             "format": "double"
+          },
+          "intWithBounds": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10,
+            "exclusiveMaximum": true
+          },
+          "nullableIntWithNoDefault": {
+            "type": "integer",
+            "nullable": true
+          },
+          "nullableIntWithDefault": {
+            "type": "integer",
+            "default": 10,
+            "nullable": true
           }
         }
       }
@@ -229,10 +283,13 @@ package scalarfields
 
 // Scalarfields defines model for scalarfields.
 type Scalarfields struct {
-	SomeFloat32 float32 `json:"someFloat32"`
-	SomeFloat64 float64 `json:"someFloat64"`
-	SomeInt32   int32   `json:"someInt32"`
-	SomeInt64   int64   `json:"someInt64"`
+	IntWithBounds            int     `json:"intWithBounds"`
+	NullableIntWithDefault   int     `json:"nullableIntWithDefault"`
+	NullableIntWithNoDefault int     `json:"nullableIntWithNoDefault"`
+	SomeFloat32              float32 `json:"someFloat32"`
+	SomeFloat64              float64 `json:"someFloat64"`
+	SomeInt32                int32   `json:"someInt32"`
+	SomeInt64                int64   `json:"someInt64"`
 }
 -- out/encoding/gocode/TestGenerate/godeclincomments --
 == scalarfields_type_0.0_gen.go
@@ -240,10 +297,13 @@ package scalarfields
 
 // Scalarfields defines model for scalarfields.
 type Scalarfields struct {
-	SomeFloat32 float32 `json:"someFloat32"`
-	SomeFloat64 float64 `json:"someFloat64"`
-	SomeInt32   int32   `json:"someInt32"`
-	SomeInt64   int64   `json:"someInt64"`
+	IntWithBounds            int     `json:"intWithBounds"`
+	NullableIntWithDefault   *int    `json:"nullableIntWithDefault"`
+	NullableIntWithNoDefault *int    `json:"nullableIntWithNoDefault"`
+	SomeFloat32              float32 `json:"someFloat32"`
+	SomeFloat64              float64 `json:"someFloat64"`
+	SomeInt32                int32   `json:"someInt32"`
+	SomeInt64                int64   `json:"someInt64"`
 }
 -- out/encoding/gocode/TestGenerate/expandref --
 == scalarfields_type_0.0_gen.go
@@ -251,10 +311,13 @@ package scalarfields
 
 // Scalarfields defines model for scalarfields.
 type Scalarfields struct {
-	SomeFloat32 float32 `json:"someFloat32"`
-	SomeFloat64 float64 `json:"someFloat64"`
-	SomeInt32   int32   `json:"someInt32"`
-	SomeInt64   int64   `json:"someInt64"`
+	IntWithBounds            int     `json:"intWithBounds"`
+	NullableIntWithDefault   *int    `json:"nullableIntWithDefault"`
+	NullableIntWithNoDefault *int    `json:"nullableIntWithNoDefault"`
+	SomeFloat32              float32 `json:"someFloat32"`
+	SomeFloat64              float64 `json:"someFloat64"`
+	SomeInt32                int32   `json:"someInt32"`
+	SomeInt64                int64   `json:"someInt64"`
 }
 -- out/bind --
 Schema count: 1
@@ -263,6 +326,15 @@ Lenses count: 0
 -- out/encoding/gocode/TestGenerate/group --
 == scalarfields_type_0.0_gen.go
 package scalarfields
+
+// IntWithBounds defines model for intWithBounds.
+type IntWithBounds = int
+
+// NullableIntWithDefault defines model for nullableIntWithDefault.
+type NullableIntWithDefault = int
+
+// NullableIntWithNoDefault defines model for nullableIntWithNoDefault.
+type NullableIntWithNoDefault = int
 
 // SomeFloat32 defines model for someFloat32.
 type SomeFloat32 = float32
