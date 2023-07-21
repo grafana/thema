@@ -7,6 +7,7 @@ import (
 	"cuelang.org/go/cue"
 	cerrors "cuelang.org/go/cue/errors"
 	"github.com/cockroachdb/errors"
+
 	terrors "github.com/grafana/thema/errors"
 	"github.com/grafana/thema/internal/cuetil"
 )
@@ -38,6 +39,8 @@ type baseLineage struct {
 
 	// all the schemas
 	allsch []*schemaDef
+
+	implens []ImperativeLens
 }
 
 // BindLineage takes a raw [cue.Value], checks that it correctly follows Thema's
@@ -105,11 +108,12 @@ func BindLineage(v cue.Value, rt *Runtime, opts ...BindOption) (Lineage, error) 
 	}
 
 	ml := &maybeLineage{
-		rt:   rt,
-		orig: orig,
-		raw:  raw,
-		uni:  uni,
-		cfg:  cfg,
+		rt:      rt,
+		orig:    orig,
+		raw:     raw,
+		uni:     uni,
+		cfg:     cfg,
+		implens: cfg.implens,
 	}
 
 	if err := ml.checkExists(cfg); err != nil {

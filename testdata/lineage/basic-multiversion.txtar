@@ -192,7 +192,7 @@ lenses: [{
             optional: input.optional
         }
         // TODO: withDefault: input.withDefault doesn't work
-        withDefault: "foo"
+        withDefault: "bar"
     }
 },
 {
@@ -205,7 +205,7 @@ lenses: [{
             optional: input.optional
         }
         // TODO: withDefault: input.withDefault doesn't work
-        withDefault: "foo"
+        withDefault: "bar"
     }
 },
 {
@@ -218,7 +218,7 @@ lenses: [{
             optional: input.optional
         }
         // TODO: withDefault: input.withDefault doesn't work
-        withDefault: "foo"
+        withDefault: "bar"
     }
 },
 {
@@ -233,7 +233,7 @@ lenses: [{
             optional: input.optional
         }
         // TODO: withDefault: input.withDefault doesn't work
-        withDefault: "foo"
+        withDefault: "bar"
     }
 }]
 -- out/core/instance/translate/TestInstance_Translate/lineage/basic-multiversion-0.0-simple->0.0.json --

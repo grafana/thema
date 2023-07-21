@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"cuelang.org/go/cue"
+
 	terrors "github.com/grafana/thema/errors"
 	"github.com/grafana/thema/internal/envvars"
 )
@@ -84,6 +85,14 @@ type Lineage interface {
 	allVersions() versionList
 }
 
+// ImperativeLens is a lens transformation defined in Go code, rather than in CUE.
+//
+// See [ImperativeLenses] for more information.
+type ImperativeLens struct {
+	To, From SyntacticVersion
+	Mapper   func(inst *Instance, to Schema) (*Instance, error)
+}
+
 // SchemaP returns the schema identified by the provided version. If no schema
 // exists in the lineage with the provided version, it panics.
 //
@@ -159,6 +168,7 @@ type bindOption func(c *bindConfig)
 // Internal bind-time configuration options.
 type bindConfig struct {
 	skipbuggychecks bool
+	implens         []ImperativeLens
 }
 
 // SkipBuggyChecks indicates that [BindLineage] should skip validation checks
@@ -182,6 +192,25 @@ func SkipBuggyChecks() BindOption {
 		if !envvars.ForceVerify {
 			c.skipbuggychecks = true
 		}
+	}
+}
+
+// ImperativeLenses takes a slice of [ImperativeLens]. These lenses will be
+// executed on calls to [Instance.Translate].
+//
+// A mix of Go and CUE lenses may be provided, but only one lens may be provided
+// across both languages for each necessary lens. If the set of lenses is
+// incomplete, or a duplicate lens is provided, [BindLineage] will fail.
+//
+// Lenses written in Go are Turing-complete, and therefore cannot be checked for
+// correctness.
+//
+// Writing lenses in Go means that the pure CUE declarations are no longer
+// sufficient to produce a valid lineage. As a result, lineages are no longer
+// portable outside of a context with access to the Go-defined lenses.
+func ImperativeLenses(lenses ...ImperativeLens) BindOption {
+	return func(c *bindConfig) {
+		c.implens = append(c.implens, lenses...)
 	}
 }
 
