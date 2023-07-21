@@ -198,6 +198,10 @@ func (inst *TypedInstance[T]) ValueP() T {
 func (i *Instance) Translate(to SyntacticVersion) (*Instance, TranslationLacunas, error) {
 	i.check()
 
+	if len(i.Schema().Lineage().(*baseLineage).lensmap) > 0 {
+		return i.translateGo(to)
+	}
+
 	// TODO define this in terms of AsSuccessor and AsPredecessor, rather than those in terms of this.
 	newsch, err := i.Schema().Lineage().Schema(to)
 	if err != nil {
@@ -238,6 +242,40 @@ func (i *Instance) Translate(to SyntacticVersion) (*Instance, TranslationLacunas
 		return nil, nil, errors.Mark(err, terrors.ErrLensResultIsInvalidData)
 	}
 	return inst, lac, err
+}
+
+func (i *Instance) translateGo(to SyntacticVersion) (*Instance, TranslationLacunas, error) {
+	from := i.Schema().Version()
+	if to == from {
+		// TODO make sure this mirrors the pure CUE behavior
+		return i, nil, nil
+	}
+	lensmap := i.Schema().Lineage().(*baseLineage).lensmap
+
+	sch := i.Schema()
+	ti := new(Instance)
+	*ti = *i
+	for sch.Version() != to {
+		rti, err := lensmap[lid(sch.Version(), ti.Schema().Version())].Mapper(ti, sch)
+		if err != nil {
+			return nil, nil, err
+		}
+		// Ensure the returned instance exists and the caller returned an instance of the expected schema version
+		if rti == nil {
+			return nil, nil, fmt.Errorf("lens returned a nil instance")
+		}
+		if rti.Schema().Version() != sch.Version() {
+			return nil, nil, fmt.Errorf("lens returned an instance of the wrong schema version: expected %v, got %v", sch.Version(), ti.Schema().Version())
+		}
+		*ti = *rti
+		if to.Less(from) {
+			sch = sch.Predecessor()
+		} else {
+			sch = sch.Successor()
+		}
+	}
+
+	return ti, nil, nil
 }
 
 type multiTranslationLacunas []struct {

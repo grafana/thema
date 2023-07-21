@@ -3,6 +3,8 @@ package thema
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"cuelang.org/go/cue/cuecontext"
 	"github.com/stretchr/testify/require"
 )
@@ -141,7 +143,7 @@ schemas: [{
 }]
 `
 
-	lenses := []ImperativeLens{
+	correctLenses := []ImperativeLens{
 		{
 			To:   SV(0, 0),
 			From: SV(0, 1),
@@ -313,8 +315,60 @@ schemas: [{
 	ctx := cuecontext.New()
 	rt := NewRuntime(ctx)
 	linval := rt.Context().CompileString(multivlin)
-	_, err := BindLineage(linval, rt, ImperativeLenses(lenses...))
+	_, err := BindLineage(linval, rt, ImperativeLenses(correctLenses...))
 	require.NoError(t, err)
+
+	_, err = BindLineage(linval, rt, ImperativeLenses(correctLenses[1:]...))
+	assert.Error(t, err, "expected error when missing a reverse Go migration")
+	_, err = BindLineage(linval, rt, ImperativeLenses(correctLenses[:1]...))
+	assert.Error(t, err, "expected error when missing a forward Go migration")
+
+	_, err = BindLineage(linval, rt, ImperativeLenses(append(correctLenses, ImperativeLens{
+		To:     SV(2, 0),
+		From:   SV(2, 1),
+		Mapper: func(inst *Instance, to Schema) (*Instance, error) { return nil, nil },
+	})...))
+	assert.Error(t, err, "expected error when adding Go migration pointing to nonexistent version")
+
+	_, err = BindLineage(linval, rt, ImperativeLenses(append(correctLenses, ImperativeLens{
+		To:     SV(2, 1),
+		From:   SV(2, 0),
+		Mapper: func(inst *Instance, to Schema) (*Instance, error) { return nil, nil },
+	})...))
+	assert.Error(t, err, "expected error when adding Go migration pointing to nonexistent version")
+
+	_, err = BindLineage(linval, rt, ImperativeLenses(append(correctLenses, ImperativeLens{
+		To:     SV(2, 0),
+		From:   SV(1, 1),
+		Mapper: func(inst *Instance, to Schema) (*Instance, error) { return nil, nil },
+	})...))
+	assert.Error(t, err, "expected error when adding duplicate Go migration")
+
+	_, err = BindLineage(linval, rt, ImperativeLenses(append(correctLenses, ImperativeLens{
+		Mapper: func(inst *Instance, to Schema) (*Instance, error) { return nil, nil },
+	})...))
+	assert.Error(t, err, "expected error when providing a Go migration with same to and from")
+
+	_, err = BindLineage(linval, rt, ImperativeLenses(append(correctLenses, ImperativeLens{
+		To:     SV(2, 0),
+		From:   SV(1, 0),
+		Mapper: func(inst *Instance, to Schema) (*Instance, error) { return nil, nil },
+	})...))
+	assert.Error(t, err, "expected error when providing Go migration with wrong successor")
+
+	_, err = BindLineage(linval, rt, ImperativeLenses(append(correctLenses, ImperativeLens{
+		To:     SV(1, 0),
+		From:   SV(2, 0),
+		Mapper: func(inst *Instance, to Schema) (*Instance, error) { return nil, nil },
+	})...))
+	assert.Error(t, err, "expected error when providing Go migration with wrong predecessor")
+
+	_, err = BindLineage(linval, rt, ImperativeLenses(append(correctLenses, ImperativeLens{
+		To:     SV(1, 1),
+		From:   SV(1, 0),
+		Mapper: func(inst *Instance, to Schema) (*Instance, error) { return nil, nil },
+	})...))
+	assert.Error(t, err, "expected error when providing Go migration for minor version upgrade")
 }
 
 func tomap(inst *Instance) map[string]any {

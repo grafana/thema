@@ -40,7 +40,7 @@ type baseLineage struct {
 	// all the schemas
 	allsch []*schemaDef
 
-	implens []ImperativeLens
+	lensmap map[lensID]ImperativeLens
 }
 
 // BindLineage takes a raw [cue.Value], checks that it correctly follows Thema's
@@ -143,6 +143,7 @@ func BindLineage(v cue.Value, rt *Runtime, opts ...BindOption) (Lineage, error) 
 		uni:       ml.uni,
 		allsch:    ml.schlist,
 		allv:      ml.allv,
+		lensmap:   ml.lensmap,
 	}
 
 	for _, sch := range lin.allsch {
