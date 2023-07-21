@@ -43,22 +43,23 @@ type maybeLineage struct {
 
 	implens []ImperativeLens
 
-	// translation plan, tracks whether each lens is handled in cue or go
-	transplan map[lensID]bool
+	lensmap map[lensID]ImperativeLens
 
 	// The raw input value is the root of a package instance
 	// rawIsPackage bool
 }
 
 // to, from
-type lensID [2]SyntacticVersion
+type lensID struct {
+	From, To SyntacticVersion
+}
 
 func lid(to, from SyntacticVersion) lensID {
-	return lensID{to, from}
+	return lensID{from, to}
 }
 
 func (id lensID) String() string {
-	return fmt.Sprintf("%d -> %d", id[1], id[0])
+	return fmt.Sprintf("%s -> %s", id.From, id.To)
 }
 
 func (ml *maybeLineage) checkGoValidity(cfg *bindConfig) error {
@@ -203,7 +204,7 @@ func (ml *maybeLineage) checkLensesOrder() error {
 			return err
 		}
 
-		if err := ml.doCheck(previous, &curr, ml.transplan); err != nil {
+		if err := doCheck(previous, &curr); err != nil {
 			return err
 		}
 
@@ -216,7 +217,11 @@ func (ml *maybeLineage) checkLensesOrder() error {
 func (ml *maybeLineage) checkGoLensCompleteness() error {
 	all := make(map[lensID]bool)
 	for _, lens := range ml.implens {
-		all[lid(lens.To, lens.From)] = true
+		id := lid(lens.To, lens.From)
+		if all[id] {
+			return fmt.Errorf("duplicate Go migration %s", id)
+		}
+		all[id] = true
 	}
 
 	var missing []lensID
@@ -268,26 +273,31 @@ func (ml *maybeLineage) checkGoLensCompleteness() error {
 				continue
 			}
 			if !synvExists(ml.allv, lens.To) {
-				fmt.Fprintf(b, "\t%s (schema version %s does not exist", elid, lens.To)
+				fmt.Fprintf(b, "\t%s (schema version %s does not exist)", elid, lens.To)
 			} else if !synvExists(ml.allv, lens.From) {
-				fmt.Fprintf(b, "\t%s (schema version %s does not exist", elid, lens.From)
-			} else if elid[0] == elid[1] {
+				fmt.Fprintf(b, "\t%s (schema version %s does not exist)", elid, lens.From)
+			} else if elid.To == elid.From {
 				fmt.Fprintf(b, "\t%s (self-migrations not allowed)", elid)
-			} else if elid[0].Less(elid[1]) {
+			} else if elid.To.Less(elid.From) {
 				// reverse lenses
 				// only possibility is non-sequential versions connected
-				fmt.Fprintf(b, "\t%s (%s is predecessor of %s, not %s)", elid, ml.allv[searchSynv(ml.allv, elid[1])-1], elid[1], elid[0])
+				fmt.Fprintf(b, "\t%s (%s is predecessor of %s, not %s)", elid, ml.allv[searchSynv(ml.allv, elid.From)-1], elid.From, elid.To)
 			} else {
 				// forward lenses
 				// either a minor lens was provided, or non-sequential versions connected
 				if lens.To[0] != lens.From[0] {
 					fmt.Fprintf(b, "\t%s (minor version upgrades are handled automatically)", elid)
 				} else {
-					fmt.Fprintf(b, "\t%s (%s is successor of %s, not %s)", elid, ml.allv[searchSynv(ml.allv, elid[1])+1], elid[1], elid[0])
+					fmt.Fprintf(b, "\t%s (%s is successor of %s, not %s)", elid, ml.allv[searchSynv(ml.allv, elid.From)+1], elid.From, elid.To)
 				}
 			}
 		}
 		return errors.Mark(errors.New(b.String()), terrors.ErrErroneousLenses)
+	}
+
+	ml.lensmap = make(map[lensID]ImperativeLens, len(ml.implens))
+	for _, lens := range ml.implens {
+		ml.lensmap[lid(lens.To, lens.From)] = lens
 	}
 
 	return nil
@@ -313,21 +323,13 @@ func newLensVersionDef(val cue.Value) (lensVersionDef, error) {
 	return lensVersionDef{to: to, from: from}, err
 }
 
-func (ml *maybeLineage) doCheck(prev, curr *lensVersionDef, gomigs map[lensID]bool) error {
+func doCheck(prev, curr *lensVersionDef) error {
 	if prev == nil {
 		return nil
 	}
 
 	if curr == nil {
 		return nil
-	}
-
-	// This check will become more useful if/when we allow a mix of lenses written in CUE and Go.
-	id := lid(curr.to, curr.from)
-	if gomigs[id] {
-		return errors.Mark(
-			errors.Errorf("lens version [to: %s, from: %s] was also provided as a Go migration", curr.to, curr.from),
-			terrors.ErrDuplicateLenses)
 	}
 
 	if curr.to.Less(prev.to) {
