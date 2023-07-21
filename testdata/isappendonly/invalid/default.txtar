@@ -22,6 +22,6 @@ lin2: schemas: [{
 }]
 -- out/isappendonly-fail --
 field aunion not present in {aunion:*"bar" | "foo" | "baz"}:
-    ../../../../../../../../cue.mod/pkg/github.com/grafana/thema/lineage.cue:223:10
-    ../../../../../../../../in.cue:16:13
+    ../../../../../../../cue.mod/pkg/github.com/grafana/thema/lineage.cue:223:10
+    ../../../../../../../in.cue:16:13
 missing field "aunion"

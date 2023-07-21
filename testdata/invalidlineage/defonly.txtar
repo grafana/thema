@@ -5,4 +5,4 @@ import "github.com/grafana/thema"
 thema.#Lineage
 -- out/bindfail --
 invalid lineage, #Lineage.name must be concrete:
-    ../../../../../../../cue.mod/pkg/github.com/grafana/thema/lineage.cue:16:2
+    ../../../../../../cue.mod/pkg/github.com/grafana/thema/lineage.cue:16:2

@@ -23,6 +23,6 @@ lin2: schemas: [{
 }]
 -- out/isappendonly-fail --
 field aNewOptionalField not present in {aField:string}:
-    ../../../../../../../../cue.mod/pkg/github.com/grafana/thema/lineage.cue:223:10
-    ../../../../../../../../in.cue:7:10
+    ../../../../../../../cue.mod/pkg/github.com/grafana/thema/lineage.cue:223:10
+    ../../../../../../../in.cue:7:10
 missing field "aNewOptionalField"

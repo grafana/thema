@@ -1,4 +1,4 @@
 -- in.cue --
 -- out/bindfail --
 not a lineage, missing #Lineage.name:
-    ../../../../../../../in.cue:1:1
+    ../../../../../../in.cue:1:1

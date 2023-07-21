@@ -35,10 +35,10 @@ lin2: schemas: [{
 }]
 -- out/isappendonly-fail --
 field aString not present in {aString:strings.MinRunes(2),anObject:{aField:int}}:
-    ../../../../../../../../cue.mod/pkg/github.com/grafana/thema/lineage.cue:223:10
-    ../../../../../../../../in.cue:25:10
+    ../../../../../../../cue.mod/pkg/github.com/grafana/thema/lineage.cue:223:10
+    ../../../../../../../in.cue:25:10
 missing field "aString"
 invalid value strings.MinRunes(2) (does not satisfy strings.MinRunes(1)): error in call to strings.MinRunes: non-concrete value string:
-    ../../../../../../../../in.cue:13:21
-    ../../../../../../../../in.cue:13:38
-    ../../../../../../../../in.cue:26:21
+    ../../../../../../../in.cue:13:21
+    ../../../../../../../in.cue:13:38
+    ../../../../../../../in.cue:26:21
