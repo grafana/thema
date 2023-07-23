@@ -285,7 +285,6 @@ schemas: [{
 			}
 			tex, tname := ex, name
 			t.Run(tname, func(t *testing.T) {
-				t.Log(start.Version(), end.Version())
 				tinst, lacunas, err := tex.Translate(end.Version())
 				require.NoError(t, err)
 				assert.Nil(t, lacunas, "pure go migrations cannot emit lacunas")
@@ -360,6 +359,12 @@ schemas: [{
 			Mapper: func(inst *Instance, to Schema) (*Instance, error) { return nil, nil },
 		})...))
 		assert.Error(t, err, "expected error when providing Go migration for minor version upgrade")
+
+		_, err = BindLineage(linval, rt, ImperativeLenses(append(correctLenses[:1], ImperativeLens{
+			To:   SV(2, 0),
+			From: SV(1, 1),
+		})...))
+		assert.Error(t, err, "expected error when Mapper func is nil")
 	})
 }
 

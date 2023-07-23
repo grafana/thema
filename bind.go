@@ -215,11 +215,15 @@ func (ml *maybeLineage) checkLensesOrder() error {
 }
 
 func (ml *maybeLineage) checkGoLensCompleteness() error {
+	// TODO(sdboyer) it'd be nice to consolidate all the errors so that the user always sees a complete set of problems
 	all := make(map[lensID]bool)
 	for _, lens := range ml.implens {
 		id := lid(lens.To, lens.From)
 		if all[id] {
 			return fmt.Errorf("duplicate Go migration %s", id)
+		}
+		if lens.Mapper == nil {
+			return fmt.Errorf("nil Go migration func for %s", id)
 		}
 		all[id] = true
 	}
