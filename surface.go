@@ -85,7 +85,8 @@ type Lineage interface {
 	allVersions() versionList
 }
 
-// ImperativeLens is a lens transformation defined in Go code, rather than in CUE.
+// ImperativeLens is a lens transformation defined as a Go function, rather than
+// in native CUE alongside the lineage.
 //
 // See [ImperativeLenses] for more information.
 type ImperativeLens struct {
@@ -198,16 +199,19 @@ func SkipBuggyChecks() BindOption {
 // ImperativeLenses takes a slice of [ImperativeLens]. These lenses will be
 // executed on calls to [Instance.Translate].
 //
-// A mix of Go and CUE lenses may be provided, but only one lens may be provided
-// across both languages for each necessary lens. If the set of lenses is
-// incomplete, or a duplicate lens is provided, [BindLineage] will fail.
+// Currently, the entire lens set must be provided in either Go or CUE. This
+// restriction may be relaxed in the future to allow a mix of Go and CUE lenses,
+// or to allow Go funcs to supersede CUE lenses as a performance optimization.
 //
-// Lenses written in Go are Turing-complete, and therefore cannot be checked for
-// correctness.
+// When providing lenses in this way, [BindLineage] will fail unless exactly the
+// set of expected lenses is provided. The correctness of the function bodies
+// cannot be pre-verified in this way, as Go is Turing-complete, but it is enforced
+// at runtime that lenses return an [Instance] of the schema version they claim to
+// in [ImperativeLens.To].
 //
-// Writing lenses in Go means that the pure CUE declarations are no longer
-// sufficient to produce a valid lineage. As a result, lineages are no longer
-// portable outside of a context with access to the Go-defined lenses.
+// Writing lenses in Go means that pure native CUE is no longer sufficient to
+// produce a valid lineage. As a result, lineages are no longer portable outside
+// of Go programs with compile-time access to the Go-defined lenses.
 func ImperativeLenses(lenses ...ImperativeLens) BindOption {
 	return func(c *bindConfig) {
 		c.implens = append(c.implens, lenses...)
