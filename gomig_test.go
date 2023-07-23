@@ -1,6 +1,7 @@
 package thema
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -22,6 +23,12 @@ schemas: [{
         simple: {
             init: "some string"
         }
+        TOwithOptional: {
+            init: "some string"
+        }
+        TOwithoutOptional: {
+            init: "some string"
+        }
     }
 },
 {
@@ -29,15 +36,6 @@ schemas: [{
     schema: {
         init:      string
         optional?: int32
-    }
-    examples: {
-        withoutOptional: {
-            init: "some string"
-        }
-        withOptional: {
-            init: "some string"
-            optional: 32
-        }
     }
 },
 {
@@ -47,17 +45,6 @@ schemas: [{
         optional?:   int32
         withDefault?: *"foo" | "bar"
     }
-    examples: {
-        withoutOptional: {
-            init: "some string"
-            withDefault: "foo"
-        }
-        withOptional: {
-            init: "some string"
-            optional: 32
-            withDefault: "bar"
-        }
-    }
 },
 {
     version: [0, 3]
@@ -65,17 +52,6 @@ schemas: [{
         init:        string
         optional?:   int32
         withDefault?: *"foo" | "bar" | "baz"
-    }
-    examples: {
-        withoutOptional: {
-            init: "some string"
-            withDefault: "baz"
-        }
-        withOptional: {
-            init: "some string"
-            optional: 32
-            withDefault: "baz"
-        }
     }
 },
 {
@@ -85,17 +61,6 @@ schemas: [{
         optional?:   int32
         withDefault: "foo" | *"bar" | "baz"
     }
-    examples: {
-        withoutOptional: {
-            renamed: "some string"
-            withDefault: "foo"
-        }
-        withOptional: {
-            renamed: "some string"
-            optional: 32
-            withDefault: "bar"
-        }
-    }
 },
 {
     version: [1, 1]
@@ -103,17 +68,6 @@ schemas: [{
         renamed:     string
         optional?:   int32
         withDefault: "foo" | *"bar" | "baz" | "bing"
-    }
-    examples: {
-        withoutOptional: {
-            renamed: "some string"
-            withDefault: "bing"
-        }
-        withOptional: {
-            renamed: "some string"
-            optional: 32
-            withDefault: "bing"
-        }
     }
 },
 {
@@ -126,6 +80,12 @@ schemas: [{
         withDefault: "foo" | *"bar" | "baz" | "bing"
     }
     examples: {
+		TOsimple: {
+            toObj: {
+                init: "some string"
+            }
+            withDefault: "bar"
+		}
         withoutOptional: {
             toObj: {
                 init: "some string"
@@ -258,7 +218,7 @@ schemas: [{
 				if v, has := m["optional"]; has {
 					tom["optional"] = v
 				}
-				if v, has := m["withDefault"]; has {
+				if v, has := m["withDefault"]; has && v != "bing" {
 					tom["withDefault"] = v
 				} else {
 					tom["withDefault"] = "bar"
@@ -315,60 +275,92 @@ schemas: [{
 	ctx := cuecontext.New()
 	rt := NewRuntime(ctx)
 	linval := rt.Context().CompileString(multivlin)
-	_, err := BindLineage(linval, rt, ImperativeLenses(correctLenses...))
+	lin, err := BindLineage(linval, rt, ImperativeLenses(correctLenses...))
 	require.NoError(t, err)
 
-	_, err = BindLineage(linval, rt, ImperativeLenses(correctLenses[1:]...))
-	assert.Error(t, err, "expected error when missing a reverse Go migration")
-	_, err = BindLineage(linval, rt, ImperativeLenses(correctLenses[:1]...))
-	assert.Error(t, err, "expected error when missing a forward Go migration")
+	transtest := func(t *testing.T, start, end Schema) {
+		for name, ex := range start.Examples() {
+			if strings.HasPrefix(name, "TO") {
+				continue
+			}
+			tex, tname := ex, name
+			t.Run(tname, func(t *testing.T) {
+				t.Log(start.Version(), end.Version())
+				tinst, lacunas, err := tex.Translate(end.Version())
+				require.NoError(t, err)
+				assert.Nil(t, lacunas, "pure go migrations cannot emit lacunas")
 
-	_, err = BindLineage(linval, rt, ImperativeLenses(append(correctLenses, ImperativeLens{
-		To:     SV(2, 0),
-		From:   SV(2, 1),
-		Mapper: func(inst *Instance, to Schema) (*Instance, error) { return nil, nil },
-	})...))
-	assert.Error(t, err, "expected error when adding Go migration pointing to nonexistent version")
+				b, err := tinst.Underlying().MarshalJSON()
+				require.NoError(t, err)
 
-	_, err = BindLineage(linval, rt, ImperativeLenses(append(correctLenses, ImperativeLens{
-		To:     SV(2, 1),
-		From:   SV(2, 0),
-		Mapper: func(inst *Instance, to Schema) (*Instance, error) { return nil, nil },
-	})...))
-	assert.Error(t, err, "expected error when adding Go migration pointing to nonexistent version")
+				eb, err := end.Examples()["TO"+tname].Underlying().MarshalJSON()
+				require.NoError(t, err)
+				assert.Equal(t, b, eb)
+			})
+		}
+	}
 
-	_, err = BindLineage(linval, rt, ImperativeLenses(append(correctLenses, ImperativeLens{
-		To:     SV(2, 0),
-		From:   SV(1, 1),
-		Mapper: func(inst *Instance, to Schema) (*Instance, error) { return nil, nil },
-	})...))
-	assert.Error(t, err, "expected error when adding duplicate Go migration")
+	t.Run("forward", func(t *testing.T) {
+		transtest(t, lin.First(), lin.Latest())
+	})
 
-	_, err = BindLineage(linval, rt, ImperativeLenses(append(correctLenses, ImperativeLens{
-		Mapper: func(inst *Instance, to Schema) (*Instance, error) { return nil, nil },
-	})...))
-	assert.Error(t, err, "expected error when providing a Go migration with same to and from")
+	t.Run("reverse", func(t *testing.T) {
+		transtest(t, lin.Latest(), lin.First())
+	})
 
-	_, err = BindLineage(linval, rt, ImperativeLenses(append(correctLenses, ImperativeLens{
-		To:     SV(2, 0),
-		From:   SV(1, 0),
-		Mapper: func(inst *Instance, to Schema) (*Instance, error) { return nil, nil },
-	})...))
-	assert.Error(t, err, "expected error when providing Go migration with wrong successor")
+	t.Run("bind-invalid", func(t *testing.T) {
+		_, err = BindLineage(linval, rt, ImperativeLenses(correctLenses[1:]...))
+		assert.Error(t, err, "expected error when missing a reverse Go migration")
+		_, err = BindLineage(linval, rt, ImperativeLenses(correctLenses[:1]...))
+		assert.Error(t, err, "expected error when missing a forward Go migration")
 
-	_, err = BindLineage(linval, rt, ImperativeLenses(append(correctLenses, ImperativeLens{
-		To:     SV(1, 0),
-		From:   SV(2, 0),
-		Mapper: func(inst *Instance, to Schema) (*Instance, error) { return nil, nil },
-	})...))
-	assert.Error(t, err, "expected error when providing Go migration with wrong predecessor")
+		_, err = BindLineage(linval, rt, ImperativeLenses(append(correctLenses, ImperativeLens{
+			To:     SV(2, 0),
+			From:   SV(2, 1),
+			Mapper: func(inst *Instance, to Schema) (*Instance, error) { return nil, nil },
+		})...))
+		assert.Error(t, err, "expected error when adding Go migration pointing to nonexistent version")
 
-	_, err = BindLineage(linval, rt, ImperativeLenses(append(correctLenses, ImperativeLens{
-		To:     SV(1, 1),
-		From:   SV(1, 0),
-		Mapper: func(inst *Instance, to Schema) (*Instance, error) { return nil, nil },
-	})...))
-	assert.Error(t, err, "expected error when providing Go migration for minor version upgrade")
+		_, err = BindLineage(linval, rt, ImperativeLenses(append(correctLenses, ImperativeLens{
+			To:     SV(2, 1),
+			From:   SV(2, 0),
+			Mapper: func(inst *Instance, to Schema) (*Instance, error) { return nil, nil },
+		})...))
+		assert.Error(t, err, "expected error when adding Go migration pointing to nonexistent version")
+
+		_, err = BindLineage(linval, rt, ImperativeLenses(append(correctLenses, ImperativeLens{
+			To:     SV(2, 0),
+			From:   SV(1, 1),
+			Mapper: func(inst *Instance, to Schema) (*Instance, error) { return nil, nil },
+		})...))
+		assert.Error(t, err, "expected error when adding duplicate Go migration")
+
+		_, err = BindLineage(linval, rt, ImperativeLenses(append(correctLenses, ImperativeLens{
+			Mapper: func(inst *Instance, to Schema) (*Instance, error) { return nil, nil },
+		})...))
+		assert.Error(t, err, "expected error when providing a Go migration with same to and from")
+
+		_, err = BindLineage(linval, rt, ImperativeLenses(append(correctLenses, ImperativeLens{
+			To:     SV(2, 0),
+			From:   SV(1, 0),
+			Mapper: func(inst *Instance, to Schema) (*Instance, error) { return nil, nil },
+		})...))
+		assert.Error(t, err, "expected error when providing Go migration with wrong successor")
+
+		_, err = BindLineage(linval, rt, ImperativeLenses(append(correctLenses, ImperativeLens{
+			To:     SV(1, 0),
+			From:   SV(2, 0),
+			Mapper: func(inst *Instance, to Schema) (*Instance, error) { return nil, nil },
+		})...))
+		assert.Error(t, err, "expected error when providing Go migration with wrong predecessor")
+
+		_, err = BindLineage(linval, rt, ImperativeLenses(append(correctLenses, ImperativeLens{
+			To:     SV(1, 1),
+			From:   SV(1, 0),
+			Mapper: func(inst *Instance, to Schema) (*Instance, error) { return nil, nil },
+		})...))
+		assert.Error(t, err, "expected error when providing Go migration for minor version upgrade")
+	})
 }
 
 func tomap(inst *Instance) map[string]any {
