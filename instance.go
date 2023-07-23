@@ -276,7 +276,7 @@ func (i *Instance) translateGo(to SyntacticVersion) (*Instance, TranslationLacun
 		var err error
 		if to.Less(from) || sch.Version()[0] != nsch.Version()[0] {
 			// Going backward, or crossing major version - need explicit lens
-			mlid := lid(nsch.Version(), sch.Version())
+			mlid := lid(sch.Version(), nsch.Version())
 			rti, err = lensmap[mlid].Mapper(ti, nsch)
 			if err != nil {
 				return nil, nil, fmt.Errorf("error executing %s migration: %w", mlid, err)

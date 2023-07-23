@@ -54,7 +54,7 @@ type lensID struct {
 	From, To SyntacticVersion
 }
 
-func lid(to, from SyntacticVersion) lensID {
+func lid(from, to SyntacticVersion) lensID {
 	return lensID{from, to}
 }
 
@@ -218,7 +218,7 @@ func (ml *maybeLineage) checkGoLensCompleteness() error {
 	// TODO(sdboyer) it'd be nice to consolidate all the errors so that the user always sees a complete set of problems
 	all := make(map[lensID]bool)
 	for _, lens := range ml.implens {
-		id := lid(lens.To, lens.From)
+		id := lid(lens.From, lens.To)
 		if all[id] {
 			return fmt.Errorf("duplicate Go migration %s", id)
 		}
@@ -234,7 +234,7 @@ func (ml *maybeLineage) checkGoLensCompleteness() error {
 	for _, sch := range ml.schlist[1:] {
 		// there must always at least be a reverse lens
 		v := sch.Version()
-		revid := lid(prior, v)
+		revid := lid(v, prior)
 
 		if !all[revid] {
 			missing = append(missing, revid)
@@ -244,7 +244,7 @@ func (ml *maybeLineage) checkGoLensCompleteness() error {
 
 		if v[0] != prior[0] {
 			// if we crossed a major version, there must also be a forward lens
-			fwdid := lid(v, prior)
+			fwdid := lid(prior, v)
 			if !all[fwdid] {
 				missing = append(missing, fwdid)
 			} else {
@@ -272,7 +272,7 @@ func (ml *maybeLineage) checkGoLensCompleteness() error {
 		// walk the slice so output is reliably ordered
 		for _, lens := range ml.implens {
 			// if it's not in the list it's because it was expected & already processed
-			elid := lid(lens.To, lens.From)
+			elid := lid(lens.From, lens.To)
 			if _, has := all[elid]; !has {
 				continue
 			}
@@ -301,7 +301,7 @@ func (ml *maybeLineage) checkGoLensCompleteness() error {
 
 	ml.lensmap = make(map[lensID]ImperativeLens, len(ml.implens))
 	for _, lens := range ml.implens {
-		ml.lensmap[lid(lens.To, lens.From)] = lens
+		ml.lensmap[lid(lens.From, lens.To)] = lens
 	}
 
 	return nil
