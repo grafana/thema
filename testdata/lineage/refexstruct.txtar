@@ -212,3 +212,12 @@ type Baz struct {
 type Refexstruct struct {
 	ABaz Baz `json:"aBaz"`
 }
+
+-- out/encoding/typescript/TestGenerate/nilcfg --
+export interface Refexstruct {
+  aBaz: {
+    run: string;
+    tell: string;
+    dat: number;
+  };
+}

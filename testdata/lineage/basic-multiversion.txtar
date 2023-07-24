@@ -1840,3 +1840,59 @@ type Basicmultiversion struct {
 
 // BasicmultiversionWithDefault defines model for Basicmultiversion.WithDefault.
 type BasicmultiversionWithDefault string
+
+-- out/encoding/typescript/TestGenerate/nilcfg --
+export interface Basic-Multiversion {
+  init: string;
+}
+export interface Basic-Multiversion {
+  init: string;
+  optional?: number;
+}
+export interface Basic-Multiversion {
+  init: string;
+  optional?: number;
+  withDefault?: ('foo' | 'bar');
+}
+
+export const defaultBasic-Multiversion: Partial<Basic-Multiversion> = {
+  withDefault: 'foo',
+};
+export interface Basic-Multiversion {
+  init: string;
+  optional?: number;
+  withDefault?: ('foo' | 'bar' | 'baz');
+}
+
+export const defaultBasic-Multiversion: Partial<Basic-Multiversion> = {
+  withDefault: 'foo',
+};
+export interface Basic-Multiversion {
+  optional?: number;
+  renamed: string;
+  withDefault: ('foo' | 'bar' | 'baz');
+}
+
+export const defaultBasic-Multiversion: Partial<Basic-Multiversion> = {
+  withDefault: 'bar',
+};
+export interface Basic-Multiversion {
+  optional?: number;
+  renamed: string;
+  withDefault: ('foo' | 'bar' | 'baz' | 'bing');
+}
+
+export const defaultBasic-Multiversion: Partial<Basic-Multiversion> = {
+  withDefault: 'bar',
+};
+export interface Basic-Multiversion {
+  optional?: number;
+  toObj: {
+    init: string;
+  };
+  withDefault: ('foo' | 'bar' | 'baz' | 'bing');
+}
+
+export const defaultBasic-Multiversion: Partial<Basic-Multiversion> = {
+  withDefault: 'bar',
+};

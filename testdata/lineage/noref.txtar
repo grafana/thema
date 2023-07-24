@@ -224,3 +224,8 @@ type Baz struct {
 
 // SomeField defines model for someField.
 type SomeField = string
+
+-- out/encoding/typescript/TestGenerate/nilcfg --
+export interface Noref {
+  someField: string;
+}

@@ -18,3 +18,19 @@ schemas: [{
 	}
 }]
 lenses: []
+
+-- out/encoding/typescript/TestGenerate/nilcfg --
+export interface Optional {
+  abool?: boolean;
+  abytes?: string;
+  alist?: Array<string>;
+  anint?: number;
+  astring?: string;
+  astruct?: {
+    nested: string;
+  };
+}
+
+export const defaultOptional: Partial<Optional> = {
+  alist: [],
+};

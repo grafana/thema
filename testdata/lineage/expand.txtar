@@ -687,3 +687,30 @@ type Expand struct {
 
 // ExpandWithDefault defines model for Expand.WithDefault.
 type ExpandWithDefault string
+
+-- out/encoding/typescript/TestGenerate/nilcfg --
+export interface Expand {
+  init: string;
+}
+export interface Expand {
+  init: string;
+  optional?: number;
+}
+export interface Expand {
+  init: string;
+  optional?: number;
+  withDefault?: ('foo' | 'bar');
+}
+
+export const defaultExpand: Partial<Expand> = {
+  withDefault: 'foo',
+};
+export interface Expand {
+  init: string;
+  optional?: number;
+  withDefault?: ('foo' | 'bar' | 'baz');
+}
+
+export const defaultExpand: Partial<Expand> = {
+  withDefault: 'foo',
+};

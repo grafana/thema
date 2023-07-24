@@ -149,3 +149,9 @@ type Oneone struct {
 	Bar string `json:"bar"`
 	Foo string `json:"foo"`
 }
+
+-- out/encoding/typescript/TestGenerate/nilcfg --
+export interface Oneone {
+  bar: string;
+  foo: string;
+}

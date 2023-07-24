@@ -119,3 +119,8 @@ package oneschemaversionless
 
 // Firstfield defines model for firstfield.
 type Firstfield = string
+
+-- out/encoding/typescript/TestGenerate/nilcfg --
+export interface One-Schema-Versionless {
+  firstfield: string;
+}

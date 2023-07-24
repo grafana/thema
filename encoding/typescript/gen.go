@@ -64,6 +64,9 @@ func GenerateTypes(sch thema.Schema, cfg *TypeConfig) (*ast.File, error) {
 	}
 	if cfg.CuetsyConfig == nil {
 		cfg.CuetsyConfig = &cuetsy.Config{
+			ImportMapper: func(_ string) (string, error) {
+				return "", nil
+			},
 			Export: true,
 		}
 	}

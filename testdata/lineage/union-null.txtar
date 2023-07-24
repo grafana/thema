@@ -471,3 +471,25 @@ type Unionnull struct {
 		WithNull     *string `json:"withNull"`
 	} `json:"kindString"`
 }
+
+-- out/encoding/typescript/TestGenerate/nilcfg --
+export interface Union-Null {
+  kindFloat: {
+    simpleFloat64: number;
+    simpleFloat32: number;
+    withNull64: (number | null);
+    withNull32: (number | null);
+  };
+  kindInt: {
+    simpleInt: number;
+    simpleInt32: number;
+    simpleInt64: number;
+    withNull: (number | null);
+    withNull64: (number | null);
+    withNull32: (number | null);
+  };
+  kindString: {
+    simpleString: string;
+    withNull: (string | null);
+  };
+}

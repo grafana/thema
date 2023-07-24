@@ -730,3 +730,25 @@ type SomeUInt8 = int
 
 // StringWithLength defines model for stringWithLength.
 type StringWithLength = string
+
+-- out/encoding/typescript/TestGenerate/nilcfg --
+export interface Scalar-Fields {
+  intWithBounds: number;
+  nullableIntWithDefault: (number | null);
+  nullableIntWithNoDefault: (number | null);
+  someFloat32: number;
+  someFloat64: number;
+  someInt16: number;
+  someInt32: number;
+  someInt64: number;
+  someInt8: number;
+  someUInt16: number;
+  someUInt32: number;
+  someUInt64: number;
+  someUInt8: number;
+  stringWithLength: string;
+}
+
+export const defaultScalar-Fields: Partial<Scalar-Fields> = {
+  nullableIntWithDefault: 10,
+};

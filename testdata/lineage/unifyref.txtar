@@ -349,3 +349,13 @@ type Unifyref struct {
 Schema count: 1
 Schema versions: 0.0
 Lenses count: 0
+
+-- out/encoding/typescript/TestGenerate/nilcfg --
+export interface Unifyref {
+  afoo: {
+    extfield: string;
+    optf?: {
+      another: string;
+    };
+  };
+}
