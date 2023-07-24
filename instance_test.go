@@ -27,7 +27,7 @@ func TestInstance_Translate(t *testing.T) {
 
 	test.Run(t, func(tc *vanilla.Test) {
 		if !tc.HasTag("multiversion") {
-			return
+			tc.Skip("case not tagged with 'multiversion'")
 		}
 
 		lin, lerr := bindTxtarLineage(tc, rt, "lineagePath")
