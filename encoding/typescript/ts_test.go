@@ -32,7 +32,6 @@ func TestGenerate(t *testing.T) {
 			name: "nilcfg",
 			cfg:  nil,
 		},
-		{},
 	}
 
 	for _, tb := range table {
