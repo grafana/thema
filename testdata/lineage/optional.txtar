@@ -18,7 +18,6 @@ schemas: [{
 	}
 }]
 lenses: []
-
 -- out/encoding/typescript/TestGenerate/nilcfg --
 export interface Optional {
   abool?: boolean;

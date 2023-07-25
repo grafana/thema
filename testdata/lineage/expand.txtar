@@ -687,7 +687,6 @@ type Expand struct {
 
 // ExpandWithDefault defines model for Expand.WithDefault.
 type ExpandWithDefault string
-
 -- out/encoding/typescript/TestGenerate/nilcfg --
 export interface Expand {
   init: string;

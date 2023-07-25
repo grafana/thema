@@ -446,7 +446,6 @@ type Refstruct struct {
 	ABaz Baz `json:"aBaz"`
 	Disj any `json:"disj"`
 }
-
 -- out/encoding/typescript/TestGenerate/nilcfg --
 export interface Refstruct {
   aBaz: {

@@ -122,7 +122,6 @@ package onenone
 
 // Foo defines model for foo.
 type Foo = string
-
 -- out/encoding/typescript/TestGenerate/nilcfg --
 export interface Onenone {
   foo: string;

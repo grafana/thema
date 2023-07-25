@@ -314,7 +314,6 @@ type Goany struct {
 	} `json:"structVal"`
 	Value any `json:"value"`
 }
-
 -- out/encoding/typescript/TestGenerate/nilcfg --
 export interface Go-Any {
   emptyMap: Record<string, unknown>;

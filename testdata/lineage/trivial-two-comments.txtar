@@ -280,7 +280,6 @@ type Trivialtwocomments struct {
 	// Secondfield but clearly this one is a great idea
 	Secondfield int32 `json:"secondfield,omitempty"`
 }
-
 -- out/encoding/typescript/TestGenerate/nilcfg --
 export interface Trivial-Two-Comments {
   /**

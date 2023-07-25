@@ -730,7 +730,6 @@ type SomeUInt8 = int
 
 // StringWithLength defines model for stringWithLength.
 type StringWithLength = string
-
 -- out/encoding/typescript/TestGenerate/nilcfg --
 export interface Scalar-Fields {
   intWithBounds: number;

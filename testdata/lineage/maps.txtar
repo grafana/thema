@@ -605,7 +605,6 @@ type ValPrimitive map[string]bool
 type ValStruct map[string]struct {
 	Foo string `json:"foo"`
 }
-
 -- out/encoding/typescript/TestGenerate/nilcfg --
 export interface Maps {
   aComplexMap?: {

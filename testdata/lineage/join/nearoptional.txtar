@@ -276,7 +276,6 @@ type Nearoptional struct {
 	} `json:"astruct,omitempty"`
 	Notoptional int32 `json:"notoptional"`
 }
-
 -- out/encoding/typescript/TestGenerate/nilcfg --
 export interface Nearoptional {
   abool?: boolean;

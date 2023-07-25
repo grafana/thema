@@ -1840,7 +1840,6 @@ type Basicmultiversion struct {
 
 // BasicmultiversionWithDefault defines model for Basicmultiversion.WithDefault.
 type BasicmultiversionWithDefault string
-
 -- out/encoding/typescript/TestGenerate/nilcfg --
 export interface Basic-Multiversion {
   init: string;
