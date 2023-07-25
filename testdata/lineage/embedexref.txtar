@@ -189,7 +189,6 @@ type EmbedexrefRefField2 int
 Schema count: 1
 Schema versions: 0.0
 Lenses count: 0
-
 -- out/encoding/typescript/TestGenerate/nilcfg --
 export interface Embedexref {
   refField1: string;
