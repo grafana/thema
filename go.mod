@@ -14,7 +14,7 @@ require (
 	github.com/getkin/kin-openapi v0.115.0
 	github.com/golangci/lint-1 v0.0.0-20181222135242-d2cdd8c08219
 	github.com/google/go-cmp v0.5.8
-	github.com/grafana/cuetsy v0.1.10
+	github.com/grafana/cuetsy v0.1.11
 	github.com/labstack/echo/v4 v4.9.1
 	github.com/matryer/moq v0.2.7
 	github.com/spf13/cobra v1.4.0

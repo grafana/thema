@@ -185,3 +185,10 @@ type AField struct {
 
 // Foo defines model for foo.
 type Foo = string
+-- out/encoding/typescript/TestGenerate/nilcfg --
+export interface Onestruct {
+  aField: {
+    defLitField: string;
+  };
+  foo: string;
+}

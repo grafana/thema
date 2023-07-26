@@ -64,41 +64,36 @@ func GenerateTypes(sch thema.Schema, cfg *TypeConfig) (*ast.File, error) {
 	}
 	if cfg.CuetsyConfig == nil {
 		cfg.CuetsyConfig = &cuetsy.Config{
-			Export: true,
+			ImportMapper: cuetsy.IgnoreImportMapper,
+			Export:       true,
 		}
 	}
 	if cfg.RootName == "" {
 		cfg.RootName = strings.Title(sch.Lineage().Name())
 	}
 
-	file := &ts.File{}
-	for _, path := range []cue.Selector{cue.Str("schema"), cue.Hid("_join", "github.com/grafana/thema")} {
-		schdef := sch.Underlying().LookupPath(cue.MakePath(path))
-		// Cuetsy only accepts structs as root file, otherwise it fails.
-		// _join could be _ and we can skip it when it happens to avoid to break the whole generation process.
-		if schdef.IncompleteKind() != cue.StructKind {
-			continue
+	schdef := sch.Underlying().LookupPath(cue.MakePath(cue.Hid("_#schema", "github.com/grafana/thema")))
+	tf, err := cuetsy.GenerateAST(schdef, *cfg.CuetsyConfig)
+	if err != nil {
+		return nil, fmt.Errorf("generating TS for child elements of schema failed: %w", err)
+	}
+
+	file := &ts.File{
+		Nodes: tf.Nodes,
+	}
+
+	if !cfg.Group {
+		as := cuetsy.TypeInterface
+		if cfg.RootAsType {
+			as = cuetsy.TypeAlias
 		}
-		tf, err := cuetsy.GenerateAST(schdef, *cfg.CuetsyConfig)
+		top, err := cuetsy.GenerateSingleAST(cfg.RootName, schdef, as)
 		if err != nil {
-			return nil, fmt.Errorf("generating TS for child elements of schema failed: %w", err)
+			return nil, fmt.Errorf("generating TS for schema root failed: %w", err)
 		}
-
-		file.Nodes = append(file.Nodes, tf.Nodes...)
-
-		if !cfg.Group {
-			as := cuetsy.TypeInterface
-			if cfg.RootAsType {
-				as = cuetsy.TypeAlias
-			}
-			top, err := cuetsy.GenerateSingleAST(cfg.RootName, schdef, as)
-			if err != nil {
-				return nil, fmt.Errorf("generating TS for schema root failed: %w", err)
-			}
-			file.Nodes = append(file.Nodes, top.T)
-			if top.D != nil {
-				file.Nodes = append(file.Nodes, top.D)
-			}
+		file.Nodes = append(file.Nodes, top.T)
+		if top.D != nil {
+			file.Nodes = append(file.Nodes, top.D)
 		}
 	}
 

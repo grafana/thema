@@ -123,3 +123,7 @@ package repeat
 type Repeat struct {
 	Foo string `json:"foo"`
 }
+-- out/encoding/typescript/TestGenerate/nilcfg --
+export interface Repeat {
+  foo: string;
+}

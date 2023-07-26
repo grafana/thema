@@ -276,3 +276,19 @@ type Nearoptional struct {
 	} `json:"astruct,omitempty"`
 	Notoptional int32 `json:"notoptional"`
 }
+-- out/encoding/typescript/TestGenerate/nilcfg --
+export interface Nearoptional {
+  abool?: boolean;
+  abytes?: string;
+  alist?: Array<string>;
+  anint?: number;
+  astring?: string;
+  astruct?: {
+    nested: string;
+  };
+  notoptional: number;
+}
+
+export const defaultNearoptional: Partial<Nearoptional> = {
+  alist: [],
+};

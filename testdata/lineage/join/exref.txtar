@@ -268,3 +268,13 @@ type Exref struct {
 	Ref    ExRef    `json:"ref"`
 	Refdef ExRefDef `json:"refdef"`
 }
+-- out/encoding/typescript/TestGenerate/nilcfg --
+export interface Exref {
+  foo: string;
+  ref: {
+    normalField: string;
+  };
+  refdef: {
+    defField: string;
+  };
+}

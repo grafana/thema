@@ -594,3 +594,28 @@ lenses: []
 Schema count: 1
 Schema versions: 0.0
 Lenses count: 0
+-- out/encoding/typescript/TestGenerate/nilcfg --
+export interface Union {
+  doubleList: Array<Array<(Record<string, unknown> | '#UnionDef')>>;
+  emptyStructs: Array<Array<Record<string, unknown>>>;
+  listUnion: Array<(Record<string, unknown> | '#UnionDef')>;
+  mapChained: Record<string, Record<string, (Record<string, unknown> | '#UnionDef')>>;
+  mapDoubleList: Record<string, Array<Array<(Record<string, unknown> | '#UnionDef')>>>;
+  mapList: Record<string, Array<(Record<string, unknown> | '#UnionDef')>>;
+  mapListChained: Record<string, Record<string, Record<string, Array<(Record<string, unknown> | '#UnionDef')>>>>;
+  mapTripleList: Record<string, Array<Array<Array<(Record<string, unknown> | '#UnionDef')>>>>;
+  mapUnion: Record<string, (Record<string, unknown> | '#UnionDef')>;
+  nestedStruct: {
+    structUnion: (Record<string, unknown> | '#UnionDef');
+    mapUnion: Record<string, (Record<string, unknown> | '#UnionDef')>;
+    listUnion: Array<(Record<string, unknown> | '#UnionDef')>;
+  };
+  optionalUnion?: (Record<string, unknown> | '#UnionDef');
+  theUnion: (Record<string, unknown> | '#UnionDef');
+}
+
+export const defaultUnion: Partial<Union> = {
+  doubleList: [],
+  emptyStructs: [],
+  listUnion: [],
+};

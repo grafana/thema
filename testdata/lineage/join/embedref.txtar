@@ -218,3 +218,9 @@ type Embedref struct {
 
 // EmbedrefRefField2 defines model for Embedref.RefField2.
 type EmbedrefRefField2 int
+-- out/encoding/typescript/TestGenerate/nilcfg --
+export interface Embedref {
+  foo: string;
+  refField1: string;
+  refField2: 42;
+}

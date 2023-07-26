@@ -605,3 +605,23 @@ type ValPrimitive map[string]bool
 type ValStruct map[string]struct {
 	Foo string `json:"foo"`
 }
+-- out/encoding/typescript/TestGenerate/nilcfg --
+export interface Maps {
+  aComplexMap?: {
+    foo: string;
+  };
+  optValList?: Record<string, Array<string>>;
+  optValPrimitive?: Record<string, boolean>;
+  optValStruct?: Record<string, {
+  foo: string,
+}>;
+  refValue: Record<string, {
+  foo: string,
+}>;
+  someField: Record<string, boolean>;
+  valList: Record<string, Array<string>>;
+  valPrimitive: Record<string, boolean>;
+  valStruct: Record<string, {
+  foo: string,
+}>;
+}
