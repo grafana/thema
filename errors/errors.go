@@ -108,6 +108,20 @@ var (
 	// ErrInvalidLensesOrder indicates that lenses are in the wrong order - they must be sorted by `to`, then `from`.
 	ErrInvalidLensesOrder = errors.New("lenses in lineage are not ordered by version")
 
+	// ErrDuplicateLenses indicates that a lens was defined declaratively in CUE, but the same lens
+	// was also provided as a Go function to BindLineage.
+	ErrDuplicateLenses = errors.New("lens is declared in both CUE and Go")
+
+	// ErrMissingLenses indicates that the lenses provided to BindLineage in either
+	// CUE or Go were missing at least one of the expected lenses determined by the
+	// set of schemas in the lineage.
+	ErrMissingLenses = errors.New("not all expected lenses were provided")
+
+	// ErrErroneousLenses indicates that a lens was provided to BindLineage in either
+	// CUE or Go that was not one of the expected lenses determined by the set of
+	// schemas in the lineage.
+	ErrErroneousLenses = errors.New("unexpected lenses were erroneously provided")
+
 	// ErrVersionNotExist indicates that no schema exists in a lineage with a
 	// given version.
 	ErrVersionNotExist = errors.New("lineage does not contain schema with version") // ErrNoSchemaWithVersion

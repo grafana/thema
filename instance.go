@@ -100,6 +100,15 @@ func (i *Instance) Dehydrate() *Instance {
 // schema.
 func (i *Instance) AsSuccessor() (*Instance, TranslationLacunas, error) {
 	i.check()
+	// If it's a minor version upgrade, we can safely shortcut and just create
+	// a new instance
+	nsch := i.Schema().Successor()
+	if nsch.Version()[0] == i.Schema().Version()[0] {
+		ni := new(Instance)
+		*ni = *i
+		ni.sch = nsch
+		return ni, nil, nil
+	}
 	return i.Translate(i.sch.Successor().Version())
 }
 
@@ -198,6 +207,10 @@ func (inst *TypedInstance[T]) ValueP() T {
 func (i *Instance) Translate(to SyntacticVersion) (*Instance, TranslationLacunas, error) {
 	i.check()
 
+	if len(i.Schema().Lineage().(*baseLineage).lensmap) > 0 {
+		return i.translateGo(to)
+	}
+
 	// TODO define this in terms of AsSuccessor and AsPredecessor, rather than those in terms of this.
 	newsch, err := i.Schema().Lineage().Schema(to)
 	if err != nil {
@@ -238,6 +251,57 @@ func (i *Instance) Translate(to SyntacticVersion) (*Instance, TranslationLacunas
 		return nil, nil, errors.Mark(err, terrors.ErrLensResultIsInvalidData)
 	}
 	return inst, lac, err
+}
+
+func (i *Instance) translateGo(to SyntacticVersion) (*Instance, TranslationLacunas, error) {
+	from := i.Schema().Version()
+	if to == from {
+		// TODO make sure this mirrors the pure CUE behavior
+		return i, nil, nil
+	}
+	lensmap := i.Schema().Lineage().(*baseLineage).lensmap
+
+	sch := i.Schema()
+	ti := new(Instance)
+	*ti = *i
+	for sch.Version() != to {
+		var nsch Schema
+		if to.Less(from) {
+			nsch = sch.Predecessor()
+		} else {
+			nsch = sch.Successor()
+		}
+
+		var rti *Instance
+		var err error
+		if to.Less(from) || sch.Version()[0] != nsch.Version()[0] {
+			// Going backward, or crossing major version - need explicit lens
+			mlid := lid(sch.Version(), nsch.Version())
+			rti, err = lensmap[mlid].Mapper(ti, nsch)
+			if err != nil {
+				return nil, nil, fmt.Errorf("error executing %s migration: %w", mlid, err)
+			}
+			// Ensure that
+			//  - the returned instance exists
+			//  - the caller returned an instance of the expected schema version
+			if rti == nil {
+				return nil, nil, fmt.Errorf("lens returned a nil instance")
+			}
+			if rti.Schema().Version() != nsch.Version() {
+				return nil, nil, fmt.Errorf("lens returned an instance of the wrong schema version: expected %v, got %v", nsch.Version(), rti.Schema().Version())
+			}
+		} else {
+			// going up a minor version - neither errors nor lacunas are possible
+			rti, _, err = ti.AsSuccessor()
+			if err != nil {
+				panic(fmt.Sprintf("unreachable - error on minor version upgrade: %s", err))
+			}
+		}
+		*ti = *rti
+		sch = nsch
+	}
+
+	return ti, nil, nil
 }
 
 type multiTranslationLacunas []struct {
