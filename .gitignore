@@ -17,3 +17,6 @@
 .idea
 
 cmd/thema/thema
+
+# Output from cue-unity
+/.unity-bin
