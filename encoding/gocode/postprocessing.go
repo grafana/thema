@@ -16,10 +16,16 @@ import (
 )
 
 type GenGoFile struct {
-	ErrIfAdd bool
 	Path     string
 	Appliers []dstutil.ApplyFunc
 	In       []byte
+
+	// IgnoreDiscoveredImports causes the processing not to fail with an error in the
+	// event that goimports adds additional import statements. (The default behavior
+	// is to fail because adding imports entails a search, which can slow down
+	// codegen by multiple orders of magnitude. Succeeding silently but slowly is a bad
+	// default behavior when the fix is usually quite easy.)
+	IgnoreDiscoveredImports bool
 }
 
 func PostprocessGoFile(cfg GenGoFile) ([]byte, error) {
@@ -45,7 +51,7 @@ func PostprocessGoFile(cfg GenGoFile) ([]byte, error) {
 		return nil, fmt.Errorf("goimports processing of generated file failed: %w", err)
 	}
 
-	if cfg.ErrIfAdd {
+	if !cfg.IgnoreDiscoveredImports {
 		// Compare imports before and after; warn about performance if some were added
 		gfa, _ := parser.ParseFile(fset, fname, string(byt), parser.ParseComments)
 		imap := make(map[string]bool)

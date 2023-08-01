@@ -123,10 +123,10 @@ func GenerateTypesOpenAPI(sch thema.Schema, cfg *TypeConfigOpenAPI) ([]byte, err
 	}
 
 	return PostprocessGoFile(GenGoFile{
-		Path:     fmt.Sprintf("%s_type_gen.go", sch.Lineage().Name()),
-		Appliers: applyFuncs,
-		In:       []byte(gostr),
-		ErrIfAdd: !cfg.IgnoreDiscoveredImports,
+		Path:                    fmt.Sprintf("%s_type_gen.go", sch.Lineage().Name()),
+		Appliers:                applyFuncs,
+		In:                      []byte(gostr),
+		IgnoreDiscoveredImports: cfg.IgnoreDiscoveredImports,
 	})
 }
 
@@ -343,10 +343,10 @@ func GenerateLineageBinding(lin thema.Lineage, cfg *BindingConfig) ([]byte, erro
 	}
 
 	return PostprocessGoFile(GenGoFile{
-		Path:     fmt.Sprintf("%s_binding_gen.go", strings.ToLower(lin.Name())),
-		Appliers: cfg.ApplyFuncs,
-		In:       buf.Bytes(),
-		ErrIfAdd: !cfg.IgnoreDiscoveredImports,
+		Path:                    fmt.Sprintf("%s_binding_gen.go", strings.ToLower(lin.Name())),
+		Appliers:                cfg.ApplyFuncs,
+		In:                      buf.Bytes(),
+		IgnoreDiscoveredImports: cfg.IgnoreDiscoveredImports,
 	})
 }
 
