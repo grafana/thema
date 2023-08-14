@@ -15,6 +15,12 @@ schemas: [
     {
         version: [0, 1]
 		schema: {
+		    aunion: *"foo" | "bar" | "baz"
+        }
+    },
+    {
+        version: [0, 2]
+		schema: {
 		    aunion: "foo" | "bar" | *"baz"
         }
     },
@@ -29,6 +35,17 @@ lenses: [
             aunion: input.aunion
         }
     },
+    {
+        to: [0, 1]
+        from: [0, 2]
+        input: _
+        result: {
+            aunion: input.aunion
+        }
+    },
 ]
 -- out/bindfail --
-schema 0.1 must be backwards compatible with schema 0.0
+schema 0.2 is not backwards compatible with schema 0.1:
+field aunion not present in {aunion:*"foo" | "bar" | "baz"}:
+    /cue.mod/pkg/github.com/grafana/thema/lineage.cue:234:12
+missing field "aunion"

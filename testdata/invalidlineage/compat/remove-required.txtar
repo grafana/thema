@@ -30,4 +30,6 @@ lin: lenses: [{
 	}
 }]
 -- out/bindfail --
-schema 0.1 must be backwards compatible with schema 0.0
+schema 0.1 is not backwards compatible with schema 0.0:
+field not allowed in closed struct: getsRemoved
+value not an instance

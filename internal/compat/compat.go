@@ -5,9 +5,13 @@ import (
 )
 
 // ThemaCompatible is the canonical Thema algorithm for checking that the
-// cue.Value s is (backwards) compatible with p.
+// [cue.Value] s is (backwards) compatible with p. A nil return indicates
+// compatibility.
+//
+// The behavior of this function is undefined if s and p are not closed
+// structs. TODO check this and error if conditions aren't met
 func ThemaCompatible(p, s cue.Value) error {
-	return s.Subsume(p, cue.Raw(), cue.Schema(), cue.Definitions(true), cue.All(), cue.Final())
+	return s.Subsume(p, cue.Raw(), cue.All())
 }
 
 // type CompatInvariantError struct {
