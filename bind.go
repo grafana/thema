@@ -95,7 +95,7 @@ func (ml *maybeLineage) checkGoValidity(cfg *bindConfig) error {
 		sch.ref = schiter.Value()
 		sch.def = sch.ref.LookupPath(pathSchDef)
 		if previous != nil && !cfg.skipbuggychecks {
-			compaterr := compat.ThemaCompatible(previous.ref.LookupPath(pathSch), sch.ref.LookupPath(pathSch))
+			compaterr := compat.ThemaCompatible(previous.def, sch.def)
 			if sch.v[1] == 0 && compaterr == nil {
 				// Major version change, should be backwards incompatible
 				return errors.Mark(mkerror(sch.ref.LookupPath(pathSch), "schema %s must be backwards incompatible with schema %s: introduce a breaking change, or redeclare as version %s", sch.v, previous.v, synv(previous.v[0], previous.v[1]+1)), terrors.ErrInvalidLineage)

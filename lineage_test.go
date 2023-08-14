@@ -10,6 +10,7 @@ import (
 	"cuelang.org/go/cue/cuecontext"
 	"cuelang.org/go/cue/errors"
 	"cuelang.org/go/cue/load"
+
 	"github.com/grafana/thema/internal/txtartest/vanilla"
 )
 
@@ -64,11 +65,8 @@ func TestInvalidLineages(t *testing.T) {
 		Name:    "bindfail",
 		ThemaFS: CueJointFS,
 		ToDo: map[string]string{
-			"invalidlineage/joindef":                "no invariant checker written to disallow definitions from joinSchema",
-			"invalidlineage/onlydef":                "Lineage schema non-emptiness constraints are temporarily suspended while migrating grafana to flattened lineage structure",
-			"invalidlineage/compat/change-default":  "Thema compat analyzer fails to classify changes to default values as breaking",
-			"invalidlineage/compat/remove-required": "Required field removal is not detected as breaking changes",
-			"invalidlineage/compat/remove-optional": "Optional field removal is not detected as breaking changes",
+			"invalidlineage/joindef": "no invariant checker written to disallow definitions from joinSchema",
+			"invalidlineage/onlydef": "Lineage schema non-emptiness constraints are temporarily suspended while migrating grafana to flattened lineage structure",
 		},
 	}
 

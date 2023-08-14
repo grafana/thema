@@ -1,0 +1,43 @@
+# reducing the permitted options in a union/disjunction is backwards incompatible
+#lineagePath: lin
+-- in.cue --
+
+import "github.com/grafana/thema"
+
+lin: thema.#Lineage
+lin: name: "union-reduction"
+lin: schemas: [{
+    version: [0, 0]
+    schema: {
+        concreteCross: "foo" | "bar" | 42
+        concreteString: "foo" | "bar" | "baz"
+        crossKind3: string | int32 | bytes
+        crossKind2: string | int32
+    }
+},
+{
+    version: [0, 1]
+    schema: {
+        concreteCross: "foo" | 42
+        concreteString: "foo" | "bar"
+        crossKind3: string | int32
+        crossKind2: string
+    }
+}]
+
+lin: lenses: [{
+	from: [0, 1]
+	to: [0, 0]
+	input: _
+	result: {
+        concreteCross: input.concreteCross
+        concreteString: input.concreteString
+        crossKind3: input.crossKind3
+        crossKind2: input.crossKind2
+	}
+}]
+-- out/bindfail --
+schema 0.1 is not backwards compatible with schema 0.0:
+field concreteCross not present in {concreteCross:"foo" | "bar" | 42,concreteString:"foo" | "bar" | "baz",crossKind3:string | >=-2147483648 & <=2147483647 & int | bytes,crossKind2:string | >=-2147483648 & <=2147483647 & int}:
+    /cue.mod/pkg/github.com/grafana/thema/lineage.cue:234:12
+missing field "concreteCross"
