@@ -181,7 +181,7 @@ func assignable(sch cue.Value, T interface{}) error {
 			// just drop the marked/default value, and not indicate an OrOp at all. This is handy,
 			// but unexpected behavior, and it feels dangerous to rely on.
 			_, evals := sval.Expr()
-			if len(evals) != 1 {
+			if len(evals) > 2 {
 				errs[p.String()] = fmt.Errorf("%s: schema is a complex disjunction of list types, may only correspond to interface{}/any", p)
 				return
 			}
