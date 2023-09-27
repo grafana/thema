@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"cuelang.org/go/cue/ast"
 	"cuelang.org/go/cue/ast/astutil"
@@ -24,7 +25,12 @@ func GenerateSchema(sch thema.Schema) (*ast.File, error) {
 	if err != nil {
 		return nil, err
 	}
-	return of.(*ast.File), nil
+
+	astFile := of.(*ast.File)
+	decl := schemaDecls(astFile)
+	astFile.Decls = decl
+
+	return astFile, nil
 }
 
 type schNode struct {
@@ -254,6 +260,65 @@ func (s *schNode) process() {
 			Value: ast.NewString("http://json-schema.org/draft-04/schema#"),
 		})
 	}
+}
+
+// schemaDecls extracts schema declarations from the AST representing OpenAPI document
+func schemaDecls(n ast.Node) []ast.Decl {
+	var decls []ast.Decl
+
+	ast.Walk(n, func(n ast.Node) bool {
+		lit, is := n.(*ast.Field)
+		if !is {
+			return true
+		}
+
+		label, is := lit.Label.(*ast.BasicLit)
+		if !is {
+			return true
+		}
+
+		if label.Value == `"schemas"` {
+			val, is := lit.Value.(*ast.StructLit)
+			if !is {
+				return true
+			}
+
+			decls = val.Elts
+			return false
+		}
+
+		return true
+	}, nil)
+
+	for _, r := range decls {
+		astutil.Apply(r, updateSchemaRef, nil)
+	}
+
+	return decls
+}
+
+// updateSchemaRef fixes in-schema references
+func updateSchemaRef(c astutil.Cursor) bool {
+	lit, is := c.Node().(*ast.Field)
+	if !is {
+		return true
+	}
+
+	label, is := lit.Label.(*ast.BasicLit)
+	if !is {
+		return true
+	}
+
+	if label.Value == `"$ref"` {
+		val, is := lit.Value.(*ast.BasicLit)
+		if !is {
+			return true
+		}
+
+		val.Value = strings.Replace(val.Value, "/components/schemas", "", 1)
+		return true
+	}
+	return true
 }
 
 func scan(p *schNode, n ast.Node) error {

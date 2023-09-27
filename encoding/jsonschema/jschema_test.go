@@ -8,6 +8,7 @@ import (
 	"cuelang.org/go/pkg/encoding/json"
 	"github.com/grafana/thema"
 	"github.com/grafana/thema/exemplars"
+	cuetxtar "github.com/grafana/thema/internal/txtartest"
 	"github.com/xeipuuv/gojsonschema"
 )
 
@@ -17,6 +18,22 @@ var rt = thema.NewRuntime(cuecontext.New())
 func init() {
 	sl.Validate = true
 	sl.Draft = gojsonschema.Draft4
+}
+
+func TestGenerateSchema(t *testing.T) {
+	test := cuetxtar.LineageSuite{
+		Root:             "./testdata",
+		Name:             "generate",
+		IncludeExemplars: false,
+	}
+
+	test.Run(t, func(t *cuetxtar.LineageTest) {
+		lin := t.BindLineage(nil)
+
+		cuetxtar.ForEachSchema(t, lin, func(t *cuetxtar.LineageTest, sch thema.Schema) {
+			t.WriteFileOrErr("output")(GenerateSchema(sch))
+		})
+	})
 }
 
 func TestExemplarExportIsValid(t *testing.T) {
