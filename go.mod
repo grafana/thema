@@ -1,6 +1,6 @@
 module github.com/grafana/thema
 
-go 1.20
+go 1.19
 
 // contains openapi encoder fixes. commented out because impact for
 // most thema CLI uses is minimal, and others (e.g. grafana/grafana)
