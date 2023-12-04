@@ -67,9 +67,11 @@ func TestFilterOnlyCat(t *testing.T) {
 	refs = findComponentRefs(swagger)
 	assert.Len(t, refs, 7)
 
-	assert.NotEmpty(t, swagger.Paths["/cat"], "/cat path should still be in spec")
-	assert.NotEmpty(t, swagger.Paths["/cat"].Get, "GET /cat operation should still be in spec")
-	assert.Empty(t, swagger.Paths["/dog"].Get, "GET /dog should have been removed from spec")
+	paths := swagger.Paths.Map()
+
+	assert.NotEmpty(t, paths["/cat"], "/cat path should still be in spec")
+	assert.NotEmpty(t, paths["/cat"].Get, "GET /cat operation should still be in spec")
+	assert.Empty(t, paths["/dog"].Get, "GET /dog should have been removed from spec")
 
 	pruneUnusedComponents(swagger)
 
@@ -97,9 +99,11 @@ func TestFilterOnlyDog(t *testing.T) {
 
 	assert.Len(t, swagger.Components.Schemas, 5)
 
-	assert.NotEmpty(t, swagger.Paths["/dog"])
-	assert.NotEmpty(t, swagger.Paths["/dog"].Get)
-	assert.Empty(t, swagger.Paths["/cat"].Get)
+	paths := swagger.Paths.Map()
+
+	assert.NotEmpty(t, paths["/dog"])
+	assert.NotEmpty(t, paths["/dog"].Get)
+	assert.Empty(t, paths["/cat"].Get)
 
 	pruneUnusedComponents(swagger)
 

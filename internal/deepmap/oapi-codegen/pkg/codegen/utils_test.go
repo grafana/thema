@@ -44,14 +44,14 @@ func TestSortedSchemaKeys(t *testing.T) {
 }
 
 func TestSortedPathsKeys(t *testing.T) {
-	dict := openapi3.Paths{
-		"f": nil,
-		"c": nil,
-		"b": nil,
-		"e": nil,
-		"d": nil,
-		"a": nil,
-	}
+	dict := openapi3.NewPaths(
+		openapi3.WithPath("f", &openapi3.PathItem{}),
+		openapi3.WithPath("c", &openapi3.PathItem{}),
+		openapi3.WithPath("b", &openapi3.PathItem{}),
+		openapi3.WithPath("e", &openapi3.PathItem{}),
+		openapi3.WithPath("d", &openapi3.PathItem{}),
+		openapi3.WithPath("a", &openapi3.PathItem{}),
+	)
 
 	expected := []string{"a", "b", "c", "d", "e", "f"}
 
@@ -74,7 +74,7 @@ func TestSortedOperationsKeys(t *testing.T) {
 }
 
 func TestSortedResponsesKeys(t *testing.T) {
-	dict := openapi3.Responses{
+	dict := openapi3.ResponseBodies{
 		"f": nil,
 		"c": nil,
 		"b": nil,

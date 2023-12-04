@@ -26,7 +26,7 @@ func walkSwagger(swagger *openapi3.T, doFn func(RefWrapper) (bool, error)) error
 		return nil
 	}
 
-	for _, p := range swagger.Paths {
+	for _, p := range swagger.Paths.Map() {
 		for _, param := range p.Parameters {
 			_ = walkParameterRef(param, doFn)
 		}
@@ -52,7 +52,7 @@ func walkOperation(op *openapi3.Operation, doFn func(RefWrapper) (bool, error)) 
 
 	_ = walkRequestBodyRef(op.RequestBody, doFn)
 
-	for _, response := range op.Responses {
+	for _, response := range op.Responses.Map() {
 		_ = walkResponseRef(response, doFn)
 	}
 
@@ -273,7 +273,7 @@ func walkCallbackRef(ref *openapi3.CallbackRef, doFn func(RefWrapper) (bool, err
 		return nil
 	}
 
-	for _, pathItem := range *ref.Value {
+	for _, pathItem := range ref.Value.Map() {
 		for _, parameter := range pathItem.Parameters {
 			_ = walkParameterRef(parameter, doFn)
 		}

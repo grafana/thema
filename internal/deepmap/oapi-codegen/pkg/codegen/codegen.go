@@ -203,7 +203,7 @@ func Generate(spec *openapi3.T, opts Configuration) (string, error) {
 	if opts.Generate.Strict {
 		var responses []ResponseDefinition
 		if spec.Components != nil {
-			responses, err = GenerateResponseDefinitions("", spec.Components.Responses)
+			responses, err = GenerateResponseBodyDefinitions("", spec.Components.Responses)
 			if err != nil {
 				return "", fmt.Errorf("error generation response definitions for schema: %w", err)
 			}
@@ -512,7 +512,7 @@ func GenerateTypesForParameters(t *template.Template, params map[string]*openapi
 
 // GenerateTypesForResponses generates type definitions for any custom types defined in the
 // components/responses section of the Swagger spec.
-func GenerateTypesForResponses(t *template.Template, responses openapi3.Responses) ([]TypeDefinition, error) {
+func GenerateTypesForResponses(t *template.Template, responses openapi3.ResponseBodies) ([]TypeDefinition, error) {
 	var types []TypeDefinition
 
 	for _, responseName := range SortedResponsesKeys(responses) {
