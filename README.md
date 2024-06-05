@@ -1,5 +1,9 @@
 # Thema
 
+> [!WARNING]
+> This repository is no longer actively maintained or supported.
+> If you are interested in continuing the development of this project, feel free to fork the repository and customize it to your needs.
+
 Thema is a system for writing schemas. Much like JSON Schema or OpenAPI, it is general-purpose and its most obvious application is as an [IDL](https://en.wikipedia.org/wiki/Interface_description_language). However, those systems treat _changing_ schemas as out of scope: a single version of a schema for some object is the atomic unit, and versioning is left to opaque strings in external systems like git or HTTP. Thema, by contrast, makes schema change a first-class system property: the atomic unit is the _set_ of schema for some object, iteratively appended to over time as requirements evolve.
 
 Thema's approach is novel, so an analogy to the familiar may help. ["Branching by abstraction"](https://martinfowler.com/bliki/BranchByAbstraction.html) suggests that you refactor large applications not with long-running VCS branches and big-bang merges, but by letting old and new code live side-by-side on `main`, and choosing between them with logical gates, like [feature flags](https://featureflags.io/feature-flags/). Thema is "schema versioning by abstraction": all versions of a schema live side-by-side on `main`, within logical structures Thema defines.
