@@ -18,7 +18,7 @@ require (
 	github.com/labstack/echo/v4 v4.9.1
 	github.com/matryer/moq v0.2.7
 	github.com/spf13/cobra v1.4.0
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.11.1
 	github.com/xeipuuv/gojsonschema v1.2.0
 	github.com/yalue/merged_fs v1.2.2
 	golang.org/x/mod v0.7.0
