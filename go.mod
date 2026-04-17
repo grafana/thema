@@ -10,7 +10,7 @@ replace cuelang.org/go => github.com/grafana/cue v0.0.0-20230926092038-971951014
 require (
 	cuelang.org/go v0.5.0
 	github.com/cockroachdb/errors v1.9.1
-	github.com/dave/dst v0.27.2
+	github.com/dave/dst v0.27.4
 	github.com/getkin/kin-openapi v0.115.0
 	github.com/golangci/lint-1 v0.0.0-20181222135242-d2cdd8c08219
 	github.com/google/go-cmp v0.5.8
