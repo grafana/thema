@@ -13,7 +13,7 @@ require (
 	github.com/dave/dst v0.27.2
 	github.com/getkin/kin-openapi v0.115.0
 	github.com/golangci/lint-1 v0.0.0-20181222135242-d2cdd8c08219
-	github.com/google/go-cmp v0.5.8
+	github.com/google/go-cmp v0.6.0
 	github.com/grafana/cuetsy v0.1.11
 	github.com/labstack/echo/v4 v4.9.1
 	github.com/matryer/moq v0.2.7
@@ -36,7 +36,7 @@ require (
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
 	github.com/go-openapi/swag v0.21.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b // indirect
+	github.com/golang/glog v1.2.4 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/invopop/yaml v0.1.0 // indirect
