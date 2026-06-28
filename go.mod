@@ -1,6 +1,6 @@
 module github.com/grafana/thema
 
-go 1.19
+go 1.25.0
 
 // contains openapi encoder fixes. commented out because impact for
 // most thema CLI uses is minimal, and others (e.g. grafana/grafana)
@@ -13,7 +13,7 @@ require (
 	github.com/dave/dst v0.27.2
 	github.com/getkin/kin-openapi v0.115.0
 	github.com/golangci/lint-1 v0.0.0-20181222135242-d2cdd8c08219
-	github.com/google/go-cmp v0.5.8
+	github.com/google/go-cmp v0.6.0
 	github.com/grafana/cuetsy v0.1.11
 	github.com/labstack/echo/v4 v4.9.1
 	github.com/matryer/moq v0.2.7
@@ -21,9 +21,9 @@ require (
 	github.com/stretchr/testify v1.8.1
 	github.com/xeipuuv/gojsonschema v1.2.0
 	github.com/yalue/merged_fs v1.2.2
-	golang.org/x/mod v0.7.0
-	golang.org/x/text v0.7.0
-	golang.org/x/tools v0.3.0
+	golang.org/x/mod v0.37.0
+	golang.org/x/text v0.38.0
+	golang.org/x/tools v0.47.0
 )
 
 require (
@@ -62,9 +62,10 @@ require (
 	github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	github.com/xlab/treeprint v1.1.0 // indirect
-	golang.org/x/crypto v0.1.0 // indirect
-	golang.org/x/net v0.7.0 // indirect
-	golang.org/x/sys v0.5.0 // indirect
+	golang.org/x/crypto v0.53.0 // indirect
+	golang.org/x/net v0.56.0 // indirect
+	golang.org/x/sync v0.21.0 // indirect
+	golang.org/x/sys v0.46.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
