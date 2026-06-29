@@ -1,6 +1,6 @@
 module github.com/grafana/thema
 
-go 1.19
+go 1.25.0
 
 // contains openapi encoder fixes. commented out because impact for
 // most thema CLI uses is minimal, and others (e.g. grafana/grafana)
@@ -64,7 +64,7 @@ require (
 	github.com/xlab/treeprint v1.1.0 // indirect
 	golang.org/x/crypto v0.1.0 // indirect
 	golang.org/x/net v0.7.0 // indirect
-	golang.org/x/sys v0.5.0 // indirect
+	golang.org/x/sys v0.44.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
