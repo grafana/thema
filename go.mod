@@ -8,7 +8,7 @@ go 1.19
 replace cuelang.org/go => github.com/grafana/cue v0.0.0-20230926092038-971951014e3f
 
 require (
-	cuelang.org/go v0.5.0
+	cuelang.org/go v0.17.1
 	github.com/cockroachdb/errors v1.9.1
 	github.com/dave/dst v0.27.2
 	github.com/getkin/kin-openapi v0.115.0
